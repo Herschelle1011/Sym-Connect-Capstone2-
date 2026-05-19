@@ -1,0 +1,92 @@
+﻿@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Profile";
+}
+
+@* Views/Account/Profile.cshtml *@
+
+
+
+<div class="profile-wrapper">
+    <h1 class="profile-heading">
+        Profile Dashboard
+        <span class="test-badge">⚗ Testing</span>
+    </h1>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="upload-card">
+
+        <!-- Avatar Preview -->
+        <div class="avatar-preview-ring">
+            <div class="avatar-ring" id="avatarRing">
+                <img id="avatarPreview" src="#" alt="Preview" />
+                <div class="avatar-placeholder" id="avatarPlaceholder">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Preview
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="UploadProfilePicture"
+              asp-controller="Admin"
+              method="post"
+              enctype="multipart/form-data"
+              id="uploadForm">
+            @Html.AntiForgeryToken()
+
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+                <input type="file"
+                       name="profilePicture"
+                       id="profilePicture"
+                       accept="image/jpeg,image/png,image/webp" />
+                <span class="drop-zone-icon">📸</span>
+                <div class="drop-zone-label">Drop your photo here, or click to browse</div>
+                <div class="drop-zone-sub">Supports JPEG, PNG, WebP</div>
+            </div>
+
+            <!-- File info bar (shown after selection) -->
+            <div class="file-info-bar" id="fileInfoBar">
+                <div class="file-info-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c6af7" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                </div>
+                <div class="file-info-details">
+                    <div class="file-info-name" id="fileName">—</div>
+                    <div class="file-info-size" id="fileSize">—</div>
+                </div>
+                <button type="button" class="file-info-remove" id="clearFile" title="Remove">✕</button>
+            </div>
+
+            <!-- Validation message -->
+            <div class="validation-msg" id="validationMsg"></div>
+
+            <!-- Format / size hints -->
+            <div class="upload-hints">
+                <span class="hint-chip">JPEG · PNG · WebP</span>
+                <span class="hint-chip">Max 5 MB</span>
+                <span class="hint-chip">Min 100 × 100 px</span>
+            </div>
+
+            <button type="submit" class="btn-upload" id="submitBtn" disabled>
+                Upload Photo
+            </button>
+        </form>
+    </div>
+</div>
+
+

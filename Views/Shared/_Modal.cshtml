@@ -1,0 +1,28 @@
+﻿<!-- Views/Shared/_Modal.cshtml -->
+<!-- Reusable modal shell — works for ANY form -->
+
+<div class="modal fade" id="appModal" tabindex="-1"
+     aria-labelledby="appModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+
+            <!-- Header -->
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title"
+                    id="appModalLabel"
+                    style="font-size: 16px; font-weight: 500;">
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+
+            <!-- Body — content loads here dynamically -->
+            <div class="modal-body" id="appModalBody">
+            </div>
+
+        </div>
+    </div>
+</div>

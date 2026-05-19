@@ -1,0 +1,405 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.GroupViewModel.GroupDetailsViewModel
+@{
+    ViewData["Title"] = "Group Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid py-4">
+
+    @* {{-- Group Name + Member Count --}} *@
+    <div class="d-flex align-items-center gap-3 mb-3">
+
+        @* {{-- Back button --}} *@
+        <a asp-action="Index"
+           style="color:#6b7280; font-size:20px; text-decoration:none;"
+           title="Back to Groups">
+            <i class="ti ti-arrow-left"></i>
+        </a>
+
+        <h1 class="fs-4 fw-medium mb-0">@Model.GroupName</h1>
+        <div class="d-flex align-items-center gap-1 px-2 py-1"
+             style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
+            <i class="ti ti-crown" style="color:#f59e0b; font-size:14px;"></i>
+            <span class="fw-medium" style="font-size:13px;">@Model.TotalMembers</span>
+            <span class="text-muted" style="font-size:11px;">members</span>
+        </div>
+    </div>
+
+    @* {{-- Leader Info --}} *@
+    <div class="d-flex align-items-start gap-3 mb-4">
+
+        @* {{-- Leader Avatar --}} *@
+        <div style="width:56px; height:56px; border-radius:50%;
+                    background:#dbeafe; color:#1e40af;
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:16px; font-weight:500; flex-shrink:0;">
+            @(Model.LeaderName.Length >= 2
+                        ? Model.LeaderName.Substring(0, 2).ToUpper()
+                        : Model.LeaderName.ToUpper())
+        </div>
+
+        <div>
+            @* {{-- Name + Status --}} *@
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="fw-medium" style="font-size:16px;">@Model.LeaderName</span>
+                @if (Model.Status == "Active")
+                {
+                    <span style="background:#dcfce7; color:#166534;
+                                     font-size:11px; padding:3px 10px;
+                                     border-radius:99px;">
+                        Active
+                    </span>
+                }
+                else
+                {
+                    <span style="background:#fee2e2; color:#991b1b;
+                                     font-size:11px; padding:3px 10px;
+                                     border-radius:99px;">
+                        Inactive
+                    </span>
+                }
+            </div>
+
+            @* {{-- Email + Contact --}} *@
+            <div class="d-flex gap-3 mb-2">
+                <span class="text-muted" style="font-size:13px;">
+                    <i class="ti ti-mail" style="font-size:14px;"></i>
+                    @Model.LeaderEmail
+                </span>
+                <span class="text-muted" style="font-size:13px;">
+                    <i class="ti ti-phone" style="font-size:14px;"></i>
+                    @Model.LeaderContact
+                </span>
+            </div>
+
+            @* {{-- Description --}} *@
+            <p class="text-muted mb-0" style="font-size:13px;">
+                <strong>Description</strong><br />
+                @Model.Description
+            </p>
+        </div>
+    </div>
+
+    @* {{-- Filter Tabs + Buttons --}} *@
+    @{
+        var totalCount = Model.Members.Count;
+        var activeCount = Model.Members.Count(m => m.Status == "Active");
+        var inactiveCount = Model.Members.Count(m => m.Status == "Inactive");
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex gap-2">
+            <button class="tab-btn active"
+                    onclick="filterMembers('all', this)">
+                All (@totalCount)
+            </button>
+            <button class="tab-btn"
+                    onclick="filterMembers('Active', this)">
+                Active (@activeCount)
+            </button>
+            <button class="tab-btn"
+                    onclick="filterMembers('Inactive', this)">
+                Inactive (@inactiveCount)
+            </button>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm">
+                <i class="ti ti-filter"></i> Filter
+            </button>
+            <button class="btn btn-outline-secondary btn-sm">
+                <i class="ti ti-calendar"></i> Date
+            </button>
+
+            @* {{-- Add Member — wire this to your AddMember action later --}} *@
+            <button class="btn btn-primary btn-sm" onclick="openAddMemberModal()">
+                <i class="ti ti-plus"></i> Add Member
+            </button>
+        </div>
+    </div>
+
+    @* {{-- Members Table --}} *@
+    <div style="border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+        <table class="table members-table mb-0">
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Contact Number</th>
+                    <th class="text-center">Status</th>
+                    <th>Joined Date</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="membersBody">
+                @foreach (var member in Model.Members)
+                {
+                    <tr data-status="@member.Status">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar">
+                                    @(member.FullName.Length >= 2
+                                                                    ? member.FullName.Substring(0, 2).ToUpper()
+                                                                    : member.FullName.ToUpper())
+                                </div>
+                                @member.FullName
+                            </div>
+                        </td>
+                        <td class="text-muted">@member.Email</td>
+                        <td class="text-muted">@member.ContactNumber</td>
+                        <td class="text-center">
+                            @if (member.Status == "Active")
+                            {
+                                <span style="background:#dcfce7; color:#166534;
+                                                     font-size:11px; padding:3px 10px;
+                                                     border-radius:99px;">
+                                    Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="background:#fee2e2; color:#991b1b;
+                                                     font-size:11px; padding:3px 10px;
+                                                     border-radius:99px;">
+                                    Inactive
+                                </span>
+                            }
+                        </td>
+                        <td class="text-muted">
+                            @member.DateRegistered.ToString("MMMM dd, yyyy")
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-3">
+                                <a asp-action="EditMember"
+                                   asp-route-id="@member.MemberId"
+                                   style="color:#2563eb;">
+                                    <i class="ti ti-edit" style="font-size:16px;"></i>
+                                </a>
+                                <a asp-action="DeleteMember"
+                                   asp-route-id="@member.MemberId"
+                                   style="color:#dc2626;">
+                                    <i class="ti ti-trash" style="font-size:16px;"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+@* ===== ADD MEMBER MODAL ===== *@
+<div id="addMemberModal"
+     style="display:none; position:fixed; inset:0; z-index:1050;
+                background:rgba(0,0,0,0.45);
+                align-items:center; justify-content:center;">
+
+    <div style="background:#fff; border-radius:16px; padding:1.5rem;
+                    width:100%; max-width:460px; margin:auto; position:relative;">
+
+        @* Header *@
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h5 style="margin:0; font-weight:500;">Add members</h5>
+            <button onclick="closeAddMemberModal()"
+                    style="background:none; border:none; font-size:20px; cursor:pointer; color:#6b7280;">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+
+        @* Search Input *@
+        <div style="display:flex; align-items:center; gap:8px;
+                        border:1px solid #e5e7eb; border-radius:10px;
+                        padding:8px 12px; margin-bottom:10px;">
+            <i class="ti ti-search" style="color:#9ca3af;"></i>
+            <input id="memberSearchInput"
+                   type="text"
+                   placeholder="Search name or email..."
+                   oninput="searchMembers(this.value)"
+                   style="border:none; outline:none; width:100%; font-size:14px;" />
+        </div>
+
+        @* Selected Tags *@
+        <div id="selectedTags"
+             style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; min-height:28px;">
+        </div>
+
+        @* Search Results *@
+        <div id="searchResults"
+             style="border:1px solid #e5e7eb; border-radius:10px;
+                        overflow:hidden; max-height:220px; overflow-y:auto;">
+            <div id="searchPlaceholder"
+                 style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">
+                Start typing to search members...
+            </div>
+        </div>
+
+        @* Confirm Button — posts to your controller *@
+        <form method="post"
+              asp-action="AddMemberToGroup"
+              asp-controller="Groups"
+              id="addMemberForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="groupId" value="@Model.GroupId" />
+            <div id="hiddenMemberInputs"></div>
+            <button type="submit"
+                    id="confirmAddBtn"
+                    disabled
+                    style="width:100%; margin-top:12px; padding:10px;
+                               background:#2563eb; color:#fff; border:none;
+                               border-radius:10px; font-size:14px; font-weight:500;
+                               cursor:pointer; opacity:0.5;">
+                Add 0 members to group
+            </button>
+        </form>
+    </div>
+</div>
+
+@* {{-- Filter Script --}} *@
+<script>
+    function filterMembers(status, btn) {
+        document.querySelectorAll('.tab-btn')
+            .forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('#membersBody tr').forEach(row => {
+            row.style.display =
+                (status === 'all' || row.dataset.status === status)
+                    ? '' : 'none';
+        });
+    }
+
+
+
+    // --------------------------------------TO BE SEPARATED JAVASCRIPT CODE ---------------------------------------------------------------//
+
+
+    @* ===== MODAL JAVASCRIPT ===== *@
+
+        // Tracks selected members: { id, fullName }
+        let selectedMembers = [];
+        const groupId = @Model.GroupId;
+
+        function openAddMemberModal() {
+            selectedMembers = [];
+            document.getElementById('memberSearchInput').value = '';
+            document.getElementById('searchResults').innerHTML =
+                '<div id="searchPlaceholder" style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">Start typing to search members...</div>';
+            renderTags();
+            updateConfirmBtn();
+            document.getElementById('addMemberModal').style.display = 'flex';
+        }
+
+        function closeAddMemberModal() {
+            document.getElementById('addMemberModal').style.display = 'none';
+        }
+
+        // Debounce — waits 300ms after user stops typing before calling server
+        // Think of it like waiting for someone to finish their sentence before replying
+        let searchTimer;
+        function searchMembers(query) {
+            clearTimeout(searchTimer);
+            if (query.length < 1) {
+                document.getElementById('searchResults').innerHTML =
+                    '<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">Start typing to search members...</div>';
+                return;
+            }
+            searchTimer = setTimeout(() => fetchMembers(query), 300);
+        }
+
+        // Calls your SearchMembers controller action
+        function fetchMembers(query) {
+            fetch(`/Groups/SearchMembers?query=${encodeURIComponent(query)}&groupId=${groupId}`)
+                .then(r => r.json())
+                .then(members => renderResults(members));
+        }
+
+        function renderResults(members) {
+            const container = document.getElementById('searchResults');
+
+            if (members.length === 0) {
+                container.innerHTML = '<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">No members found.</div>';
+                return;
+            }
+
+            container.innerHTML = members.map(m => {
+                const initials = m.fullName.substring(0, 2).toUpperCase();
+                const isSelected = selectedMembers.some(s => s.id === m.memberId);
+                const checkIcon = isSelected
+                    ? '<i class="ti ti-circle-check" style="color:#16a34a;font-size:18px;"></i>'
+                    : '<i class="ti ti-circle" style="color:#d1d5db;font-size:18px;"></i>';
+
+                return `
+                    <div onclick="toggleMember(${m.memberId}, '${m.fullName.replace(/'/g, "\\'")}')"
+                         style="display:flex;align-items:center;gap:10px;
+                                padding:10px 14px;cursor:pointer;
+                                border-bottom:1px solid #f3f4f6;
+                                background:${isSelected ? '#f0fdf4' : '#fff'}">
+                        <div style="width:36px;height:36px;border-radius:50%;
+                                    background:#dbeafe;color:#1e40af;
+                                    display:flex;align-items:center;justify-content:center;
+                                    font-size:12px;font-weight:500;flex-shrink:0;">
+                            ${initials}
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:13px;font-weight:500;">${m.fullName}</div>
+                            <div style="font-size:11px;color:#6b7280;">${m.email}</div>
+                        </div>
+                        ${checkIcon}
+                    </div>`;
+            }).join('');
+        }
+
+        // Toggle: if already selected → remove, if not → add
+        function toggleMember(id, fullName) {
+            const exists = selectedMembers.findIndex(m => m.id === id);
+            if (exists >= 0) {
+                selectedMembers.splice(exists, 1); // remove
+            } else {
+                selectedMembers.push({ id, fullName }); // add
+            }
+            renderTags();
+            updateConfirmBtn();
+            // Re-render results to update checkmarks
+            fetchMembers(document.getElementById('memberSearchInput').value);
+        }
+
+        // Shows the purple tag chips at the top
+        function renderTags() {
+            const container = document.getElementById('selectedTags');
+            container.innerHTML = selectedMembers.map(m => `
+                <span style="display:inline-flex;align-items:center;gap:4px;
+                             background:#ede9fe;color:#5b21b6;
+                             border-radius:99px;padding:4px 10px;font-size:12px;font-weight:500;">
+                    ${m.fullName}
+                    <i class="ti ti-x" onclick="toggleMember(${m.id}, '${m.fullName.replace(/'/g, "\\'")}')"
+                       style="cursor:pointer;font-size:11px;"></i>
+                </span>`).join('');
+
+            // Build hidden inputs so the form submits all selected memberIds
+            document.getElementById('hiddenMemberInputs').innerHTML =
+                selectedMembers.map(m =>
+                    `<input type="hidden" name="memberIds" value="${m.id}" />`
+                ).join('');
+        }
+
+        // Updates the confirm button text + enabled state
+        function updateConfirmBtn() {
+            const btn = document.getElementById('confirmAddBtn');
+            const count = selectedMembers.length;
+            btn.textContent = count === 0
+                ? 'Add 0 members to group'
+                : `Add ${count} member${count > 1 ? 's' : ''} to group`;
+            btn.disabled = count === 0;
+            btn.style.opacity = count === 0 ? '0.5' : '1';
+            btn.style.cursor = count === 0 ? 'default' : 'pointer';
+        }
+
+        // Close modal if user clicks the dark background
+        document.getElementById('addMemberModal')
+            .addEventListener('click', function (e) {
+                if (e.target === this) closeAddMemberModal();
+            });
+
+</script>

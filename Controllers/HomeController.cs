@@ -1,16 +1,22 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Models;
+
 using System.Diagnostics;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
+    //[Authorize]
+    [AllowAnonymous] //TEMPORARY - REMOVE THIS LATER
     public class HomeController : Controller
     {
+        [Authorize]
         public IActionResult Index()
         {
             return View();
         }
 
+        [Authorize]
         public IActionResult Privacy()
         {
             return View();

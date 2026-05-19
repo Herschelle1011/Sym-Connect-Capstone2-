@@ -1,0 +1,188 @@
+﻿
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    height: 100vh;
+    background-image: url('/images/background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ── Card ── */
+.login-card {
+    border-radius: 18px;
+    padding: 40px 36px 32px;
+    width: 100%;
+    max-width: 400px;
+    margin-left: -50px;
+
+}
+
+    .login-card h2 {
+        text-align: center;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 28px;
+        letter-spacing: 0.5px;
+        color: #ffffff;
+    }
+
+/* ── Input groups ── */
+.input-group-custom {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+    .input-group-custom .input-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8fa3c0;
+        font-size: 15px;
+        pointer-events: none;
+    }
+
+    .input-group-custom input {
+        width: 100%;
+        background: rgba(10, 20, 45, 0.75);
+        border: 1.5px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        color: #e8f0ff;
+        font-size: 0.92rem;
+        padding: 13px 14px 13px 40px;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.25s;
+    }
+
+        .input-group-custom input::placeholder {
+            color: #5a7090;
+        }
+
+        .input-group-custom input:focus {
+            border-color: #2d8cff;
+            background: rgba(10, 20, 55, 0.9);
+        }
+
+/* ── Remember me + Forgot password row ── */
+.login-extras {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+    font-size: 0.82rem;
+}
+
+    .login-extras label {
+        color: #8fa3c0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .login-extras input[type="checkbox"] {
+        accent-color: #2d8cff;
+        width: 14px;
+        height: 14px;
+    }
+
+    .login-extras a {
+        color: #2d8cff;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+        .login-extras a:hover {
+            color: #60aaff;
+            text-decoration: underline;
+        }
+
+/* ── Sign In button ── */
+.btn-signin {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #1a6fd4 0%, #2d8cff 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.15s, box-shadow 0.25s;
+    box-shadow: 0 4px 18px rgba(45, 140, 255, 0.35);
+}
+
+    .btn-signin:hover {
+        background: linear-gradient(135deg, #1560bb 0%, #1a78ef 100%);
+        box-shadow: 0 6px 24px rgba(45, 140, 255, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .btn-signin:active {
+        transform: translateY(0);
+    }
+
+/* ── Bottom links ── */
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.83rem;
+    color: #8fa3c0;
+}
+
+    .login-footer a {
+        color: #2d8cff;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+
+        .login-footer a:hover {
+            color: #60aaff;
+            text-decoration: underline;
+        }
+
+/* ── Validation ── */
+.text-danger {
+    color: #ff6b6b !important;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    display: block;
+}
+
+/* ── External logins (kept minimal, below card if needed) ── */
+.external-login-section {
+    margin-top: 16px;
+    text-align: center;
+}
+
+    .external-login-section .btn-external {
+        display: inline-block;
+        margin: 4px;
+        padding: 8px 20px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: #ccd9f0;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .external-login-section .btn-external:hover {
+            background: rgba(255,255,255,0.15);
+        }
+

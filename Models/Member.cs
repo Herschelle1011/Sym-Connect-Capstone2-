@@ -1,0 +1,53 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Sym_Connect__Capstone2_.Models
+{
+    public class Member
+    {
+        [Key]
+        public int MemberId { get; set; }
+
+        [Required]
+        public string FirstName { get; set; } = string.Empty;
+        public string? MiddleName { get; set; } = string.Empty;
+        [Required]
+        public string LastName { get; set; } = string.Empty;
+
+        [NotMapped]
+        public string FullName
+        {
+            get
+            {
+                return $"{FirstName} {(string.IsNullOrWhiteSpace(MiddleName) ? "" : MiddleName + " ")}{LastName}";
+            }
+        }
+
+        [EmailAddress]
+        [Required]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        public string ContactNumber { get; set; } = string.Empty;
+        public string? Address { get; set; } = string.Empty;
+        [Required]
+        public DateTime BirthDate { get; set; }
+
+        [Required]
+        public string Gender { get; set; } = string.Empty;
+        
+        [Required]
+        public string Status { get; set; } = "Active";
+
+        public DateTime DateRegistered { get; set; } = DateTime.Now;
+
+        [NotMapped]
+        public DateTime DateJoined { get; set; } = DateTime.Now;
+
+
+        public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
+
+
+
+    }
+}
