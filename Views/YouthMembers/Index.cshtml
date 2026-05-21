@@ -5,275 +5,6 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<style>
-    :root {
-        --primary: #0089D9;
-        --primary-light: #e6f4fc;
-        --status-active-text: #63C700;
-        --status-active-bg: #edfad6;
-        --status-active-border: #7BC524;
-        --status-inactive-text: #FE0000;
-        --status-inactive-bg: #ffe5e5;
-        --status-inactive-border: #FE0000;
-        --table-header-bg: #0089D9;
-        --table-header-color: #ffffff;
-        --border-color: #e4e8f0;
-        --text-main: #1a2340;
-        --text-muted: #7a869a;
-        --bg-page: #f5f7fb;
-        --radius: 10px;
-    }
-
-    .member-page {
-        padding: 28px 32px;
-        background: var(--bg-page);
-        min-height: 100vh;
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-    .page-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 22px;
-    }
-
-    .page-title-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .back-btn {
-        background: none;
-        border: none;
-        font-size: 22px;
-        color: var(--text-main);
-        cursor: pointer;
-        padding: 0;
-        line-height: 1;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-    }
-
-    .page-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text-main);
-        margin: 0;
-    }
-
-    .btn-add {
-        background: var(--primary);
-        color: #fff;
-        border: none;
-        border-radius: var(--radius);
-        padding: 10px 22px;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        transition: background 0.2s;
-    }
-
-        .btn-add:hover {
-            background: #0078c2;
-            color: #fff;
-        }
-
-    .filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 18px;
-        flex-wrap: wrap;
-    }
-
-    .filter-tabs {
-        display: flex;
-        gap: 8px;
-    }
-
-    .filter-tab {
-        border: 1.5px solid var(--border-color);
-        background: #fff;
-        color: var(--text-main);
-        border-radius: 20px;
-        padding: 6px 18px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.18s;
-    }
-
-        .filter-tab.active-tab,
-        .filter-tab:hover {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-    .spacer {
-        flex: 1;
-    }
-
-    .search-box {
-        display: flex;
-        align-items: center;
-        background: #fff;
-        border: 1.5px solid var(--border-color);
-        border-radius: var(--radius);
-        padding: 7px 14px;
-        gap: 8px;
-    }
-
-        .search-box input {
-            border: none;
-            outline: none;
-            font-size: 13px;
-            color: var(--text-main);
-            background: transparent;
-            width: 180px;
-        }
-
-        .search-box i {
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-
-    .btn-filter,
-    .btn-date {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border: 1.5px solid var(--border-color);
-        background: #fff;
-        border-radius: var(--radius);
-        padding: 7px 16px;
-        font-size: 13px;
-        color: var(--text-main);
-        cursor: pointer;
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-        .btn-filter:hover,
-        .btn-date:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-    .table-card {
-        background: #fff;
-        border-radius: var(--radius);
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .members-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 13.5px;
-    }
-
-        .members-table thead tr {
-            background: var(--table-header-bg);
-        }
-
-        .members-table thead th {
-            color: var(--table-header-color);
-            font-weight: 600;
-            padding: 13px 14px;
-            text-align: left;
-            white-space: nowrap;
-            font-size: 13px;
-        }
-
-        .members-table tbody tr {
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.15s;
-        }
-
-            .members-table tbody tr:hover {
-                background: var(--primary-light);
-            }
-
-        .members-table tbody td {
-            padding: 12px 14px;
-            color: var(--text-main);
-            vertical-align: middle;
-            white-space: nowrap;
-        }
-
-    .badge-status {
-        display: inline-block;
-        padding: 4px 14px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        text-align: center;
-        min-width: 72px;
-    }
-
-    .badge-active {
-        color: var(--status-active-text);
-        background: var(--status-active-bg);
-        border: 1.5px solid var(--status-active-border);
-    }
-
-    .badge-inactive {
-        color: var(--status-inactive-text);
-        background: var(--status-inactive-bg);
-        border: 1.5px solid var(--status-inactive-border);
-    }
-
-    .action-cell {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .btn-icon {
-        background: none;
-        border: none;
-        padding: 4px;
-        cursor: pointer;
-        border-radius: 6px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s;
-        font-size: 17px;
-    }
-
-    .btn-edit {
-        color: #0089D9;
-    }
-
-        .btn-edit:hover {
-            background: #e6f4fc;
-        }
-
-    .btn-delete {
-        color: #FE0000;
-    }
-
-        .btn-delete:hover {
-            background: #ffe5e5;
-        }
-
-    .empty-row td {
-        text-align: center;
-        color: var(--text-muted);
-        padding: 40px;
-        font-size: 14px;
-    }
-</style>
 
 <div class="member-page">
 
@@ -390,7 +121,19 @@
                     }
                 }
             </tbody>
-        </table>
+        </table>    
+        <!-- Pagination bar -->
+        <div style="display:flex; align-items:center; justify-content:space-between;
+                    padding:12px 16px; border-top:1px solid var(--border-color);
+                    font-size:13px; color:var(--text-muted);">
+
+            <span id="pageInfo"></span>
+
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button id="prevBtn" class="btn-filter">← Prev</button>
+                <span id="pageNum" style="min-width:90px; text-align:center;"></span>
+                <button id="nextBtn" class="btn-filter">Next →</button>
+            </div>
     </div>
 </div>
 
@@ -399,60 +142,9 @@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
+ 
+    <script src="~/js/membersTable.js"></script>
+
     }
 
-    <script>
-        document.querySelectorAll(".open-modal").forEach(button => {
-            button.addEventListener("click", async function () {
-                const url = this.getAttribute("data-url");
-                const title = this.getAttribute("data-title");
-
-                document.getElementById("appModalLabel").innerText = title;
-
-                const response = await fetch(url);
-                const html = await response.text();
-
-                document.getElementById("appModalBody").innerHTML = html;
-
-                const modal = new bootstrap.Modal(document.getElementById("appModal"));
-                modal.show();
-
-                if (window.jQuery && $.validator) {
-                    $.validator.unobtrusive.parse("#appModalBody");
-                }
-            });
-        });
-
-        const searchInput = document.getElementById("searchInput");
-        const statusButtons = document.querySelectorAll(".filter-tab");
-        const rows = document.querySelectorAll("#membersTable tbody tr:not(.empty-row)");
-
-        let currentStatus = "all";
-
-        function filterRows() {
-            const query = searchInput.value.toLowerCase();
-
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                const rowStatus = row.getAttribute("data-status");
-
-                const matchesSearch = text.includes(query);
-                const matchesStatus = currentStatus === "all" || rowStatus === currentStatus;
-
-                row.style.display = matchesSearch && matchesStatus ? "" : "none";
-            });
-        }
-
-        searchInput.addEventListener("input", filterRows);
-
-        statusButtons.forEach(button => {
-            button.addEventListener("click", function () {
-                statusButtons.forEach(btn => btn.classList.remove("active-tab"));
-                this.classList.add("active-tab");
-
-                currentStatus = this.getAttribute("data-status");
-                filterRows();
-            });
-        });
-    </script>
 }

@@ -131,57 +131,89 @@
                 </tr>
             </thead>
             <tbody id="membersBody">
-                @foreach (var member in Model.Members)
+                @if (!Model.Members.Any())
                 {
-                    <tr data-status="@member.Status">
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <div class="avatar">
-                                    @(member.FullName.Length >= 2
-                                                                    ? member.FullName.Substring(0, 2).ToUpper()
-                                                                    : member.FullName.ToUpper())
+                    <tr id="emptyRow">
+                        <td colspan="6">
+                            <div style="display:flex; flex-direction:column; align-items:center;
+                                justify-content:center; padding:60px 20px; gap:12px;">
+
+                                <div style="width:64px; height:64px; border-radius:50%;
+                                    background:#eff6ff; display:flex;
+                                    align-items:center; justify-content:center;">
+                                    <i class="ti ti-users" style="font-size:28px; color:#93c5fd;"></i>
                                 </div>
-                                @member.FullName
-                            </div>
-                        </td>
-                        <td class="text-muted">@member.Email</td>
-                        <td class="text-muted">@member.ContactNumber</td>
-                        <td class="text-center">
-                            @if (member.Status == "Active")
-                            {
-                                <span style="background:#dcfce7; color:#166534;
-                                                     font-size:11px; padding:3px 10px;
-                                                     border-radius:99px;">
-                                    Active
-                                </span>
-                            }
-                            else
-                            {
-                                <span style="background:#fee2e2; color:#991b1b;
-                                                     font-size:11px; padding:3px 10px;
-                                                     border-radius:99px;">
-                                    Inactive
-                                </span>
-                            }
-                        </td>
-                        <td class="text-muted">
-                            @member.DateRegistered.ToString("MMMM dd, yyyy")
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-3">
-                                <a asp-action="EditMember"
-                                   asp-route-id="@member.MemberId"
-                                   style="color:#2563eb;">
-                                    <i class="ti ti-edit" style="font-size:16px;"></i>
-                                </a>
-                                <a asp-action="DeleteMember"
-                                   asp-route-id="@member.MemberId"
-                                   style="color:#dc2626;">
-                                    <i class="ti ti-trash" style="font-size:16px;"></i>
-                                </a>
+
+                                <p style="font-size:15px; font-weight:500; color:#111827; margin:0;">
+                                    No members yet
+                                </p>
+
+                                <p style="font-size:13px; color:#9ca3af; margin:0; text-align:center;">
+                                    This group has no members. Start by adding one.
+                                </p>
+
+                                <button onclick="openAddMemberModal()"
+                                        style="margin-top:4px; padding:8px 20px;
+                                       background:#2563eb; color:#fff; border:none;
+                                       border-radius:8px; font-size:13px;
+                                       font-weight:500; cursor:pointer;">
+                                    <i class="ti ti-plus"></i> Add Member
+                                </button>
+
                             </div>
                         </td>
                     </tr>
+                }
+                else
+                {
+                    @foreach (var member in Model.Members)
+                    {
+                        <tr data-status="@member.Status">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar">
+                                        @(member.FullName.Length >= 2
+                                                                        ? member.FullName.Substring(0, 2).ToUpper()
+                                                                        : member.FullName.ToUpper())
+                                    </div>
+                                    @member.FullName
+                                </div>
+                            </td>
+                            <td class="text-muted">@member.Email</td>
+                            <td class="text-muted">@member.ContactNumber</td>
+                            <td class="text-center">
+                                @if (member.Status == "Active")
+                                {
+                                    <span style="background:#dcfce7; color:#166534;
+                                                 font-size:11px; padding:3px 10px;
+                                                 border-radius:99px;">Active</span>
+                                }
+                                else
+                                {
+                                    <span style="background:#fee2e2; color:#991b1b;
+                                                 font-size:11px; padding:3px 10px;
+                                                 border-radius:99px;">Inactive</span>
+                                }
+                            </td>
+                            <td class="text-muted">
+                                @member.DateRegistered.ToString("MMMM dd, yyyy")
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-3">
+                                    <a asp-action="EditMember"
+                                       asp-route-id="@member.MemberId"
+                                       style="color:#2563eb;">
+                                        <i class="ti ti-edit" style="font-size:16px;"></i>
+                                    </a>
+                                    <a asp-action="DeleteMember"
+                                       asp-route-id="@member.MemberId"
+                                       style="color:#dc2626;">
+                                        <i class="ti ti-trash" style="font-size:16px;"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                 }
             </tbody>
         </table>
@@ -258,12 +290,14 @@
 
 @* {{-- Filter Script --}} *@
 <script>
-    function filterMembers(status, btn) {
+        function filterMembers(status, btn) {
         document.querySelectorAll('.tab-btn')
             .forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        document.querySelectorAll('#membersBody tr').forEach(row => {
+        const rows = document.querySelectorAll('#membersBody tr:not(#emptyRow)');
+
+        rows.forEach(row => {
             row.style.display =
                 (status === 'all' || row.dataset.status === status)
                     ? '' : 'none';
