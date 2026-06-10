@@ -40,5 +40,19 @@ namespace Sym_Connect__Capstone2_.Services
             await _cloudinary.DestroyAsync(deleteParams);
         }
 
+        public async Task <string> UploadFacilityPhotoAsync(IFormFile file, string facilityName)
+        {
+            await using var stream = file.OpenReadStream();
+            var uploadParams = new ImageUploadParams
+            {
+                File = new FileDescription(file.FileName, stream),
+                PublicId = $"facilities/{facilityName}/{Guid.NewGuid()}", // organized folder
+                Overwrite = false  // don't overwrite — each photo is unique
+            };
+            var result = await _cloudinary.UploadAsync(uploadParams);
+            return result.Error == null ? result.SecureUrl.ToString() : null;
+
+        }
+
     }
 }

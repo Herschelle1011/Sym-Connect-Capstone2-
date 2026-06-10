@@ -58,13 +58,18 @@ namespace Sym_Connect__Capstone2_.ViewModels
         //CREATE VIEW MODEL
         public class GroupCreateViewModel
         {
-            [Required]
+            public int GroupId { get; set; }
+
+            [Required(ErrorMessage = "Group Name is Required")]
             [Display(Name = "Group Name")]
             public string GroupName { get; set; } = string.Empty;
 
+            [Required(ErrorMessage = "Description is Required")]
+            [Display(Name = "Description")]
             public string Description { get; set; } = string.Empty;
 
-            [Required]
+            [Required(ErrorMessage = "Status is Required")]
+            [Display(Name = "Status")]
             public string Status { get; set; } = string.Empty;
 
 
@@ -81,13 +86,14 @@ namespace Sym_Connect__Capstone2_.ViewModels
         {
             public int GroupId { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "GroupName is required.")]
             [Display(Name = "Group Name")]
             public string GroupName { get; set; } = string.Empty;
 
+            [Required(ErrorMessage = "Description is required.")]
             public string Description { get; set; } = string.Empty;
 
-            [Required]
+            [Required(ErrorMessage = "Status is required.")]
             public string Status { get; set; } = string.Empty;
 
 
@@ -114,34 +120,7 @@ namespace Sym_Connect__Capstone2_.ViewModels
 
 
 
-        public class LoadMembersViewModel
-        {
-            public int groupId { get; set; }
-            public SelectList? MemberOptions { get; set; }
-            //public string Email { get; set; }
-
-        }
-
-        public class GroupAddMembersViewModel
-        {
-            public int MemberId { get; set; }
-            public string FirstName { get; set; } = string.Empty;
-            public string? MiddleName { get; set; } = string.Empty;
-
-            public string LastName { get; set; } = string.Empty;
-            public string Email { get; set; } = string.Empty;
-
-            public string ContactNumber { get; set; } = string.Empty;
-
-            public string Status { get; set; } = "Active";
-
-            public DateTime DateJoined { get; set; } = DateTime.Now;
-
-            public string FullName =>
-          $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
-
-            public int groupId { get; set; }
-        }
+  
 
     }
 }

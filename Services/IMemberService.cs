@@ -9,7 +9,7 @@ namespace Sym_Connect__Capstone2_.Services
         Task CreateMemberAsync(Member member);
         Task UpdateMemberAsync(Member member);
         Task DeleteMemberAsync(int id);
-        bool MemberExists(int id);
+        Task<bool> MemberExists(int id);
 
         //LOAD ALL Members dropDown
         Task<List<Member>> GetMemberOptionsAsync(int groupId);

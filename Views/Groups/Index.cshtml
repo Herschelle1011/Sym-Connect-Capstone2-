@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Sym_Connect__Capstone2_.ViewModels.GroupViewModel.GroupListViewModel>
+﻿@model IEnumerable<GroupViewModel.GroupListViewModel>
 @{
     ViewData["Title"] = "Groups";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -138,14 +138,13 @@
                                     <i class="ti ti-info-circle"></i>
                                 </a>
                                 <a onclick="event.stopPropagation();
-                openModal('Delete group',
-                '@Url.Action("GetDeleteForm", "Groups", new { id = item.GroupId })')"
+                                            openModal('Delete group',
+                                            '@Url.Action("GetDeleteForm", "Groups", new { id = item.GroupId })')"
                                    style="color:#dc2626; font-size:15px; cursor:pointer;">
                                     <i class="ti ti-trash"></i>
                                 </a>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -170,4 +169,31 @@
                 modal.show();
             });
     }
+
+        document.addEventListener("submit", async function (e) {
+        if (e.target.id !== "createGroupForm") return;
+
+        e.preventDefault();
+
+        const form = e.target;
+
+        const response = await fetch(form.action, {
+            method: "POST",
+            body: new FormData(form)
+        });
+
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+            const result = await response.json();
+
+            if (result.success) {
+                location.reload();
+            }
+        } else {
+            const html = await response.text();
+            document.getElementById("appModalBody").innerHTML = html;
+        }
+    });
+
     </script>

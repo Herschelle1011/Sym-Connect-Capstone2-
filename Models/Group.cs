@@ -18,10 +18,14 @@ namespace Sym_Connect__Capstone2_.Models
 
         public int? LeaderId { get; set; }
 
+        public bool IsArchived { get; set; } = false;
+
+        public DateTime? ArchivedDate { get; set; }
 
         //NAVIGATION PROPERTIES
         public Member? Leader { get; set; }
         public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
+
 
 
     }

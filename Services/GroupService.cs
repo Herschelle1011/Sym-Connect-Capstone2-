@@ -7,7 +7,7 @@ using Sym_Connect__Capstone2_.Models;
 namespace Sym_Connect__Capstone2_.Services
 {
     public class GroupService : IGroupService
-    {    
+    {
         private readonly AppDbContext _context;
 
         public GroupService(AppDbContext context)
@@ -19,27 +19,29 @@ namespace Sym_Connect__Capstone2_.Services
         public async Task<List<Group>> GetAllGroupsAsync()
         {
             return await _context.Groups
+                .Where(g => g.IsArchived == false)
                 .Include(g => g.Leader)
                     .Include(gd => gd.GroupDetails)
                           .ThenInclude(m => m.Member)
-                .ToListAsync();
+                            .ToListAsync();
         }
 
         //GET GROUP BY ID
-        public async Task<Group?> GetGroupByIdAsync (int id)
+        public async Task<Group?> GetGroupByIdAsync(int id)
         {
             return await _context.Groups.
-                        Include(g => g.Leader). //load leader
-                        Include(g => g.GroupDetails) 
+                      Where(g => g.IsArchived == false)
+                        .Include(g => g.Leader). //load leader
+                        Include(g => g.GroupDetails)
                             .ThenInclude(gd => gd.Member) //load each members
-                      .FirstOrDefaultAsync(e => e.GroupId == id);
+                      .FirstOrDefaultAsync(e => e.GroupId == id); //gives whole object of the group
         }
 
         //CREATE GROUP
         public async Task CreateGroupAsync(Group group)
         {
             _context.Groups.Add(group);
-            await _context.SaveChangesAsync();            
+            await _context.SaveChangesAsync();
         }
 
         //UPDATE GROUP
@@ -50,29 +52,27 @@ namespace Sym_Connect__Capstone2_.Services
         }
 
         //DELETE GROUP
-        public async Task DeleteGroupAsync (int id)
+        public async Task DeleteGroupAsync(int id)
         {
             var getGroup = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == id);
             if (getGroup == null) return;
 
             //remove connection in GroupDetails
             var groupMembers = await _context.GroupDetails.Where(gd => gd.GroupId == id).ToListAsync();
-                
-                        //removed entities before group is deleted
-                    _context.GroupDetails.RemoveRange(groupMembers);
-
+            //removed entities before group is deleted
+            _context.GroupDetails.RemoveRange(groupMembers);
             //delete group
             _context.Groups.Remove(getGroup);
 
             await _context.SaveChangesAsync();
-              
+
         }
 
         //CHECK IF GROUP ALREADY EXIST
-        public bool GroupExists (int id, string name)
+        public async Task<bool> GroupExists(int id)
         {
-            return _context.Groups.             
-                Any(g => g.GroupId == id && g.GroupName == name);
+            return await _context.Groups.
+                AnyAsync(g => g.GroupId == id);
         }
 
         public async Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null)
@@ -98,7 +98,7 @@ namespace Sym_Connect__Capstone2_.Services
             // Return Active members NOT yet in the group
             return await _context.Members
                 .Where(m => m.Status == "Active" && !existingIds.Contains(m.MemberId))
-                .ToListAsync(); // ToListAsync first — so FullName ([NotMapped]) works
+                .ToListAsync();
         }
         public async Task AddMemberToGroupAsync(int groupId, int memberId)
         {
@@ -116,6 +116,11 @@ namespace Sym_Connect__Capstone2_.Services
 
             }
 
+        }
+        //EXLUDE Id = skip this current ID edited and check all facility id except the current ONE 
+        public async Task<bool> GroupNameExists(string name, int? excludeId = null)
+        {
+            return await _context.Groups.AnyAsync(e => e.GroupName == name && e.IsArchived == false && (excludeId == null || e.GroupId != excludeId.Value));
         }
 
 

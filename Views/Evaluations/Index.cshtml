@@ -1,0 +1,146 @@
+@model IEnumerable<EvaluationViewModel.ListEvaluationViewModel>
+@{
+    ViewData["Title"] = "Evaluations";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="member-page">
+
+    <div class="page-header">
+        <div class="page-title-row">
+            <a href="javascript:history.back()" class="back-btn">&#8592;</a>
+            <h1 class="page-title">Evaluations</h1>
+        </div>
+
+        <button type="button"
+                class="btn-add open-modal"
+                data-url="@Url.Action("Create", "Evaluations")"
+                data-title="Add Evaluation">
+            <span>+</span> Add Evaluation
+        </button>
+
+    </div>
+
+    <div class="filter-bar">
+        <div class="filter-tabs">
+            <button type="button" class="filter-tab active-tab" data-status="all">
+                All (@Model.Count())
+            </button>
+            <button type="button" class="filter-tab" data-status="active">
+                Active (@Model.Count(m => m.Status == "Active"))
+            </button>
+            <button type="button" class="filter-tab" data-status="inactive">
+                Inactive (@Model.Count(m => m.Status == "Inactive"))
+            </button>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Search evaluations..." />
+        </div>
+
+        <button type="button" class="btn-filter">
+            <i class="bi bi-funnel"></i> Filter
+        </button>
+
+        <button type="button" class="btn-date">
+            <i class="bi bi-calendar3"></i> Date
+        </button>
+    </div>
+
+    <div class="table-card">
+        <table class="members-table" id="evaluationsTable">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Date Created</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr class="empty-row">
+                        <td colspan="6">No evaluations found.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr data-status="@item.Status.ToLower()">
+                            <td>@item.EvaluationId</td>
+                            <td>@item.EvaluationTitle</td>
+                            <td>@item.Description</td>
+                            <td>@item.DateCreated.ToString("MM/dd/yyyy")</td>
+                            <td>
+                                @if (item.Status == "Active")
+                                {
+                                    <span class="badge-status badge-active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-inactive">Inactive</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="action-cell">
+                                    <button type="button"
+                                            class="btn-icon btn-edit open-modal"
+                                            data-url="@Url.Action("Edit", "Evaluations", new { id = item.EvaluationId })"
+                                            data-title="Edit Evaluation">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    @* <button type="button"
+                                            class="btn-icon open-modal"
+                                            data-url="@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })"
+                                            data-title="Evaluation Details"
+                                            style="color: var(--text-muted);">
+                                        <i class="bi bi-eye"></i>
+                                    </button> *@
+
+                                    <button type="button"
+                                            class="btn-icon btn-delete open-modal"
+                                            data-url="@Url.Action("Archive", "Evaluations", new { id = item.EvaluationId })"
+                                            data-title="Archive Evaluation">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination bar -->
+        <div style="display:flex; align-items:center; justify-content:space-between;
+            padding:12px 16px; border-top:1px solid var(--border-color);
+            font-size:13px; color:var(--text-muted);">
+
+            <span id="pageInfo"></span>
+
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button id="prevBtn" class="btn-filter">← Prev</button>
+                <span id="pageNum" style="min-width:90px; text-align:center;"></span>
+                <button id="nextBtn" class="btn-filter">Next →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("~/Views/Shared/_Modal.cshtml")
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/admin/evaluationsTable.js"></script>
+}

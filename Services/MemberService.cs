@@ -43,6 +43,15 @@ namespace Sym_Connect__Capstone2_.Services
         public async Task DeleteMemberAsync(int id)
         {
            var getMember = await _context.Members.FindAsync(id);
+            if (getMember == null) { return; }
+
+            var groupMember = await _context.Groups.Where(m => m.LeaderId == id).ToListAsync();
+
+            foreach(var leader in groupMember)
+            {
+                leader.LeaderId = null;
+            }
+
             if (getMember != null)
             {
                 _context.Members.Remove(getMember);
@@ -50,9 +59,9 @@ namespace Sym_Connect__Capstone2_.Services
             }
         }
 
-        public bool MemberExists(int id)
+        public async Task<bool> MemberExists(int id)
         {
-           return _context.Members.Any(m => m.MemberId == id);
+           return await _context.Members.AnyAsync(m => m.MemberId == id);
         }
 
         public async Task<List<Member>> GetMemberOptionsAsync(int groupId)

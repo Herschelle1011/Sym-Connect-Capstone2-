@@ -49,7 +49,7 @@ namespace Sym_Connect__Capstone2_.ViewModels
             [Required(ErrorMessage = "BirthDate is required.")]
             public DateTime BirthDate { get; set; }
 
-            [Required]
+            [Required(ErrorMessage = "Gender is required.")]
             public string Gender { get; set; } = string.Empty;
 
             [Required]

@@ -1,0 +1,298 @@
+@model IEnumerable<FacilityViewModel.FacilityListViewModel>
+
+@{
+    ViewData["Title"] = "Facility";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="facility-page">
+
+    <!-- Header -->
+    <div class="facility-header">
+        <h1>Facility</h1>
+        <button class="btn-create"
+                data-bs-toggle="modal"
+                data-bs-target="#createFacilityModal">
+            <span>&#43;</span> Create
+        </button>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="facility-grid">
+
+        @foreach (var item in Model)
+        {
+            <!-- Prepare photo list -->
+            var photos = item.Photos;
+
+            <!-- Parse types -->
+            var types = item.FacilityTypes;
+
+
+            <!-- Status class -->
+            var statusClass = item.Status switch {
+                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.UnderMaintenance => "maintenance",
+                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.Inactive => "inactive",
+                _ => ""
+            };
+
+            var statusLabel = item.Status switch {
+                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.Active => "Available now",
+                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.UnderMaintenance => "Under maintenance",
+                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.Inactive => "Inactive",
+                _ => "Unknown"
+            };
+
+            <div class="facility-card">
+
+                <!-- Photo Section -->
+                <!-- Photo Section -->
+                <div class="card-photo-wrapper">
+                    @if (photos.Count > 0)
+                    {
+                        <!-- Store all URLs as data attributes on the wrapper -->
+                        <div class="carousel"
+                             data-photos="@string.Join("|", photos)">
+
+                            <img class="carousel-img"
+                                 src="@photos[0]"
+                                 alt="@item.FacilityName" />
+
+                            @if (photos.Count > 1)
+                            {
+                                <div class="carousel-dots">
+                                    @for (int i = 0; i < Math.Min(photos.Count, 4); i++)
+                                    {
+                                        <span class="dot @(i == 0 ? "active" : "")"
+                                              data-index="@i"
+                                              onclick="goToSlide(this)">
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-photo">No photo available</div>
+                    }
+                    <span class="capacity-badge">&#128100; @item.Capacity cap</span>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body-custom">
+                    <p class="card-title">@item.FacilityName</p>
+                    <p class="card-desc">@item.FacilityDescription</p>
+
+                    <!-- Type Tags -->
+                    @if (types.Count > 0)
+                    {
+                        <div class="tags">
+                            @foreach (var type in types)
+                            {
+                                var icon = type.Trim() switch
+                                {
+                                    "Basketball" => "🏀",
+                                    "OpenCourt" => "🏟️",
+                                    "Study" => "📚",
+                                    "MeetingRoom" => "🤝",
+                                    "EventHall" => "🎪",
+                                    "YouthActivities" => "⚡",
+                                    "Conference" => "💼",
+                                    "Library" => "📖",
+                                    "Music" => "🎵",
+                                    "PracticeRoom" => "🎤",
+                                    "ComputerLab" => "💻",
+                                    "Training" => "🧑‍💻",
+                                    "Chapel" => "🙏",
+                                    "Worship" => "✝️",
+                                    "Outdoor" => "🌿",
+                                    "EventSpace" => "🎉",
+                                    _ => "🏷️"  // fallback for anything new
+                                };
+
+                                <span class="tag">@icon @type</span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Footer -->
+                <div class="card-footer-custom">
+                    <span class="status-dot @statusClass">@statusLabel</span>
+
+                    <div class="card-actions">
+                        <a href="#"
+                           class="edit-btn"
+                           title="Edit"
+                           data-id="@item.FacilityId">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <a asp-action="Details"
+                           asp-route-facilityid="@item.FacilityId"
+                           class="details-btn"
+                           title="Details">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                      
+                   <a href="#"
+                   class="archive-btn"
+                   title="Archive"
+                   data-id="@item.FacilityId">
+                    <i class="bi bi-archive"></i>
+                </a>
+                    </div>
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
+
+
+<!-- Create Facility Modal -->
+<div class="modal fade" id="createFacilityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Add New Facility</h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body pt-2" id="editModalBody">
+                @await Html.PartialAsync(
+                    "~/Views/Facilities/_CreateFacilityForm.cshtml",
+                    new FacilityViewModel.CreateFacilityViewModel()
+                )
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Edit Facility Modal -->
+<div class="modal fade" id="editFacilityModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Edit Facility</h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body pt-2">
+                @await Html.PartialAsync(
+                    "~/Views/Facilities/_EditFacilityForm.cshtml",
+                    new FacilityViewModel.EditFacilityViewModel()
+                )
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- Archive Modal Shell -->
+<div class="modal fade" id="appModal" tabindex="-1"
+     aria-labelledby="appModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title"
+                    id="appModalLabel"
+                    style="font-size: 16px; font-weight: 500;"></h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body" id="appModalBody"></div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+ 
+    <script src="~/js/admin/facilityPhotos.js" asp-append-version="true"></script>
+    <script src="~/js/admin/ErrorModalHandler.js" asp-append-version="true"></script>
+
+
+    @* CAROUSEL VIEW DOTS SCRIPT *@
+<script>
+    function goToSlide(dotClicked) {
+        var carousel = dotClicked.closest('.carousel');
+        var photos = carousel.getAttribute('data-photos').split('|');
+        var index = parseInt(dotClicked.getAttribute('data-index'));
+
+        carousel.querySelector('.carousel-img').src = photos[index];
+
+        carousel.querySelectorAll('.dot').forEach(function(d) {
+            d.classList.remove('active');
+        });
+
+        dotClicked.classList.add('active');
+    }
+
+        document.querySelectorAll('.edit-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+        e.preventDefault(); // stops the href="#" from jumping
+
+        var facilityId = this.getAttribute('data-id');
+
+        // Load the edit form into the modal body
+        fetch('/Facilities/Edit/' + facilityId)
+        .then(response => response.text())
+        .then(html => {
+        document.querySelector('#editFacilityModal .modal-body').innerHTML = html;
+        initEditPhotoUpload(); 
+
+
+        var modal = new bootstrap.Modal(document.getElementById('editFacilityModal'));
+        modal.show();
+        });
+        });
+        });
+
+        document.querySelectorAll('.archive-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var facilityId = this.closest('.facility-card')
+        .querySelector('.edit-btn')
+        .getAttribute('data-id');
+
+        fetch('/Facilities/Archived/' + facilityId)
+        .then(r => r.text())
+        .then(html => {
+        document.getElementById('appModalLabel').textContent = 'Archive Facility';
+        document.getElementById('appModalBody').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('appModal')).show();
+        });
+        });
+        });
+
+</script>
+}

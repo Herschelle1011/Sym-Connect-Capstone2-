@@ -20,13 +20,11 @@ namespace Sym_Connect__Capstone2_.Controllers
     public class GroupsController : Controller
     {
         private readonly IGroupService _groupService;
-        private readonly IMemberService _memberService;
 
 
-        public GroupsController(AppDbContext context, IGroupService groupService, IMemberService memberService)
+        public GroupsController(IGroupService groupService)
         {
             _groupService = groupService;
-            _memberService = memberService;
         }
 
         // GET: Groups
@@ -73,17 +71,15 @@ namespace Sym_Connect__Capstone2_.Controllers
                 GroupName = getGroupDetails.GroupName,
                 Description = getGroupDetails.Description,
                 Status = getGroupDetails.Status,
-
                 LeaderName = getGroupDetails.Leader?.FullName ?? "No Leader",
                 LeaderContact = getGroupDetails.Leader?.ContactNumber ?? "N/A",
-                LeaderEmail = getGroupDetails.Leader.Email,
-
+                LeaderEmail = getGroupDetails.Leader?.Email ?? "N/A",
 
                 Members = getGroupDetails.GroupDetails
                     .Where(gd => gd.Member != null)
                     .Select(gd => new GroupMemberViewModel
                     {
-                        MemberId = gd.MemberId,
+                        MemberId = gd.MemberId ?? 0,
                         FullName = gd.Member!.FullName,
                         Email = gd.Member.Email,
                         ContactNumber = gd.Member.ContactNumber,
@@ -101,10 +97,10 @@ namespace Sym_Connect__Capstone2_.Controllers
         {
             var vm = new GroupCreateViewModel
             {
-                LeaderOptions = await _groupService.GetLeaderOptionsAsync() //load
+                LeaderOptions = await _groupService.GetLeaderOptionsAsync()
             };
 
-            return View(vm);
+            return PartialView("_CreateGroupForm", vm);
         }
 
 
@@ -116,20 +112,25 @@ namespace Sym_Connect__Capstone2_.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(GroupCreateViewModel vm)
         {
-            if(!ModelState.IsValid)
+            if (await _groupService.GroupNameExists(vm.GroupName))
+            {
+                ModelState.AddModelError("GroupName", "GroupName already exists.");
+            }
+
+            if (!ModelState.IsValid)
             {
                 vm.LeaderOptions = await _groupService.GetLeaderOptionsAsync(vm.LeaderId); //load
-                return View(vm);
+                return PartialView("_CreateGroupForm", vm);
             }
-            var viewModel = new Group
+          
+            var group = new Group
             {                
                 GroupName = vm.GroupName,
                 Description = vm.Description,
-                LeaderId = vm.LeaderId,
+                LeaderId = vm.LeaderId ?? 0,
                 Status = vm.Status,
-
             };
-           await _groupService.CreateGroupAsync(viewModel);
+           await _groupService.CreateGroupAsync(group);
 
             return RedirectToAction(nameof(Index));
         }
@@ -149,6 +150,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             return View(vm);
         }
 
+        //GET CreateForm
         public async Task<IActionResult> GetCreateForm()
         {
             var vm = new GroupCreateViewModel
@@ -159,49 +161,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             return PartialView("_CreateGroupForm", vm);
         }
 
-
-        // POST: Groups/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(GroupEditViewModel vm)
-        {
-            if ( vm.GroupId == 0) return NotFound();
-
-            if (!ModelState.IsValid)
-            {
-                vm.LeaderOptions = await _groupService.GetLeaderOptionsAsync(vm.LeaderId);
-                return View(vm);
-            }
-
-            var group = new Group
-            {
-               GroupId = vm.GroupId,
-               GroupName = vm.GroupName,
-               Description = vm.Description,
-               LeaderId = vm.LeaderId,
-               Status = vm.Status,
-            };
-            try
-            {
-                await _groupService.UpdateGroupAsync(group);
-            }
-            catch
-            {
-                if (!_groupService.GroupExists(vm.GroupId, vm.GroupName))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
+        //GET EDIT FORM
         public async Task<IActionResult> GetEditForm(int id)
         {
             var group = await _groupService.GetGroupByIdAsync(id);
@@ -219,6 +179,50 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             return PartialView("_EditGroupForm", vm);
         }
+
+
+        // POST: Groups/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(GroupEditViewModel vm)
+        {
+            if ( vm.GroupId == 0) return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                vm.LeaderOptions = await _groupService.GetLeaderOptionsAsync(vm.LeaderId);
+                return View(vm);
+            }
+            var group = new Group
+            {
+               GroupId = vm.GroupId,
+               GroupName = vm.GroupName,
+               Description = vm.Description,
+               LeaderId = vm.LeaderId ?? 0,
+               Status = vm.Status,
+            };
+            try
+            {
+                await _groupService.UpdateGroupAsync(group);
+            }
+            catch
+            {
+                if (! await _groupService.GroupExists(vm.GroupId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+    
 
         // GET: Groups/Delete/5
         public async Task<IActionResult> Delete(int? id)
@@ -253,7 +257,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             var vm = new GroupDeleteViewModel
             {
                 GroupId = group.GroupId,
-                GroupName = group.GroupName,
+                GroupName = group.GroupName,     
                 LeaderName = group.Leader != null ? group.Leader.FullName : "No Leader",
                 Status = group.Status,
                 TotalMembers = group.GroupDetails.Count()

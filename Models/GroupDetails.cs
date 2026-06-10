@@ -4,10 +4,9 @@
     {
         public int GroupDetailsId { get; set; }
         public int GroupId { get; set; }
-        public int MemberId { get; set; }
+        public int? MemberId { get; set; }
 
-
-        //NAVIGATION PROPERTIES (FK)
+        //NAVIGATION PROPERTIES ()
         public Member? Member { get; set; }
         public Group? Group { get; set; }
 

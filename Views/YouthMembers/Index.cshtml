@@ -1,10 +1,8 @@
-﻿@model IEnumerable<Sym_Connect__Capstone2_.ViewModels.MemberViewModel.MemberListViewModel>
-
+﻿@model IEnumerable<MemberViewModel.MemberListViewModel>
 @{
-    ViewData["Title"] = "Members";
+    ViewData["Title"] = "Groups";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-
 
 <div class="member-page">
 
@@ -136,15 +134,15 @@
             </div>
     </div>
 </div>
+</div>
+
 
 @await Html.PartialAsync("~/Views/Shared/_Modal.cshtml")
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
- 
-    <script src="~/js/membersTable.js"></script>
-
     }
+        <script src="~/js/admin/membersTable.js"></script>
 
 }

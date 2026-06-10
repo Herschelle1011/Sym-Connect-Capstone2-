@@ -109,7 +109,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 return RedirectToAction(nameof(Index));
             }
            
-            return View(vm);
+            return View("_CreateMemberForm", vm);
         }
 
         // GET: YouthMembers/Edit/5
@@ -136,11 +136,6 @@ namespace Sym_Connect__Capstone2_.Controllers
                 Status = member.Status,
             };
 
-            if (member == null)
-            {
-                return NotFound();
-            }
-
             return PartialView("_EditMemberForm", vm);
         }
 
@@ -158,7 +153,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (!ModelState.IsValid)
             {
-                return View(vm);
+                return View("_EditMemberForm",vm);
             }
             var viewModel = new Member
             {
@@ -181,7 +176,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!MemberExists(vm.memberId))
+                    if (await MemberExists(vm.memberId))
                     {
                         return NotFound();
                     }
@@ -197,14 +192,9 @@ namespace Sym_Connect__Capstone2_.Controllers
 
 
         // GET: YouthMembers/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var member = await _memberService.GetMemberByIdAsync(id.Value);
+            var member = await _memberService.GetMemberByIdAsync(id);
             if (member == null)
             {
                 return NotFound();
@@ -240,9 +230,9 @@ namespace Sym_Connect__Capstone2_.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool MemberExists(int id)
+        private async Task<bool> MemberExists(int id)
         {
-            return _memberService.MemberExists(id);
+            return await _memberService.MemberExists(id);
         }
     }
 }

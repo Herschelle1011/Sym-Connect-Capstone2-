@@ -16,6 +16,8 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<GroupDetails> GroupDetails { get; set; }
         public DbSet<YouthActivity> Activities { get; set; }
         public DbSet<Facility> Facilities { get; set; }
+        public DbSet<Evaluation> Evaluations { get; set; }
+        public DbSet<FacilityPhoto> FacilityPhotos { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -36,7 +38,7 @@ namespace Sym_Connect__Capstone2_.Data
                 .HasOne(gd => gd.Member)
                 .WithMany(m => m.GroupDetails)
                 .HasForeignKey(gd => gd.MemberId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
             // GROUP → LEADER (Leader is a Member)
             // One Group has one Leader which comes from Members table
@@ -44,15 +46,8 @@ namespace Sym_Connect__Capstone2_.Data
                 .HasOne(g => g.Leader)
                 .WithMany()
                 .HasForeignKey(g => g.LeaderId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.ClientSetNull);
 
-            // FACILITY → ACTIVITIES
-            // One Facility can have many Activities
-            modelBuilder.Entity<Facility>()
-                .HasMany(f => f.Activities)
-                .WithOne(a => a.Facility)
-                .HasForeignKey(a => a.FacilityId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

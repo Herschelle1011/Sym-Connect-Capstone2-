@@ -53,19 +53,31 @@ builder.Services.AddSingleton(serviceProvider =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddScoped<CloudinaryService>(); //for upload photos
+builder.Services.AddScoped<CloudinaryService>(); //for upload photos through cloud
 builder.Services.AddScoped<IGroupService, GroupService>(); //for groups
 builder.Services.AddScoped<IMemberService, MemberService>(); // for members
-
+builder.Services.AddScoped<IFacilityService, FacilityService>(); // for facility
+builder.Services.AddScoped< IEvaluationService, EvaluationService>(); // for evaluation
 
 
 
 var app = builder.Build();
 
+
+
 // SEED DEFAULT ROLES AND USERS
 using (var scope = app.Services.CreateScope())
 {
     await IdentitySeeder.SeedAsync(scope.ServiceProvider);
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    var context = services.GetRequiredService<AppDbContext>();
+
+    await DbSeeder.SeedAsync(context);
 }
 
 // Configure the HTTP request pipeline.

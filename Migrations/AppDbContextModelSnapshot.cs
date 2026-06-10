@@ -159,6 +159,43 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
+                {
+                    b.Property<int>("EvaluationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EvaluationId"));
+
+                    b.Property<DateTime?>("ArchivedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EvaluationTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("EvaluationId");
+
+                    b.ToTable("Evaluations");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Facility", b =>
                 {
                     b.Property<int>("FacilityId")
@@ -167,14 +204,32 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FacilityId"));
 
+                    b.Property<DateTime?>("ArchiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
                     b.Property<string>("FacilityDescription")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("FacilityName")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FacilityTypes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Photos")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -182,6 +237,28 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.HasKey("FacilityId");
 
                     b.ToTable("Facilities");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.FacilityPhoto", b =>
+                {
+                    b.Property<int>("FacilityPhotoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FacilityPhotoId"));
+
+                    b.Property<int>("FacilityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PhotoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("FacilityPhotoId");
+
+                    b.HasIndex("FacilityId");
+
+                    b.ToTable("FacilityPhotos");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Group", b =>
@@ -192,6 +269,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GroupId"));
 
+                    b.Property<DateTime?>("ArchivedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -199,6 +279,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
 
                     b.Property<int?>("LeaderId")
                         .HasColumnType("int");
@@ -225,7 +308,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("GroupId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MemberId")
+                    b.Property<int?>("MemberId")
                         .HasColumnType("int");
 
                     b.HasKey("GroupDetailsId");
@@ -479,12 +562,22 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.FacilityPhoto", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Facility", "Facility")
+                        .WithMany("FacilityPhotos")
+                        .HasForeignKey("FacilityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Facility");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Group", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.Member", "Leader")
                         .WithMany()
-                        .HasForeignKey("LeaderId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("LeaderId");
 
                     b.Navigation("Leader");
                 });
@@ -499,9 +592,7 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.Member", "Member")
                         .WithMany("GroupDetails")
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("MemberId");
 
                     b.Navigation("Group");
 
@@ -511,9 +602,8 @@ namespace Sym_Connect__Capstone2_.Migrations
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.YouthActivity", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.Facility", "Facility")
-                        .WithMany("Activities")
-                        .HasForeignKey("FacilityId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("FacilityId");
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.Group", "Group")
                         .WithMany()
@@ -534,7 +624,7 @@ namespace Sym_Connect__Capstone2_.Migrations
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Facility", b =>
                 {
-                    b.Navigation("Activities");
+                    b.Navigation("FacilityPhotos");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Group", b =>

@@ -10,7 +10,9 @@ namespace Sym_Connect__Capstone2_.Services
         Task CreateGroupAsync(Group group);
         Task UpdateGroupAsync(Group group);
         Task DeleteGroupAsync(int id);
-        bool GroupExists(int id, string name);
+        Task<bool> GroupExists(int id);
+        Task<bool> GroupNameExists(string name, int? excludeId = null);
+
 
         //LOAD ALL LEADERS
         Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null);

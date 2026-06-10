@@ -1,7 +1,7 @@
 ﻿<!-- Views/Groups/_CreateGroupForm.cshtml -->
-@model Sym_Connect__Capstone2_.ViewModels.GroupViewModel.GroupCreateViewModel
+@model GroupViewModel.GroupCreateViewModel
 
-<form asp-action="Create" asp-controller="Groups" method="post">
+<form id="createGroupForm" asp-action="Create" asp-controller="Groups" method="post">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <div class="mb-3">
@@ -60,9 +60,3 @@
     </div>
 
 </form>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}
