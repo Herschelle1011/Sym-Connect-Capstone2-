@@ -43,11 +43,7 @@ namespace Sym_Connect__Capstone2_.Models
 
         [NotMapped]
         public DateTime DateJoined { get; set; } = DateTime.Now;
-
-
         public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
-
-
 
     }
 }

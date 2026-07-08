@@ -14,10 +14,15 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<Group> Groups { get; set; }
         public DbSet<Member> Members { get; set; }
         public DbSet<GroupDetails> GroupDetails { get; set; }
+
         public DbSet<YouthActivity> Activities { get; set; }
+
         public DbSet<Facility> Facilities { get; set; }
-        public DbSet<Evaluation> Evaluations { get; set; }
         public DbSet<FacilityPhoto> FacilityPhotos { get; set; }
+
+        public DbSet<Evaluation> Evaluations { get; set; }
+        public DbSet<EvaluationDetails> EvaluationDetail { get; set; }
+        public DbSet<EvaluationQuestion> EvaluationQuestions { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,6 +52,10 @@ namespace Sym_Connect__Capstone2_.Data
                 .WithMany()
                 .HasForeignKey(g => g.LeaderId)
                 .OnDelete(DeleteBehavior.ClientSetNull);
+
+            modelBuilder.Entity<EvaluationQuestion>()
+                .Property(e => e.AnswerType)
+                .HasConversion<string>(); //convertion type to string 
 
         }
     }

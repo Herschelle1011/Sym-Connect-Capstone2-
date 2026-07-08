@@ -1,29 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Sym_Connect__Capstone2_.Models.Enums;
 
 namespace Sym_Connect__Capstone2_.Models
 {
     public class Facility
     {
-        public enum FacilityStatus
-        {
-            Active,
-            Inactive,
-            UnderMaintenance
-        }
-
-        public enum FacilityType
-        {
-            Basketball,
-            Events,
-            OpenCourt,
-            MeetingRoom,
-            Chapel,
-            StudyHall,
-            DanceRoom,
-            Others
-        }
-
-
+       
         [Key]
         public int FacilityId { get; set; }
 

@@ -1,45 +1,115 @@
-@model Sym_Connect__Capstone2_.Models.Evaluation
-
+@model DetailsEvaluationViewModel
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Evaluation Details";
+    Layout = "_AdminLayout";
 }
 
-<h1>Details</h1>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<div>
-    <h4>Evaluation</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EvaluationTitle)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EvaluationTitle)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DateCreated)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DateCreated)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-    </dl>
+<style>
+    .eval-details-page, .eval-details-page * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+        .eval-details-page .answer-preview .form-check {
+            margin-bottom: 4px;
+        }
+</style>
+
+<div class="container mt-4 eval-details-page">
+
+    <div class="d-flex justify-content-between align-items-start mb-1">
+        <div>
+            <h2 class="mb-0">@Model.EvaluationTitle</h2>
+            <p class="text-muted mb-0">@Model.Description</p>
+        </div>
+
+        <a asp-action="Edit" asp-route-id="@Model.EvaluationId" class="btn btn-primary">
+            <i class="bi bi-pencil-square"></i> Edit
+        </a>
+    </div>
+
+    <!-- Meta info -->
+    <div class="card p-3 my-3">
+        <div class="row">
+            <div class="col-md-4">
+                <span class="text-muted" style="font-size:12px;">OPEN</span>
+                <p class="mb-0 fw-semibold">@Model.OpenAt.ToString("MMM dd, yyyy")</p>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted" style="font-size:12px;">CLOSES</span>
+                <p class="mb-0 fw-semibold">@Model.ClosesAt.ToString("MMM dd, yyyy")</p>
+            </div>
+            <div class="col-md-4">
+                <span class="text-muted" style="font-size:12px;">CREATED</span>
+                <p class="mb-0 fw-semibold">@Model.DateCreated.ToString("MMM dd, yyyy")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions (read-only) -->
+    <h5 class="mb-3">Questions</h5>
+
+    @if (Model.Questions == null || !Model.Questions.Any())
+    {
+        <p class="text-muted">No questions added yet.</p>
+    }
+    else
+    {
+        for (int i = 0; i < Model.Questions.Count; i++)
+        {
+            var q = Model.Questions[i];
+            <div class="card p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <label class="form-label fw-semibold">Question @(i + 1)</label>
+                    <span class="badge bg-light text-dark border">@q.AnswerType</span>
+                </div>
+                <p class="mb-2">@q.QuestionText</p>
+
+                <div class="answer-preview text-muted" data-type="@q.AnswerType"></div>
+            </div>
+        }
+    }
+
+    <div class="d-flex justify-content-end mt-3">
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.EvaluationId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+
+@section Scripts {
+    <script>
+        function buildAnswerPreview(type) {
+            if (type === "RatingScale") {
+                let stars = "";
+                for (let i = 1; i <= 5; i++) {
+                    stars += `<i class="bi bi-star fs-4 me-2"></i>`;
+                }
+                return `<div class="d-flex">${stars}</div>`;
+            }
+            if (type === "Dichotomous") {
+                return `
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Yes</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">No</label></div>`;
+            }
+            if (type === "MultipleChoice") {
+                return `
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Agree</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Agree</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Neutral</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Disagree</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Disagree</label></div>`;
+            }
+            if (type === "ShortAnswer") {
+                return `<input type="text" class="form-control" placeholder="Short answer text." disabled />`;
+            }
+            return "";
+        }
+
+        document.querySelectorAll(".answer-preview").forEach(function (el) {
+            el.innerHTML = buildAnswerPreview(el.dataset.type);
+        });
+    </script>
+}

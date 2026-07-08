@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
+
 
 namespace Sym_Connect__Capstone2_.Services
 {
@@ -38,15 +40,14 @@ namespace Sym_Connect__Capstone2_.Services
             _context.Facilities.Update(facility);
             await _context.SaveChangesAsync();
         }
-        public async Task SetStatusAsync(int id, Facility.FacilityStatus status)
+        public async Task SetStatusAsync(int id, FacilityStatus status)
         {
             var facility = await _context.Facilities.FirstOrDefaultAsync(e => e.FacilityId == id);
             if (facility == null) return;
             facility.Status = status;
             await _context.SaveChangesAsync();
         }
-        public async Task MaintenanceFacilityAsync(int id) => await SetStatusAsync(id, Facility.FacilityStatus.UnderMaintenance);
-
+        public async Task MaintenanceFacilityAsync(int id) => await SetStatusAsync(id, FacilityStatus.UnderMaintenance);
 
         public async Task ArchiveFacilityAsync(int id)
         {

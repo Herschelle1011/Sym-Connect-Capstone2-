@@ -1,4 +1,4 @@
-@model IEnumerable<FacilityViewModel.FacilityListViewModel>
+@model IEnumerable<FacilityListViewModel>
 
 @{
     ViewData["Title"] = "Facility";
@@ -31,15 +31,15 @@
 
             <!-- Status class -->
             var statusClass = item.Status switch {
-                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.UnderMaintenance => "maintenance",
-                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.Inactive => "inactive",
+                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "maintenance",
+                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "inactive",
                 _ => ""
             };
 
             var statusLabel = item.Status switch {
-                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.Active => "Available now",
-                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.UnderMaintenance => "Under maintenance",
-                Sym_Connect__Capstone2_.Models.Facility.FacilityStatus.Inactive => "Inactive",
+                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Active => "Available now",
+                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "Under maintenance",
+                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "Inactive",
                 _ => "Unknown"
             };
 
@@ -168,7 +168,7 @@
             <div class="modal-body pt-2" id="editModalBody">
                 @await Html.PartialAsync(
                     "~/Views/Facilities/_CreateFacilityForm.cshtml",
-                    new FacilityViewModel.CreateFacilityViewModel()
+                    new CreateFacilityViewModel()
                 )
             </div>
 
@@ -193,7 +193,7 @@
             <div class="modal-body pt-2">
                 @await Html.PartialAsync(
                     "~/Views/Facilities/_EditFacilityForm.cshtml",
-                    new FacilityViewModel.EditFacilityViewModel()
+                    new EditFacilityViewModel()
                 )
             </div>
 

@@ -4,16 +4,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Services;
-using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.Models;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Intrinsics.X86;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using static Sym_Connect__Capstone2_.ViewModels.GroupViewModel;
+using Sym_Connect__Capstone2_.ViewModels.Group;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {

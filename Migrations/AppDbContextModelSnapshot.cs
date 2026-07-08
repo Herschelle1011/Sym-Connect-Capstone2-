@@ -170,6 +170,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime?>("ArchivedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime>("ClosedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
@@ -184,9 +187,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<bool?>("IsArchived")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("OpenAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -194,6 +196,62 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.HasKey("EvaluationId");
 
                     b.ToTable("Evaluations");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationDetails", b =>
+                {
+                    b.Property<int>("EvaluationDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EvaluationDetailId"));
+
+                    b.Property<DateTime?>("ArchiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EvaluationId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("EvaluationDetailId");
+
+                    b.HasIndex("EvaluationId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("EvaluationDetail");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationQuestion", b =>
+                {
+                    b.Property<int>("QuestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionId"));
+
+                    b.Property<string>("AnswerType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("QuestionId");
+
+                    b.ToTable("EvaluationQuestions");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Facility", b =>
@@ -489,8 +547,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("SubmittedByUserId")
-                        .IsRequired()
+                    b.Property<string>("SubmittedById")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Title")
@@ -506,7 +563,7 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.HasIndex("SubmittedByUserId");
+                    b.HasIndex("SubmittedById");
 
                     b.ToTable("Activities");
                 });
@@ -562,6 +619,25 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationDetails", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Evaluation", "Evaluation")
+                        .WithMany("EvaluationDetails")
+                        .HasForeignKey("EvaluationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationQuestion", "EvaluationQuestion")
+                        .WithMany("EvaluationDetails")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Evaluation");
+
+                    b.Navigation("EvaluationQuestion");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.FacilityPhoto", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.Facility", "Facility")
@@ -611,15 +687,23 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.User", "SubmittedBy")
                         .WithMany()
-                        .HasForeignKey("SubmittedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SubmittedById");
 
                     b.Navigation("Facility");
 
                     b.Navigation("Group");
 
                     b.Navigation("SubmittedBy");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
+                {
+                    b.Navigation("EvaluationDetails");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationQuestion", b =>
+                {
+                    b.Navigation("EvaluationDetails");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Facility", b =>

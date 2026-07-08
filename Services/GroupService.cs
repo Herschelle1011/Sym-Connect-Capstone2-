@@ -123,6 +123,15 @@ namespace Sym_Connect__Capstone2_.Services
             return await _context.Groups.AnyAsync(e => e.GroupName == name && e.IsArchived == false && (excludeId == null || e.GroupId != excludeId.Value));
         }
 
-
+        public async Task ArchiveGroupAsync(int? id)
+        {
+            if (id == null) return;
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null) return;
+            group.Status = "Inactive";
+            group.IsArchived = true;
+            group.ArchivedDate = DateTime.Now;
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -1,49 +1,313 @@
-@model Sym_Connect__Capstone2_.Models.Evaluation
-
+@using Sym_Connect__Capstone2_.Models.Enums
+@model UpdateEvaluationViewModel
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Evaluation";
+    Layout = "_AdminLayout";
 }
 
-<h1>Edit</h1>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<h4>Evaluation</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="EvaluationId" />
-            <div class="form-group">
-                <label asp-for="EvaluationTitle" class="control-label"></label>
-                <input asp-for="EvaluationTitle" class="form-control" />
+<style>
+    .eval-create-page, .eval-create-page * {
+        font-family: 'Poppins', sans-serif;
+    }
+</style>
+
+<div class="container mt-4 eval-create-page">
+    <h2>Edit Evaluation</h2>
+    <p class="text-muted">Update the details and questions for this evaluation.</p>
+
+    <form asp-action="Edit" method="post">
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <input type="hidden" asp-for="EvaluationId" />
+
+        <!-- Evaluation Info -->
+        <div class="card p-3 mb-3">
+            <div class="mb-3">
+                <label class="form-label">Evaluation title</label>
+                <input asp-for="EvaluationTitle" class="form-control" placeholder="Enter title here..." />
                 <span asp-validation-for="EvaluationTitle" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <input asp-for="Description" class="form-control" placeholder="Enter description here..." />
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DateCreated" class="control-label"></label>
-                <input asp-for="DateCreated" class="form-control" />
-                <span asp-validation-for="DateCreated" class="text-danger"></span>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Open</label>
+                    <input asp-for="OpenAt" type="date" id="openAtInput" class="form-control" />
+                    <span asp-validation-for="OpenAt" class="text-danger"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Closes</label>
+                    <input asp-for="ClosedAt" type="date" id="closedAtInput" class="form-control" />
+                    <span asp-validation-for="ClosedAt" class="text-danger"></span>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
+        </div>
+
+        <!-- Suggested Questions (click to reuse) -->
+        @if (Model.AvailableQuestions != null && Model.AvailableQuestions.Any())
+        {
+            <div class="mb-3">
+                <label class="form-label d-block">Suggested questions (click to add)</label>
+                @foreach (var q in Model.AvailableQuestions)
+                {
+                    <span class="badge bg-light text-dark border suggestion-chip me-2 mb-2 p-2"
+                          style="cursor:pointer;"
+                          data-id="@q.QuestionId"
+                          data-text="@q.QuestionText">
+                        @q.QuestionText
+                    </span>
+                }
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
+        }
+
+        <!-- Existing question blocks render here (server-side, pre-filled) -->
+        <div id="questionsContainer">
+            @if (Model.Questions != null)
+            {
+                for (int i = 0; i < Model.Questions.Count; i++)
+                {
+                    <div class="card p-3 mb-3 question-block eval-create-page">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <label class="form-label question-label">Question @(i + 1)</label>
+                            <span class="text-danger remove-question" style="cursor:pointer;">
+                                <i class="bi bi-trash"></i>
+                            </span>
+                        </div>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="hidden" class="question-id-input"
+                                   name="Questions[@i].QuestionId"
+                                   value="@Model.Questions[i].QuestionId" />
+                            <div class="flex-grow-1">
+                                <input type="text" class="form-control question-text-input"
+                                       name="Questions[@i].QuestionText"
+                                       value="@Model.Questions[i].QuestionText"
+                                       placeholder="Type your question here" />
+                                <span class="text-danger question-text-error" style="font-size:12px;"></span>
+                            </div>
+                            <div>
+                                <select class="form-select answer-type-select" name="Questions[@i].AnswerType" style="max-width:200px;">
+                                    <option value="">Answer Type</option>
+                                    <option value="RatingScale" selected="@(Model.Questions[i].AnswerType == AnswerType.RatingScale)">Rating Scale</option>
+                                    <option value="Dichotomous" selected="@(Model.Questions[i].AnswerType == AnswerType.Dichotomous)">Dichotomous</option>
+                                    <option value="MultipleChoice" selected="@(Model.Questions[i].AnswerType == AnswerType.MultipleChoice)">Multiple Choice</option>
+                                    <option value="ShortAnswer" selected="@(Model.Questions[i].AnswerType == AnswerType.ShortAnswer)">Short answer</option>
+                                </select>
+                                <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
+                            </div>
+                        </div>
+                        <div class="answer-preview text-muted"></div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div id="noQuestionsError" class="text-danger mb-3" style="display:none; font-size:13px;">
+            Please add at least one question.
+        </div>
+
+        <button type="button" id="addQuestionBtn" class="btn btn-primary w-100 mb-3">+ Add Question</button>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+
+    </form>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<!-- Template for NEW question blocks added via JS -->
+<template id="questionTemplate">
+    <div class="card p-3 mb-3 question-block eval-create-page">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <label class="form-label question-label">Question</label>
+            <span class="text-danger remove-question" style="cursor:pointer;">
+                <i class="bi bi-trash"></i>
+            </span>
+        </div>
+        <div class="d-flex gap-2 mb-2">
+            <input type="hidden" class="question-id-input" name="" value="" />
+            <div class="flex-grow-1">
+                <input type="text" class="form-control question-text-input" name="" placeholder="Type your question here" />
+                <span class="text-danger question-text-error" style="font-size:12px;"></span>
+            </div>
+            <div>
+                <select class="form-select answer-type-select" name="" style="max-width:200px;">
+                    <option value="">Answer Type</option>
+                    <option value="RatingScale">Rating Scale</option>
+                    <option value="Dichotomous">Dichotomous</option>
+                    <option value="MultipleChoice">Multiple Choice</option>
+                    <option value="ShortAnswer">Short answer</option>
+                </select>
+                <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
+            </div>
+        </div>
+        <div class="answer-preview text-muted">Choose an answer type first...</div>
+    </div>
+</template>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        let questionIndex = 0;
+        const openAtInput = document.getElementById("openAtInput");
+        const closedAtInput = document.getElementById("closedAtInput");
+        const today = new Date().toISOString().split("T")[0];
+
+        openAtInput.min = today;
+
+        openAtInput.addEventListener("change", function () {
+            if (openAtInput.value) {
+                closedAtInput.min = openAtInput.value;
+                if (closedAtInput.value && closedAtInput.value < openAtInput.value) {
+                    closedAtInput.value = "";
+                }
+            }
+        });
+
+        function buildAnswerPreview(type) {
+            if (type === "RatingScale") {
+                let stars = "";
+                for (let i = 1; i <= 5; i++) {
+                    stars += `<i class="bi bi-star fs-4 me-2"></i>`;
+                }
+                return `<div class="d-flex">${stars}</div>`;
+            }
+            if (type === "Dichotomous") {
+                return `
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Yes</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">No</label></div>`;
+            }
+            if (type === "MultipleChoice") {
+                return `
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Agree</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Agree</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Neutral</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Disagree</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Disagree</label></div>`;
+            }
+            if (type === "ShortAnswer") {
+                return `<input type="text" class="form-control" placeholder="Short answer text." disabled />`;
+            }
+            return `<span class="text-muted">Choose an answer type first...</span>`;
+        }
+
+        function renumberQuestions() {
+            const blocks = document.querySelectorAll(".question-block");
+            blocks.forEach(function (block, i) {
+                block.querySelector(".question-label").textContent = `Question ${i + 1}`;
+                block.querySelector(".question-id-input").name = `Questions[${i}].QuestionId`;
+                block.querySelector(".question-text-input").name = `Questions[${i}].QuestionText`;
+                block.querySelector(".answer-type-select").name = `Questions[${i}].AnswerType`;
+            });
+            questionIndex = blocks.length;
+        }
+
+        function wireUpBlock(block) {
+            const typeSelect = block.querySelector(".answer-type-select");
+            const preview = block.querySelector(".answer-preview");
+            const textInput = block.querySelector(".question-text-input");
+
+            typeSelect.addEventListener("change", function () {
+                preview.innerHTML = buildAnswerPreview(this.value);
+                block.querySelector(".answer-type-error").textContent = "";
+                typeSelect.classList.remove("border-danger");
+            });
+
+            textInput.addEventListener("input", function () {
+                block.querySelector(".question-text-error").textContent = "";
+            });
+
+            block.querySelector(".remove-question").addEventListener("click", function () {
+                block.remove();
+                renumberQuestions();
+            });
+        }
+
+        function addQuestionBlock(questionId = "", questionText = "") {
+            const template = document.getElementById("questionTemplate").content.cloneNode(true);
+            const block = template.querySelector(".question-block");
+            const i = questionIndex;
+
+            block.querySelector(".question-label").textContent = `Question ${i + 1}`;
+
+            const idInput = block.querySelector(".question-id-input");
+            idInput.name = `Questions[${i}].QuestionId`;
+            idInput.value = questionId;
+
+            const textInput = block.querySelector(".question-text-input");
+            textInput.name = `Questions[${i}].QuestionText`;
+            textInput.value = questionText;
+
+            block.querySelector(".answer-type-select").name = `Questions[${i}].AnswerType`;
+
+            wireUpBlock(block);
+
+            document.getElementById("questionsContainer").appendChild(block);
+            questionIndex++;
+        }
+
+        // Wire up the EXISTING server-rendered blocks and show their current preview
+        document.querySelectorAll("#questionsContainer .question-block").forEach(function (block) {
+            wireUpBlock(block);
+            const typeSelect = block.querySelector(".answer-type-select");
+            block.querySelector(".answer-preview").innerHTML = buildAnswerPreview(typeSelect.value);
+        });
+        questionIndex = document.querySelectorAll("#questionsContainer .question-block").length;
+
+        document.getElementById("addQuestionBtn").addEventListener("click", function () {
+            addQuestionBlock();
+        });
+
+        document.querySelectorAll(".suggestion-chip").forEach(function (chip) {
+            chip.addEventListener("click", function () {
+                addQuestionBlock(this.dataset.id, this.dataset.text);
+            });
+        });
+
+        document.querySelector("form").addEventListener("submit", function (e) {
+            let hasError = false;
+            const blocks = document.querySelectorAll(".question-block");
+
+            if (blocks.length === 0) {
+                document.getElementById("noQuestionsError").style.display = "block";
+                hasError = true;
+            } else {
+                document.getElementById("noQuestionsError").style.display = "none";
+            }
+
+            blocks.forEach(function (block) {
+                const text = block.querySelector(".question-text-input");
+                const type = block.querySelector(".answer-type-select");
+                const textError = block.querySelector(".question-text-error");
+                const typeError = block.querySelector(".answer-type-error");
+
+                if (!text.value.trim()) {
+                    textError.textContent = "Question text is required.";
+                    hasError = true;
+                } else {
+                    textError.textContent = "";
+                }
+
+                if (!type.value) {
+                    typeError.textContent = "Required.";
+                    type.classList.add("border-danger");
+                    hasError = true;
+                } else {
+                    typeError.textContent = "";
+                    type.classList.remove("border-danger");
+                }
+            });
+
+            if (hasError) e.preventDefault();
+        });
+    </script>
 }

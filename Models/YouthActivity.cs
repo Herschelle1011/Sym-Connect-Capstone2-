@@ -73,9 +73,9 @@ namespace Sym_Connect__Capstone2_.Models
 
         public Group? Group { get; set; }
 
-        // Who submitted this for approval (could be ADMIN OR LEADER)
-        public string SubmittedByUserId { get; set; }
-        [ForeignKey(nameof(SubmittedByUserId))]
+        //// Who submitted this for approval (could be ADMIN OR LEADER)
+        //public string SubmittedByUserId { get; set; }
+        //[ForeignKey(nameof(SubmittedByUserId))]
         public User? SubmittedBy { get; set; }
     }
 }

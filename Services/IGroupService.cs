@@ -12,7 +12,7 @@ namespace Sym_Connect__Capstone2_.Services
         Task DeleteGroupAsync(int id);
         Task<bool> GroupExists(int id);
         Task<bool> GroupNameExists(string name, int? excludeId = null);
-
+        Task ArchiveGroupAsync(int? id);
 
         //LOAD ALL LEADERS
         Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null);

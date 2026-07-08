@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Services;
-using static Sym_Connect__Capstone2_.ViewModels.EvaluationViewModel;
+using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
 public class EvaluationsController : Controller
 {
@@ -23,8 +23,9 @@ public class EvaluationsController : Controller
         {
             EvaluationId = e.EvaluationId,
             EvaluationTitle = e.EvaluationTitle,
-            Description = e.Description,
-            Status = e.Status,
+            Description = e.Description,  
+            OpenAt = e.OpenAt,
+            ClosesAt = e.ClosedAt,
             DateCreated = e.DateCreated
         }).ToList();
 
@@ -50,17 +51,40 @@ public class EvaluationsController : Controller
             EvaluationId = evaluation.EvaluationId,
             EvaluationTitle = evaluation.EvaluationTitle,
             Description = evaluation.Description,
-            Status = evaluation.Status,
+            OpenAt = evaluation.OpenAt,
+            ClosesAt = evaluation.ClosedAt,
             DateCreated = evaluation.DateCreated,
+
+            Questions = evaluation.EvaluationDetails.Select(q => new EvaluationQuestionViewModel
+            {
+                QuestionId = q.QuestionId,
+                QuestionText = q.EvaluationQuestion!.QuestionText,
+                AnswerType = q.EvaluationQuestion.AnswerType,
+                
+            }).ToList()
         };
 
         return View(Evaluations);
     }
 
     // GET: EVALUATIONS/Create
-    public IActionResult Create()
+    public async Task <IActionResult> Create()
     {
-        return PartialView("_CreateEvaluationForm");
+        var getallquestions = await _evaluationservice.GetAllQuestionsAsync();
+
+        var vm = new CreateEvaluationViewModel
+        {
+            OpenAt = DateTime.Today,
+            ClosedAt = DateTime.Today.AddDays(1),
+
+            AvailableQuestions = getallquestions.Select(q => new AvailableQuestionViewModel
+            {
+                QuestionId = q.QuestionId,
+                QuestionText = q.QuestionText,
+            }).ToList()
+        };
+               
+        return View(vm);
     }
 
     // POST: EVALUATIONS/Create
@@ -70,42 +94,34 @@ public class EvaluationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateEvaluationViewModel vm)
     {
+        DateValidation(vm);
+
+        var questions = await _evaluationservice.GetAllQuestionsAsync();
+
         if (!ModelState.IsValid)
         {
-            return PartialView("_CreateEvaluationForm", vm);
+            vm.AvailableQuestions = questions.Select(q => new AvailableQuestionViewModel
+            {
+                QuestionId = q.QuestionId,
+                QuestionText = q.QuestionText,
+            }).ToList();
 
+            return View(vm);
         }
-        var evaluation = new Evaluation
-        {
-            EvaluationTitle = vm.EvaluationTitle,
-            Description = vm.Description,
-            DateCreated = DateTime.Now,
-            Status = vm.Status,
-        };
-       
-            await _evaluationservice.CreateEvaluationAsync(evaluation);
-            return RedirectToAction(nameof(Index));
-            
+           await _evaluationservice.CreateEvaluationAsync(vm);
+           return RedirectToAction(nameof(Index));
     }
 
     // GET: EVALUATIONS/Edit/5
 
     public async Task<IActionResult> Edit(int id)
     {
-
-        var evaluation = await _evaluationservice.GetEvaluationByIdAsync(id);
+        var evaluation = await _evaluationservice.GetUpdateEvaluationAsync(id);
         if (evaluation == null)
         {
             return NotFound();
         }
-        var eval = new UpdateEvaluationViewModel
-        {
-            EvaluationId = evaluation.EvaluationId,
-            EvaluationTitle = evaluation.EvaluationTitle,
-            Description = evaluation.Description,
-            Status = evaluation.Status,
-        };
-        return PartialView("_EditEvaluationForm", eval);
+        return View(evaluation);
     }
 
     // POST: EVALUATIONS/Edit/5
@@ -115,6 +131,8 @@ public class EvaluationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UpdateEvaluationViewModel vm)
     {
+        DateValidation(vm);
+
         if (vm.EvaluationId == 0)
         {
             return NotFound();
@@ -123,18 +141,9 @@ public class EvaluationsController : Controller
         {
             return PartialView("_EditEvaluationForm",vm);
         }
-        var update = new Evaluation
-        {
-            EvaluationId = vm.EvaluationId,
-            EvaluationTitle = vm.EvaluationTitle,
-            Description = vm.Description,
-            Status = vm.Status,
-            UpdatedAt = DateTime.Now,
-        };
         try
         {
-
-            await _evaluationservice.UpdateEvaluationAsync(update);
+            await _evaluationservice.UpdateEvaluationAsync(vm);
             return RedirectToAction(nameof(Index));
         }
         catch (DbUpdateConcurrencyException)
@@ -151,6 +160,7 @@ public class EvaluationsController : Controller
 
         }
     }
+
     // GET: EVALUATIONS/Delete/5
     public async Task<IActionResult> Archive(int? id)
     {
@@ -159,20 +169,12 @@ public class EvaluationsController : Controller
             return NotFound();
         }
 
-        var evaluation = await _evaluationservice.GetEvaluationByIdAsync(id.Value);
+        var evaluation = await _evaluationservice.GetArchiveEvaluationConfirmation(id.Value);
         if (evaluation == null)
         {
             return NotFound();
         }
-        var eval = new ArchiveEvaluationViewModel
-        {
-            EvaluationId = evaluation.EvaluationId,
-            EvaluationTitle = evaluation.EvaluationTitle,
-            Description = evaluation.Description,
-           
-        };
-
-        return PartialView("_ArchiveEvaluationForm",eval);
+        return PartialView("_ArchiveEvaluationForm", evaluation);
     }
 
     // POST: EVALUATIONS/Archive/5
@@ -180,7 +182,7 @@ public class EvaluationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ArchivedConfirmed(int id)
     {
-        await _evaluationservice.ArchiveEvaluationAsync(id);
+        await _evaluationservice.ArchiveEvaluation(id);
 
         return RedirectToAction(nameof(Index));
     }
@@ -217,6 +219,16 @@ public class EvaluationsController : Controller
     {
          await _evaluationservice.DeleteEvaluationAsync(evaluationid);
           return RedirectToAction(nameof(Index));
+    }
+
+
+    private void DateValidation(EvaluationFormViewModel vm)
+    {
+        if (vm.OpenAt >= vm.ClosedAt)
+        {
+            ModelState.AddModelError(nameof(vm.ClosedAt), "Close date must be after the open date.");
+        }
+        
     }
 
 }

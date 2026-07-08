@@ -1,4 +1,4 @@
-﻿@model Sym_Connect__Capstone2_.ViewModels.GroupViewModel.GroupDetailsViewModel
+﻿@model GroupDetailsViewModel
 @{
     ViewData["Title"] = "Group Details";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -411,7 +411,10 @@
                        style="cursor:pointer;font-size:11px;"></i>
                 </span>`).join('');
 
-            // Build hidden inputs so the form submits all selected memberIds
+            // Build hidden inputs so the form submits all selected 
+
+
+
             document.getElementById('hiddenMemberInputs').innerHTML =
                 selectedMembers.map(m =>
                     `<input type="hidden" name="memberIds" value="${m.id}" />`

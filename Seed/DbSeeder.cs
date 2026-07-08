@@ -1,6 +1,7 @@
 ﻿using CloudinaryDotNet.Actions;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 
 namespace Sym_Connect__Capstone2_.Seed
 {
@@ -17,7 +18,7 @@ namespace Sym_Connect__Capstone2_.Seed
                 {
                     FacilityName = "Main Gym",
                     FacilityDescription = "A full-size indoor court with stage access, ideal for basketball, events, and community gatherings throughout the year.",
-                    Status = Facility.FacilityStatus.Active,
+                    Status = FacilityStatus.Active,
                     FacilityTypes = "Basketball,OpenCourt",
                     Capacity = 120,
 
@@ -37,7 +38,7 @@ namespace Sym_Connect__Capstone2_.Seed
                 {
                     FacilityName = "Study Hall",
                     FacilityDescription = "A full-size indoor court with stage access, ideal for basketball, events, and community gatherings throughout the year.",
-                    Status = Facility.FacilityStatus.Active,
+                    Status = FacilityStatus.Active,
                     FacilityTypes = "Study,MeetingRoom",
                     Capacity = 120,
 
@@ -54,7 +55,7 @@ namespace Sym_Connect__Capstone2_.Seed
 {
     FacilityName = "Youth Activity Hall",
     FacilityDescription = "A spacious hall used for youth gatherings, workshops, seminars, and indoor activities.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "EventHall,YouthActivities",
     Capacity = 150,
 
@@ -71,7 +72,7 @@ new Facility
 {
     FacilityName = "Conference Room",
     FacilityDescription = "A professional meeting space equipped for planning sessions, leadership meetings, and presentations.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "MeetingRoom,Conference",
     Capacity = 40,
 
@@ -88,7 +89,7 @@ new Facility
 {
     FacilityName = "Youth Library",
     FacilityDescription = "A quiet study area with books, resources, and spaces for research and personal learning.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "Library,Study",
     Capacity = 50,
 
@@ -105,7 +106,7 @@ new Facility
 {
     FacilityName = "Music Practice Room",
     FacilityDescription = "A dedicated room for choir rehearsals, band practice, and musical training sessions.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "Music,PracticeRoom",
     Capacity = 25,
 
@@ -122,7 +123,7 @@ new Facility
 {
     FacilityName = "Computer Laboratory",
     FacilityDescription = "A technology-focused room equipped with computers for training, workshops, and digital learning.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "ComputerLab,Training",
     Capacity = 35,
 
@@ -139,7 +140,7 @@ new Facility
 {
     FacilityName = "Prayer Chapel",
     FacilityDescription = "A peaceful worship area for prayer services, reflection, and spiritual activities.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "Chapel,Worship",
     Capacity = 80,
 
@@ -156,7 +157,7 @@ new Facility
 {
     FacilityName = "Outdoor Pavilion",
     FacilityDescription = "An open-air venue suitable for community events, team-building activities, and social gatherings.",
-    Status = Facility.FacilityStatus.Active,
+    Status = FacilityStatus.Active,
     FacilityTypes = "Outdoor,EventSpace",
     Capacity = 100,
 

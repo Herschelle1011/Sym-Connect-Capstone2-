@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services;
-using static Sym_Connect__Capstone2_.ViewModels.FacilityViewModel;
+using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.Data;
 
 public class FacilitiesController : Controller

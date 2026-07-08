@@ -1,4 +1,4 @@
-﻿@model FacilityViewModel.EditFacilityViewModel
+﻿@model EditFacilityViewModel
 
 <form id="editFacilityForm"
       asp-action="Edit"
@@ -45,7 +45,7 @@
         <div class="col-6">
             <div class="form-floating">
                 <select asp-for="Status"
-                        asp-items="Html.GetEnumSelectList<Sym_Connect__Capstone2_.Models.Facility.FacilityStatus>()"
+                        asp-items="Html.GetEnumSelectList<Sym_Connect__Capstone2_.Models.Enums.FacilityStatus>()"
                         class="form-select">
                 </select>
                 <label asp-for="Status">Status</label>

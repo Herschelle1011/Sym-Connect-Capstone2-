@@ -1,139 +1,244 @@
-@model IEnumerable<EvaluationViewModel.ListEvaluationViewModel>
+@model IEnumerable<ListEvaluationViewModel>
 @{
     ViewData["Title"] = "Evaluations";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="member-page">
+<style>
+    /* ===== Page Header ===== */
+    .eval-page .page-title-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
+    .eval-page .page-title {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+    .eval-page .page-subtitle {
+        margin: 2px 0 0 0;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .btn-create {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #1877F2;
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }
+
+        .btn-create:hover {
+            background: #145DC2;
+            color: #fff;
+        }
+
+    /* ===== Cards Grid ===== */
+    .eval-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-top: 24px;
+    }
+
+    .eval-card {
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 14px;
+        padding: 18px 20px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+        .eval-card:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+    .eval-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .eval-card-title {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    /* ===== Status label (top-right pill) ===== */
+    .status-label {
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        padding: 4px 14px;
+        border-radius: 999px;
+    }
+
+    .status-open {
+        background: #E6F4EA;
+        color: #1E7E34;
+    }
+
+    .status-upcoming {
+        background: #FFF4E0;
+        color: #B7791F;
+    }
+
+    .status-closed {
+        background: #FBEAEA;
+        color: #BB1414;
+    }
+
+    /* ===== Date/time info row (icon + text) — same pill treatment, smaller ===== */
+    .eval-date-info {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        width: fit-content;
+        padding: 3px 10px;
+        border-radius: 999px;
+    }
+
+        .eval-date-info.text-open {
+            background: #E6F4EA;
+            color: #1E7E34;
+        }
+
+        .eval-date-info.text-upcoming {
+            background: #FFF4E0;
+            color: #B7791F;
+        }
+
+        .eval-date-info.text-closed {
+            background: #FBEAEA;
+            color: #BB1414;
+        }
+
+    /* ===== Description ===== */
+    .eval-description {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ===== Divider + action icons ===== */
+    .eval-card-footer {
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px solid var(--border-color, #EEE);
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 14px;
+    }
+
+        .eval-card-footer .btn-icon {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+</style>
+
+<div class="member-page eval-page">
+
+    @* ---- PAGE HEADER ---- *@
     <div class="page-header">
         <div class="page-title-row">
             <a href="javascript:history.back()" class="back-btn">&#8592;</a>
-            <h1 class="page-title">Evaluations</h1>
-        </div>
-
-        <button type="button"
-                class="btn-add open-modal"
-                data-url="@Url.Action("Create", "Evaluations")"
-                data-title="Add Evaluation">
-            <span>+</span> Add Evaluation
-        </button>
-
-    </div>
-
-    <div class="filter-bar">
-        <div class="filter-tabs">
-            <button type="button" class="filter-tab active-tab" data-status="all">
-                All (@Model.Count())
-            </button>
-            <button type="button" class="filter-tab" data-status="active">
-                Active (@Model.Count(m => m.Status == "Active"))
-            </button>
-            <button type="button" class="filter-tab" data-status="inactive">
-                Inactive (@Model.Count(m => m.Status == "Inactive"))
-            </button>
-        </div>
-
-        <div class="spacer"></div>
-
-        <div class="search-box">
-            <i class="bi bi-search"></i>
-            <input type="text" id="searchInput" placeholder="Search evaluations..." />
-        </div>
-
-        <button type="button" class="btn-filter">
-            <i class="bi bi-funnel"></i> Filter
-        </button>
-
-        <button type="button" class="btn-date">
-            <i class="bi bi-calendar3"></i> Date
-        </button>
-    </div>
-
-    <div class="table-card">
-        <table class="members-table" id="evaluationsTable">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Date Created</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr class="empty-row">
-                        <td colspan="6">No evaluations found.</td>
-                    </tr>
-                }
-                else
-                {
-                    foreach (var item in Model)
-                    {
-                        <tr data-status="@item.Status.ToLower()">
-                            <td>@item.EvaluationId</td>
-                            <td>@item.EvaluationTitle</td>
-                            <td>@item.Description</td>
-                            <td>@item.DateCreated.ToString("MM/dd/yyyy")</td>
-                            <td>
-                                @if (item.Status == "Active")
-                                {
-                                    <span class="badge-status badge-active">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge-status badge-inactive">Inactive</span>
-                                }
-                            </td>
-                            <td>
-                                <div class="action-cell">
-                                    <button type="button"
-                                            class="btn-icon btn-edit open-modal"
-                                            data-url="@Url.Action("Edit", "Evaluations", new { id = item.EvaluationId })"
-                                            data-title="Edit Evaluation">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-
-                                    @* <button type="button"
-                                            class="btn-icon open-modal"
-                                            data-url="@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })"
-                                            data-title="Evaluation Details"
-                                            style="color: var(--text-muted);">
-                                        <i class="bi bi-eye"></i>
-                                    </button> *@
-
-                                    <button type="button"
-                                            class="btn-icon btn-delete open-modal"
-                                            data-url="@Url.Action("Archive", "Evaluations", new { id = item.EvaluationId })"
-                                            data-title="Archive Evaluation">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-
-        <!-- Pagination bar -->
-        <div style="display:flex; align-items:center; justify-content:space-between;
-            padding:12px 16px; border-top:1px solid var(--border-color);
-            font-size:13px; color:var(--text-muted);">
-
-            <span id="pageInfo"></span>
-
-            <div style="display:flex; align-items:center; gap:8px;">
-                <button id="prevBtn" class="btn-filter">← Prev</button>
-                <span id="pageNum" style="min-width:90px; text-align:center;"></span>
-                <button id="nextBtn" class="btn-filter">Next →</button>
+            <div>
+                <h1 class="page-title">Evaluation</h1>
+                <p class="page-subtitle">Create and review feedback from your events.</p>
             </div>
         </div>
+
+        @* Redirects to Create.cshtml — NOT a modal *@
+        <a href="@Url.Action("Create", "Evaluations")" class="btn-create">
+            <i class="bi bi-plus-circle"></i> Create
+        </a>
     </div>
+
+    @* ---- CARDS GRID ---- *@
+    @if (!Model.Any())
+    {
+        <p style="color: var(--text-muted); margin-top: 24px;">
+            No evaluations found.
+        </p>
+    }
+    else
+    {
+        <div class="eval-grid">
+            @foreach (var item in Model)
+            {
+                @* Map status to a short css-safe key: "open" | "upcoming" | "closed" *@
+                var statusKey = item.Status.ToLower();
+
+                <div class="eval-card"
+                    style="cursor:pointer;"
+                    onclick="location.href='@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })'">
+                    
+                    @* ---- TITLE + STATUS LABEL ---- *@
+                    <div class="eval-card-top">
+                        <h3 class="eval-card-title">@item.EvaluationTitle</h3>
+
+                        <span class="status-label status-@statusKey">@item.Status</span>
+                    </div>
+
+                    @* ---- DATE / TIME INFO (color matches status) ---- *@
+                    <p class="eval-date-info text-@statusKey">
+                        <i class="bi bi-clock"></i>
+                        @item.DateInfo
+                    </p>
+
+                    @* ---- DESCRIPTION ---- *@
+                    <p class="eval-description">@item.Description</p>
+
+                    @* ---- FOOTER: divider + action icons ---- *@
+                    <div class="eval-card-footer">
+                        <a asp-action="Edit"
+                           asp-route-id="@item.EvaluationId"
+                           class="btn-icon btn-link text-primary">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <button type="button"
+                                class="btn-icon btn-link text-warning open-modal"
+                                data-url="@Url.Action("Archive", "Evaluations", new { id = item.EvaluationId })"
+                                data-title="Archive Evaluation">
+                            <i class="bi bi-archive"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+            }
+        </div>
+    }
 </div>
 
 @await Html.PartialAsync("~/Views/Shared/_Modal.cshtml")
@@ -142,5 +247,20 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/admin/evaluationsTable.js"></script>
+    <script>
+    $(document).on("click", ".open-modal", function () {
+    const url = $(this).data("url");
+    const title = $(this).data("title");
+
+    $("#appModalLabel").text(title);
+    $("#appModalBody").html("Loading...");
+
+    $.get(url, function (html) {
+    $("#appModalBody").html(html);
+    });
+
+    const modal = new bootstrap.Modal(document.getElementById("appModal"));
+    modal.show();
+    });
+    </script>
 }
