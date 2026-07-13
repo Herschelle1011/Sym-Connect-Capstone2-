@@ -7,11 +7,13 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
     {
         Task<List<EventCalendarViewModel>>GetAllEventAsync(int year, int month);
         Task<Event?>GetEventByIdAsync(int id);
-        Task CreateEventAsync(CreateEventViewModel vm);
-        Task UpdateEventAsync(int? id, EditEventViewModel vm);
+        Task<bool> CreateEventAsync(CreateEventViewModel vm);
+        Task<bool> UpdateEventAsync(int? gId, EditEventViewModel vm);
         Task<ArchiveViewModel?> ConfirmationArchiveAsync(int? id);
         Task ArchiveEventAsync(int id);
         Task<EditEventViewModel?> GetEventForEditAsync(int? id);
+        Task<bool> HasFacilityConflictAsync(int facilityId, bool isAllDay, DateTime startDate,
+                                        DateTime endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null);
 
     }
 }

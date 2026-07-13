@@ -1,46 +1,53 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sym_Connect__Capstone2_.Models;
-using Sym_Connect__Capstone2_.ViewModels.Event;
-using Sym_Connect__Capstone2_.Services.Interfaces;
 using Microsoft.EntityFrameworkCore.Query;
+using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Implementation;
+using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Event;
 
 public class EventsController : Controller
 {
     private readonly IEventService _eventService;
+    private readonly IFacilityService _facilityService;
+    private readonly IGroupService _groupService;
 
-    public EventsController(IEventService eventService)
+    public EventsController(IEventService eventService, IFacilityService facilityService, IGroupService groupService)
     {
         _eventService = eventService;
+        _facilityService = facilityService;
+        _groupService = groupService;
     }
 
     // GET: EVENTS
     public async Task<IActionResult> Index(int? year, int? month)    
     {
+        ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
+        ViewBag.Groups = await _groupService.GetAllGroupsAsync();
         //set default values 
         var targetYear = year ?? DateTime.Now.Year;
-        var targetMonth = year ?? DateTime.Now.Month;
+        var targetMonth = month ?? DateTime.Now.Month;
 
-        return View(await _eventService.GetAllEventAsync(targetYear, targetMonth));
+        var vm = new EventListViewModel
+        {
+            Year = targetYear,
+            Month = targetMonth,
+            Events = await _eventService.GetAllEventAsync(targetYear, targetMonth)
+        };
+
+        return View(vm);
     }
 
     // GET: EVENTS/Details/5
-    public async Task<IActionResult> Details(int? eventid)
+    public async Task<IActionResult> Details(int? id)
     {
-        if (eventid == null)
-        {
-            return NotFound();
-        }
+        if (id == null) return NotFound();
 
-        var event = await _context.Events
-            .FirstOrDefaultAsync(m => m.EventId == eventid);
-        if (event == null)
-        {
-            return NotFound();
-        }
+        var eventDetails = await _eventService.GetEventByIdAsync(id.Value);
+        if (eventDetails == null) return NotFound();
 
-        return View(event);
+        return View(eventDetails);
     }
 
     // GET: EVENTS/Create
@@ -58,9 +65,18 @@ public class EventsController : Controller
     {
         if (!ModelState.IsValid)
         {
+            ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
+            ViewBag.Groups = await _groupService.GetAllGroupsAsync();
             return View(vm);
         }
-        await _eventService.CreateEventAsync(vm);
+        
+        var success = await _eventService.CreateEventAsync(vm);
+        if (!success)
+        {
+            ModelState.AddModelError("", "This facility is already booked during the selected date/time.");
+            return View(vm);
+        }
+     
         return RedirectToAction(nameof(Index));
     }
 
@@ -72,7 +88,7 @@ public class EventsController : Controller
             return NotFound();
         }
 
-        var existingEvent = _eventService.GetEventForEditAsync(eventid);
+        var existingEvent = await _eventService.GetEventForEditAsync(eventid);
         if (existingEvent == null) return NotFound();
 
         return View(existingEvent);
@@ -85,29 +101,20 @@ public class EventsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int? eventid, EditEventViewModel vm)
     {
-        if (eventid != vm.EventId)
-        {
-            return NotFound();
-        }
+        if (eventid != vm.EventId) return NotFound();     
         if (!ModelState.IsValid) return View(vm);
-
-            try
-            {
-                await _eventService.UpdateEventAsync(eventid, vm);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EventExists(vm.EventId))
-                {
-                    return NotFound();
-                }
-            throw;        
-            }
-            return RedirectToAction(nameof(Index));
+  
+                var success = await _eventService.UpdateEventAsync(eventid, vm);
+                    if (!success)
+                    {
+                        ModelState.AddModelError("", "This facility is already booked during the selected date/time.");
+                        return View(vm);
+                    }
+                      return RedirectToAction(nameof(Index));
  
     }
 
-    // GET: EVENTS/Delete/5
+    // GET: EVENTS/Archive/5
     public async Task<IActionResult> ConfirmationArchive(int? eventid)
     {
         if (eventid == null)
@@ -120,18 +127,22 @@ public class EventsController : Controller
         return PartialView("_ArchiveModal",confirmationVm);
     }
 
-    // POST: EVENTS/Delete/5
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmedArchived(int eventid)
     {
-        await _eventService.ArchiveEventAsync(eventid); 
+        await _eventService.ArchiveEventAsync(eventid);
         return RedirectToAction(nameof(Index));
     }
 
-    private bool EventExists(int? eventid)
+    [HttpGet]
+    public async Task<IActionResult> GetFacilityPhotoUrl(int id)
     {
-        return _context.Events.Any(e => e.EventId == eventid);
+        var facility = await _facilityService.GetFacilityAsyncById(id);
+        var photoUrl = facility?.FacilityPhotos?.FirstOrDefault()?.PhotoUrl;
+        return Json(new { photoUrl });
     }
+
+
 
 }

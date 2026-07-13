@@ -1,0 +1,50 @@
+﻿/* Blur the calendar behind the panel, instead of Bootstrap's flat dark overlay */
+.offcanvas-backdrop.show {
+    backdrop-filter: blur(4px);
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.event-panel .nav-tabs .nav-link {
+    color: #6b7280;
+    border: none;
+    font-size: 14px;
+    padding: 10px 4px;
+    margin-right: 24px;
+}
+
+    .event-panel .nav-tabs .nav-link.active {
+        color: #2563eb;
+        font-weight: 500;
+        border-bottom: 2px solid #2563eb;
+        background: none;
+    }
+
+.event-panel .form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+}
+
+.event-panel .form-control {
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* Matches the blue dot next to "SYM Main Calendar" */
+.calendar-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2563eb;
+    display: inline-block;
+}
+
+.day-cell.day-cell-selected {
+    outline: 2px solid #3b82f6;
+    outline-offset: -2px;
+    background: #eff6ff;
+}
+
+.day-cell:hover {
+    background: #f9fafb;
+}

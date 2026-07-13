@@ -1,0 +1,131 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Event.CreateEventViewModel
+
+<div class="offcanvas offcanvas-end event-panel" tabindex="-1" id="eventPanel" style="width: 420px;">
+
+    <div class="offcanvas-header border-bottom pb-2">
+        <h5 class="offcanvas-title fw-medium">Add New Event</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+        <form asp-action="Create" asp-controller="Events" method="post" id="createEventForm">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label">Event Title <span class="text-danger">*</span></label>
+                <input asp-for="EventTitle" class="form-control" placeholder="Enter a title for this event" />
+                <span asp-validation-for="EventTitle" class="text-danger" style="font-size:12px;"></span>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" asp-for="IsAllDay" id="isAllDayToggle" />
+                <label class="form-check-label" style="font-size:14px;" for="isAllDayToggle">
+                    This is an All Day Event
+                    <i class="ti ti-help-circle text-muted" style="font-size:12px;"></i>
+                </label>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" type="date" class="form-control" id="startDateInput" />
+                </div>
+                <div class="col-6" id="startTimeGroup">
+                    <label class="form-label">Start Time <span class="text-danger">*</span></label>
+                    <input asp-for="StartTime" type="time" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" type="date" class="form-control" id="endDateInput" />
+                </div>
+                <div class="col-6" id="endTimeGroup">
+                    <label class="form-label">End Time <span class="text-danger">*</span></label>
+                    <input asp-for="EndTime" type="time" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Facility <span class="text-danger">*</span></label>
+                <select asp-for="FacilityId" class="form-control" id="facilitySelect">
+                    <option value="">Select a facility...</option>
+                    @foreach (var f in (List<Sym_Connect__Capstone2_.Models.Facility>)ViewBag.Facilities)
+                    {
+                        <option value="@f.FacilityId">@f.FacilityName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Expected Groups</label>
+                <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
+                    @foreach (var g in (List<Sym_Connect__Capstone2_.Models.Group>)ViewBag.Groups)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="SelectedGroupIds"
+                                   value="@g.GroupId" id="group-@g.GroupId" />
+                            <label class="form-check-label" style="font-size:14px;" for="group-@g.GroupId">
+                                @g.GroupName
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Event Description</label>
+                <textarea asp-for="EventDescription" class="form-control" rows="3"
+                          maxlength="500" placeholder="Add a description for this event..."></textarea>
+            </div>
+
+            <div class="d-flex gap-2 mt-4 pb-3">
+                <button type="button" class="btn btn-outline-secondary w-50" data-bs-dismiss="offcanvas">Cancel</button>
+                <button type="submit" class="btn btn-primary w-50">
+                    <i class="ti ti-calendar-plus"></i> Create Event
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const isAllDayToggle = document.getElementById("isAllDayToggle");
+    const startTimeGroup = document.getElementById("startTimeGroup");
+    const endTimeGroup = document.getElementById("endTimeGroup");
+
+    function toggleTimeInputs() {
+        const hide = isAllDayToggle.checked;
+        startTimeGroup.style.display = hide ? "none" : "block";
+        endTimeGroup.style.display = hide ? "none" : "block";
+    }
+
+    isAllDayToggle.addEventListener("change", toggleTimeInputs);
+    toggleTimeInputs(); 
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var dayCells = document.querySelectorAll('.day-cell');
+        var offcanvasEl = document.getElementById('eventPanel');
+    var startDateInput = document.getElementById('startDateInput'); 
+        dayCells.forEach(function (cell) {
+            cell.addEventListener('click', function () {
+                // highlight the clicked cell only
+                dayCells.forEach(function (c) { c.classList.remove('day-cell-selected'); });
+                cell.classList.add('day-cell-selected');
+
+                // fill the Start Date field
+                if (startDateInput) {
+                    startDateInput.value = cell.getAttribute('data-date');
+                }
+
+                // open the same offcanvas the "Add Event" button uses
+                var panel = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+                panel.show();
+            });
+        });
+    });
+
+
+</script>

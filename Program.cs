@@ -66,6 +66,7 @@ builder.Services.AddScoped<IGroupService, GroupService>(); //for groups
 builder.Services.AddScoped<IMemberService, MemberService>(); // for members
 builder.Services.AddScoped<IFacilityService, FacilityService>(); // for facility
 builder.Services.AddScoped< IEvaluationService, EvaluationService>(); // for evaluation
+builder.Services.AddScoped<IEventService, EventService>(); // for evaluation
 
 
 

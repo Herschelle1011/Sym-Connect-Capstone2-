@@ -42,11 +42,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             .ThenInclude(m => m.Member)
                 .Include(e => e.Evaluations)
                 .Include( a => a.Attendances).
+                         ThenInclude(m => m.Member).
                     FirstOrDefaultAsync(e => e.EventId == id && e.IsArchived == false);
           
         }
-        public async Task CreateEventAsync(CreateEventViewModel vm)
+        public async Task<bool> CreateEventAsync(CreateEventViewModel vm)
         {
+            var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
+            if (hasConflict) return false;
+
+
             var newEvent = new Event
             {
                 EventTitle = vm.EventTitle,
@@ -68,22 +73,30 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
+            return true;
+
         }
 
-        public async Task UpdateEventAsync(int? id, EditEventViewModel vm)
+        public async Task<bool> UpdateEventAsync(int? gId, EditEventViewModel vm)
         {
+         
             //find the ID first from the EVENT
             var existingEvent = await _context.Events.
                             Include(eg => eg.ExpectedGroups)
-                            .FirstOrDefaultAsync(e => e.EventId == id);
+                            .FirstOrDefaultAsync(e => e.EventId == gId);
+
+            if (existingEvent == null) return false;
+
+            var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime, excludeEventId: gId);
+            if (hasConflict) return false;
 
 
-            if (existingEvent == null) return;
             existingEvent.EventTitle = vm.EventTitle;
             existingEvent.EventDescription = vm.EventDescription;
             existingEvent.StartDate = vm.StartDate;
             existingEvent.EndDate = vm.EndDate;
             existingEvent.StartTime = vm.StartTime;
+            existingEvent.IsAllDay = vm.IsAllDay;
             existingEvent.EndTime = vm.EndTime;
             existingEvent.FacilityId = vm.FacilityId;
 
@@ -102,7 +115,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             //select group that were not existed yet in selectedGroupIds ONLY SHOW notCurrentGroupIds
             var groupIdsToAdd = vm.SelectedGroupIds
-                            .Where(id => !currentGroupIds.Contains(id));
+                            .Where(selectedId => !currentGroupIds.Contains(selectedId));
 
             foreach(var remove in groupRemove)
                  existingEvent.ExpectedGroups.Remove(remove);
@@ -116,6 +129,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 });
             }
             await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task <EditEventViewModel?> GetEventForEditAsync(int? id)
@@ -166,8 +180,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
+        private(DateTime StartDate, DateTime EndDate) EventRange(bool IsAllDay, DateTime startDate, DateTime endDate, TimeSpan? startTime, TimeSpan? endTime)
+        {
+            if (IsAllDay)
+            {
+                return (startDate.Date, endDate.Date.AddDays(1));
+            }
+            return (startDate.Date + (startTime ?? TimeSpan.Zero), endDate.Date + (endTime ?? TimeSpan.Zero));
+        }
 
+        //understand this part >>>> to be check....
+        public async Task <bool> HasFacilityConflictAsync(int facilityId,bool isAllDay ,DateTime startDate, 
+                                        DateTime endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null)
+        {
+            var (newStart, newEnd) = EventRange(isAllDay, startDate, endDate, startTime, endTime);
+            //list of those events in the same DATE
+            var possibleEventConflicts = await _context.Events.Where(e => e.FacilityId == facilityId
+                                                                                && e.StartDate.Date <= endDate.Date
+                                                                                && e.EndDate.Date >= startDate.Date
+                                                                                && (excludeEventId == null || e.EventId != excludeEventId)).ToListAsync();
+            //checks the list 
+            foreach(var existing in possibleEventConflicts)
+            {
+                var (existingStart, existingEnd) = EventRange
+                    (existing.IsAllDay, existing.StartDate, existing.EndDate, existing.StartTime, existing.EndTime);
 
+                if (newStart < existingEnd && existingStart < newEnd) return true;
+            }
+            return false;
+        }
 
     }
 }
