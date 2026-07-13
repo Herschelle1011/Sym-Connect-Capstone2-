@@ -2,7 +2,7 @@
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
-namespace Sym_Connect__Capstone2_.Services
+namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
     public interface IEvaluationService
     {
@@ -10,7 +10,7 @@ namespace Sym_Connect__Capstone2_.Services
         Task<Evaluation?> GetEvaluationByIdAsync(int id);
         //evaluation from a specific member id STOP HERE SEARCH MORE --------
         Task CreateEvaluationAsync(CreateEvaluationViewModel vm);
-
+        Task<EditQuestionViewModel> GetQuestionAsync(int id);
         Task CreateOrReuseQuestionAsync(int evaluationid, string questionText, AnswerType answertype);
 
         Task UpdateEvaluationAsync(UpdateEvaluationViewModel vm);
@@ -20,5 +20,7 @@ namespace Sym_Connect__Capstone2_.Services
         Task <List<EvaluationQuestion>> GetAllQuestionsAsync();
         Task ArchiveEvaluation(int id);
         Task<bool> EvaluationExist(int id);
+
+        Task EditQuestionAsync(EditQuestionViewModel vm);
     }
 }

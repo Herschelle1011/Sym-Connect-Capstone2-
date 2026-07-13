@@ -2,9 +2,10 @@
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
-namespace Sym_Connect__Capstone2_.Services
+namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class EvaluationService : IEvaluationService
     {
@@ -13,7 +14,6 @@ namespace Sym_Connect__Capstone2_.Services
         {
             _context = context;
         }
-
         public async Task<List<Evaluation>> GetAllEvaluationsAsync()
         {
             return await _context.Evaluations
@@ -24,7 +24,12 @@ namespace Sym_Connect__Capstone2_.Services
         }
         public async Task<List<EvaluationQuestion>> GetAllQuestionsAsync()
         {
-            return await _context.EvaluationQuestions.ToListAsync();
+           var questions = await _context.EvaluationQuestions.ToListAsync();
+            return questions.GroupBy(q => q.QuestionText.Trim()
+                             .ToLower()).Select(g => g.First())
+                              .ToList();
+                            
+                            
         }
 
         public async Task<Evaluation?> GetEvaluationByIdAsync(int id)
@@ -68,6 +73,54 @@ namespace Sym_Connect__Capstone2_.Services
                 _context.EvaluationDetail.Add(evaluationDetail); //this continue to add bridges 
                 await _context.SaveChangesAsync();
         }
+
+        public async Task<EditQuestionViewModel> GetQuestionAsync(int id)
+        {
+            var evaluationDetail = await _context.EvaluationDetail
+                                    .Include(e => e.EvaluationQuestion)
+                                    .FirstOrDefaultAsync(e => e.EvaluationDetailId == id);
+            if (evaluationDetail == null) return null;
+            return new EditQuestionViewModel
+            {
+                EvaluationDetailId = evaluationDetail.EvaluationDetailId,
+                QuestionText = evaluationDetail.EvaluationQuestion.QuestionText,
+                answerType = evaluationDetail.EvaluationQuestion.AnswerType
+            };
+
+        }
+
+        public async Task EditQuestionAsync(EditQuestionViewModel vm)
+        {        
+            // -- June 9, 2026 current PROGRESS
+
+            //Check if the EvaluationDetail exist
+            var evaluationDetail = await _context.EvaluationDetail
+                                .FirstOrDefaultAsync(d => d.EvaluationDetailId == vm.EvaluationDetailId);
+
+            if (evaluationDetail == null) return;
+
+            //Check if the EvaluationQuestions exist < 
+            var evaluationQuestions = await _context.EvaluationQuestions
+                                .FirstOrDefaultAsync(q => q.QuestionText == vm.QuestionText 
+                                                        && q.AnswerType == vm.answerType);
+            if(evaluationQuestions == null) //if QUESTION is empty < 
+            {
+                // ADD new Question < 
+                evaluationQuestions = new EvaluationQuestion
+                {
+                    QuestionText = vm.QuestionText,
+                    AnswerType = vm.answerType,
+                };
+                _context.EvaluationQuestions.Add(evaluationQuestions);
+                await _context.SaveChangesAsync();
+            }
+            //if question already exist USE QUESTION ID < 
+            // by changing its bridge As known as : Model > Evaluationdetails.QuestionId according to the QuestionId in table 
+            evaluationDetail.QuestionId = evaluationQuestions.QuestionId;
+            await _context.SaveChangesAsync();
+        }
+
+
         public async Task CreateEvaluationAsync(CreateEvaluationViewModel vm)
         {
             //follow this method and POLISH everything ------STUCK HERE RESEARCH 7/6/2026

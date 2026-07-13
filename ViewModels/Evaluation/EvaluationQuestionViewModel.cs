@@ -6,6 +6,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Evaluation
 {
     public class EvaluationQuestionViewModel
     {
+        public int EvaluationDetailId { get; set; }
+
         public int QuestionId { get; set; }
         [Required(ErrorMessage = "Enter any question")]
         public string QuestionText { get; set; } = string.Empty;

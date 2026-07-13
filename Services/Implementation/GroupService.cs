@@ -3,8 +3,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 
-namespace Sym_Connect__Capstone2_.Services
+namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class GroupService : IGroupService
     {
@@ -133,5 +134,18 @@ namespace Sym_Connect__Capstone2_.Services
             group.ArchivedDate = DateTime.Now;
             await _context.SaveChangesAsync();
         }
+
+
+        public async Task RemoveMemberFromGroupAsync(int groupId, int memberId)
+        {
+            var groupDetail = await _context.GroupDetails
+                            .FirstOrDefaultAsync(g => g.GroupId == groupId && g.MemberId == memberId);
+            if (groupDetail == null) return;
+
+            _context.GroupDetails.Remove(groupDetail);
+            await _context.SaveChangesAsync();
+            
+        }
+
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Sym_Connect__Capstone2_.Models;
-namespace Sym_Connect__Capstone2_.Services
+namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
     public interface IMemberService
     {

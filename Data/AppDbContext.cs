@@ -24,6 +24,12 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<EvaluationDetails> EvaluationDetail { get; set; }
         public DbSet<EvaluationQuestion> EvaluationQuestions { get; set; }
 
+        public DbSet<Attendance> Attendances { get; set; }
+        public DbSet<Event> Events { get; set; }
+        public DbSet<EventGroup> EventGroups { get; set; }
+
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +62,10 @@ namespace Sym_Connect__Capstone2_.Data
             modelBuilder.Entity<EvaluationQuestion>()
                 .Property(e => e.AnswerType)
                 .HasConversion<string>(); //convertion type to string 
+
+            modelBuilder.Entity<EventGroup>()
+            .HasIndex(eg => new { eg.EventId, eg.GroupId })
+            .IsUnique();
 
         }
     }

@@ -1,4 +1,22 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿
+// ── Modal opener ──────────────────────────────────────────────
+document.querySelectorAll(".open-modal").forEach(button => {
+    button.addEventListener("click", async function () {
+        const url = this.getAttribute("data-url");
+        const title = this.getAttribute("data-title");
 
-// Write your JavaScript code.
+        document.getElementById("appModalLabel").innerText = title;
+
+        const response = await fetch(url);
+        const html = await response.text();
+
+        document.getElementById("appModalBody").innerHTML = html;
+
+        const modal = new bootstrap.Modal(document.getElementById("appModal"));
+        modal.show();
+
+        if (window.jQuery && $.validator) {
+            $.validator.unobtrusive.parse("#appModalBody");
+        }
+    });
+});

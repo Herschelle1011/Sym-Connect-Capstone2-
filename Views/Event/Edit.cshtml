@@ -1,0 +1,119 @@
+@model Sym_Connect__Capstone2_.Models.Event
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Event</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="EventId" />
+            <div class="form-group">
+                <label asp-for="EventTitle" class="control-label"></label>
+                <input asp-for="EventTitle" class="form-control" />
+                <span asp-validation-for="EventTitle" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EventDescription" class="control-label"></label>
+                <input asp-for="EventDescription" class="form-control" />
+                <span asp-validation-for="EventDescription" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsAllDay" class="control-label"></label>
+                <input asp-for="IsAllDay" class="form-check-input" />
+                <span asp-validation-for="IsAllDay" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartTime" class="control-label"></label>
+                <input asp-for="StartTime" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndTime" class="control-label"></label>
+                <input asp-for="EndTime" class="form-control" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndDate" class="control-label"></label>
+                <input asp-for="EndDate" class="form-control" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FacilityId" class="control-label"></label>
+                <input asp-for="FacilityId" class="form-control" />
+                <span asp-validation-for="FacilityId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Facility" class="control-label"></label>
+                <input asp-for="Facility" class="form-control" />
+                <span asp-validation-for="Facility" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="control-label"></label>
+                <input asp-for="Status" class="form-control" />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedByUserId" class="control-label"></label>
+                <input asp-for="CreatedByUserId" class="form-control" />
+                <span asp-validation-for="CreatedByUserId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedByUser" class="control-label"></label>
+                <input asp-for="CreatedByUser" class="form-control" />
+                <span asp-validation-for="CreatedByUser" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DateCreated" class="control-label"></label>
+                <input asp-for="DateCreated" class="form-control" />
+                <span asp-validation-for="DateCreated" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsArchived" class="control-label"></label>
+                <input asp-for="IsArchived" class="form-check-input" />
+                <span asp-validation-for="IsArchived" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ArchiveDate" class="control-label"></label>
+                <input asp-for="ArchiveDate" class="form-control" />
+                <span asp-validation-for="ArchiveDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Attendances" class="control-label"></label>
+                <input asp-for="Attendances" class="form-control" />
+                <span asp-validation-for="Attendances" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ExpectedGroups" class="control-label"></label>
+                <input asp-for="ExpectedGroups" class="form-control" />
+                <span asp-validation-for="ExpectedGroups" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Evaluations" class="control-label"></label>
+                <input asp-for="Evaluations" class="form-control" />
+                <span asp-validation-for="Evaluations" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

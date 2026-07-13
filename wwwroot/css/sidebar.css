@@ -340,3 +340,22 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
 #sidebar:hover .nav-item .nav-tooltip {
     display: none;
 }
+
+@media (max-width: 768px) {
+    #sidebar {
+        width: 0; /* hide sidebar off-canvas */
+        overflow: hidden;
+    }
+
+        #sidebar.expanded {
+            width: var(--sidebar-expanded-width);
+        }
+
+    #main-content {
+        margin-left: 0; /* content takes full width */
+    }
+
+    #sidebar.expanded ~ #main-content {
+        margin-left: 0; /* sidebar overlays instead of pushing */
+    }
+}

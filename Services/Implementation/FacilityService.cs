@@ -3,9 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 
 
-namespace Sym_Connect__Capstone2_.Services
+namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class FacilityService : IFacilityService
     {

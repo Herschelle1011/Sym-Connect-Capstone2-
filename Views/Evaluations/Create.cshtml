@@ -98,12 +98,11 @@
                 <span class="text-danger question-text-error" style="font-size:12px;"></span>
             </div>
             <div>
-                <select class="form-select answer-type-select" name="" style="max-width:200px;">
-                    <option value="">Answer Type</option>
-                    <option value="RatingScale">Rating Scale</option>
-                    <option value="Dichotomous">Dichotomous</option>
-                    <option value="MultipleChoice">Multiple Choice</option>
-                    <option value="ShortAnswer">Short answer</option>
+                <select class="form-select answer-type-select" style="max-width:200px;">
+                    @* <option value="" disabled>Answer Type</option> *@
+                    <option value="" selected disabled>Answer Type</option>
+                    <option value="Scale">Rating Scale</option>
+                    <option value="TextFeedback">Short Answer</option>
                 </select>
                 <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
             </div>
@@ -136,49 +135,27 @@
             }
         });
 
-        function buildAnswerPreview(type) {
-            if (type === "RatingScale") {
-                let stars = "";
-                for (let i = 1; i <= 5; i++) {
-                    stars += `<i class="bi bi-star fs-4 me-2"></i>`;
-                }
-                return `<div class="d-flex">${stars}</div>`;
-            }
-            if (type === "Dichotomous") {
-                return `
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Yes</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">No</label></div>`;
-            }
-            if (type === "MultipleChoice") {
-                return `
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">StronglyAgree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Agree</label></div>
-                     <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Neutral</label></div>
-                   <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Disagree</label></div>
-                   <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Disagree</label></div>
-
-
-                    `
-                    
-                    ;
-            }
-            if (type === "ShortAnswer") {
-                return `<input type="text" class="form-control" placeholder="Short answer text." disabled />`;
-            }
-            return `<span class="text-muted">Choose an answer type first...</span>`;
+      function buildAnswerPreview(type) {
+                   if (type === "Scale") {
+            const labels = ["Very Poor", "Poor", "Fair", "Good", "Excellent"];
+            return `
+                <div class="row text-center g-0">
+                    ${labels.map((label, idx) => `
+                        <div class="col">
+                            <div class="small fw-semibold mb-1">${idx + 1}</div>
+                            <i class="bi bi-star fs-2 text-secondary"></i>
+                            <div class="small text-muted">${label}</div>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
         }
-                function renumberQuestions() {
-            const blocks = document.querySelectorAll(".question-block");
-            blocks.forEach(function (block, i) {
-                block.querySelector(".question-label").textContent = `Question ${i + 1}`;
 
-                block.querySelector(".question-id-input").name = `Questions[${i}].QuestionId`;
-                block.querySelector(".question-text-input").name = `Questions[${i}].QuestionText`;
-                block.querySelector(".answer-type-select").name = `Questions[${i}].AnswerType`;
-            });
+            if (type === "TextFeedback") {
+                return `<input type="text" class="form-control" placeholder="Short answer..." disabled />`;
+            }
 
-            // keep questionIndex in sync for the NEXT block added
-            questionIndex = blocks.length;
+            return `<span class="text-muted">Choose an answer type first...</span>`;
         }
 
         function addQuestionBlock(questionId = "", questionText = "") {

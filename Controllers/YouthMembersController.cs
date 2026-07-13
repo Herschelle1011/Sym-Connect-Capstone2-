@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.ViewModels.Member;
-using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {

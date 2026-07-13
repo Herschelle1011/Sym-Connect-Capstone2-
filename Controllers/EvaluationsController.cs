@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
+using System.Runtime.Intrinsics.X86;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 
 public class EvaluationsController : Controller
 {
     private readonly IEvaluationService _evaluationservice;
+
+    public IEvaluationService Evaluationservice => _evaluationservice;
 
     public EvaluationsController(IEvaluationService service)
     {
@@ -57,6 +60,7 @@ public class EvaluationsController : Controller
 
             Questions = evaluation.EvaluationDetails.Select(q => new EvaluationQuestionViewModel
             {
+                EvaluationDetailId = q.EvaluationDetailId,
                 QuestionId = q.QuestionId,
                 QuestionText = q.EvaluationQuestion!.QuestionText,
                 AnswerType = q.EvaluationQuestion.AnswerType,
@@ -113,7 +117,6 @@ public class EvaluationsController : Controller
     }
 
     // GET: EVALUATIONS/Edit/5
-
     public async Task<IActionResult> Edit(int id)
     {
         var evaluation = await _evaluationservice.GetUpdateEvaluationAsync(id);
@@ -160,6 +163,27 @@ public class EvaluationsController : Controller
 
         }
     }
+
+    //GET 
+    public async Task<IActionResult> EditQuestionViewModel(int id)
+    {
+        if (id == 0) return NotFound();
+        var question = await _evaluationservice.GetQuestionAsync(id);
+        return View(question);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SaveQuestionViewModel(EditQuestionViewModel vm)
+    {
+        if (!ModelState.IsValid || vm.EvaluationDetailId == 0)
+            return Json(new { success = false });
+
+        await _evaluationservice.EditQuestionAsync(vm);
+        return Json(new { success = true, questionText = vm.QuestionText });
+    }
+
+
+
 
     // GET: EVALUATIONS/Delete/5
     public async Task<IActionResult> Archive(int? id)

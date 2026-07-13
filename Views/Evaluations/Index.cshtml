@@ -63,6 +63,7 @@
         gap: 8px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         transition: box-shadow 0.15s ease, transform 0.15s ease;
+        cursor: pointer;
     }
 
         .eval-card:hover {
@@ -118,6 +119,16 @@
         width: fit-content;
         padding: 3px 10px;
         border-radius: 999px;
+    }
+
+    .answer-preview .bi-star {
+        color: #7d7d7d;
+        font-size: 2.8rem;
+    }
+
+    .answer-preview .fw-semibold {
+        color: #5f5f5f;
+        font-size: 1.1rem;
     }
 
         .eval-date-info.text-open {
@@ -197,11 +208,9 @@
             {
                 @* Map status to a short css-safe key: "open" | "upcoming" | "closed" *@
                 var statusKey = item.Status.ToLower();
-
                 <div class="eval-card"
-                    style="cursor:pointer;"
-                    onclick="location.href='@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })'">
-                    
+                     onclick="handleCardClick(event, '@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })')">
+
                     @* ---- TITLE + STATUS LABEL ---- *@
                     <div class="eval-card-top">
                         <h3 class="eval-card-title">@item.EvaluationTitle</h3>
@@ -248,19 +257,31 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-    $(document).on("click", ".open-modal", function () {
-    const url = $(this).data("url");
-    const title = $(this).data("title");
+        // Whole-card click navigates to Details — BUT only if the click
+        // didn't originate from the footer (Edit link / Archive button).
+        // Without this check, clicking Edit or Archive still bubbles up
+        // to this handler and location.href wins the race, hijacking
+        // both the Edit navigation and the Archive modal.
+        function handleCardClick(event, detailsUrl) {
+            if (event.target.closest('.eval-card-footer')) {
+                return; // let Edit / Archive handle themselves
+            }
+            location.href = detailsUrl;
+        }
 
-    $("#appModalLabel").text(title);
-    $("#appModalBody").html("Loading...");
+        $(document).on("click", ".open-modal", function () {
+            const url = $(this).data("url");
+            const title = $(this).data("title");
 
-    $.get(url, function (html) {
-    $("#appModalBody").html(html);
-    });
+            $("#appModalLabel").text(title);
+            $("#appModalBody").html("Loading...");
 
-    const modal = new bootstrap.Modal(document.getElementById("appModal"));
-    modal.show();
-    });
+            $.get(url, function (html) {
+                $("#appModalBody").html(html);
+            });
+
+            const modal = new bootstrap.Modal(document.getElementById("appModal"));
+            modal.show();
+        });
     </script>
 }

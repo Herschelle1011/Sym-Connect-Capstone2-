@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Sym_Connect__Capstone2_.Models;
-namespace Sym_Connect__Capstone2_.Services
+namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
     public interface IGroupService
     {
@@ -13,6 +13,9 @@ namespace Sym_Connect__Capstone2_.Services
         Task<bool> GroupExists(int id);
         Task<bool> GroupNameExists(string name, int? excludeId = null);
         Task ArchiveGroupAsync(int? id);
+
+        Task RemoveMemberFromGroupAsync(int groupId, int memberId);
+
 
         //LOAD ALL LEADERS
         Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null);

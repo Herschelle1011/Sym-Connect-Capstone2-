@@ -12,6 +12,7 @@ namespace Sym_Connect__Capstone2_.Models
         [ForeignKey(nameof(Evaluation))]
         public int EvaluationId { get; set; }
 
+        
         [ForeignKey(nameof(EvaluationQuestion))]
         public int QuestionId { get; set; }
 

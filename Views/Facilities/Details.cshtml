@@ -154,9 +154,13 @@
                    data-id="@Model.FacilityId">
                     <i class="bi bi-pencil-square"></i> Edit facility
                 </a>
-                <a asp-action="Archived"
-                   asp-route-id="@Model.FacilityId"
-                   class="fd-btn-archive">
+
+                @* Was a plain <a asp-action="Archived">, which just navigates the whole
+                   page — no listener was catching the click to open a modal instead.
+                   Now matches the same href="#" + data-id + JS-intercept pattern as Edit. *@
+                <a href="#"
+                   class="fd-btn-archive archive-btn"
+                   data-id="@Model.FacilityId">
                     <i class="bi bi-archive"></i> Archive
                 </a>
             </div>
@@ -179,6 +183,21 @@
                     "~/Views/Facilities/_EditFacilityForm.cshtml",
                     new EditFacilityViewModel()
                 )
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Archive Facility Modal -->
+<div class="modal fade" id="archiveFacilityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Archive Facility</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <!-- Filled in by JS: fetch('/Facilities/Archived/{id}') -->
             </div>
         </div>
     </div>
@@ -226,6 +245,21 @@
         document.querySelector('#editFacilityModal .modal-body').innerHTML = html;
         if (typeof initEditPhotoUpload === 'function') initEditPhotoUpload();
         new bootstrap.Modal(document.getElementById('editFacilityModal')).show();
+        });
+        });
+        });
+
+        // Same intercept-and-fetch pattern as Edit, just pointed at the
+        // Archived action and the archive modal instead.
+        document.querySelectorAll('.archive-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var facilityId = this.getAttribute('data-id');
+        fetch('/Facilities/Archived/' + facilityId)
+        .then(r => r.text())
+        .then(html => {
+        document.querySelector('#archiveFacilityModal .modal-body').innerHTML = html;
+        new bootstrap.Modal(document.getElementById('archiveFacilityModal')).show();
         });
         });
         });

@@ -95,8 +95,6 @@
                                 <select class="form-select answer-type-select" name="Questions[@i].AnswerType" style="max-width:200px;">
                                     <option value="">Answer Type</option>
                                     <option value="RatingScale" selected="@(Model.Questions[i].AnswerType == AnswerType.RatingScale)">Rating Scale</option>
-                                    <option value="Dichotomous" selected="@(Model.Questions[i].AnswerType == AnswerType.Dichotomous)">Dichotomous</option>
-                                    <option value="MultipleChoice" selected="@(Model.Questions[i].AnswerType == AnswerType.MultipleChoice)">Multiple Choice</option>
                                     <option value="ShortAnswer" selected="@(Model.Questions[i].AnswerType == AnswerType.ShortAnswer)">Short answer</option>
                                 </select>
                                 <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
