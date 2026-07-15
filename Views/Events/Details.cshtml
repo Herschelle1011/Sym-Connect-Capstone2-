@@ -1,143 +1,644 @@
-@model Sym_Connect__Capstone2_.Models.Event
-
+@model DetailsEventViewModel
+@using System.Linq
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Event Details";
+    Layout = "_AdminLayout";
+
+    // ---- status badge colors ----
+    var statusName = Model.Status.ToString();
+    var statusText = string.Concat(statusName.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString())).ToUpper();
+
+    string badgeBg, badgeColor;
+    if (statusName.Contains("Ongoing") && statusName.Contains("Soon"))
+    {
+        badgeBg = "#f3e8ff"; badgeColor = "#9333ea";
+    }
+    else if (statusName.Contains("Ongoing"))
+    {
+        badgeBg = "#dcfce7"; badgeColor = "#16a34a";
+    }
+    else if (statusName.Contains("Completed"))
+    {
+        badgeBg = "#f3f4f6"; badgeColor = "#6b7280";
+    }
+    else if (statusName.Contains("Cancelled"))
+    {
+        badgeBg = "#fee2e2"; badgeColor = "#dc2626";
+    }
+    else
+    {
+        badgeBg = "#dbeafe"; badgeColor = "#2563eb";
+    }
+
+    // ---- duration text ----
+    string durationText = "";
+    if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+    {
+        var span = Model.EndTime.Value - Model.StartTime.Value;
+        if (span.TotalMinutes > 0)
+        {
+            durationText = span.Hours > 0
+                ? $"{span.Hours} hour{(span.Hours > 1 ? "s" : "")}" + (span.Minutes > 0 ? $" {span.Minutes} min" : "")
+                : $"{span.Minutes} min";
+        }
+    }
+
+    var groupColors = new[] { "#2563eb", "#16a34a", "#f59e0b", "#9333ea", "#0891b2" };
+    var timelineColors = new[] { "#16a34a", "#2563eb", "#9ca3af" };
+    var primaryGroupTag = Model.ExpectedGroups.FirstOrDefault()?.GroupName;
+    const int photoDisplayLimit = 4;
 }
 
-<h1>Details</h1>
+<style>
+    :root {
+        --brand-blue: #1447E6;
+    }
 
-<div>
-    <h4>Event</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EventTitle)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EventTitle)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EventDescription)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EventDescription)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsAllDay)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsAllDay)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StartTime)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StartTime)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EndTime)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EndTime)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StartDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.StartDate)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EndDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EndDate)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.FacilityId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.FacilityId)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Facility)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Facility)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Status)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Status)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedByUserId)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedByUserId)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedByUser)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedByUser)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DateCreated)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DateCreated)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsArchived)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsArchived)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ArchiveDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ArchiveDate)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Attendances)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Attendances)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ExpectedGroups)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ExpectedGroups)
-        </dd>
-    </dl>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Evaluations)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Evaluations)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.EventId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    .details-wrapper {
+        max-width: 1200px;
+    }
+
+    .details-breadcrumb {
+        font-size: 13px;
+        color: #9ca3af;
+    }
+
+        .details-breadcrumb a {
+            color: #9ca3af;
+            text-decoration: none;
+        }
+
+            .details-breadcrumb a:hover {
+                color: var(--brand-blue);
+            }
+
+        .details-breadcrumb .current {
+            color: #374151;
+            font-weight: 500;
+        }
+
+    .details-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    .details-card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 14px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .02em;
+        padding: 4px 12px;
+        border-radius: 999px;
+    }
+
+    .event-title-heading {
+        font-size: 24px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .meta-row {
+        font-size: 13px;
+        color: #374151;
+    }
+
+        .meta-row i {
+            color: #9ca3af;
+            margin-right: 6px;
+        }
+
+    .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #374151;
+        background: #f3f4f6;
+        border-radius: 999px;
+        padding: 3px 10px;
+    }
+
+    .details-tabs {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .details-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7280;
+            padding: 10px 4px;
+            margin-right: 24px;
+        }
+
+            .details-tabs .nav-link.active {
+                color: var(--brand-blue);
+                border-bottom-color: var(--brand-blue);
+                background: none;
+            }
+
+    .info-list .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 13px;
+    }
+
+        .info-list .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .info-label i {
+            color: #9ca3af;
+            width: 14px;
+        }
+
+    .info-value {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 22px;
+        padding-bottom: 20px;
+    }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 4px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--dot-color, #9ca3af);
+        }
+
+        .timeline-item::after {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 14px;
+            bottom: 0;
+            width: 1px;
+            background: #e5e7eb;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+    .timeline-time {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .timeline-desc {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .facility-hero {
+        width: 100%;
+        height: 190px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 14px;
+    }
+
+    .facility-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 8px 0;
+        font-size: 13px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .facility-info-row:last-child {
+            border-bottom: none;
+        }
+
+    .facility-type-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--brand-blue);
+        background: #eff4ff;
+        border-radius: 999px;
+        padding: 3px 10px;
+    }
+
+    .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .photo-thumb {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+    }
+
+        .photo-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-thumb .photo-more-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(17, 24, 39, .55);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+    .qr-panel {
+        background: #f5f3ff;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+    }
+
+        .qr-panel .qr-label {
+            font-size: 12px;
+            color: #7c3aed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .qr-panel .qr-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: #7c3aed;
+            margin: 4px 0 2px;
+        }
+
+        .qr-panel .qr-sub {
+            font-size: 12px;
+            color: #a78bfa;
+        }
+
+    .group-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+    }
+
+    .group-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+
+    .group-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .group-count {
+        font-size: 12px;
+        color: #6b7280;
+    }
+</style>
+
+<div class="details-wrapper mx-auto">
+
+    <div class="details-breadcrumb d-flex align-items-center gap-2 mb-3">
+        <a asp-controller="Events" asp-action="Index">Events</a>
+        <span>&gt;</span>
+        <a asp-controller="Events" asp-action="Index">Calendar</a>
+        <span>&gt;</span>
+        <span class="current">@Model.EventTitle</span>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <i class="ti ti-calendar-event" style="color:var(--brand-blue); font-size:22px;"></i>
+            <h1 class="event-title-heading mb-0">@Model.EventTitle</h1>
+            <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a asp-action="Edit" asp-route-eventid="@Model.EventId" class="btn btn-outline-primary btn-sm">
+                <i class="ti ti-pencil"></i> Edit Event
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-sm">
+                <i class="ti ti-copy"></i> Duplicate
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
+                    <i class="ti ti-dots"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                        <a class="dropdown-item text-danger" asp-action="ConfirmationArchive" asp-route-eventid="@Model.EventId">
+                            <i class="ti ti-archive me-1"></i> Archive Event
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-4 mb-2 meta-row">
+        <span><i class="ti ti-calendar"></i>@Model.StartDate.ToString("MMMM d, yyyy (dddd)")</span>
+        <span>
+            <i class="ti ti-clock"></i>
+            @if (Model.IsAllDay)
+            {
+                @:All Day
+            }
+            else if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+            {
+                @(DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt"))
+                @:&nbsp;-&nbsp;
+                @(DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt"))
+                @if (!string.IsNullOrEmpty(durationText))
+                {
+                    <span class="text-muted">(@durationText)</span>
+                }
+            }
+        </span>
+        <span><i class="ti ti-map-pin"></i>@Model.FacilityName</span>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3 meta-row">
+        @if (!string.IsNullOrEmpty(primaryGroupTag))
+        {
+            <span class="tag-pill"><i class="ti ti-users"></i>@primaryGroupTag</span>
+        }
+        <span><i class="ti ti-user"></i>Created by @Model.CreatedBy</span>
+        <span><i class="ti ti-clock-hour-4"></i>Created on @Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
+    </div>
+
+    <ul class="nav details-tabs mb-4">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button">Overview</button>
+        </li>
+
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-evaluations" type="button">Evaluations</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button">Attendance</button>
+        </li>
+  
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-overview">
+            <div class="row g-3">
+                <!-- LEFT COLUMN -->
+                <div class="col-lg-4">
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">About This Event</div>
+                        <p class="meta-row mb-3">@Model.EventDescription</p>
+
+                        <div class="info-list">
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-flag"></i>Status</span>
+                                <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar"></i>Start Date</span>
+                                <span class="info-value">@Model.StartDate.ToString("MMMM d, yyyy")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar"></i>End Date</span>
+                                <span class="info-value">@Model.EndDate.ToString("MMMM d, yyyy")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-clock"></i>Start Time</span>
+                                <span class="info-value">
+                                    @(Model.StartTime.HasValue ? DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt") : "-")
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-clock"></i>End Time</span>
+                                <span class="info-value">
+                                    @(Model.EndTime.HasValue ? DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt") : "-")
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar-event"></i>All Day Event</span>
+                                <span class="info-value">@(Model.IsAllDay ? "Yes" : "No")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-user"></i>Created By</span>
+                                <span class="info-value">@Model.CreatedBy</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar-plus"></i>Date Created</span>
+                                <span class="info-value">@Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-archive"></i>Archived</span>
+                                <span class="info-value">@(Model.IsArchived ? "Yes" : "No")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.ScheduleTimeline.Any())
+                    {
+                        <div class="details-card">
+                            <div class="details-card-title">Schedule</div>
+                            @for (int i = 0; i < Model.ScheduleTimeline.Count; i++)
+                            {
+                                var item = Model.ScheduleTimeline[i];
+                                var dotColor = timelineColors[i % timelineColors.Length];
+                                <div class="timeline-item" style="--dot-color:@dotColor;">
+                                    <div class="timeline-time">@item.Time</div>
+                                    <div class="timeline-desc">@item.Description</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- MIDDLE COLUMN -->
+                <div class="col-lg-4">
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">Facility Details</div>
+
+                        @{
+                            var heroPhoto = Model.FacilityPhotos.FirstOrDefault();
+                        }
+                        @if (heroPhoto != null && !string.IsNullOrEmpty(heroPhoto.PhotoUrl))
+                        {
+                            <img src="@heroPhoto.PhotoUrl" class="facility-hero" alt="@Model.FacilityName" />
+                        }
+                        <div class="facility-info-row">
+                            <span class="info-label"><i class="ti ti-building"></i>Facility Name</span>
+                            <span class="info-value">@Model.FacilityName</span>
+                        </div>
+                        <div class="facility-info-row">
+                            <span class="info-label"><i class="ti ti-tag"></i>Facility Type</span>
+                            <span class="facility-type-pill">@Model.FacilityType</span>
+                        </div>
+                        <div class="facility-info-row">
+                            <span class="info-label"><i class="ti ti-align-left"></i>Description</span>
+                            <span class="info-value text-end">@Model.FacilityDescription</span>
+                        </div>
+                        <div class="facility-info-row">
+                            <span class="info-label"><i class="ti ti-users"></i>Capacity</span>
+                            <span class="info-value">@Model.FacilityCapacity people</span>
+                        </div>
+                    </div>
+
+                    @if (Model.FacilityPhotos.Any())
+                    {
+                        <div class="details-card">
+                            <div class="details-card-title">Facility Photos</div>
+                            <div class="photo-grid">
+                                @{
+                                    var visiblePhotos = Model.FacilityPhotos.Take(photoDisplayLimit).ToList();
+                                    var remainingCount = Model.FacilityPhotos.Count - photoDisplayLimit;
+                                }
+                                @for (int i = 0; i < visiblePhotos.Count; i++)
+                                {
+                                    var isLastVisible = i == visiblePhotos.Count - 1;
+                                    <div class="photo-thumb">
+                                        <img src="@visiblePhotos[i].PhotoUrl" alt="Facility photo" />
+                                        @if (isLastVisible && remainingCount > 0)
+                                        {
+                                            <div class="photo-more-overlay">+@remainingCount more</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-lg-4">
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">Event Actions</div>
+
+                        <div class="qr-panel mb-3">
+                            <div class="qr-label"><i class="ti ti-clock"></i>QR Scanner will be available in</div>
+                            <div class="qr-time">
+                                @(Model.StartTime.HasValue
+                                    ? DateTime.Today.Add(Model.StartTime.Value).AddHours(-1).ToString("h:mm tt")
+                                    : "-")
+                            </div>
+                            <div class="qr-sub">
+                                @(Model.StartTime.HasValue
+                                    ? "(" + DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt") + ")"
+                                    : "")
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100 mb-2">
+                            <i class="ti ti-qrcode"></i> Open QR Scanner
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary w-100">
+                            <i class="ti ti-bell"></i> Send Reminder
+                        </button>
+                    </div>
+
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">
+                            <i class="ti ti-users me-1"></i>Expected Groups (@Model.ExpectedGroupCount)
+                        </div>
+
+                        @for (int i = 0; i < Model.ExpectedGroups.Count; i++)
+                        {
+                            var g = Model.ExpectedGroups[i];
+                            var color = groupColors[i % groupColors.Length];
+                            <div class="group-item">
+                                <span class="group-avatar" style="background:@color;">
+                                    <i class="ti ti-users"></i>
+                                </span>
+                                <div>
+                                    <div class="group-name">@g.GroupName</div>
+                                    <div class="group-count">@g.MemberCount Members</div>
+                                </div>
+                            </div>
+                        }
+
+                        <button type="button" class="btn btn-outline-primary w-100 mt-2 btn-sm">View All Groups</button>
+                    </div>
+
+                    <div class="details-card">
+                        <div class="details-card-title"><i class="ti ti-clipboard-list me-1"></i>Evaluations</div>
+
+                        @if (Model.HasEvaluation)
+                        {
+                            <p class="meta-row mb-3">This event has @Model.EvaluationCount evaluation(s).</p>
+                        }
+                        else
+                        {
+                            <p class="meta-row mb-3">No evaluation created for this event yet.</p>
+                        }
+
+                        <button type="button" class="btn btn-outline-primary w-100 btn-sm">Create Evaluation</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       
+        <div class="tab-pane fade" id="tab-evaluations">
+            <div class="details-card text-center text-muted py-5">
+                @(Model.HasEvaluation ? $"{Model.EvaluationCount} evaluation(s) recorded." : "No evaluation created for this event yet.")
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tab-attendance">
+            <div class="details-card text-center text-muted py-5">
+                @(Model.HasAttendance ? $"{Model.AttendanceCount} attendee(s) recorded." : "No attendance recorded for this event yet.")
+            </div>
+        </div>
+        <div class="tab-pane fade" id="tab-files">
+            <div class="details-card text-center text-muted py-5">No files or attachments have been added.</div>
+        </div>
+        <div class="tab-pane fade" id="tab-history">
+            <div class="details-card text-center text-muted py-5">No history recorded for this event.</div>
+        </div>
+    </div>
+
 </div>

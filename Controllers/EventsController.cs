@@ -44,16 +44,19 @@ public class EventsController : Controller
     {
         if (id == null) return NotFound();
 
-        var eventDetails = await _eventService.GetEventByIdAsync(id.Value);
+        var eventDetails = await _eventService.GetDetailsByAsync(id.Value);
         if (eventDetails == null) return NotFound();
 
         return View(eventDetails);
     }
 
     // GET: EVENTS/Create
-    public IActionResult Create()
+    // GET: EVENTS/Create
+    public async Task<IActionResult> Create()
     {
-        return View();
+        ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
+        ViewBag.Groups = await _groupService.GetAllGroupsAsync();
+        return PartialView("_CreateEventPanel");
     }
 
     // POST: EVENTS/Create
@@ -67,16 +70,30 @@ public class EventsController : Controller
         {
             ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
             ViewBag.Groups = await _groupService.GetAllGroupsAsync();
-            return View(vm);
+
+            var year = DateTime.Now.Year;
+            var month = DateTime.Now.Month;
+
+            var indexVm = new EventListViewModel
+            {
+                Year = year,
+                Month = month,
+                Events = await _eventService.GetAllEventAsync(year, month)
+            };
+
+            ViewBag.FailedCreateVm = vm;
+            ViewBag.ShowCreatePanel = true;
+
+            return View("Index", indexVm);
         }
-        
+
         var success = await _eventService.CreateEventAsync(vm);
         if (!success)
         {
             ModelState.AddModelError("", "This facility is already booked during the selected date/time.");
-            return View(vm);
+            return View("Index", vm); 
         }
-     
+
         return RedirectToAction(nameof(Index));
     }
 

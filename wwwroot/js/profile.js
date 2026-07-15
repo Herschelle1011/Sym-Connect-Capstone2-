@@ -9,7 +9,6 @@ const preview = document.getElementById('avatarPreview');
 const placeholder = document.getElementById('avatarPlaceholder');
 const avatarRing = document.getElementById('avatarRing');
 const validMsg = document.getElementById('validationMsg');
-
 const MAX_MB = 5;
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
 

@@ -1,4 +1,4 @@
-﻿@model Sym_Connect__Capstone2_.ViewModels.Event.CreateEventViewModel
+﻿@model CreateEventViewModel
 
 <div class="offcanvas offcanvas-end event-panel" tabindex="-1" id="eventPanel" style="width: 420px;">
 
@@ -17,6 +17,8 @@
                 <span asp-validation-for="EventTitle" class="text-danger" style="font-size:12px;"></span>
             </div>
 
+        
+
             <div class="form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" asp-for="IsAllDay" id="isAllDayToggle" />
                 <label class="form-check-label" style="font-size:14px;" for="isAllDayToggle">
@@ -28,7 +30,7 @@
             <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label">Start Date <span class="text-danger">*</span></label>
-                    <input asp-for="StartDate" type="date" class="form-control" id="startDateInput" />
+                    <input asp-for="StartDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="startDateInput" />
                 </div>
                 <div class="col-6" id="startTimeGroup">
                     <label class="form-label">Start Time <span class="text-danger">*</span></label>
@@ -39,7 +41,7 @@
             <div class="row mb-3">
                 <div class="col-6">
                     <label class="form-label">End Date <span class="text-danger">*</span></label>
-                    <input asp-for="EndDate" type="date" class="form-control" id="endDateInput" />
+                    <input asp-for="EndDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="endDateInput" />
                 </div>
                 <div class="col-6" id="endTimeGroup">
                     <label class="form-label">End Time <span class="text-danger">*</span></label>
@@ -63,9 +65,10 @@
                 <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
                     @foreach (var g in (List<Sym_Connect__Capstone2_.Models.Group>)ViewBag.Groups)
                     {
+                        var isChecked = Model.SelectedGroupIds != null && Model.SelectedGroupIds.Contains(g.GroupId);
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="SelectedGroupIds"
-                                   value="@g.GroupId" id="group-@g.GroupId" />
+                                   value="@g.GroupId" id="group-@g.GroupId" checked="@isChecked" />
                             <label class="form-check-label" style="font-size:14px;" for="group-@g.GroupId">
                                 @g.GroupName
                             </label>
@@ -76,8 +79,8 @@
 
             <div class="mb-3">
                 <label class="form-label">Event Description</label>
-                <textarea asp-for="EventDescription" class="form-control" rows="3"
-                          maxlength="500" placeholder="Add a description for this event..."></textarea>
+                <textarea asp-for="EventDescription" class="form-control" rows="3">
+                <span asp-validation-for="EventDescription" class="text-danger" style="font-size:12px;"></span>                          maxlength="500" placeholder="Add a description for this event..."></textarea>
             </div>
 
             <div class="d-flex gap-2 mt-4 pb-3">

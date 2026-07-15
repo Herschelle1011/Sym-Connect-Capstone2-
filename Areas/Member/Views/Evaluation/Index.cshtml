@@ -1,0 +1,76 @@
+﻿@model List<Sym_Connect__Capstone2_.Models.Evaluation>
+@{
+    ViewData["Title"] = "Available Evaluations";
+    Layout = "_MemberLayout";
+
+}
+
+<style>
+    .eval-list-card {
+        border: 1px solid #eee;
+        border-radius: 14px;
+        transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    }
+
+        .eval-list-card:hover {
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+            border-color: #1877F2;
+        }
+
+    .eval-icon-circle {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 50%;
+        background: #E7F0FF;
+        color: #1877F2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .eval-chevron {
+        color: #c7c7c7;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .eval-list-card:hover .eval-chevron {
+        transform: translateX(4px);
+        color: #1877F2;
+    }
+</style>
+
+<div class="container py-4" style="max-width: 800px;">
+    <h2 class="fw-bold mb-1">Available Evaluations</h2>
+    <p class="text-muted mb-4" style="font-size:14px;">
+        Share your feedback for the events you've attended.
+    </p>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-clipboard-check" style="font-size:2.5rem;"></i>
+            <p class="mt-3 mb-0">There are no evaluations available right now.</p>
+        </div>
+    }
+
+    @foreach (var evaluation in Model)
+    {
+        <a asp-area="Member" asp-controller="Evaluation" asp-action="TakeEvaluation"
+           asp-route-evaluationId="@evaluation.EvaluationId"
+           class="card eval-list-card mb-3 text-decoration-none text-dark">
+            <div class="card-body d-flex align-items-center gap-3">
+                <div class="eval-icon-circle">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="flex-fill">
+                    <h5 class="mb-1">@evaluation.EvaluationTitle</h5>
+                    <small class="text-muted">Click to answer this evaluation</small>
+                </div>
+                <i class="bi bi-chevron-right fs-4 eval-chevron"></i>
+            </div>
+        </a>
+    }
+</div>

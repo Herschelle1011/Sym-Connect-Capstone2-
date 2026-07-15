@@ -101,7 +101,7 @@
                 <select class="form-select answer-type-select" style="max-width:200px;">
                     @* <option value="" disabled>Answer Type</option> *@
                     <option value="" selected disabled>Answer Type</option>
-                    <option value="Scale">Rating Scale</option>
+                    <option value="RatingScale">Rating Scale</option>
                     <option value="TextFeedback">Short Answer</option>
                 </select>
                 <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
@@ -136,7 +136,7 @@
         });
 
       function buildAnswerPreview(type) {
-                   if (type === "Scale") {
+                     if (type === "RatingScale") {
             const labels = ["Very Poor", "Poor", "Fair", "Good", "Excellent"];
             return `
                 <div class="row text-center g-0">

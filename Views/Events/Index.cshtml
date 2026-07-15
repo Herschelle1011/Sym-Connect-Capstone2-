@@ -349,4 +349,18 @@
 
 </div>
 
-@await Html.PartialAsync("_CreateEventPanel", new Sym_Connect__Capstone2_.ViewModels.Event.CreateEventViewModel())
+@if (ViewBag.ShowCreatePanel == true)
+{
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var panel = bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('eventPanel'));
+            panel.show();
+        });
+    </script>
+}
+
+@{
+    var createVm = ViewBag.FailedCreateVm as CreateEventViewModel
+                   ?? new CreateEventViewModel();
+}
+@await Html.PartialAsync("_CreateEventPanel", createVm)

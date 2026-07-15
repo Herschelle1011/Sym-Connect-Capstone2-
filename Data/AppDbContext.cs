@@ -27,7 +27,9 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<EventGroup> EventGroups { get; set; }
+        public DbSet<EvaluationSubmission> EvaluationSubmissions { get; set; }
 
+        public DbSet<EvaluationResponse> EvaluationResponses { get; set; }
 
 
 
@@ -66,6 +68,12 @@ namespace Sym_Connect__Capstone2_.Data
             modelBuilder.Entity<EventGroup>()
             .HasIndex(eg => new { eg.EventId, eg.GroupId })
             .IsUnique();
+
+
+            modelBuilder.Entity<EvaluationResponse>()
+    .HasOne(r => r.EvaluationSubmission)
+    .WithMany()
+    .OnDelete(DeleteBehavior.Restrict);   // changed from Cascade
 
         }
     }

@@ -17,7 +17,7 @@ namespace Sym_Connect__Capstone2_.Models
         public DateTime OpenAt { get; set; }
         public DateTime ClosedAt { get; set; }
 
-        public bool? IsArchived { get; set; } = false;
+        public bool IsArchived { get; set; } = false;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? ArchivedDate { get; set; }
 

@@ -32,7 +32,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string FacilityDescription { get; set; } = string.Empty;
         public int FacilityCapacity { get; set; }
 
-        public List<string> FacilityPhotos { get; set; } = new();
+        public List<FacilityPhotoVM> FacilityPhotos { get; set; } = new();
 
         // Statistics
         public int ExpectedGroupCount { get; set; }
@@ -56,6 +56,17 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string GroupName { get; set; } = string.Empty;
 
         public int MemberCount { get; set; }
+    }
+
+    public class FacilityPhotoVM
+    {
+        public int FacilityPhotoId { get; set; }
+
+        public string PhotoUrl { get; set; } = string.Empty;
+
+        public int FacilityId { get; set; }
+
+ 
     }
 
     public class ScheduleTimelineVM

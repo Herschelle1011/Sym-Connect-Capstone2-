@@ -27,4 +27,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public List<int> SelectedGroupIds { get; set; } = new List<int>();
 
     }
+
+
 }

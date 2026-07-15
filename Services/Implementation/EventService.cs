@@ -30,6 +30,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                     Status = e.Status,
                                 }).ToListAsync();                              
         }
+
+
         public async Task<Event?> GetEventByIdAsync(int id)
         {
             return await _context.Events.
@@ -44,13 +46,65 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Include( a => a.Attendances).
                          ThenInclude(m => m.Member).
                     FirstOrDefaultAsync(e => e.EventId == id && e.IsArchived == false);
-          
+        }
+
+
+        public async Task<DetailsEventViewModel?> GetDetailsByAsync(int id)
+        {
+            var existingEvent = await _context.Events
+                .Include(f => f.Facility)
+                    .ThenInclude(photo => photo.FacilityPhotos)
+                    .Include(eg => eg.ExpectedGroups)
+                        .ThenInclude(g => g.Group)
+                            .ThenInclude(gd => gd.GroupDetails)
+                                .ThenInclude(m => m.Member)
+                           .Include(ev => ev.Evaluations)
+                           .Include(u => u.CreatedByUser)
+                .FirstOrDefaultAsync(e => e.EventId == id);
+            if (existingEvent == null) return null;
+            return new DetailsEventViewModel
+            {
+                EventTitle = existingEvent.EventTitle,
+                EventDescription = existingEvent.EventDescription,
+                StartDate = existingEvent.StartDate,
+                EndDate = existingEvent.EndDate,
+                StartTime = existingEvent.StartTime,
+                EndTime = existingEvent.EndTime,         
+                FacilityId = existingEvent.FacilityId,
+                IsAllDay = existingEvent.IsAllDay,
+                FacilityName = existingEvent.Facility.FacilityName,
+                FacilityCapacity = existingEvent.Facility.Capacity,
+                FacilityDescription = existingEvent.Facility.FacilityDescription,
+                FacilityType = existingEvent.Facility.FacilityTypes,  
+                CreatedBy = existingEvent.CreatedByUserId ?? "N/A",
+                FacilityPhotos = existingEvent.Facility.FacilityPhotos.Select(photo => new FacilityPhotoVM
+                {
+                    FacilityPhotoId = photo.FacilityPhotoId,
+                    FacilityId = photo.FacilityId,
+                    PhotoUrl = photo.PhotoUrl
+                }).ToList(),
+
+                ExpectedGroups = existingEvent.ExpectedGroups.Select(eg => new ExpectedGroupCardVM
+                {
+                    GroupId = eg.GroupId,
+                    GroupName = eg.Group.GroupName,
+                    MemberCount = eg.Group.GroupDetails.Count
+                }).ToList(),
+                
+                
+
+            };
         }
         public async Task<bool> CreateEventAsync(CreateEventViewModel vm)
         {
+            if (vm.StartDate == default(DateTime) || vm.EndDate == default(DateTime))
+            {
+                return false;
+            }
+
             var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
             if (hasConflict) return false;
-
+        
 
             var newEvent = new Event
             {

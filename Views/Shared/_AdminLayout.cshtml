@@ -16,7 +16,6 @@
     <link rel="stylesheet" href="~/css/admin/facility.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
 
-
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
@@ -80,12 +79,12 @@
 
             @* ---------- EVENTS ----------- *@
 
-            <a asp-controller="Events" asp-action="Index"
+            @* <a asp-controller="Events" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")">
                 <i class="bi bi-calendar-event"></i>
                 <span class="nav-label">Events</span>
                 <span class="nav-tooltip">Events</span>
-            </a>
+            </a> *@
 
             @* ------------- ATTENDANCE ---------- *@
 

@@ -218,7 +218,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int?>("EventId")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("IsArchived")
+                    b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
 
                     b.Property<DateTime>("OpenAt")
@@ -288,6 +288,70 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.HasKey("QuestionId");
 
                     b.ToTable("EvaluationQuestions");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationResponse", b =>
+                {
+                    b.Property<int>("ResponseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ResponseId"));
+
+                    b.Property<string>("Answer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("EvaluationDetailId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EvaluationSubmissionSubmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubmissionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ResponseId");
+
+                    b.HasIndex("EvaluationDetailId");
+
+                    b.HasIndex("EvaluationSubmissionSubmissionId");
+
+                    b.HasIndex("SubmissionId");
+
+                    b.ToTable("EvaluationResponses");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationSubmission", b =>
+                {
+                    b.Property<int>("SubmissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubmissionId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EvaluationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("SubmissionId");
+
+                    b.HasIndex("EvaluationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EvaluationSubmissions");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Event", b =>
@@ -787,6 +851,48 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("EvaluationQuestion");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationResponse", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationDetails", "EvaluationDetail")
+                        .WithMany()
+                        .HasForeignKey("EvaluationDetailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationSubmission", null)
+                        .WithMany("EvaluationResponse")
+                        .HasForeignKey("EvaluationSubmissionSubmissionId");
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationSubmission", "EvaluationSubmission")
+                        .WithMany()
+                        .HasForeignKey("SubmissionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EvaluationDetail");
+
+                    b.Navigation("EvaluationSubmission");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationSubmission", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Evaluation", "Evaluation")
+                        .WithMany()
+                        .HasForeignKey("EvaluationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Evaluation");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Event", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.User", "CreatedByUser")
@@ -889,6 +995,11 @@ namespace Sym_Connect__Capstone2_.Migrations
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationQuestion", b =>
                 {
                     b.Navigation("EvaluationDetails");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationSubmission", b =>
+                {
+                    b.Navigation("EvaluationResponse");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Event", b =>

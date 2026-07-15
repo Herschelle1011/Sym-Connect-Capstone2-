@@ -67,7 +67,12 @@ builder.Services.AddScoped<IMemberService, MemberService>(); // for members
 builder.Services.AddScoped<IFacilityService, FacilityService>(); // for facility
 builder.Services.AddScoped< IEvaluationService, EvaluationService>(); // for evaluation
 builder.Services.AddScoped<IEventService, EventService>(); // for evaluation
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IEvaluationService,
+                            Sym_Connect__Capstone2_.Services.Implementation.EvaluationService>();
 
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IEvaluationService,
+                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.EvaluationService>();
+builder.Services.AddSession();
 
 
 var app = builder.Build();
@@ -99,11 +104,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
