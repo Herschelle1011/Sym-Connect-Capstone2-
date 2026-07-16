@@ -1,83 +1,9 @@
-﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.TakeEvaluationViewModel
+﻿@using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation
+@model TakeEvaluationViewModel
 @{
     ViewData["Title"] = Model.EvaluationTitle;
     Layout = "_MemberLayout";
 }
-
-<style>
-    .eval-header-card {
-        background: linear-gradient(135deg, #1877F2, #4a6cf7);
-        border-radius: 16px;
-        padding: 24px 28px;
-        color: #fff;
-        margin-bottom: 20px;
-    }
-
-    .eval-detail-card, .eval-question-card {
-        border: 1px solid #eee;
-        border-radius: 14px;
-    }
-
-    .eval-question-card {
-        transition: box-shadow 0.15s ease;
-    }
-
-        .eval-question-card:hover {
-            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-        }
-
-    .eval-question-number {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        border-radius: 50%;
-        background: #E7F0FF;
-        color: #1877F2;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 14px;
-    }
-
-    .star-rating label {
-        cursor: pointer;
-    }
-
-    .star-icon {
-        cursor: pointer;
-        color: #d1d5db;
-        transition: color 0.1s ease, transform 0.1s ease;
-    }
-
-    .star-rating label:hover .star-icon {
-        transform: scale(1.15);
-    }
-
-    .bi-star-fill.star-icon {
-        color: #FFC107;
-    }
-
-    .form-control:focus {
-        border-color: #1877F2;
-        box-shadow: 0 0 0 0.2rem rgba(24,119,242,0.15);
-    }
-
-    .btn-outline-secondary {
-        border-radius: 10px;
-    }
-
-    .btn-primary {
-        background-color: #1877F2;
-        border-color: #1877F2;
-        border-radius: 10px;
-    }
-
-        .btn-primary:hover {
-            background-color: #145DC2;
-            border-color: #145DC2;
-        }
-</style>
 
 @if (TempData["Message"] != null)
 {
@@ -154,9 +80,6 @@
         }
 
         <div class="d-flex justify-content-end gap-2 mt-4 mb-5">
-            <button type="submit" name="IsFinalSubmit" value="false" class="btn btn-outline-secondary">
-                <i class="bi bi-bookmark"></i> Save for later
-            </button>
             <button type="submit" name="IsFinalSubmit" value="true" class="btn btn-primary">
                 <i class="bi bi-send"></i> Submit Feedback
             </button>
@@ -179,6 +102,44 @@
                         i.classList.toggle('bi-star', parseInt(i.dataset.value) > value);
                     });
                 });
+            });
+        });
+
+                document.querySelector('form').addEventListener('submit', function (e) {
+            let hasError = false;
+
+            document.querySelectorAll('.eval-question-card').forEach(function (card) {
+                const textarea = card.querySelector('textarea');
+                const radios = card.querySelectorAll('input[type="radio"]');
+
+                let answered = true;
+
+                if (textarea) {
+                    answered = textarea.value.trim() !== '';
+                } else if (radios.length > 0) {
+                    answered = Array.from(radios).some(r => r.checked);
+                }
+
+                card.classList.toggle('has-error', !answered);
+
+                if (!answered) hasError = true;
+            });
+
+            if (hasError) {
+                e.preventDefault(); // stop the form from submitting
+            }
+        });
+
+                document.querySelectorAll('.eval-question-card').forEach(function (card) {
+            card.addEventListener('input', function () {
+                const textarea = card.querySelector('textarea');
+                const radios = card.querySelectorAll('input[type="radio"]');
+
+                let answered = textarea
+                    ? textarea.value.trim() !== ''
+                    : Array.from(radios).some(r => r.checked);
+
+                if (answered) card.classList.remove('has-error');
             });
         });
     </script>

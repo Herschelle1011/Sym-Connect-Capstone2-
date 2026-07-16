@@ -72,7 +72,8 @@ function renderPage() {
 }
 
 // ── Pagination button events ──────────────────────────────────
-document.getElementById("prevBtn").addEventListener("click", () => {
+document.getElementById("prevBtn").add
+Listener("click", () => {
     currentPage--;
     renderPage();
 });

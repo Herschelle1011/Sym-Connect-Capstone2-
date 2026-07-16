@@ -42,7 +42,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     .ThenInclude(g => g.Group)
                         .ThenInclude(gd => gd.GroupDetails)
                             .ThenInclude(m => m.Member)
-                .Include(e => e.Evaluations)
+                //.Include(e => e.Evaluations) add this after
                 .Include( a => a.Attendances).
                          ThenInclude(m => m.Member).
                     FirstOrDefaultAsync(e => e.EventId == id && e.IsArchived == false);
@@ -58,7 +58,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         .ThenInclude(g => g.Group)
                             .ThenInclude(gd => gd.GroupDetails)
                                 .ThenInclude(m => m.Member)
-                           .Include(ev => ev.Evaluations)
+                           //.Include(ev => ev.Evaluations)
                            .Include(u => u.CreatedByUser)
                 .FirstOrDefaultAsync(e => e.EventId == id);
             if (existingEvent == null) return null;

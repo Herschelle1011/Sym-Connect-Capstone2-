@@ -37,7 +37,7 @@ namespace Sym_Connect__Capstone2_.Models
         public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
         public ICollection<EventGroup> ExpectedGroups { get; set; } = new List<EventGroup>();
 
-        public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
+        //public ICollection<Evaluation> Evaluations { get; set; } = new List<Evaluation>();
 
     }
 }

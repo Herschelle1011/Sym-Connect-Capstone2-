@@ -1,4 +1,4 @@
-
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
@@ -65,10 +65,20 @@ public class EvaluationsController : Controller
                 QuestionText = q.EvaluationQuestion!.QuestionText,
                 AnswerType = q.EvaluationQuestion.AnswerType,
                 
-            }).ToList()
+            }).ToList(),
+                    Submissions = await _evaluationservice.GetSubmissionsForEvaluationAsync(id.Value) // ✅ new
+
         };
 
         return View(Evaluations);
+    }
+
+    public async Task<IActionResult> SubmissionDetails(int id)
+    {
+        var details = await _evaluationservice.GetSubmissionDetailsAsync(id);
+        if (details == null) return NotFound();
+
+        return PartialView("_SubmissionDetails", details);
     }
 
     // GET: EVALUATIONS/Create

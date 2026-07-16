@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
-using Sym_Connect__Capstone2_.Areas.Member.ViewModels;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
@@ -93,10 +93,16 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 
         public async Task<List<Evaluation>> GetAvailableEvaluationsAsync()
         {
-            return await _context.Evaluations
-                .Where(e => !e.IsArchived)
-                .ToListAsync();
-        }
+        
+            var query = _context.Evaluations
+                .Include(e => e.EvaluationDetails)
+                .ThenInclude(d => d.EvaluationQuestion)
+                .Where(e => !e.IsArchived);
+
+            Console.WriteLine(query.ToQueryString());
+
+            return await query.ToListAsync();
+        }    
 
         public async Task<Evaluation?> GetEvaluationByIdAsync(int evaluationId)
         {
@@ -104,6 +110,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 .Include(e => e.EvaluationDetails)
                     .ThenInclude(ed => ed.EvaluationQuestion)
                 .FirstOrDefaultAsync(e => e.EvaluationId == evaluationId && !e.IsArchived);
+        }
+
+        public async Task<bool> HasMemberFinalizedEvaluationAsync (string memberId, int evaluationId)
+        {
+            return await _context.EvaluationSubmissions.AnyAsync(s => s.UserId == memberId && s.EvaluationId == evaluationId
+                                                                                       && s.Status == SubmissionStatus.Submitted);
         }
 
     }

@@ -261,51 +261,106 @@
     </div>
 
     @* ---- QUESTIONS (read-only list + Edit link only — no Delete/Add: not in backend) ---- *@
-    <h5 class="mb-3">Questions (@(Model.Questions?.Count ?? 0))</h5>
+    @* ---- TABS: Questions / Responses ---- *@
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#questionsTab">
+                Questions (@(Model.Questions?.Count ?? 0))
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#responsesTab">
+                Responses (@(Model.Submissions?.Count ?? 0))
+            </button>
+        </li>
+    </ul>
 
-    @if (Model.Questions == null || !Model.Questions.Any())
-    {
-        <p class="text-muted">No questions added yet.</p>
-    }
-    else
-    {
-        for (int i = 0; i < Model.Questions.Count; i++)
-        {
-            var q = Model.Questions[i];
-            var typeInfo = GetTypeBadge(q.AnswerType.ToString());
+    <div class="tab-content">
 
-            <div class="question-card" data-detail-id="@q.EvaluationDetailId">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="question-number">@(i + 1)</span>
-                        <span class="type-badge" style="background:@typeInfo.Bg; color:@typeInfo.Color;">
-                            <i class="bi @typeInfo.Icon"></i> @typeInfo.Label
-                        </span>
+        @* ---- QUESTIONS TAB ---- *@
+        <div class="tab-pane fade show active" id="questionsTab">
+            @if (Model.Questions == null || !Model.Questions.Any())
+            {
+                <p class="text-muted">No questions added yet.</p>
+            }
+            else
+            {
+                for (int i = 0; i < Model.Questions.Count; i++)
+                {
+                    var q = Model.Questions[i];
+                    var typeInfo = GetTypeBadge(q.AnswerType.ToString());
+
+                    <div class="question-card" data-detail-id="@q.EvaluationDetailId">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="question-number">@(i + 1)</span>
+                                <span class="type-badge" style="background:@typeInfo.Bg; color:@typeInfo.Color;">
+                                    <i class="bi @typeInfo.Icon"></i> @typeInfo.Label
+                                </span>
+                            </div>
+
+                            <button type="button" class="btn btn-link text-primary text-decoration-none p-0 edit-question-btn">
+                                <i class="bi bi-pencil"></i> Edit
+                            </button>
+                        </div>
+
+                        <p class="mb-2 question-text-display">@q.QuestionText</p>
+
+                        <div class="question-edit-row d-none">
+                            <input type="text" class="form-control question-text-input mb-2" value="@q.QuestionText" />
+                            <input type="hidden" class="question-answertype-input" value="@((int)q.AnswerType)" />
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-primary save-question-btn">Save</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary cancel-question-btn">Cancel</button>
+                            </div>
+                            <p class="text-danger small question-error-msg mb-2 d-none"></p>
+                        </div>
+
+                        <div class="answer-preview text-muted" data-type="@q.AnswerType"></div>
                     </div>
+                }
+            }
+        </div>
 
-                    <button type="button" class="btn btn-link text-primary text-decoration-none p-0 edit-question-btn">
-                        <i class="bi bi-pencil"></i> Edit
-                    </button>
-                </div>
+        @* ---- RESPONSES TAB ---- *@
+        <div class="tab-pane fade" id="responsesTab">
+            @if (Model.Submissions == null || !Model.Submissions.Any())
+            {
+                <p class="text-muted">No responses yet.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Member</th>
+                            <th>Submitted</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Submissions)
+                        {
+                            <tr>
+                                <td>@s.MemberName</td>
+                                <td>@(s.SubmittedAt?.ToString("MMM dd, yyyy") ?? "—")</td>
+                                <td>@s.Status</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary open-modal"
+                                            data-url="@Url.Action("SubmissionDetails", new { id = s.SubmissionId })"
+                                            data-title="Response from @s.MemberName">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
 
-                @* ---- VIEW MODE ---- *@
-                <p class="mb-2 question-text-display">@q.QuestionText</p>
-
-                @* ---- EDIT MODE: hidden until "Edit" is clicked ---- *@
-                <div class="question-edit-row d-none">
-                    <input type="text" class="form-control question-text-input mb-2" value="@q.QuestionText" />
-                    <input type="hidden" class="question-answertype-input" value="@((int)q.AnswerType)" />
-                    <div class="d-flex gap-2 mb-2">
-                        <button type="button" class="btn btn-sm btn-primary save-question-btn">Save</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary cancel-question-btn">Cancel</button>
-                    </div>
-                    <p class="text-danger small question-error-msg mb-2 d-none"></p>
-                </div>
-
-                <div class="answer-preview text-muted" data-type="@q.AnswerType"></div>
-            </div>
-        }
-    }
+    </div>
 
 </div>
 
@@ -320,9 +375,7 @@
         return answerType switch
         {
             "RatingScale" => ("Rating Scale", "bi-star-fill", "#E8ECFB", "#3B4CCA"),
-            "MultipleChoice" => ("Multiple Choice", "bi-ui-radios", "#EFE8FB", "#7B3CCA"),
             "ShortAnswer" => ("Short Answer", "bi-textarea-t", "#E6F4EA", "#1E7E34"),
-            "Dichotomous" => ("Yes / No", "bi-toggle2-on", "#FFF4E0", "#B7791F"),
             _ => (answerType, "bi-question-circle", "#F0F0F0", "#555555")
         };
     }
@@ -338,19 +391,8 @@
                 }
                 return `<div class="d-flex">${stars}</div>`;
             }
-            if (type === "Dichotomous") {
-                return `
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Yes</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">No</label></div>`;
-            }
-            if (type === "MultipleChoice") {
-                return `
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Agree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Agree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Neutral</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Disagree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Disagree</label></div>`;
-            }
+
+            
             if (type === "ShortAnswer") {
                 return `<input type="text" class="form-control" placeholder="Short answer text." disabled />`;
             }
@@ -359,22 +401,6 @@
 
         document.querySelectorAll(".answer-preview").forEach(function (el) {
             el.innerHTML = buildAnswerPreview(el.dataset.type);
-        });
-
-        // Same modal-open pattern used on Index.cshtml, needed here for Archive Evaluation
-        $(document).on("click", ".open-modal", function () {
-            const url = $(this).data("url");
-            const title = $(this).data("title");
-
-            $("#appModalLabel").text(title);
-            $("#appModalBody").html("Loading...");
-
-            $.get(url, function (html) {
-                $("#appModalBody").html(html);
-            });
-
-            const modal = new bootstrap.Modal(document.getElementById("appModal"));
-            modal.show();
         });
 
         // ---- Inline question editing: no redirect, updates the card in place ----
@@ -428,7 +454,7 @@
                     });
 
                     const result = await response.json();
-
+                        
                     if (!response.ok || !result.success) {
                         errorMsg.textContent = 'Could not save. Please try again.';
                         errorMsg.classList.remove('d-none');

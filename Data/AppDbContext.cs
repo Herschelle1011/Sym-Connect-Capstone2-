@@ -71,10 +71,10 @@ namespace Sym_Connect__Capstone2_.Data
 
 
             modelBuilder.Entity<EvaluationResponse>()
-    .HasOne(r => r.EvaluationSubmission)
-    .WithMany()
-    .OnDelete(DeleteBehavior.Restrict);   // changed from Cascade
-
+                .HasOne(r => r.EvaluationSubmission)
+                .WithMany(s => s.EvaluationResponse)
+                .HasForeignKey(r => r.SubmissionId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
-    }
+        }
 }

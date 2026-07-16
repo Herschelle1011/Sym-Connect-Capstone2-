@@ -17,7 +17,7 @@ namespace Sym_Connect__Capstone2_.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -215,9 +215,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("EventId")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
 
@@ -228,8 +225,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("EvaluationId");
-
-                    b.HasIndex("EventId");
 
                     b.ToTable("Evaluations");
                 });
@@ -304,17 +299,12 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("EvaluationDetailId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("EvaluationSubmissionSubmissionId")
-                        .HasColumnType("int");
-
                     b.Property<int>("SubmissionId")
                         .HasColumnType("int");
 
                     b.HasKey("ResponseId");
 
                     b.HasIndex("EvaluationDetailId");
-
-                    b.HasIndex("EvaluationSubmissionSubmissionId");
 
                     b.HasIndex("SubmissionId");
 
@@ -825,13 +815,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("ScannedByUser");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
-                {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.Event", null)
-                        .WithMany("Evaluations")
-                        .HasForeignKey("EventId");
-                });
-
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationDetails", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.Evaluation", "Evaluation")
@@ -859,12 +842,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationSubmission", null)
-                        .WithMany("EvaluationResponse")
-                        .HasForeignKey("EvaluationSubmissionSubmissionId");
-
                     b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationSubmission", "EvaluationSubmission")
-                        .WithMany()
+                        .WithMany("EvaluationResponse")
                         .HasForeignKey("SubmissionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1005,8 +984,6 @@ namespace Sym_Connect__Capstone2_.Migrations
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Event", b =>
                 {
                     b.Navigation("Attendances");
-
-                    b.Navigation("Evaluations");
 
                     b.Navigation("ExpectedGroups");
                 });

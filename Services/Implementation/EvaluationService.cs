@@ -17,6 +17,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<List<Evaluation>> GetAllEvaluationsAsync()
         {
             return await _context.Evaluations
+                
                     .Include(d => d.EvaluationDetails)
                      .ThenInclude(q => q.EvaluationQuestion)
                       .Where(e => e.IsArchived == false)
@@ -43,7 +44,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         //------PROCEED TO THE OTHER METHODS NEEDED -------//
         // SEARCH FOR INCLUDE, .SELECT , ENTITY FRAMEWORKDS //
                 
-        public async Task CreateOrReuseQuestionAsync(int evaluationid, string questionText, AnswerType answertype)
+        public async Task CreateOrReuseQuestionAsync(int evaluationid, string questionText, 
+            AnswerType answertype)
         {   
             //first find/search question along with its answertype using first to get first question && answertype
             var question = await _context.EvaluationQuestions.FirstOrDefaultAsync(e => e.QuestionText == questionText && e.AnswerType == answertype);
@@ -186,6 +188,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             Exist.UpdatedAt = DateTime.Now;
             await _context.SaveChangesAsync();
 
+
             //Remove the Bridge which is EvaluationDetail where evaluationid == evaluationId(EditedbyUser) then convert to LIST();
             var ExistingQuestions = _context.EvaluationDetail.Where(e => e.EvaluationId == vm.EvaluationId).ToList();
             _context.EvaluationDetail.RemoveRange(ExistingQuestions);
@@ -235,6 +238,43 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             evaluation.IsArchived = true;
             evaluation.ArchivedDate = DateTime.Now;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<SubmissionListItemViewModel>> GetSubmissionsForEvaluationAsync(int evaluationId)
+        {
+            return await _context.EvaluationSubmissions
+       .Include(s => s.User) 
+       .Where(s => s.EvaluationId == evaluationId)
+       .Select(s => new SubmissionListItemViewModel
+       {
+           SubmissionId = s.SubmissionId,
+           MemberName = s.User.FirstName + " " + s.User.LastName ?? "N/A", 
+           SubmittedAt = s.SubmittedAt,
+           Status = s.Status
+       })
+       .ToListAsync();
+        }
+        public async Task<SubmissionDetailsViewModel?> GetSubmissionDetailsAsync(int submissionId)
+        {
+            var submission = await _context.EvaluationSubmissions
+        .Include(s => s.User)
+        .Include(s => s.EvaluationResponse)
+            .ThenInclude(r => r.EvaluationDetail)
+                .ThenInclude(d => d.EvaluationQuestion)
+        .FirstOrDefaultAsync(s => s.SubmissionId == submissionId);
+
+            if (submission == null) return null;
+
+            return new SubmissionDetailsViewModel
+            {
+                MemberName = submission.User.FirstName + " " + submission.User.LastName,
+                SubmittedAt = submission.SubmittedAt,
+                Answers = submission.EvaluationResponse.Select(r => new AnswerReviewItem
+                {
+                    QuestionText = r.EvaluationDetail.EvaluationQuestion!.QuestionText,
+                    Answer = r.Answer
+                }).ToList()
+            };
         }
     }
 }

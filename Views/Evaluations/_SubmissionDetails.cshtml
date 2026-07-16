@@ -1,0 +1,11 @@
+﻿@model SubmissionDetailsViewModel
+
+<p class="text-muted mb-3">Submitted @Model.SubmittedAt?.ToString("MMM dd, yyyy 'at' h:mm tt")</p>
+
+@foreach (var a in Model.Answers)
+{
+    <div class="mb-3">
+        <div class="fw-semibold">@a.QuestionText</div>
+        <div class="text-muted">@a.Answer</div>
+    </div>
+}

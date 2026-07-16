@@ -2,7 +2,7 @@
 {
     public enum SubmissionStatus
     {
-        Draft = 1,
-        Submitted = 2
+        Draft,
+        Submitted
     }
 }

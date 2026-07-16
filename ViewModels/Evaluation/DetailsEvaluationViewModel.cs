@@ -11,6 +11,8 @@
         public DateTime OpenAt { get; set; }
         public DateTime ClosesAt { get; set; }
 
+        public List<SubmissionListItemViewModel> Submissions { get; set; } = new();
+
         public List<EvaluationQuestionViewModel> Questions { get; set; } = new List<EvaluationQuestionViewModel>();
 
     }

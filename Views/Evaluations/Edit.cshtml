@@ -139,8 +139,6 @@
                 <select class="form-select answer-type-select" name="" style="max-width:200px;">
                     <option value="">Answer Type</option>
                     <option value="RatingScale">Rating Scale</option>
-                    <option value="Dichotomous">Dichotomous</option>
-                    <option value="MultipleChoice">Multiple Choice</option>
                     <option value="ShortAnswer">Short answer</option>
                 </select>
                 <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
@@ -178,19 +176,6 @@
                     stars += `<i class="bi bi-star fs-4 me-2"></i>`;
                 }
                 return `<div class="d-flex">${stars}</div>`;
-            }
-            if (type === "Dichotomous") {
-                return `
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Yes</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">No</label></div>`;
-            }
-            if (type === "MultipleChoice") {
-                return `
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Agree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Agree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Neutral</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Disagree</label></div>
-                    <div class="form-check"><input class="form-check-input" type="radio" disabled> <label class="form-check-label">Strongly Disagree</label></div>`;
             }
             if (type === "ShortAnswer") {
                 return `<input type="text" class="form-control" placeholder="Short answer text." disabled />`;

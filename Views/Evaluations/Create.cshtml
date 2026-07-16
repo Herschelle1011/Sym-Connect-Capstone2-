@@ -1,4 +1,4 @@
-@model CreateEvaluationViewModel
+﻿@model CreateEvaluationViewModel
 @{
     ViewData["Title"] = "Create Evaluation";
     Layout = "_AdminLayout";
@@ -99,10 +99,9 @@
             </div>
             <div>
                 <select class="form-select answer-type-select" style="max-width:200px;">
-                    @* <option value="" disabled>Answer Type</option> *@
                     <option value="" selected disabled>Answer Type</option>
                     <option value="RatingScale">Rating Scale</option>
-                    <option value="TextFeedback">Short Answer</option>
+                    <option value="ShortAnswer">Short Answer</option>
                 </select>
                 <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
             </div>
@@ -116,49 +115,57 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        // ✅ Data from the server: whatever the user had typed before a failed submit (or empty on first visit)
+const existingQuestions = @Html.Raw(Json.Serialize(
+    (Model.Questions ?? new List<QuestionRowViewModel>())
+        .Select(q => new {
+            questionId = q.QuestionId,
+            questionText = q.QuestionText,
+            answerType = q.AnswerType.ToString() // ✅ turns enum into "RatingScale" / "ShortAnswer"
+        })
+));
         let questionIndex = 0;
         const openAtInput = document.getElementById("openAtInput");
         const closedAtInput = document.getElementById("closedAtInput");
         const today = new Date().toISOString().split("T")[0];
 
-                openAtInput.min = today;
+        openAtInput.min = today;
 
         // Whenever Open changes, Closes must be after it
         openAtInput.addEventListener("change", function () {
             if (openAtInput.value) {
                 closedAtInput.min = openAtInput.value;
 
-                // if Closes was already set to something now invalid, clear it
                 if (closedAtInput.value && closedAtInput.value < openAtInput.value) {
                     closedAtInput.value = "";
                 }
             }
         });
 
-      function buildAnswerPreview(type) {
-                     if (type === "RatingScale") {
-            const labels = ["Very Poor", "Poor", "Fair", "Good", "Excellent"];
-            return `
-                <div class="row text-center g-0">
-                    ${labels.map((label, idx) => `
-                        <div class="col">
-                            <div class="small fw-semibold mb-1">${idx + 1}</div>
-                            <i class="bi bi-star fs-2 text-secondary"></i>
-                            <div class="small text-muted">${label}</div>
-                        </div>
-                    `).join("")}
-                </div>
-            `;
-        }
+        function buildAnswerPreview(type) {
+            if (type === "RatingScale") {
+                const labels = ["Very Poor", "Poor", "Fair", "Good", "Excellent"];
+                return `
+                    <div class="row text-center g-0">
+                        ${labels.map((label, idx) => `
+                            <div class="col">
+                                <div class="small fw-semibold mb-1">${idx + 1}</div>
+                                <i class="bi bi-star fs-2 text-secondary"></i>
+                                <div class="small text-muted">${label}</div>
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+            }
 
-            if (type === "TextFeedback") {
+            if (type === "ShortAnswer") {
                 return `<input type="text" class="form-control" placeholder="Short answer..." disabled />`;
             }
 
             return `<span class="text-muted">Choose an answer type first...</span>`;
         }
 
-        function addQuestionBlock(questionId = "", questionText = "") {
+        function addQuestionBlock(questionId = "", questionText = "", answerType = "") {
             const template = document.getElementById("questionTemplate").content.cloneNode(true);
             const block = template.querySelector(".question-block");
             const i = questionIndex;
@@ -175,8 +182,10 @@
 
             const typeSelect = block.querySelector(".answer-type-select");
             typeSelect.name = `Questions[${i}].AnswerType`;
+            typeSelect.value = answerType; // restore the selected answer type on reload
 
             const preview = block.querySelector(".answer-preview");
+            preview.innerHTML = buildAnswerPreview(answerType); // show the right preview immediately
 
             typeSelect.addEventListener("change", function () {
                 preview.innerHTML = buildAnswerPreview(this.value);
@@ -188,12 +197,19 @@
                 block.querySelector(".question-text-error").textContent = "";
             });
 
-               block.querySelector(".remove-question").addEventListener("click", function () {
-            block.remove();
-            renumberQuestions();
-        });
+            block.querySelector(".remove-question").addEventListener("click", function () {
+                block.remove();
+                renumberQuestions();
+            });
+
             document.getElementById("questionsContainer").appendChild(block);
             questionIndex++;
+        }
+
+        function renumberQuestions() {
+            document.querySelectorAll(".question-block").forEach(function (block, idx) {
+                block.querySelector(".question-label").textContent = `Question ${idx + 1}`;
+            });
         }
 
         document.getElementById("addQuestionBtn").addEventListener("click", function () {
@@ -206,7 +222,14 @@
             });
         });
 
-        addQuestionBlock();
+        // ✅ Restore previously typed questions on reload, otherwise start with one blank card
+        if (existingQuestions.length > 0) {
+            existingQuestions.forEach(function (q) {
+                addQuestionBlock(q.questionId, q.questionText, q.answerType);
+            });
+        } else {
+            addQuestionBlock();
+        }
 
         document.querySelector("form").addEventListener("submit", function (e) {
             let hasError = false;

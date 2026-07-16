@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
@@ -64,6 +66,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 TempData["Error"] = "Please verify your identity first.";
                 return RedirectToAction("VerifyMember");
             }
+            var hasAlreadySubmitted = await _evaluationService.HasMemberFinalizedEvaluationAsync(memberId, evaluationId);
+            if (hasAlreadySubmitted)
+            {
+                TempData["Error"] = "This evaluation has already been submitted.";
+                return RedirectToAction("AlreadySubmitted", new { evaluationId });
+            }
 
             var evaluation = await _evaluationService.GetEvaluationByIdAsync(evaluationId);
             if (evaluation == null)
@@ -90,30 +98,44 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         public async Task<IActionResult> TakeEvaluation(SubmitEvaluationViewModel model)
         {
             var memberId = HttpContext.Session.GetString("CurrentMemberId");
-
             if (string.IsNullOrEmpty(memberId))
             {
                 TempData["Error"] = "Please verify your identity first.";
                 return RedirectToAction("VerifyMember");
             }
 
+            if (model.IsFinalSubmit)
+            {
+                bool ifEmptyAnswered = model.Answers.Any(a => string.IsNullOrEmpty(a.Answer));
+                if (ifEmptyAnswered)
+                {
+                    TempData["Error"] = "Please answer all the questions";
+                    return RedirectToAction("TakeEvaluation", new { area = "Member", evaluationId = model.EvaluationId });
+                }
+            }
             var success = await _evaluationService.SaveEvaluationAsync(memberId, model);
 
             if (!success)
             {
                 TempData["Error"] = "This evaluation has already been submitted.";
-                return RedirectToAction("TakeEvaluation");
+                return RedirectToAction("AlreadySubmitted", new { evaluationId = model.EvaluationId });
             }
 
             if (model.IsFinalSubmit)
                 return RedirectToAction("ThankYou");
 
             TempData["Message"] = "Your progress has been saved.";
-            return RedirectToAction("TakeEvaluation");
+            return RedirectToAction("Index");
         }
 
         [HttpGet]
         public IActionResult ThankYou()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult AlreadySubmitted(int evaluationId)
         {
             return View();
         }

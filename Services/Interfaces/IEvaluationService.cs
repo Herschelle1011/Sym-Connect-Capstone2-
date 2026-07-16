@@ -22,5 +22,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<bool> EvaluationExist(int id);
 
         Task EditQuestionAsync(EditQuestionViewModel vm);
+
+        Task<List<SubmissionListItemViewModel>> GetSubmissionsForEvaluationAsync(int evaluationId);
+        Task<SubmissionDetailsViewModel?> GetSubmissionDetailsAsync(int submissionId);
     }
 }
