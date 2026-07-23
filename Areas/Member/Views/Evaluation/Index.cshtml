@@ -1,8 +1,8 @@
-﻿@model List<Sym_Connect__Capstone2_.Models.Evaluation>
+﻿@using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation
+@model List<MemberEvaluationListItemViewModel>
 @{
     ViewData["Title"] = "Available Evaluations";
     Layout = "_MemberLayout";
-
 }
 
 <style>
@@ -12,10 +12,16 @@
         transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
     }
 
-        .eval-list-card:hover {
+        .eval-list-card.answerable:hover {
             box-shadow: 0 6px 18px rgba(0,0,0,0.08);
             transform: translateY(-2px);
             border-color: #1877F2;
+        }
+
+        .eval-list-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none; /* stops the click from even reaching the <a> tag */
         }
 
     .eval-icon-circle {
@@ -36,10 +42,27 @@
         transition: transform 0.15s ease, color 0.15s ease;
     }
 
-    .eval-list-card:hover .eval-chevron {
+    .eval-list-card.answerable:hover .eval-chevron {
         transform: translateX(4px);
         color: #1877F2;
     }
+
+    .status-tag {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 999px;
+    }
+
+        .status-tag.closed {
+            background: #FBEAEA;
+            color: #BB1414;
+        }
+
+        .status-tag.upcoming {
+            background: #FFF4E0;
+            color: #B7791F;
+        }
 </style>
 
 <div class="container py-4" style="max-width: 800px;">
@@ -58,19 +81,35 @@
 
     @foreach (var evaluation in Model)
     {
-        <a asp-area="Member" asp-controller="Evaluation" asp-action="TakeEvaluation"
-           asp-route-evaluationId="@evaluation.EvaluationId"
-           class="card eval-list-card mb-3 text-decoration-none text-dark">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="eval-icon-circle">
-                    <i class="bi bi-clipboard-check"></i>
+        @if (evaluation.IsAnswerable)
+        {
+            <a asp-area="Member" asp-controller="Evaluation" asp-action="TakeEvaluation"
+               asp-route-evaluationId="@evaluation.EvaluationId"
+               class="card eval-list-card answerable mb-3 text-decoration-none text-dark">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="eval-icon-circle"><i class="bi bi-clipboard-check"></i></div>
+                    <div class="flex-fill">
+                        <h5 class="mb-1">@evaluation.EvaluationTitle</h5>
+                        <small class="text-muted">Click to answer this evaluation</small>
+                    </div>
+                    <i class="bi bi-chevron-right fs-4 eval-chevron"></i>
                 </div>
-                <div class="flex-fill">
-                    <h5 class="mb-1">@evaluation.EvaluationTitle</h5>
-                    <small class="text-muted">Click to answer this evaluation</small>
+            </a>
+        }
+        else
+        {
+            <div class="card eval-list-card disabled mb-3 text-dark">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="eval-icon-circle"><i class="bi bi-clipboard-check"></i></div>
+                    <div class="flex-fill">
+                        <h5 class="mb-1">@evaluation.EvaluationTitle</h5>
+                        <small class="text-muted">
+                            @(evaluation.Status == "Closed" ? "This evaluation is closed." : "Not open yet.")
+                        </small>
+                    </div>
+                    <span class="status-tag @evaluation.Status.ToLower()">@evaluation.Status</span>
                 </div>
-                <i class="bi bi-chevron-right fs-4 eval-chevron"></i>
             </div>
-        </a>
+        }
     }
 </div>

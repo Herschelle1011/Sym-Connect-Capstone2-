@@ -11,7 +11,6 @@ namespace Sym_Connect__Capstone2_.Models
         public string EvaluationTitle { get; set; } = string.Empty;
         [Required]
         public string Description { get; set; } = string.Empty;
-
         public DateTime DateCreated { get; set; } = DateTime.Now;
 
         public DateTime OpenAt { get; set; }

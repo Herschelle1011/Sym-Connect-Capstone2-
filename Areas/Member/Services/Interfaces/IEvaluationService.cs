@@ -9,7 +9,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces
         Task<Evaluation?> GetEvaluationForMemberAsync(string memberId);
         Task<bool> SaveEvaluationAsync(string memberId, SubmitEvaluationViewModel model);
 
-        Task<List<Evaluation>> GetAvailableEvaluationsAsync();
+        Task<List<MemberEvaluationListItemViewModel>> GetAvailableEvaluationsForMemberAsync();
         Task<Evaluation?> GetEvaluationByIdAsync(int evaluationId);
 
         Task<bool> HasMemberFinalizedEvaluationAsync(string memberId, int evaluationId);

@@ -242,6 +242,12 @@
                             <i class="bi bi-archive"></i>
                         </button>
 
+                        <a asp-controller="Evaluations"
+                           asp-action="SummaryReports"
+                           asp-route-id="@item.EvaluationId"
+                           class="btn-icon btn-link text-warning">
+                            <i class="bi bi-bar-chart-fill"></i>
+                        </a>
                     </div>
 
                 </div>
@@ -283,5 +289,7 @@
             const modal = new bootstrap.Modal(document.getElementById("appModal"));
             modal.show();
         });
+
+
     </script>
 }

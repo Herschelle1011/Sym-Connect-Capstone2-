@@ -7,6 +7,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Evaluation
 
         public int SubmissionId { get; set; }
         public string MemberName { get; set; } = "";
+        public string Email { get; set; } = ""; 
         public DateTime? SubmittedAt { get; set; }
         public SubmissionStatus Status { get; set; }
     }

@@ -6,145 +6,444 @@
 }
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
     .eval-create-page, .eval-create-page * {
         font-family: 'Poppins', sans-serif;
     }
+
+    .eval-create-page {
+        background: #F4F7FC;
+        min-height: 100vh;
+        padding: 32px 0;
+    }
+
+        .eval-create-page h2 {
+            font-weight: 600;
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .eval-create-page .subtitle {
+            color: #8A93A3;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+    .step-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+        .step-card .top-bar {
+            height: 6px;
+            background: #2F6FED;
+        }
+
+        .step-card .card-body {
+            padding: 28px 32px;
+        }
+
+    .eval-create-page .form-label {
+        font-size: 13px;
+        color: #5B6472;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .eval-create-page .form-control,
+    .eval-create-page .form-select {
+        border: 1px solid #E3E7ED;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+        .eval-create-page .form-control:focus,
+        .eval-create-page .form-select:focus {
+            border-color: #2F6FED;
+            box-shadow: 0 0 0 3px rgba(47,111,237,0.12);
+        }
+
+    .section-banner {
+        background: #0D8FE8;
+        border-radius: 12px;
+        padding: 18px 26px;
+        margin-bottom: 20px;
+    }
+
+        .section-banner h5 {
+            color: #fff;
+            font-weight: 600;
+            font-size: 19px;
+            margin: 0;
+        }
+
+    .question-block {
+        background: #fff;
+        border-left: 4px solid #28A745;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 16px 18px;
+        margin-bottom: 14px;
+    }
+
+        .question-block .question-label {
+            font-size: 14px;
+            color: #1F2937;
+            font-weight: 600;
+        }
+
+        .question-block .remove-question {
+            color: #ADB5BD;
+            font-size: 14px;
+        }
+
+    .suggestion-chip {
+        border-radius: 999px !important;
+        border: 1.5px solid #E3E7ED !important;
+        padding: 8px 16px !important;
+        font-weight: 500;
+    }
+
+        .suggestion-chip:hover {
+            background: #F0F5FF !important;
+            border-color: #2F6FED !important;
+            color: #2F6FED !important;
+        }
+
+    .btn-add-question {
+        background: #fff;
+        border: 1.5px dashed #2F6FED;
+        color: #2F6FED;
+        border-radius: 10px;
+        padding: 10px;
+        font-weight: 500;
+    }
+
+        .btn-add-question:hover {
+            background: #F0F5FF;
+            color: #2F6FED;
+        }
+
+    .btn-proceed {
+        background: #2F6FED;
+        border: none;
+        color: #fff;
+        padding: 10px 28px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+        .btn-proceed:hover {
+            background: #2559C7;
+            color: #fff;
+        }
+
+    .btn-back {
+        background: #fff;
+        border: 1px solid #E3E7ED;
+        color: #5B6472;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+    /* ===== Commonly used questions box (previously unstyled — rendered as plain text) ===== */
+    .common-questions-box {
+        background: #fff;
+        border-left: 4px solid #28A745;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+
+        .common-questions-box .box-title {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 2px;
+        }
+
+        .common-questions-box .box-subtitle {
+            color: #8A93A3;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+    .search-wrapper {
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8A93A3;
+        }
+
+        .search-wrapper input {
+            padding-left: 38px;
+            background: #F7F9FC;
+        }
+
+    .common-question-listbox {
+        border: 1px solid #E3E7ED;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .listbox-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        font-size: 12px;
+        color: #8A93A3;
+        background: #F7F9FC;
+        border-bottom: 1px solid #E3E7ED;
+    }
+
+        .listbox-toolbar .select-all-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #5B6472;
+            cursor: pointer;
+            margin: 0;
+        }
+
+            .listbox-toolbar .select-all-label input {
+                margin: 0;
+            }
+
+    .common-question-list {
+        max-height: 260px;
+        overflow-y: auto;
+    }
+
+    .common-question-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 9px 14px;
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;
+        border-bottom: 1px solid #E3E7ED;
+    }
+
+    .common-question-list .common-question-item:last-child {
+        border-bottom: none;
+    }
+
+    .common-question-item:hover {
+        background: #F7F9FC;
+    }
+
+    .common-question-item.is-checked {
+        background: #EAF2FE;
+    }
+
+    .common-question-item input[type="checkbox"] {
+        margin: 3px 0 0;
+        flex-shrink: 0;
+    }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        color: #8A93A3;
+        font-size: 13px;
+        padding: 28px 14px;
+        text-align: center;
+    }
+
+        .empty-state i {
+            font-size: 22px;
+            color: #C7CEDA;
+        }
 </style>
 
-<div class="container mt-4 eval-create-page">
+<div class="container eval-create-page">
     <h2>Edit Evaluation</h2>
-    <p class="text-muted">Update the details and questions for this evaluation.</p>
+    <p class="subtitle">Update the details and questions for this evaluation.</p>
 
-    <form asp-action="Edit" method="post">
-
+    <form asp-action="Edit" method="post" id="editEvaluationForm">
         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
         <input type="hidden" asp-for="EvaluationId" />
 
         <!-- Evaluation Info -->
-        <div class="card p-3 mb-3">
-            <div class="mb-3">
-                <label class="form-label">Evaluation title</label>
-                <input asp-for="EvaluationTitle" class="form-control" placeholder="Enter title here..." />
-                <span asp-validation-for="EvaluationTitle" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <input asp-for="Description" class="form-control" placeholder="Enter description here..." />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label">Open</label>
-                    <input asp-for="OpenAt" type="date" id="openAtInput" class="form-control" />
-                    <span asp-validation-for="OpenAt" class="text-danger"></span>
+        <div class="step-card">
+            <div class="top-bar"></div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Evaluation title</label>
+                    <input asp-for="EvaluationTitle" class="form-control" placeholder="Enter title here..." />
+                    <span asp-validation-for="EvaluationTitle" class="text-danger"></span>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Closes</label>
-                    <input asp-for="ClosedAt" type="date" id="closedAtInput" class="form-control" />
-                    <span asp-validation-for="ClosedAt" class="text-danger"></span>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <input asp-for="Description" class="form-control" placeholder="Enter description here..." />
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Open</label>
+                        <input asp-for="OpenAt" type="date" id="openAtInput" class="form-control" />
+                        <span asp-validation-for="OpenAt" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Closes</label>
+                        <input asp-for="ClosedAt" type="date" id="closedAtInput" class="form-control" />
+                        <span asp-validation-for="ClosedAt" class="text-danger"></span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Suggested Questions (click to reuse) -->
-        @if (Model.AvailableQuestions != null && Model.AvailableQuestions.Any())
-        {
-            <div class="mb-3">
-                <label class="form-label d-block">Suggested questions (click to add)</label>
-                @foreach (var q in Model.AvailableQuestions)
-                {
-                    <span class="badge bg-light text-dark border suggestion-chip me-2 mb-2 p-2"
-                          style="cursor:pointer;"
-                          data-id="@q.QuestionId"
-                          data-text="@q.QuestionText">
-                        @q.QuestionText
-                    </span>
-                }
-            </div>
+        <!-- Rating Scale -->
+        <div class="section-banner"><h5>Rating Scale</h5></div>
+        @{
+            var ratingSuggestions = Model.AvailableQuestions
+                .Where(q => q.AnswerType == AnswerType.RatingScale).ToList();
         }
+        <div class="common-questions-box" data-list="RatingQuestions" data-container="ratingQuestionsContainer">
+            <p class="box-title mb-0">Commonly used questions</p>
+            <p class="box-subtitle">Select questions to add to this rating scale.</p>
+            <div class="search-wrapper">
+                <input type="text" class="form-control common-search-input" placeholder="Search questions..." />
+            </div>
+            <div class="common-question-listbox">
+                <div class="listbox-toolbar">
+                    <span class="listbox-count">0 of @ratingSuggestions.Count selected</span>
+                    <label class="select-all-label">
+                        <input type="checkbox" class="select-all-checkbox" /> Select all
+                    </label>
+                </div>
+                <div class="common-question-list">
+                    @if (!ratingSuggestions.Any())
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard-x"></i>
+                            <span>No suggested questions yet.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var q in ratingSuggestions)
+                        {
+                            <label class="common-question-item">
+                                <input type="checkbox" class="common-question-checkbox" data-id="@q.QuestionId" data-text="@q.QuestionText" />
+                                <span>@q.QuestionText</span>
+                            </label>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
 
-        <!-- Existing question blocks render here (server-side, pre-filled) -->
-        <div id="questionsContainer">
-            @if (Model.Questions != null)
+        <div id="ratingQuestionsContainer">
+            @for (int i = 0; i < Model.RatingScale.Count; i++)
             {
-                for (int i = 0; i < Model.Questions.Count; i++)
-                {
-                    <div class="card p-3 mb-3 question-block eval-create-page">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <label class="form-label question-label">Question @(i + 1)</label>
-                            <span class="text-danger remove-question" style="cursor:pointer;">
-                                <i class="bi bi-trash"></i>
-                            </span>
-                        </div>
-                        <div class="d-flex gap-2 mb-2">
-                            <input type="hidden" class="question-id-input"
-                                   name="Questions[@i].QuestionId"
-                                   value="@Model.Questions[i].QuestionId" />
-                            <div class="flex-grow-1">
-                                <input type="text" class="form-control question-text-input"
-                                       name="Questions[@i].QuestionText"
-                                       value="@Model.Questions[i].QuestionText"
-                                       placeholder="Type your question here" />
-                                <span class="text-danger question-text-error" style="font-size:12px;"></span>
-                            </div>
-                            <div>
-                                <select class="form-select answer-type-select" name="Questions[@i].AnswerType" style="max-width:200px;">
-                                    <option value="">Answer Type</option>
-                                    <option value="RatingScale" selected="@(Model.Questions[i].AnswerType == AnswerType.RatingScale)">Rating Scale</option>
-                                    <option value="ShortAnswer" selected="@(Model.Questions[i].AnswerType == AnswerType.ShortAnswer)">Short answer</option>
-                                </select>
-                                <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
-                            </div>
-                        </div>
-                        <div class="answer-preview text-muted"></div>
+                <div class="question-block">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <label class="question-label mb-0">Question @(i + 1)</label>
+                        <span class="text-danger remove-question" style="cursor:pointer;"><i class="bi bi-x-lg"></i></span>
                     </div>
-                }
+                    <input type="hidden" class="question-id-input" name="RatingScale[@i].QuestionId" value="@Model.RatingScale[i].QuestionId" />
+                    <input type="text" class="form-control question-text-input" name="RatingScale[@i].QuestionText" value="@Model.RatingScale[i].QuestionText" placeholder="Type your question here" />
+                    <span class="text-danger question-text-error" style="font-size:12px;"></span>
+                </div>
             }
         </div>
+        <div class="text-danger" id="ratingError" style="display:none; font-size:13px;">Please add at least one question.</div>
+        <button type="button" id="addRatingQuestionBtn" class="btn btn-add-question w-100 mt-2 mb-4">+ Add Question</button>
 
-        <div id="noQuestionsError" class="text-danger mb-3" style="display:none; font-size:13px;">
-            Please add at least one question.
+        <!-- Short Answer -->
+        <div class="section-banner"><h5>Short Answer</h5></div>
+        @{
+            var shortSuggestions = Model.AvailableQuestions
+                .Where(q => q.AnswerType == AnswerType.ShortAnswer).ToList();
+        }
+        <div class="common-questions-box" data-list="ShortAnswerQuestions" data-container="shortQuestionsContainer">
+            <p class="box-title mb-0">Commonly used questions</p>
+            <p class="box-subtitle">Select questions to add to this short answer section.</p>
+            <div class="search-wrapper">
+                <input type="text" class="form-control common-search-input" placeholder="Search questions..." />
+            </div>
+            <div class="common-question-listbox">
+                <div class="listbox-toolbar">
+                    <span class="listbox-count">0 of @shortSuggestions.Count selected</span>
+                    <label class="select-all-label">
+                        <input type="checkbox" class="select-all-checkbox" /> Select all
+                    </label>
+                </div>
+                <div class="common-question-list">
+                    @if (!shortSuggestions.Any())
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-clipboard-x"></i>
+                            <span>No suggested questions yet.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var q in shortSuggestions)
+                        {
+                            <label class="common-question-item">
+                                <input type="checkbox" class="common-question-checkbox" data-id="@q.QuestionId" data-text="@q.QuestionText" />
+                                <span>@q.QuestionText</span>
+                            </label>
+                        }
+                    }
+                </div>
+            </div>
         </div>
 
-        <button type="button" id="addQuestionBtn" class="btn btn-primary w-100 mb-3">+ Add Question</button>
+        <div id="shortQuestionsContainer">
+            @for (int i = 0; i < Model.ShortAnswerQuestion.Count; i++)
+            {
+                <div class="question-block">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <label class="question-label mb-0">Question @(i + 1)</label>
+                        <span class="text-danger remove-question" style="cursor:pointer;"><i class="bi bi-x-lg"></i></span>
+                    </div>
+                    <input type="hidden" class="question-id-input" name="ShortAnswerQuestion[@i].QuestionId" value="@Model.ShortAnswerQuestion[i].QuestionId" />
+                    <input type="text" class="form-control question-text-input" name="ShortAnswerQuestion[@i].QuestionText" value="@Model.ShortAnswerQuestion[i].QuestionText" placeholder="Type your question here" />
+                    <span class="text-danger question-text-error" style="font-size:12px;"></span>
+                </div>
+            }
+        </div>
+        <div class="text-danger" id="shortError" style="display:none; font-size:13px;">Please add at least one question.</div>
+        <button type="button" id="addShortQuestionBtn" class="btn btn-add-question w-100 mt-2 mb-4">+ Add Question</button>
 
         <div class="d-flex justify-content-end gap-2">
-            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-action="Index" class="btn btn-back">Cancel</a>
+            <button type="submit" class="btn btn-proceed">Save</button>
         </div>
-
     </form>
 </div>
 
-<!-- Template for NEW question blocks added via JS -->
 <template id="questionTemplate">
-    <div class="card p-3 mb-3 question-block eval-create-page">
+    <div class="question-block">
         <div class="d-flex justify-content-between align-items-start mb-2">
-            <label class="form-label question-label">Question</label>
-            <span class="text-danger remove-question" style="cursor:pointer;">
-                <i class="bi bi-trash"></i>
-            </span>
+            <label class="question-label mb-0">Question</label>
+            <span class="text-danger remove-question" style="cursor:pointer;"><i class="bi bi-x-lg"></i></span>
         </div>
-        <div class="d-flex gap-2 mb-2">
-            <input type="hidden" class="question-id-input" name="" value="" />
-            <div class="flex-grow-1">
-                <input type="text" class="form-control question-text-input" name="" placeholder="Type your question here" />
-                <span class="text-danger question-text-error" style="font-size:12px;"></span>
-            </div>
-            <div>
-                <select class="form-select answer-type-select" name="" style="max-width:200px;">
-                    <option value="">Answer Type</option>
-                    <option value="RatingScale">Rating Scale</option>
-                    <option value="ShortAnswer">Short answer</option>
-                </select>
-                <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
-            </div>
-        </div>
-        <div class="answer-preview text-muted">Choose an answer type first...</div>
+        <input type="hidden" class="question-id-input" value="" />
+        <input type="text" class="form-control question-text-input" placeholder="Type your question here" />
+        <span class="text-danger question-text-error" style="font-size:12px;"></span>
     </div>
 </template>
 
@@ -153,13 +452,252 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        let questionIndex = 0;
+            let currentStep = 1;
+        const addedBlocksByQuestionId = {};
+        const overviewCardColors = ["#28A745", "#F5B301", "#0D8FE8", "#DC3545", "#8B5CF6"];
+        // Paste Create.cshtml's addQuestionBlock, renumberQuestions, updateListboxCount,
+        // setupCommonQuestionsBox functions UNCHANGED here.
+
+
+                function updateListboxCount(box) {
+
+            const checkboxes =
+                box.querySelectorAll(".common-question-checkbox");
+
+            const total = checkboxes.length;
+
+            const checked =
+                box.querySelectorAll(".common-question-checkbox:checked").length;
+
+            const count = box.querySelector(".listbox-count");
+
+            if (count)
+                count.textContent = `${checked} of ${total} selected`;
+
+            const selectAll = box.querySelector(".select-all-checkbox");
+
+            if (selectAll) {
+
+                selectAll.checked =
+                    total > 0 && checked === total;
+
+                selectAll.indeterminate =
+                    checked > 0 && checked < total;
+            }
+        }
+
+
+              function renumberQuestions(containerId, listName) {
+
+            document.querySelectorAll(`#${containerId} .question-block`)
+                .forEach(function (block, idx) {
+
+                    block.querySelector(".question-label").textContent =
+                        `Question ${idx + 1}`;
+
+                    block.querySelector(".question-id-input").name =
+                        `${listName}[${idx}].QuestionId`;
+
+                    block.querySelector(".question-text-input").name =
+                        `${listName}[${idx}].QuestionText`;
+                });
+        }
+
+                function setupCommonQuestionsBox(boxSelector, listName, containerId) {
+
+            const box = document.querySelector(boxSelector);
+
+            if (!box) return;
+
+            // Search
+            box.querySelector(".common-search-input")
+                .addEventListener("input", function () {
+
+                    const term = this.value.trim().toLowerCase();
+
+                    box.querySelectorAll(".common-question-item")
+                        .forEach(function (item) {
+
+                            const text =
+                                item.querySelector("span")
+                                    .textContent
+                                    .toLowerCase();
+
+                            item.style.display =
+                                text.includes(term)
+                                    ? "flex"
+                                    : "none";
+                        });
+                });
+
+            // Checkbox
+            box.querySelectorAll(".common-question-checkbox")
+                .forEach(function (checkbox) {
+
+                    checkbox.addEventListener("change", function () {
+
+                        this.closest(".common-question-item")
+                            .classList.toggle("is-checked", this.checked);
+
+                        const key = `${listName}:${this.dataset.id}`;
+
+                        if (this.checked) {
+
+                            if (!addedBlocksByQuestionId[key]) {
+
+                                addedBlocksByQuestionId[key] =
+                                    addQuestionBlock(
+                                        listName,
+                                        containerId,
+                                        this.dataset.id,
+                                        this.dataset.text
+                                    );
+                            }
+
+                        } else {
+
+                            const block =
+                                addedBlocksByQuestionId[key];
+
+                            if (block) {
+
+                                block.remove();
+
+                                delete addedBlocksByQuestionId[key];
+
+                                renumberQuestions(containerId, listName);
+                            }
+                        }
+
+                        updateListboxCount(box);
+                    });
+
+                });
+
+                        document.querySelectorAll("#ratingQuestionsContainer .question-block")
+            .forEach(function (block) {
+
+                const id = block.querySelector(".question-id-input").value;
+
+                if (!id) return;
+
+                const key = `RatingQuestions:${id}`;
+
+                addedBlocksByQuestionId[key] = block;
+
+                const checkbox = document.querySelector(
+                    `.common-questions-box[data-list="RatingQuestions"] .common-question-checkbox[data-id="${id}"]`
+                );
+
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.closest(".common-question-item")
+                        .classList.add("is-checked");
+                }
+            });
+
+        document.querySelectorAll("#shortQuestionsContainer .question-block")
+            .forEach(function (block) {
+
+                const id = block.querySelector(".question-id-input").value;
+
+                if (!id) return;
+
+                const key = `ShortAnswerQuestions:${id}`;
+
+                addedBlocksByQuestionId[key] = block;
+
+                const checkbox = document.querySelector(
+                    `.common-questions-box[data-list="ShortAnswerQuestions"] .common-question-checkbox[data-id="${id}"]`
+                );
+
+                if (checkbox) {
+                    checkbox.checked = true;
+                    checkbox.closest(".common-question-item")
+                        .classList.add("is-checked");
+                }
+            });
+
+        document.querySelectorAll(".common-questions-box")
+            .forEach(updateListboxCount);
+
+            // Select All
+            const selectAll =
+                box.querySelector(".select-all-checkbox");
+
+            if (selectAll) {
+
+                selectAll.addEventListener("change", function () {
+
+                    box.querySelectorAll(".common-question-item:not([style*='display: none']) .common-question-checkbox")
+                        .forEach(function (checkbox) {
+
+                            if (checkbox.checked !== selectAll.checked) {
+
+                                checkbox.checked = selectAll.checked;
+
+                                checkbox.dispatchEvent(new Event("change"));
+                            }
+                        });
+
+                });
+
+            }
+
+            updateListboxCount(box);
+        }
+
+        
+               function addQuestionBlock(listName, containerId, questionId = "", questionText = "") {
+
+            const template = document.getElementById("questionTemplate").content.cloneNode(true);
+            const block = template.querySelector(".question-block");
+            const container = document.getElementById(containerId);
+
+            const i = container.querySelectorAll(".question-block").length;
+
+            block.querySelector(".question-label").textContent = `Question ${i + 1}`;
+
+            const idInput = block.querySelector(".question-id-input");
+            idInput.name = `${listName}[${i}].QuestionId`;
+            idInput.value = questionId;
+
+            const textInput = block.querySelector(".question-text-input");
+            textInput.name = `${listName}[${i}].QuestionText`;
+            textInput.value = questionText;
+
+            textInput.addEventListener("input", function () {
+                block.querySelector(".question-text-error").textContent = "";
+            });
+
+            block.querySelector(".remove-question").addEventListener("click", function () {
+
+                if (questionId) {
+                    const key = `${listName}:${questionId}`;
+                    delete addedBlocksByQuestionId[key];
+
+                    document.querySelectorAll(".common-question-checkbox").forEach(cb => {
+                        if (cb.dataset.id == questionId)
+                            cb.checked = false;
+                    });
+                }
+
+                block.remove();
+                renumberQuestions(containerId, listName);
+
+                const box = document.querySelector(`.common-questions-box[data-list="${listName}"]`);
+                if (box) updateListboxCount(box);
+            });
+
+            container.appendChild(block);
+
+            return block;
+        }
+
         const openAtInput = document.getElementById("openAtInput");
         const closedAtInput = document.getElementById("closedAtInput");
         const today = new Date().toISOString().split("T")[0];
-
         openAtInput.min = today;
-
         openAtInput.addEventListener("change", function () {
             if (openAtInput.value) {
                 closedAtInput.min = openAtInput.value;
@@ -169,126 +707,27 @@
             }
         });
 
-        function buildAnswerPreview(type) {
-            if (type === "RatingScale") {
-                let stars = "";
-                for (let i = 1; i <= 5; i++) {
-                    stars += `<i class="bi bi-star fs-4 me-2"></i>`;
-                }
-                return `<div class="d-flex">${stars}</div>`;
-            }
-            if (type === "ShortAnswer") {
-                return `<input type="text" class="form-control" placeholder="Short answer text." disabled />`;
-            }
-            return `<span class="text-muted">Choose an answer type first...</span>`;
-        }
-
-        function renumberQuestions() {
-            const blocks = document.querySelectorAll(".question-block");
-            blocks.forEach(function (block, i) {
-                block.querySelector(".question-label").textContent = `Question ${i + 1}`;
-                block.querySelector(".question-id-input").name = `Questions[${i}].QuestionId`;
-                block.querySelector(".question-text-input").name = `Questions[${i}].QuestionText`;
-                block.querySelector(".answer-type-select").name = `Questions[${i}].AnswerType`;
-            });
-            questionIndex = blocks.length;
-        }
-
-        function wireUpBlock(block) {
-            const typeSelect = block.querySelector(".answer-type-select");
-            const preview = block.querySelector(".answer-preview");
-            const textInput = block.querySelector(".question-text-input");
-
-            typeSelect.addEventListener("change", function () {
-                preview.innerHTML = buildAnswerPreview(this.value);
-                block.querySelector(".answer-type-error").textContent = "";
-                typeSelect.classList.remove("border-danger");
-            });
-
-            textInput.addEventListener("input", function () {
-                block.querySelector(".question-text-error").textContent = "";
-            });
-
-            block.querySelector(".remove-question").addEventListener("click", function () {
-                block.remove();
-                renumberQuestions();
-            });
-        }
-
-        function addQuestionBlock(questionId = "", questionText = "") {
-            const template = document.getElementById("questionTemplate").content.cloneNode(true);
-            const block = template.querySelector(".question-block");
-            const i = questionIndex;
-
-            block.querySelector(".question-label").textContent = `Question ${i + 1}`;
-
-            const idInput = block.querySelector(".question-id-input");
-            idInput.name = `Questions[${i}].QuestionId`;
-            idInput.value = questionId;
-
-            const textInput = block.querySelector(".question-text-input");
-            textInput.name = `Questions[${i}].QuestionText`;
-            textInput.value = questionText;
-
-            block.querySelector(".answer-type-select").name = `Questions[${i}].AnswerType`;
-
-            wireUpBlock(block);
-
-            document.getElementById("questionsContainer").appendChild(block);
-            questionIndex++;
-        }
-
-        // Wire up the EXISTING server-rendered blocks and show their current preview
-        document.querySelectorAll("#questionsContainer .question-block").forEach(function (block) {
-            wireUpBlock(block);
-            const typeSelect = block.querySelector(".answer-type-select");
-            block.querySelector(".answer-preview").innerHTML = buildAnswerPreview(typeSelect.value);
+        document.getElementById("addRatingQuestionBtn").addEventListener("click", function () {
+            addQuestionBlock("RatingQuestions", "ratingQuestionsContainer");
         });
-        questionIndex = document.querySelectorAll("#questionsContainer .question-block").length;
-
-        document.getElementById("addQuestionBtn").addEventListener("click", function () {
-            addQuestionBlock();
+        document.getElementById("addShortQuestionBtn").addEventListener("click", function () {
+            addQuestionBlock("ShortAnswerQuestions", "shortQuestionsContainer");
         });
 
-        document.querySelectorAll(".suggestion-chip").forEach(function (chip) {
-            chip.addEventListener("click", function () {
-                addQuestionBlock(this.dataset.id, this.dataset.text);
-            });
-        });
+        setupCommonQuestionsBox('.common-questions-box[data-list="RatingQuestions"]', "RatingQuestions", "ratingQuestionsContainer");
+        setupCommonQuestionsBox('.common-questions-box[data-list="ShortAnswerQuestions"]', "ShortAnswerQuestions", "shortQuestionsContainer");
 
-        document.querySelector("form").addEventListener("submit", function (e) {
+        document.getElementById("editEvaluationForm").addEventListener("submit", function (e) {
             let hasError = false;
-            const blocks = document.querySelectorAll(".question-block");
+            if (!$(this).valid()) hasError = true;
 
-            if (blocks.length === 0) {
-                document.getElementById("noQuestionsError").style.display = "block";
-                hasError = true;
-            } else {
-                document.getElementById("noQuestionsError").style.display = "none";
-            }
+            const ratingFilled = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input")).some(i => i.value.trim());
+            document.getElementById("ratingError").style.display = ratingFilled ? "none" : "block";
+            if (!ratingFilled) hasError = true;
 
-            blocks.forEach(function (block) {
-                const text = block.querySelector(".question-text-input");
-                const type = block.querySelector(".answer-type-select");
-                const textError = block.querySelector(".question-text-error");
-                const typeError = block.querySelector(".answer-type-error");
-
-                if (!text.value.trim()) {
-                    textError.textContent = "Question text is required.";
-                    hasError = true;
-                } else {
-                    textError.textContent = "";
-                }
-
-                if (!type.value) {
-                    typeError.textContent = "Required.";
-                    type.classList.add("border-danger");
-                    hasError = true;
-                } else {
-                    typeError.textContent = "";
-                    type.classList.remove("border-danger");
-                }
-            });
+            const shortFilled = Array.from(document.querySelectorAll("#shortQuestionsContainer .question-text-input")).some(i => i.value.trim());
+            document.getElementById("shortError").style.display = shortFilled ? "none" : "block";
+            if (!shortFilled) hasError = true;
 
             if (hasError) e.preventDefault();
         });

@@ -25,5 +25,9 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<List<SubmissionListItemViewModel>> GetSubmissionsForEvaluationAsync(int evaluationId);
         Task<SubmissionDetailsViewModel?> GetSubmissionDetailsAsync(int submissionId);
+
+        Task<SummaryResponseReportViewModel> summaryReport(int? evaluationId);
+
+        Task<string?> GetCurrentStatusAsync(int evaluationId);
     }
 }

@@ -95,6 +95,7 @@ public class EvaluationsController : Controller
             {
                 QuestionId = q.QuestionId,
                 QuestionText = q.QuestionText,
+                AnswerType = q.AnswerType,
             }).ToList()
         };
                
@@ -118,6 +119,7 @@ public class EvaluationsController : Controller
             {
                 QuestionId = q.QuestionId,
                 QuestionText = q.QuestionText,
+                AnswerType = q.AnswerType,
             }).ToList();
 
             return View(vm);
@@ -129,6 +131,19 @@ public class EvaluationsController : Controller
     // GET: EVALUATIONS/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
+        var status = await _evaluationservice.GetCurrentStatusAsync(id);
+        if (status == null)
+        {
+            return NotFound();
+        };
+
+        if (status != "Upcoming")
+        {
+            TempData["ErrorMessage"] = "This evaluation can only be edited while it's still Upcoming.";
+            return RedirectToAction("Details", new { id });
+        }
+
+
         var evaluation = await _evaluationservice.GetUpdateEvaluationAsync(id);
         if (evaluation == null)
         {
@@ -144,6 +159,13 @@ public class EvaluationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UpdateEvaluationViewModel vm)
     {
+        var status = await _evaluationservice.GetCurrentStatusAsync(vm.EvaluationId);
+        if (status != "Upcoming")
+        {
+            TempData["ErrorMessage"] = "This evaluation can only be edited while it's still Upcoming.";
+            return RedirectToAction("Details", new { vm.EvaluationId });
+        }
+
         DateValidation(vm);
 
         if (vm.EvaluationId == 0)
@@ -152,7 +174,14 @@ public class EvaluationsController : Controller
         }
         if (!ModelState.IsValid)
         {
-            return PartialView("_EditEvaluationForm",vm);
+            var allQuestions = await _evaluationservice.GetAllQuestionsAsync();
+            vm.AvailableQuestions = allQuestions.Select(q => new AvailableQuestionViewModel
+            {
+                QuestionId = q.QuestionId,
+                QuestionText = q.QuestionText,
+                AnswerType = q.AnswerType
+            }).ToList();
+            return View(vm);
         }
         try
         {
@@ -253,6 +282,15 @@ public class EvaluationsController : Controller
     {
          await _evaluationservice.DeleteEvaluationAsync(evaluationid);
           return RedirectToAction(nameof(Index));
+    }
+
+    //TO BE CHECKED, LACKING IS UI 
+    public async Task<IActionResult> SummaryReports(int? id)
+    {
+        if(id == null) { return NotFound(); }
+        var report = await _evaluationservice.summaryReport(id);
+        if(report == null) { return NotFound(); }
+        return View(report);
     }
 
 

@@ -29,7 +29,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             // TODO: replace with real logic once event/attendance linking is implemented.
             var evaluation = await _context.Evaluations
                 .Where(e => !e.IsArchived)
-                .Include(e => e.EvaluationDetails)
+                .Include(e => e.EvaluationDetails)  
                     .ThenInclude(ed => ed.EvaluationQuestion)
                 .FirstOrDefaultAsync();
             return evaluation;
@@ -91,19 +91,25 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             return true;
         }
 
-        public async Task<List<Evaluation>> GetAvailableEvaluationsAsync()
+        public async Task<List<MemberEvaluationListItemViewModel>> GetAvailableEvaluationsForMemberAsync()
         {
-        
-            var query = _context.Evaluations
-                .Include(e => e.EvaluationDetails)
-                .ThenInclude(d => d.EvaluationQuestion)
-                .Where(e => !e.IsArchived);
+            var evaluations = await _context.Evaluations
+                .Where(e => e.IsArchived == false)
+                .ToListAsync();
 
-            Console.WriteLine(query.ToQueryString());
+            var today = DateTime.Today;
 
-            return await query.ToListAsync();
-        }    
-
+            return evaluations.Select(e => new MemberEvaluationListItemViewModel
+            {
+                EvaluationId = e.EvaluationId,
+                EvaluationTitle = e.EvaluationTitle,
+                OpenAt = e.OpenAt,
+                ClosedAt = e.ClosedAt,
+                Status = today < e.OpenAt.Date ? "Upcoming"
+                       : today > e.ClosedAt.Date ? "Closed"
+                       : "Open"
+            }).ToList();
+        }
         public async Task<Evaluation?> GetEvaluationByIdAsync(int evaluationId)
         {
             return await _context.Evaluations

@@ -27,7 +27,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 return RedirectToAction("VerifyMember");
             }
 
-            var evaluations = await _evaluationService.GetAvailableEvaluationsAsync();
+            var evaluations = await _evaluationService.GetAvailableEvaluationsForMemberAsync();
             return View(evaluations); 
         }
 
@@ -83,6 +83,9 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 EvaluationTitle = evaluation.EvaluationTitle,
                 MemberFullName = HttpContext.Session.GetString("CurrentMemberName") ?? "",
                 MemberEmail = HttpContext.Session.GetString("CurrentMemberEmail") ?? "",
+                Description = evaluation.Description,
+                openAt = evaluation.OpenAt,
+                closesAt = evaluation.ClosedAt,
                 Questions = evaluation.EvaluationDetails.Select(ed => new AnswerInputViewModel
                 {
                     EvaluationDetailId = ed.EvaluationDetailId,

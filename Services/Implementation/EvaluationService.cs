@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Helper;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -28,8 +29,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
            var questions = await _context.EvaluationQuestions.ToListAsync();
             return questions.GroupBy(q => q.QuestionText.Trim()
                              .ToLower()).Select(g => g.First())
-                              .ToList();
-                            
+                              .ToList();                     
                             
         }
 
@@ -140,14 +140,23 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _context.Evaluations.Add(evaluation);
             await _context.SaveChangesAsync();
             //add question to evaluationdetails
-            foreach(var question in vm.Questions)
+            foreach(var question in vm.RatingQuestions)
             {
                 await CreateOrReuseQuestionAsync(
                     evaluation.EvaluationId,
                     question.QuestionText,
-                    question.AnswerType
+                    AnswerType.RatingScale
                     );
-            }      
+            }
+
+            foreach (var question in vm.ShortAnswerQuestions)
+            {
+                await CreateOrReuseQuestionAsync(
+                    evaluation.EvaluationId,
+                    question.QuestionText,
+                    AnswerType.ShortAnswer
+                    );
+            }
         }
 
         public async Task<UpdateEvaluationViewModel?> GetUpdateEvaluationAsync(int id)
@@ -165,15 +174,29 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 Description = evaluation.Description,
                 ClosedAt = evaluation.ClosedAt,
                 OpenAt = evaluation.OpenAt,
-                Questions = evaluation.EvaluationDetails.Select(e => new QuestionRowViewModel
-                {
-                    QuestionId = e.QuestionId,
-                    QuestionText = e.EvaluationQuestion!.QuestionText,
-                    AnswerType = e.EvaluationQuestion.AnswerType,           
-                }).ToList()
-            };
 
+                // FIX: filter each list by AnswerType instead of selecting all details into both
+                RatingScale = evaluation.EvaluationDetails
+                    .Where(e => e.EvaluationQuestion!.AnswerType == AnswerType.RatingScale)
+                    .Select(e => new QuestionRowViewModel
+                    {
+                        QuestionId = e.QuestionId,
+                        QuestionText = e.EvaluationQuestion!.QuestionText,
+                        AnswerType = e.EvaluationQuestion.AnswerType,
+                    }).ToList(),
+
+                ShortAnswerQuestion = evaluation.EvaluationDetails
+                    .Where(e => e.EvaluationQuestion!.AnswerType == AnswerType.ShortAnswer)
+                    .Select(e => new QuestionRowViewModel
+                    {
+                        QuestionId = e.QuestionId,
+                        QuestionText = e.EvaluationQuestion!.QuestionText,
+                        AnswerType = e.EvaluationQuestion.AnswerType,
+                    }).ToList(),
+            };
         }
+
+        
 
 
         public async Task UpdateEvaluationAsync(UpdateEvaluationViewModel vm)
@@ -195,7 +218,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
           
             await _context.SaveChangesAsync();
 
-            foreach (var question in vm.Questions)
+            foreach (var question in vm.RatingScale)
+            {
+                await CreateOrReuseQuestionAsync(
+                    vm.EvaluationId,
+                    question.QuestionText,
+                    question.AnswerType
+                   );
+            }
+            foreach (var question in vm.ShortAnswerQuestion)
             {
                 await CreateOrReuseQuestionAsync(
                     vm.EvaluationId,
@@ -240,6 +271,99 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _context.SaveChangesAsync();
         }
 
+        public async Task<SummaryResponseReportViewModel> summaryReport(int? evaluationId)
+        {
+            var evaluation = await _context.Evaluations
+        .Include(e => e.EvaluationDetails)
+            .ThenInclude(d => d.EvaluationQuestion)
+        .FirstOrDefaultAsync(e => e.EvaluationId == evaluationId);
+
+            if (evaluation == null)
+                throw new Exception("Evaluation not found.");
+
+            var submissions = await _context.EvaluationSubmissions
+                .Where(s => s.EvaluationId == evaluationId)
+                .ToListAsync();
+
+            int totalResponses = submissions.Count;
+
+            int completedResponses = submissions.Count(s =>
+                s.Status == SubmissionStatus.Submitted);
+
+            double completionRate = totalResponses == 0
+                ? 0
+                : (double)completedResponses / totalResponses * 100;
+
+            var responseList = await _context.EvaluationResponses
+                .Where(r => r.EvaluationSubmission.EvaluationId == evaluationId)
+                .Include(r => r.EvaluationDetail)
+                    .ThenInclude(d => d.EvaluationQuestion)
+                .ToListAsync();
+
+            var numericRatings = responseList
+                .Where(r => int.TryParse(r.Answer, out _))
+                .Select(r => int.Parse(r.Answer!))
+                .ToList();
+
+            double overallAverage = numericRatings.Any()
+                ? Math.Round(numericRatings.Average(), 1)
+                : 0;
+
+            var questionSummaries = new List<QuestionSummaryViewModel>();
+
+            foreach (var detail in evaluation.EvaluationDetails)
+            {
+                var responses = responseList
+                    .Where(r => r.EvaluationDetailId == detail.EvaluationDetailId)
+                    .ToList();
+
+                int veryExcellent = responses.Count(r => r.Answer == "5");
+                int excellent = responses.Count(r => r.Answer == "4");
+                int neutral = responses.Count(r => r.Answer == "3");
+                int poor = responses.Count(r => r.Answer == "2");
+                int veryPoor = responses.Count(r => r.Answer == "1");
+
+                var ratings = responses
+                    .Where(r => int.TryParse(r.Answer, out _))
+                    .Select(r => int.Parse(r.Answer!))
+                    .ToList();
+
+                questionSummaries.Add(new QuestionSummaryViewModel
+                {
+                    EvaluationDetailId = detail.EvaluationDetailId,
+                    QuestionId = detail.QuestionId,
+                    QuestionText = detail.EvaluationQuestion?.QuestionText ?? "",
+
+                    AverageRating = ratings.Any()
+                        ? Math.Round(ratings.Average(), 1)
+                        : 0,
+
+                    VeryExcellent = veryExcellent,
+                    Excellent = excellent,
+                    Neutral = neutral,
+                    Poor = poor,
+                    VeryPoor = veryPoor
+                });
+            }
+
+            return new SummaryResponseReportViewModel
+            {
+                EvaluationId = evaluation.EvaluationId,
+                EvaluationTitle = evaluation.EvaluationTitle,
+                Description = evaluation.Description,
+
+                TotalResponses = totalResponses,
+                CompletionRate = Math.Round(completionRate, 0),
+                AverageRating = overallAverage,
+
+                Status = evaluation.ClosedAt <= DateTime.Now
+                    ? "Closed"
+                    : "Open",
+
+                Questions = questionSummaries
+            };
+        }
+
         public async Task<List<SubmissionListItemViewModel>> GetSubmissionsForEvaluationAsync(int evaluationId)
         {
             return await _context.EvaluationSubmissions
@@ -248,7 +372,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
        .Select(s => new SubmissionListItemViewModel
        {
            SubmissionId = s.SubmissionId,
-           MemberName = s.User.FirstName + " " + s.User.LastName ?? "N/A", 
+           MemberName = s.User!.FirstName + " " + s.User.LastName ?? "N/A", 
+           Email = s.User.Email ?? "N/A",
            SubmittedAt = s.SubmittedAt,
            Status = s.Status
        })
@@ -267,14 +392,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return new SubmissionDetailsViewModel
             {
-                MemberName = submission.User.FirstName + " " + submission.User.LastName,
+                MemberName = submission.User!.FirstName + " " + submission.User.LastName,
                 SubmittedAt = submission.SubmittedAt,
                 Answers = submission.EvaluationResponse.Select(r => new AnswerReviewItem
                 {
-                    QuestionText = r.EvaluationDetail.EvaluationQuestion!.QuestionText,
+                    QuestionText = r.EvaluationDetail!.EvaluationQuestion!.QuestionText,
                     Answer = r.Answer
                 }).ToList()
             };
+        }
+
+
+        public async Task<string?> GetCurrentStatusAsync(int evaluationId)
+        {
+            var evaluation = await _context.Evaluations
+                .FirstOrDefaultAsync(e => e.EvaluationId == evaluationId);
+
+            if (evaluation == null) return null;
+
+            return EvaluationStatusHelper.GetStatus(evaluation.OpenAt, evaluation.ClosedAt);
         }
     }
 }
