@@ -55,5 +55,6 @@
 
         public double VeryPoorPercent =>
             TotalResponses == 0 ? 0 : (double)VeryPoor / TotalResponses * 100;
+
     }
 }

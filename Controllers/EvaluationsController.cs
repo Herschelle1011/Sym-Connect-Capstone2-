@@ -290,7 +290,7 @@ public class EvaluationsController : Controller
         if(id == null) { return NotFound(); }
         var report = await _evaluationservice.summaryReport(id);
         if(report == null) { return NotFound(); }
-        return View(report);
+        return PartialView("_SummaryReportsPartial", report);
     }
 
 

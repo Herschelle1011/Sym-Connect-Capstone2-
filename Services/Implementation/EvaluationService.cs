@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Helper;
+using Sym_Connect__Capstone2_.Helpers;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -149,14 +150,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     );
             }
 
-            foreach (var question in vm.ShortAnswerQuestions)
-            {
-                await CreateOrReuseQuestionAsync(
-                    evaluation.EvaluationId,
-                    question.QuestionText,
-                    AnswerType.ShortAnswer
-                    );
-            }
+   
         }
 
         public async Task<UpdateEvaluationViewModel?> GetUpdateEvaluationAsync(int id)
@@ -185,14 +179,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         AnswerType = e.EvaluationQuestion.AnswerType,
                     }).ToList(),
 
-                ShortAnswerQuestion = evaluation.EvaluationDetails
-                    .Where(e => e.EvaluationQuestion!.AnswerType == AnswerType.ShortAnswer)
-                    .Select(e => new QuestionRowViewModel
-                    {
-                        QuestionId = e.QuestionId,
-                        QuestionText = e.EvaluationQuestion!.QuestionText,
-                        AnswerType = e.EvaluationQuestion.AnswerType,
-                    }).ToList(),
+              
             };
         }
 
@@ -226,14 +213,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     question.AnswerType
                    );
             }
-            foreach (var question in vm.ShortAnswerQuestion)
-            {
-                await CreateOrReuseQuestionAsync(
-                    vm.EvaluationId,
-                    question.QuestionText,
-                    question.AnswerType
-                   );
-            }
+     
             await _context.SaveChangesAsync();
         }
 
@@ -372,7 +352,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
        .Select(s => new SubmissionListItemViewModel
        {
            SubmissionId = s.SubmissionId,
-           MemberName = s.User!.FirstName + " " + s.User.LastName ?? "N/A", 
            Email = s.User.Email ?? "N/A",
            SubmittedAt = s.SubmittedAt,
            Status = s.Status
@@ -392,12 +371,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return new SubmissionDetailsViewModel
             {
-                MemberName = submission.User!.FirstName + " " + submission.User.LastName,
                 SubmittedAt = submission.SubmittedAt,
                 Answers = submission.EvaluationResponse.Select(r => new AnswerReviewItem
                 {
                     QuestionText = r.EvaluationDetail!.EvaluationQuestion!.QuestionText,
-                    Answer = r.Answer
+                    Answer = ConvertRating.Convert(r.Answer)
                 }).ToList()
             };
         }

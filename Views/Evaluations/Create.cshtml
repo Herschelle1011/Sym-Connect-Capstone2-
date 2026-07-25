@@ -40,7 +40,6 @@
         padding: 32px 0;
     }
 
-    /* ADD — blue banner header, reused per step */
     .section-banner {
         background: #0D8FE8;
         border-radius: 12px;
@@ -239,23 +238,40 @@
         background: #fff;
     }
 
+    /* ===== IMPROVED TOOLBAR LAYOUT ===== */
     .listbox-toolbar {
-        background: transparent;
-        border-bottom: none;
-        padding: 4px 2px 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #F7F9FC;
+        border-bottom: 1px solid #E3E7ED;
+        padding: 10px 14px;
     }
+
+        .listbox-toolbar .listbox-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2F6FED;
+            background: #EAF2FE;
+            padding: 4px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
 
         .listbox-toolbar .select-all-label {
             display: flex;
             align-items: center;
             gap: 6px;
             color: #5B6472;
+            font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
             margin: 0;
         }
 
             .listbox-toolbar .select-all-label input {
                 margin: 0;
+                accent-color: #2F6FED;
             }
 
     .common-question-list {
@@ -294,6 +310,7 @@
     .common-question-item input[type="checkbox"] {
         margin: 3px 0 0;
         flex-shrink: 0;
+        accent-color: #2F6FED;
     }
 
     .common-question-item .empty-state {
@@ -319,7 +336,7 @@
             background: #E3E7ED;
         }
 
-    /* ===== Step 4 — Overview ===== */
+    /* ===== Overview ===== */
     .overview-heading {
         margin-bottom: 20px;
     }
@@ -435,16 +452,6 @@
             color: #8A93A3;
         }
 
-    .overview-answer-input {
-        border: 1px solid #E3E7ED;
-        border-radius: 10px;
-        padding: 10px 14px;
-        font-size: 14px;
-        color: #ADB5BD;
-        background: #fff;
-        width: 100%;
-    }
-
     .btn-overview-back {
         background: #fff;
         border: 1px solid #E3E7ED;
@@ -511,7 +518,7 @@
             </div>
 
             <div class="step-footer">
-                <span class="step-indicator">Step 1 of 4</span>
+                <span class="step-indicator">Step 1 of 3</span>
                 <button type="button" class="btn btn-proceed next-step">Proceed</button>
             </div>
         </div>
@@ -589,7 +596,7 @@
             <button type="button" id="addRatingQuestionBtn" class="btn btn-add-question w-100 mt-2">+ Add Question</button>
 
             <div class="step-footer">
-                <span class="step-indicator">Step 2 of 4</span>
+                <span class="step-indicator">Step 2 of 3</span>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-back prev-step">Back</button>
                     <button type="button" class="btn btn-proceed next-step">Proceed</button>
@@ -597,80 +604,8 @@
             </div>
         </div>
 
-        <!-- ========== STEP 3: Short Answer Questions ========== -->
+        <!-- ========== STEP 3: Overview (member's-eye preview) ========== -->
         <div class="step-section" data-step="3">
-
-            <div class="section-banner">
-                <h5>Short Answer</h5>
-            </div>
-
-            @{
-                var shortSuggestions = Model.AvailableQuestions
-                    .Where(q => q.AnswerType == Sym_Connect__Capstone2_.Models.Enums.AnswerType.ShortAnswer)
-                    .ToList();
-            }
-
-            <div class="common-questions-box" data-list="ShortAnswerQuestions" data-container="shortQuestionsContainer">
-                <p class="box-title mb-0">Commonly used questions</p>
-                <p class="box-subtitle">Select questions to add to this short answer section.</p>
-
-                <div class="search-wrapper">
-                    <input type="text" class="form-control common-search-input" placeholder="Search questions..." />
-                </div>
-
-                <div class="common-question-listbox">
-                    <div class="listbox-toolbar">
-                        <span class="listbox-count">0 of @shortSuggestions.Count selected</span>
-                        <label class="select-all-label">
-                            <input type="checkbox" class="select-all-checkbox" />
-                            Select all
-                        </label>
-                    </div>
-                    <div class="common-question-list">
-                        @if (!shortSuggestions.Any())
-                        {
-                            <div class="d-flex justify-content-center my-5">
-                                <div class="card border-0 shadow-sm text-center p-4" style="max-width: 400px;">
-                                    <div class="mb-3">
-                                        <i class="bi bi-chat-square-text text-secondary" style="font-size: 4rem;"></i>
-                                    </div>
-                                    <h5 class="fw-semibold mb-2">No Suggested Questions</h5>
-                                    <p class="text-muted mb-0">
-                                        There are currently no suggested evaluation questions available.
-                                    </p>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            @foreach (var q in shortSuggestions)
-                            {
-                                <label class="common-question-item">
-                                    <input type="checkbox" class="common-question-checkbox" data-id="@q.QuestionId" data-text="@q.QuestionText" />
-                                    <span>@q.QuestionText</span>
-                                </label>
-                            }
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <div id="shortQuestionsContainer"></div>
-            <div class="text-danger" id="shortError" style="display:none; font-size:13px;">
-                Please add at least one question.
-            </div>
-            <button type="button" id="addShortQuestionBtn" class="btn btn-add-question w-100 mt-2">+ Add Question</button>
-
-            <div class="step-footer">
-                <span class="step-indicator">Step 3 of 4</span>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-back prev-step">Back</button>
-                    <button type="button" class="btn btn-proceed next-step">Proceed</button>
-                </div>
-            </div>
-        </div>
-        <!-- ========== STEP 4: Overview (member's-eye preview) ========== -->
-        <div class="step-section" data-step="4">
 
             <div class="overview-heading">
                 <h2>Evaluation Overview</h2>
@@ -702,7 +637,7 @@
             <div id="overviewContent"></div>
 
             <div class="step-footer">
-                <span class="step-indicator">Step 4 of 4</span>
+                <span class="step-indicator">Step 3 of 3</span>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-overview-back prev-step">Back</button>
                     <button type="submit" class="btn btn-overview-publish">Publish Evaluation</button>
@@ -740,7 +675,7 @@
         const closedAtInput = document.getElementById("closedAtInput");
         const today = new Date().toISOString().split("T")[0];
         openAtInput.min = today;
-        closedAtInput.min = today; // set on load
+        closedAtInput.min = today;
         openAtInput.addEventListener("change", function () {
             if (openAtInput.value) {
                 closedAtInput.min = openAtInput.value;
@@ -848,7 +783,6 @@
                 });
             }
 
-
             updateListboxCount(box);
         }
 
@@ -857,7 +791,7 @@
                 section.classList.toggle("active", section.dataset.step == stepNumber);
             });
             currentStep = stepNumber;
-            if (stepNumber === 4) updateOverview();
+            if (stepNumber === 3) updateOverview();
         }
 
         function validateStep(stepNumber) {
@@ -871,23 +805,14 @@
                 document.getElementById("ratingError").style.display = filled ? "none" : "block";
                 return filled;
             }
-            if (stepNumber === 3) {
-                const filled = Array.from(document.querySelectorAll("#shortQuestionsContainer .question-text-input"))
-                    .some(i => i.value.trim());
-                document.getElementById("shortError").style.display = filled ? "none" : "block";
-                return filled;
-            }
             return true;
         }
 
-           document.querySelectorAll(".next-step").forEach(function (btn) {
+        document.querySelectorAll(".next-step").forEach(function (btn) {
             btn.addEventListener("click", function () {
-                // While the admin is on Step 1, manually trigger the real jQuery validation
-                // for Title/Description/OpenAt/ClosedAt — this fills in the asp-validation-for spans
                 if (currentStep === 1 && !$("#evaluationForm").valid()) {
-                    return; // errors now show right here, since Step 1 is still the visible section
+                    return;
                 }
-
                 if (validateStep(currentStep)) goToStep(currentStep + 1);
             });
         });
@@ -897,9 +822,6 @@
 
         document.getElementById("addRatingQuestionBtn").addEventListener("click", function () {
             addQuestionBlock("RatingQuestions", "ratingQuestionsContainer");
-        });
-        document.getElementById("addShortQuestionBtn").addEventListener("click", function () {
-            addQuestionBlock("ShortAnswerQuestions", "shortQuestionsContainer");
         });
 
         function formatOverviewDate(value) {
@@ -920,8 +842,6 @@
 
             const ratingTexts = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input"))
                 .map(i => i.value.trim()).filter(Boolean);
-            const shortTexts = Array.from(document.querySelectorAll("#shortQuestionsContainer .question-text-input"))
-                .map(i => i.value.trim()).filter(Boolean);
 
             const starLabels = ["Very poor", "Poor", "Neutral", "Excellent", "Very Excellent"];
             let colorIndex = 0;
@@ -938,38 +858,20 @@
                 </div>`;
             });
 
-            shortTexts.forEach(t => {
-                const color = overviewCardColors[colorIndex % overviewCardColors.length];
-                colorIndex++;
-                html += `<div class="overview-question-block" style="border-left-color:${color}">
-                    <p class="overview-question-label">${t}</p>
-                    <input type="text" class="overview-answer-input" placeholder="Enter your answer here..." disabled />
-                </div>`;
-            });
-
             document.getElementById("overviewContent").innerHTML = html;
         }
 
         setupCommonQuestionsBox('.common-questions-box[data-list="RatingQuestions"]', "RatingQuestions", "ratingQuestionsContainer");
-        setupCommonQuestionsBox('.common-questions-box[data-list="ShortAnswerQuestions"]', "ShortAnswerQuestions", "shortQuestionsContainer");
 
-        // addQuestionBlock("RatingQuestions", "ratingQuestionsContainer");
-        // addQuestionBlock("ShortAnswerQuestions", "shortQuestionsContainer");
-
-                document.getElementById("evaluationForm").addEventListener("submit", function (e) {
+        document.getElementById("evaluationForm").addEventListener("submit", function (e) {
             if (!$(this).valid()) {
                 e.preventDefault();
-                goToStep(1); // jump back so the admin can actually SEE the error that jQuery just filled in
+                goToStep(1);
                 return;
             }
             if (!validateStep(2)) {
                 e.preventDefault();
                 goToStep(2);
-                return;
-            }
-            if (!validateStep(3)) {
-                e.preventDefault();
-                goToStep(3);
             }
         });
     </script>

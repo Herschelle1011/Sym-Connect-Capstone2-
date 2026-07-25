@@ -6,8 +6,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Evaluation
     public class CreateEvaluationViewModel : EvaluationFormViewModel
     {
         public List<QuestionRowViewModel> RatingQuestions { get; set; } = new();
-        public List<QuestionRowViewModel> ShortAnswerQuestions { get; set; } = new();
-
         public List<AvailableQuestionViewModel> AvailableQuestions { get; set; } = new();
     }
 

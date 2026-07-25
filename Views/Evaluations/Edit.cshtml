@@ -370,68 +370,7 @@
         <div class="text-danger" id="ratingError" style="display:none; font-size:13px;">Please add at least one question.</div>
         <button type="button" id="addRatingQuestionBtn" class="btn btn-add-question w-100 mt-2 mb-4">+ Add Question</button>
 
-        <!-- Short Answer -->
-        <div class="section-banner"><h5>Short Answer</h5></div>
-        @{
-            var shortSuggestions = Model.AvailableQuestions
-                .Where(q => q.AnswerType == AnswerType.ShortAnswer).ToList();
-        }
-        <div class="common-questions-box" data-list="ShortAnswerQuestions" data-container="shortQuestionsContainer">
-            <p class="box-title mb-0">Commonly used questions</p>
-            <p class="box-subtitle">Select questions to add to this short answer section.</p>
-            <div class="search-wrapper">
-                <input type="text" class="form-control common-search-input" placeholder="Search questions..." />
-            </div>
-            <div class="common-question-listbox">
-                <div class="listbox-toolbar">
-                    <span class="listbox-count">0 of @shortSuggestions.Count selected</span>
-                    <label class="select-all-label">
-                        <input type="checkbox" class="select-all-checkbox" /> Select all
-                    </label>
-                </div>
-                <div class="common-question-list">
-                    @if (!shortSuggestions.Any())
-                    {
-                        <div class="empty-state">
-                            <i class="bi bi-clipboard-x"></i>
-                            <span>No suggested questions yet.</span>
-                        </div>
-                    }
-                    else
-                    {
-                        @foreach (var q in shortSuggestions)
-                        {
-                            <label class="common-question-item">
-                                <input type="checkbox" class="common-question-checkbox" data-id="@q.QuestionId" data-text="@q.QuestionText" />
-                                <span>@q.QuestionText</span>
-                            </label>
-                        }
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div id="shortQuestionsContainer">
-            @for (int i = 0; i < Model.ShortAnswerQuestion.Count; i++)
-            {
-                <div class="question-block">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <label class="question-label mb-0">Question @(i + 1)</label>
-                        <span class="text-danger remove-question" style="cursor:pointer;"><i class="bi bi-x-lg"></i></span>
-                    </div>
-                    <input type="hidden" class="question-id-input" name="ShortAnswerQuestion[@i].QuestionId" value="@Model.ShortAnswerQuestion[i].QuestionId" />
-                    <input type="text" class="form-control question-text-input" name="ShortAnswerQuestion[@i].QuestionText" value="@Model.ShortAnswerQuestion[i].QuestionText" placeholder="Type your question here" />
-                    <span class="text-danger question-text-error" style="font-size:12px;"></span>
-                </div>
-            }
-        </div>
-        <div class="text-danger" id="shortError" style="display:none; font-size:13px;">Please add at least one question.</div>
-        <button type="button" id="addShortQuestionBtn" class="btn btn-add-question w-100 mt-2 mb-4">+ Add Question</button>
-
-        <div class="d-flex justify-content-end gap-2">
-            <a asp-action="Index" class="btn btn-back">Cancel</a>
-            <button type="submit" class="btn btn-proceed">Save</button>
-        </div>
+    
     </form>
 </div>
 
@@ -596,28 +535,7 @@
                 }
             });
 
-        document.querySelectorAll("#shortQuestionsContainer .question-block")
-            .forEach(function (block) {
-
-                const id = block.querySelector(".question-id-input").value;
-
-                if (!id) return;
-
-                const key = `ShortAnswerQuestions:${id}`;
-
-                addedBlocksByQuestionId[key] = block;
-
-                const checkbox = document.querySelector(
-                    `.common-questions-box[data-list="ShortAnswerQuestions"] .common-question-checkbox[data-id="${id}"]`
-                );
-
-                if (checkbox) {
-                    checkbox.checked = true;
-                    checkbox.closest(".common-question-item")
-                        .classList.add("is-checked");
-                }
-            });
-
+        
         document.querySelectorAll(".common-questions-box")
             .forEach(updateListboxCount);
 
@@ -710,12 +628,9 @@
         document.getElementById("addRatingQuestionBtn").addEventListener("click", function () {
             addQuestionBlock("RatingQuestions", "ratingQuestionsContainer");
         });
-        document.getElementById("addShortQuestionBtn").addEventListener("click", function () {
-            addQuestionBlock("ShortAnswerQuestions", "shortQuestionsContainer");
-        });
+
 
         setupCommonQuestionsBox('.common-questions-box[data-list="RatingQuestions"]', "RatingQuestions", "ratingQuestionsContainer");
-        setupCommonQuestionsBox('.common-questions-box[data-list="ShortAnswerQuestions"]', "ShortAnswerQuestions", "shortQuestionsContainer");
 
         document.getElementById("editEvaluationForm").addEventListener("submit", function (e) {
             let hasError = false;
