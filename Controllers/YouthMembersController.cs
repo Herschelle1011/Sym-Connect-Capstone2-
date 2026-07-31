@@ -88,28 +88,21 @@ namespace Sym_Connect__Capstone2_.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MembersCreateViewModel vm)
+        public async Task<IActionResult> Create(MembersCreateViewModel vm , IFormFile? Photo)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var viewmodel = new Member
-                {
-                    Email = vm.Email,
-                    FirstName = vm.FirstName,
-                    MiddleName = vm.MiddleName,
-                    LastName = vm.LastName,
-                    ContactNumber = vm.ContactNumber,
-                    Address = vm.Address != null ? vm.Address : "N/A",
-                    BirthDate = vm.BirthDate,
-                    Gender = vm.Gender,
-                    Status = vm.Status,
-
-                };
-                await _memberService.CreateMemberAsync(viewmodel);
-                return RedirectToAction(nameof(Index));
+                return View("_CreateMemberForm", vm);
             }
-           
-            return View("_CreateMemberForm", vm);
+
+            bool success = await _memberService.CreateMember(vm, Photo);
+
+            if (!success)
+            {
+                ModelState.AddModelError("", "Failed to create member.");
+                return View(vm);
+            }
+            return RedirectToAction("Index");
         }
 
         // GET: YouthMembers/Edit/5

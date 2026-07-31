@@ -8,7 +8,7 @@ namespace Sym_Connect__Capstone2_.Models
         [Key]
         public int EventId { get; set; }
 
-        public string EventTitle { get; set; } = string.Empty;
+        public string EventTitle { get; set; } = string.Empty;  
         public string? EventDescription { get; set; } = string.Empty;
 
         public bool IsAllDay { get; set; }
@@ -29,7 +29,7 @@ namespace Sym_Connect__Capstone2_.Models
         public string? CreatedByUserId { get; set; }
         public User? CreatedByUser { get; set; }
 
-        public DateTime DateCreated { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
         public bool IsArchived { get; set; }
         public DateTime? ArchiveDate { get; set; }

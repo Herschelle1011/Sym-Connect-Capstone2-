@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Member;
 using System.Collections.Immutable;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -10,10 +11,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     public class MemberService : IMemberService
     {
         private readonly AppDbContext _context;
+        private readonly CloudinaryService _cloudinary;
 
-        public MemberService(AppDbContext context)
+        public MemberService(AppDbContext context, CloudinaryService cloudinary)
         {
             _context = context;
+            _cloudinary = cloudinary;
         }
 
         public async Task<List<Member>> GetAllMembersAsync()
@@ -30,11 +33,38 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                      .FirstOrDefaultAsync(m => m.MemberId == id);
         }
 
-        public async Task CreateMemberAsync(Member member)
+        public async Task<bool> CreateMember(MembersCreateViewModel vm, IFormFile? photo)
         {
-              _context.Members.Add(member);
-                      await _context.SaveChangesAsync();
+            var member = new Member
+            {
+                FirstName = vm.FirstName,
+                LastName = vm.LastName,
+                MiddleName = vm.MiddleName,
+                Email = vm.Email,
+                ContactNumber = vm.ContactNumber,
+                Address = vm.Address,
+                BirthDate = vm.BirthDate,
+                Gender = vm.Gender,
+                Status = vm.Status
+            };
+
+            _context.Members.Add(member);
+            await _context.SaveChangesAsync();
+
+            if (photo != null)
+            {
+
+                var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
+                if (url != null)
+                {
+                    member.ProfilePictureUrl = url;
+                    await _context.SaveChangesAsync(); // second save just for the URL
+                }
+            }
+
+            return true;
         }
+
         public async Task UpdateMemberAsync(Member member)
         {
             _context.Members.Update(member);

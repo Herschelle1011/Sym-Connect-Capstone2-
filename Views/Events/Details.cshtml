@@ -6,9 +6,12 @@
 
     // ---- status badge colors ----
     var statusName = Model.Status.ToString();
+
     var statusText = string.Concat(statusName.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString())).ToUpper();
 
     string badgeBg, badgeColor;
+  
+
     if (statusName.Contains("Ongoing") && statusName.Contains("Soon"))
     {
         badgeBg = "#f3e8ff"; badgeColor = "#9333ea";
@@ -363,9 +366,12 @@
             <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <a asp-action="Edit" asp-route-eventid="@Model.EventId" class="btn btn-outline-primary btn-sm">
+
+            <button type="button" class="btn btn-outline-primary btn-sm edit-event-btn" data-eventid="@Model.EventId">
                 <i class="ti ti-pencil"></i> Edit Event
-            </a>
+            </button>
+
+
             <button type="button" class="btn btn-outline-secondary btn-sm">
                 <i class="ti ti-copy"></i> Duplicate
             </button>
@@ -573,12 +579,91 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn btn-primary w-100 mb-2">
-                            <i class="ti ti-qrcode"></i> Open QR Scanner
-                        </button>
+                        @{
+
+                            bool ifAllDay = Model.StartTime == null && Model.EndTime == null;
+
+                            bool isEventLive;
+                            bool ifEventEnd;
+                            bool ifNotStarted;
+
+                            if (ifAllDay)
+                            {
+                                var eventStart = Model.StartDate.Date;
+                                var eventEnd = Model.EndDate.Date.AddDays(1);
+
+                                isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
+                                ifNotStarted = DateTime.Now < eventStart;
+                                ifEventEnd = DateTime.Now >= eventEnd;
+                            }
+                            else
+                            {
+                                var eventStart = Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
+                                var eventEnd = Model.EndDate.Date+ (Model.EndTime ?? TimeSpan.Zero);
+
+                                isEventLive = DateTime.Now >= eventStart && DateTime.Now <= eventEnd;
+                                ifNotStarted = DateTime.Now < eventStart;
+                                ifEventEnd = DateTime.Now > eventEnd;
+                            }
+
+                        }
+               
+                        @if (isEventLive)
+                        {
+                            //TO BE CONNECT TO THE QR CODE SCANNER 
+                            <button type="button" class="btn btn-primary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open QR Scanner
+                            </button>
+                        }
+                        else if (ifAllDay)
+                        {
+
+                            <button type="button" class="btn btn-secondary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open All-Day Scanner
+                            </button>
+                        }
+                         
+                  
+                        else if (ifEventEnd)
+                        {
+                            <button type="button"
+                                    class="btn btn-secondary w-100 mb-2"
+                                    disabled
+                                    title="This event has already ended. Attendance can no longer be recorded.">
+                                <i class="ti ti-lock"></i> QR Scanner Unavailable
+                            </button>
+
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Closed</strong><br />
+                                    This event has already ended. The QR attendance scanner is no longer available.
+                                </div>
+                            </div>
+                        }
+                        else if (ifNotStarted)
+                        {
+                            <button type="button"
+                                    class="btn btn-secondary w-100 mb-2"
+                                    disabled
+                                    title="QR attendance will be available once the event starts.">
+                                <i class="ti ti-clock"></i> QR Scanner Unavailable
+                            </button>
+
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Not Yet Open</strong><br />
+                                    QR code scanning will become available when the event officially begins.
+                                </div>
+                            </div>
+                        }
+                            
                         <button type="button" class="btn btn-outline-secondary w-100">
                             <i class="ti ti-bell"></i> Send Reminder
                         </button>
+
+
                     </div>
 
                     <div class="details-card mb-3">
@@ -642,3 +727,36 @@
     </div>
 
 </div>
+
+
+@section Scripts {
+    <script>
+               document.addEventListener('DOMContentLoaded', function () {
+            const editBtn = document.querySelector('.edit-event-btn');
+
+            if (editBtn) {
+                editBtn.addEventListener('click', async function () {
+                    const eventId = editBtn.getAttribute('data-eventid');
+
+                    const response = await fetch(`/Events/GetEditForm?eventid=${eventId}`);
+                    const html = await response.text();
+
+                    // Properly dispose of any existing Offcanvas instance FIRST
+                    const existingPanelEl = document.getElementById('editEventPanel');
+                    if (existingPanelEl) {
+                        const existingInstance = bootstrap.Offcanvas.getInstance(existingPanelEl);
+                        if (existingInstance) {
+                            existingInstance.dispose();
+                        }
+                        existingPanelEl.remove();
+                    }
+
+                    document.body.insertAdjacentHTML('beforeend', html);
+
+                    const panel = new bootstrap.Offcanvas(document.getElementById('editEventPanel'));
+                    panel.show();
+                });
+            }
+        });
+    </script>
+}

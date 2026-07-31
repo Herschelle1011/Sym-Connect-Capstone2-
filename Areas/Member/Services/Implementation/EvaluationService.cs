@@ -23,6 +23,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                                 && m.FirstName!.ToLower() == firstname.ToLower());
         }
 
+
+
         public async Task<Evaluation?> GetEvaluationForMemberAsync(string memberId)
         {
             // TEMP: just grab any evaluation for demo purposes.

@@ -1,0 +1,39 @@
+﻿@model CreatePartyListViewModel
+
+<form id="createPartyListForm" asp-action="Create" asp-controller="PartyLists" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <div class="form-floating">
+            <input asp-for="PartyListName"
+                   class="form-control"
+                   placeholder="Partylist Name" />
+            <label asp-for="PartyListName">Partylist name</label>
+            <span asp-validation-for="PartyListName" class="text-danger small"></span>
+        </div>
+    </div>
+
+
+    <div class="mb-3">
+        <div class="form-floating">
+            <textarea asp-for="PartyListDescription"
+                      class="form-control"
+                      placeholder="Description"
+                      style="height: 120px;"></textarea>
+            <label asp-for="PartyListDescription">Description</label>
+        </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button"
+                class="btn btn-light px-4"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+        <button type="submit" class="btn btn-primary px-4">
+            Create
+        </button>
+    </div>
+</form>

@@ -28,8 +28,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return questions.GroupBy(q => q.QuestionText.Trim()
                              .ToLower()).Select(g => g.First())
                               .ToList();
-                            
-                            
+                                                    
         }
 
         public async Task<Evaluation?> GetEvaluationByIdAsync(int id)
@@ -74,7 +73,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 await _context.SaveChangesAsync();
         }
 
-        public async Task<EditQuestionViewModel> GetQuestionAsync(int id)
+        public async Task<EditQuestionViewModel?> GetQuestionAsync(int id)
         {
             var evaluationDetail = await _context.EvaluationDetail
                                     .Include(e => e.EvaluationQuestion)
@@ -83,7 +82,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return new EditQuestionViewModel
             {
                 EvaluationDetailId = evaluationDetail.EvaluationDetailId,
-                QuestionText = evaluationDetail.EvaluationQuestion.QuestionText,
+                QuestionText = evaluationDetail.EvaluationQuestion!.QuestionText,
                 answerType = evaluationDetail.EvaluationQuestion.AnswerType
             };
 
@@ -123,7 +122,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task CreateEvaluationAsync(CreateEvaluationViewModel vm)
         {
-            //follow this method and POLISH everything ------STUCK HERE RESEARCH 7/6/2026
             var evaluation = new Evaluation
             {
                 EvaluationTitle = vm.EvaluationTitle,

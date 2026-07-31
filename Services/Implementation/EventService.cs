@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 
@@ -51,6 +52,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<DetailsEventViewModel?> GetDetailsByAsync(int id)
         {
+
             var existingEvent = await _context.Events
                 .Include(f => f.Facility)
                     .ThenInclude(photo => photo.FacilityPhotos)
@@ -62,13 +64,34 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                            .Include(u => u.CreatedByUser)
                 .FirstOrDefaultAsync(e => e.EventId == id);
             if (existingEvent == null) return null;
+
+            var startDate = existingEvent.StartDate.Date + (existingEvent.StartTime ?? TimeSpan.Zero);
+            var endDate = existingEvent.EndDate.Date + (existingEvent.EndTime ?? TimeSpan.Zero);
+
+            var now = DateTime.UtcNow;
+            EventStatus status;
+
+            if (now < startDate)
+            {
+                status = EventStatus.Upcoming;
+            }
+            else if (now <= endDate)
+            {
+                status = EventStatus.Ongoing;
+            }
+            else
+            {
+                status = EventStatus.Completed;
+            }
+
             return new DetailsEventViewModel
             {
+                EventId = existingEvent.EventId,
                 EventTitle = existingEvent.EventTitle,
                 EventDescription = existingEvent.EventDescription,
                 StartDate = existingEvent.StartDate,
                 EndDate = existingEvent.EndDate,
-                StartTime = existingEvent.StartTime,
+                 Status = status,
                 EndTime = existingEvent.EndTime,         
                 FacilityId = existingEvent.FacilityId,
                 IsAllDay = existingEvent.IsAllDay,
@@ -77,6 +100,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 FacilityDescription = existingEvent.Facility.FacilityDescription,
                 FacilityType = existingEvent.Facility.FacilityTypes,  
                 CreatedBy = existingEvent.CreatedByUserId ?? "N/A",
+                DateCreated = existingEvent.DateCreated, 
                 FacilityPhotos = existingEvent.Facility.FacilityPhotos.Select(photo => new FacilityPhotoVM
                 {
                     FacilityPhotoId = photo.FacilityPhotoId,
@@ -104,7 +128,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
             if (hasConflict) return false;
-        
+
+            if (vm.IsAllDay)
+            {
+                vm.StartTime = null;
+                vm.EndTime = null;
+            }
 
             var newEvent = new Event
             {
@@ -112,11 +141,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 EventDescription = vm.EventDescription,
                 IsAllDay = vm.IsAllDay,
                 FacilityId = vm.FacilityId,
-                DateCreated = DateTime.Now,
-                StartDate = vm.StartDate,
-                EndDate  = vm.EndDate,
+                DateCreated = DateTime.UtcNow,
+                StartDate = vm.StartDate.Date,
+                EndDate  = vm.EndDate.Date,
                 StartTime = vm.StartTime ,
                 EndTime = vm.EndTime ,
+                IsArchived = false
             };
             foreach(var groupId in vm.SelectedGroupIds)
             {
@@ -133,7 +163,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<bool> UpdateEventAsync(int? gId, EditEventViewModel vm)
         {
-         
             //find the ID first from the EVENT
             var existingEvent = await _context.Events.
                             Include(eg => eg.ExpectedGroups)
@@ -143,7 +172,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime, excludeEventId: gId);
             if (hasConflict) return false;
-
 
             existingEvent.EventTitle = vm.EventTitle;
             existingEvent.EventDescription = vm.EventDescription;

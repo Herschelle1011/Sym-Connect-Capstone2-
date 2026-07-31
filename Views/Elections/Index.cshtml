@@ -1,0 +1,231 @@
+@model IEnumerable<ElectionListViewModel>
+
+@{
+    ViewData["Title"] = "Elections Dashboard";
+    Layout = "_AdminLayout";
+
+
+
+}
+
+<style>
+    /* Custom style refinements on top of Bootstrap */
+    .filter-tab {
+        padding: 0.55rem 1.1rem;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #64748B;
+        border: none;
+        background: transparent;
+        transition: all 0.15s ease;
+    }
+
+        .filter-tab.active-tab {
+            background: #0d6efd; /* Bootstrap primary */
+            color: #fff;
+            box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+        }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+    }
+
+    .status-active {
+        background: #DCFCE7;
+        color: #15803D;
+    }
+
+    .status-draft {
+        background: #F1F5F9;
+        color: #475569;
+    }
+
+    .status-closed {
+        background: #Fee2e2;
+        color: #991b1b;
+    }
+
+    .status-incoming {
+        background: #FEF3C7; /* Soft yellow background */
+        color: #92400E; /* Dark amber/yellow text for accessibility */
+    }
+
+    .pill-ghost {
+        border: 1px solid #dee2e6;
+        color: #475569;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 999px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }
+
+        .pill-ghost:hover {
+            background: #f8f9fa;
+            color: #212529;
+        }
+
+    .pill-solid {
+        background: #0d6efd;
+        color: #fff;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.5rem 1.1rem;
+        border-radius: 999px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }
+
+        .pill-solid:hover {
+            background: #0b5ed7;
+            color: #fff;
+        }
+
+    .meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.75rem;
+        color: #64748B;
+    }
+</style>
+
+<!-- Main Wrapper with Bootstrap Background Gray -->
+<div class="w-100 min-vh-100 bg-light py-5">
+    <div class="container xl-max-w-6xl">
+
+        <!-- Header area -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <h1 class="fw-bold text-dark display-6 mb-1" style="font-size: 1.85rem;">Elections</h1>
+                <p class="text-muted small mb-0">Create and manage organization elections.</p>
+            </div>
+            <a asp-action="Create" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold d-inline-flex align-items-center gap-2 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:16px; height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                Create Voting
+            </a>
+        </div>
+
+        <!-- Filter + Search Bar (Bootstrap Flex Layout Rows) -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 bg-white rounded-4 border p-2 mb-4 shadow-sm">
+            <div class="d-flex align-items-center gap-1 flex-wrap" id="filterTabs">
+                <button type="button" data-filter="all" class="filter-tab active-tab">All</button>
+                <button type="button" data-filter="active" class="filter-tab">Active</button>
+                <button type="button" data-filter="draft" class="filter-tab">Draft</button>
+                <button type="button" data-filter="closed" class="filter-tab">Closed</button>
+            </div>
+
+            <!-- Bootstrap Form Controls Search Input -->
+            <div class="position-relative w-100" style="max-width: 280px;">
+                <svg class="text-muted position-absolute" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="width:16px; height:16px; left:14px; top:50%; transform:translateY(-50%); z-index:5;"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M18 10.5a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z" /></svg>
+                <input type="text" id="searchInput" placeholder="Search election..." class="form-control rounded-pill bg-light ps-5 py-2 small" style="font-size:0.875rem;" />
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <!-- Bootstrap Grid Layout System -->
+            <div class="row g-4" id="electionGrid">
+                @foreach (var election in Model)
+                {
+                    <div class="col-12 col-md-6 election-card-wrapper">
+                        <div class="card h-100 border rounded-4 p-4 shadow-sm election-card" data-title="@election.ElectionName.ToLower()">
+
+                            <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
+                                <h3 class="h5 fw-bold text-dark mb-0">@election.ElectionName</h3>
+                            </div>
+
+                            <!-- JavaScript inserts computing info cleanly into this badge container -->
+                            <div>
+                                <span class="status-badge status-@election.Status.ToLower()">
+                                    @if (election.Status == "Open")
+                                    {
+                                        <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span>Active / Open</span>
+                                    }
+                                    else if (election.Status == "Incoming")
+                                    {
+                                        <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <span>Incoming (Starts @election.StartDate.ToString("MMM d"))</span>
+                                    }
+                                    else
+                                    {
+                                        <svg style="width:12px; height:12px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                        <span>Closed</span>
+                                    }
+                                </span>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                <span class="meta-item">
+                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    Start: @election.StartDate.ToString("MMM d, yyyy")
+                                </span>
+                                <span class="meta-item">
+                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    End: @election.EndDate.ToString("MMM d, yyyy")
+                                </span>
+                                <span class="meta-item">
+                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a4 4 0 10-8 0" /></svg>
+                                    &mdash; Candidates
+                                </span>
+                                <span class="meta-item">
+                                    <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    &mdash; Votes
+                                </span>
+                            </div>
+
+                            <div class="border-top mt-4 pt-3 d-flex align-items-center justify-between">
+                                <a href="#" class="text-secondary text-primary-hover" title="Edit">
+                                    <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z" /></svg>
+                                </a>
+                                <div class="d-flex gap-2">
+                                    <a href="#" class="pill-ghost">View Candidates</a>
+                                    <a href="#" class="pill-solid">Results</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Fully Restructured Native Bootstrap Empty Block Placeholder [^1] -->
+            <div class="bg-white rounded-4 border p-5 text-center shadow-sm my-4">
+                <svg class="text-muted mb-3" style="width:42px; height:42px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-muted small mb-0 font-sans">No elections yet. Click "Create Voting" to get started.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    // Paint active, draft, or closed properties
+    document.querySelectorAll(".status-badge").forEach(function (badge) {
+    const start = new Date(badge.dataset.start);
+    const end = new Date(badge.dataset.end);
+    const now = new Date();
+    const wrapper = badge.closest(".election-card-wrapper");
+    const card = badge.closest(".election-card");
+
+    let status, label, iconPath;
+
+    if (now < start) {
+    status = "draft";
+    label = "Starts " + start.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    iconPath = "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z";
+    } else if (now >= start && now <= end) {
+    status = "active";
+    </script>

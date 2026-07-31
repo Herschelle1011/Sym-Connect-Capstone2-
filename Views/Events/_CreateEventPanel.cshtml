@@ -11,6 +11,10 @@
         <form asp-action="Create" asp-controller="Events" method="post" id="createEventForm">
             @Html.AntiForgeryToken()
 
+
+            <div asp-validation-summary="All" class="text-danger mb-3" style="font-size:13px;"></div>
+
+
             <div class="mb-3">
                 <label class="form-label">Event Title <span class="text-danger">*</span></label>
                 <input asp-for="EventTitle" class="form-control" placeholder="Enter a title for this event" />
@@ -79,8 +83,15 @@
 
             <div class="mb-3">
                 <label class="form-label">Event Description</label>
-                <textarea asp-for="EventDescription" class="form-control" rows="3">
-                <span asp-validation-for="EventDescription" class="text-danger" style="font-size:12px;"></span>                          maxlength="500" placeholder="Add a description for this event..."></textarea>
+                <textarea asp-for="EventDescription"
+                          class="form-control"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Add a description for this event..."></textarea>
+
+                <span asp-validation-for="EventDescription"
+                      class="text-danger"
+                      style="font-size:12px;"></span>
             </div>
 
             <div class="d-flex gap-2 mt-4 pb-3">
@@ -97,6 +108,8 @@
     const isAllDayToggle = document.getElementById("isAllDayToggle");
     const startTimeGroup = document.getElementById("startTimeGroup");
     const endTimeGroup = document.getElementById("endTimeGroup");
+        const startDateInput = document.getElementById("startDateInput");
+    const endDateInput = document.getElementById("endDateInput");
 
     function toggleTimeInputs() {
         const hide = isAllDayToggle.checked;
@@ -104,14 +117,29 @@
         endTimeGroup.style.display = hide ? "none" : "block";
     }
 
+        function syncEndDate() {
+
+        if (!startDateInput.value)
+            return;
+
+        // Prevent selecting an earlier end date
+        endDateInput.min = startDateInput.value;
+
+        // If end date is empty or before start date, make it equal to start date
+        if (!endDateInput.value || endDateInput.value < startDateInput.value) {
+            endDateInput.value = startDateInput.value;
+        }
+    }
+
+    startDateInput.addEventListener("change", syncEndDate);
+
     isAllDayToggle.addEventListener("change", toggleTimeInputs);
     toggleTimeInputs(); 
 
 
     document.addEventListener('DOMContentLoaded', function () {
-        var dayCells = document.querySelectorAll('.day-cell');
+        var dayCells = document.querySelectorAll('.day-cell');startDateInput
         var offcanvasEl = document.getElementById('eventPanel');
-    var startDateInput = document.getElementById('startDateInput'); 
         dayCells.forEach(function (cell) {
             cell.addEventListener('click', function () {
                 // highlight the clicked cell only
@@ -119,9 +147,10 @@
                 cell.classList.add('day-cell-selected');
 
                 // fill the Start Date field
-                if (startDateInput) {
-                    startDateInput.value = cell.getAttribute('data-date');
-                }
+             if (startDateInput) {
+        startDateInput.value = cell.getAttribute('data-date');
+        syncEndDate();
+    }
 
                 // open the same offcanvas the "Add Event" button uses
                 var panel = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);

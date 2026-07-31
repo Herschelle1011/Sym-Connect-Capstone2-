@@ -67,6 +67,13 @@
                 <span class="nav-tooltip">Evaluations</span>
             </a>
 
+            <a asp-controller="Elections" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Elections" ? "active" : "")">
+                <i class="bi bi-star-half"></i>
+                <span class="nav-label">Elections</span>
+                <span class="nav-tooltip">Elections</span>
+            </a>
+
         </div>
 
         <div class="sidebar-bottom">

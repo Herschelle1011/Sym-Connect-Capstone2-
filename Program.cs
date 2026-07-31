@@ -1,6 +1,7 @@
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Seed;
@@ -65,15 +66,32 @@ builder.Services.AddScoped<CloudinaryService>(); //for upload photos through clo
 builder.Services.AddScoped<IGroupService, GroupService>(); //for groups
 builder.Services.AddScoped<IMemberService, MemberService>(); // for members
 builder.Services.AddScoped<IFacilityService, FacilityService>(); // for facility
-builder.Services.AddScoped< IEvaluationService, EvaluationService>(); // for evaluation
 builder.Services.AddScoped<IEventService, EventService>(); // for evaluation
+
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
+                            Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
+
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IEvaluationService,
                             Sym_Connect__Capstone2_.Services.Implementation.EvaluationService>();
 
+
+
+builder.Services.AddScoped<IPartyListService, PartyListService>(); // for Elections
+
+//member
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IElectionService,
+                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ElectionService>();
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IEvaluationService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.EvaluationService>();
-builder.Services.AddSession();
 
+builder.Services.AddSession();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 var app = builder.Build();
 

@@ -1,0 +1,363 @@
+@model PartyListDetailsViewModel
+@using System.ComponentModel.DataAnnotations
+@using Sym_Connect__Capstone2_.Models.Enums
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "_AdminLayout";
+
+    string GetDisplayName(Positions position)
+    {
+        var field = position.GetType().GetField(position.ToString());
+        var attr = field?.GetCustomAttributes(typeof(DisplayAttribute), false)
+                        .FirstOrDefault() as DisplayAttribute;
+        return attr?.Name ?? position.ToString();
+    }
+
+    // Palette cycles per card so avatars don't all look the same
+    var palette = new[]
+    {
+        ("#dcfce7", "#166534"), // green
+        ("#dbeafe", "#1e40af"), // blue
+        ("#fce7f3", "#9d174d"), // pink
+        ("#ede9fe", "#5b21b6"), // purple
+        ("#fef3c7", "#92400e"), // amber
+        ("#e0f2fe", "#0369a1"), // sky
+        ("#fee2e2", "#991b1b"), // red
+    };
+}
+
+<div style="padding: 1.5rem 0;>
+
+    <div style="display:none">
+    @Html.AntiForgeryToken()
+</div>
+ 
+    <div class="d-flex align-items-center justify-content-between mb-1">
+        <div class="d-flex align-items-center gap-3">
+            <a asp-action="Index"
+               style="color:#6b7280; font-size:20px; text-decoration:none;"
+               title="Back to Party Lists">
+                <i class="ti ti-arrow-left"></i>
+            </a>
+            <h1 class="fs-4 fw-medium mb-0">@Model.partyListName</h1>
+        </div>
+
+        <a asp-action="Edit" asp-route-id="@Model.partyListid"
+           class="d-flex align-items-center gap-1"
+           title="Edit party list"
+           style="background:#eff6ff; color:#2563eb; border:1px solid #dbeafe;
+            border-radius:999px; padding:6px 16px; font-size:13px; font-weight:500;
+            text-decoration:none; transition:background 0.15s;"
+           onmouseover="this.style.background='#dbeafe'"
+           onmouseout="this.style.background='#eff6ff'">
+            <i class="ti ti-pencil" style="font-size:14px;"></i> Edit Party List
+        </a>
+    </div>
+    <p class="text-muted mb-4" style="font-size:13px; margin-left:2.25rem;">
+        @Model.partyDescription
+    </p>
+
+    @* {{-- Positions Panel --}} *@
+    <div class="card border" style="border-radius:16px;">
+        <div class="card-body p-4">
+
+            <h2 class="text-center fw-medium mb-4" style="font-size:15px; letter-spacing:0.5px;">
+                POSITIONS AVAILABLE
+            </h2>
+
+            <div class="row g-3" id="positionsGrid">
+                @{
+                    var positions = Enum.GetValues(typeof(Positions)).Cast<Positions>().ToList();
+                    var i = 0;
+                }
+                @foreach (var position in positions)
+                {
+                    var candidate = Model.Candidates?.FirstOrDefault(c => c.Positions == position);
+                    var (bg, fg) = palette[i % palette.Length];
+                    i++;
+
+                    <div class="col-md-6">
+                        <div class="position-slot d-flex align-items-center justify-content-between"
+                             id="slot-@position"
+                             data-position="@position"
+                             style="border:1px solid #e5e7eb; border-radius:10px; padding:10px 14px; background:#f9fafb;">
+
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="width:36px; height:36px; border-radius:50%;
+                                    background:@bg; color:@fg;
+                                    display:flex; align-items:center; justify-content:center;
+                                    font-size:13px; font-weight:600; flex-shrink:0;">
+                              @if (candidate != null && !string.IsNullOrEmpty(candidate.PhotoUrl))
+                                        {
+                                            <img src="@candidate.PhotoUrl"
+                                                 alt="@candidate.FullName"
+                                                 style="width:100%;
+                                                        height:100%;
+                                                        border-radius:50%;
+                                                        object-fit:cover;" />
+                                        }
+                                        else if (candidate != null)
+                                        {
+                                            @(candidate.FullName.Length >= 2
+                                                ? candidate.FullName.Substring(0, 2).ToUpper()
+                                                : candidate.FullName.ToUpper())
+                                        }
+                                        else
+                                        {
+                                            <i class="ti ti-user-plus" style="font-size:16px;"></i>
+                                        }
+                             
+                                </div>
+                                <div>
+                                    <p class="mb-0 text-muted" style="font-size:12px;">
+                                        @(candidate != null ? candidate.FullName : "choose a candidate")
+                                    </p>
+                                    <p class="mb-0 fw-medium" style="font-size:14px;">
+                                        @GetDisplayName(position)
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if (candidate != null)
+                            {
+                                <a href="javascript:void(0)"
+                                   onclick="openChooseCandidateModal('@position', '@GetDisplayName(position)')"
+                                   style="color:#2563eb;" title="Change candidate">
+                                    <i class="ti ti-edit" style="font-size:16px;"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary btn-sm rounded-pill"
+                                        style="font-size:12px;"
+                                        onclick="openChooseCandidateModal('@position', '@GetDisplayName(position)')">
+                                    <i class="ti ti-circle-plus"></i> Choose
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                <button id="savePositionsBtn"
+                        class="btn btn-primary rounded-pill px-4"
+                        onclick="savePositions(@Model.partyListid)">
+                    <i class="ti ti-device-floppy"></i> Click to Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index">&larr; Back to List</a>
+    </div>
+</div>
+
+@* ===== CHOOSE CANDIDATE MODAL ===== *@
+<div id="chooseCandidateModal"
+     style="display:none; position:fixed; inset:0; z-index:1050;
+    background:rgba(0,0,0,0.45);
+    align-items:center; justify-content:center;">
+
+    <div style="background:#fff; border-radius:16px; padding:1.5rem;
+        width:100%; max-width:460px; margin:auto; position:relative;">
+
+        @* Header *@
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h5 style="margin:0; font-weight:500;">
+                Choose candidate for <span id="modalPositionLabel"></span>
+            </h5>
+            <button onclick="closeChooseCandidateModal()"
+                    style="background:none; border:none; font-size:20px; cursor:pointer; color:#6b7280;">
+                <i class="ti ti-x"></i>
+            </button>
+        </div>
+
+        @* Search Input *@
+        <div style="display:flex; align-items:center; gap:8px;
+            border:1px solid #e5e7eb; border-radius:10px;
+            padding:8px 12px; margin-bottom:10px;">
+            <i class="ti ti-search" style="color:#9ca3af;"></i>
+            <input id="candidateSearchInput"
+                   type="text"
+                   placeholder="Search candidate name..."
+                   oninput="searchCandidates(this.value)"
+                   style="border:none; outline:none; width:100%; font-size:14px;" />
+        </div>
+
+        @* Search Results *@
+        <div id="candidateSearchResults"
+             style="border:1px solid #e5e7eb; border-radius:10px;
+            overflow:hidden; max-height:260px; overflow-y:auto;">
+            <div id="candidateSearchPlaceholder"
+                 style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">
+                Start typing to search candidates...
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Staged assignments: { "President": { id, name }, ... }
+        const stagedAssignments = {};
+
+        let currentPosition = null;
+        let searchDebounce = null;
+
+        function openChooseCandidateModal(position, positionLabel) {
+            currentPosition = position;
+            document.getElementById('modalPositionLabel').innerText = positionLabel;
+            document.getElementById('candidateSearchInput').value = '';
+            document.getElementById('candidateSearchResults').innerHTML =
+                '<div id="candidateSearchPlaceholder" style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">Start typing to search candidates...</div>';
+
+            document.getElementById('chooseCandidateModal').style.display = 'flex';
+        }
+
+        function closeChooseCandidateModal() {
+            document.getElementById('chooseCandidateModal').style.display = 'none';
+            currentPosition = null;
+        }
+
+        function searchCandidates(term) {
+            clearTimeout(searchDebounce);
+            const resultsEl = document.getElementById('candidateSearchResults');
+
+            if (!term || term.trim().length === 0) {
+                resultsEl.innerHTML =
+                    '<div style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">Start typing to search candidates...</div>';
+                return;
+            }
+
+            searchDebounce = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/PartyLists/SearchMembers?term=${encodeURIComponent(term)}&partyListId=@Model.partyListid`);
+
+                    if (!response.ok) {
+                        resultsEl.innerHTML = '<div style="padding:16px; text-align:center; color:#dc2626; font-size:13px;">Connection error.</div>';
+                        return;
+                    }
+
+                    const members = await response.json();
+                    resultsEl.innerHTML = '';
+
+                    if (!Array.isArray(members) || members.length === 0) {
+                        resultsEl.innerHTML = '<div style="padding:16px; text-align:center; color:#9ca3af; font-size:13px;">No available members found.</div>';
+                        return;
+                    }
+
+                    members.forEach(member => {
+                        const row = document.createElement("div");
+                        row.className = "search-result-item";
+                        row.style = "padding: 8px 16px; cursor: pointer; border-bottom: 1px solid #f3f4f6;";
+        row.innerHTML = `
+            <div class="d-flex align-items-center gap-2">
+                <img src="${member.photoUrl || '/images/default-avatar.png'}"
+                     alt="${member.fullName}"
+                     style="width:40px;
+                            height:40px;
+                            border-radius:50%;
+                            object-fit:cover;
+                            border:1px solid #e5e7eb;" />
+
+                <span class="fw-medium" style="font-size:14px;">
+                    ${member.fullName}
+                </span>
+            </div>
+        `;
+                           row.onclick = function () {
+            selectCandidate(
+                member.memberId,
+                member.fullName,
+                member.photoUrl
+            );
+        };
+
+                        resultsEl.appendChild(row);
+                    });
+
+                } catch (error) {
+                    console.error("Asynchronous member search failed:", error);
+                    resultsEl.innerHTML = '<div style="padding:16px; text-align:center; color:#dc2626; font-size:13px;">Something went wrong.</div>';
+                }
+            }, 300);
+        }
+
+        function selectCandidate(candidateId, fullName, photoUrl) {
+            if (!currentPosition) return;
+
+                   stagedAssignments[currentPosition] = {
+            candidateId,
+            fullName,
+            photoUrl
+        };
+
+            const slot = document.getElementById(`slot-${currentPosition}`);
+            const nameEl = slot.querySelector('p.text-muted');
+             const avatarEl = slot.querySelector('div[style*="border-radius:50%"]');
+
+        if (avatarEl) {
+            avatarEl.style.background = "transparent";
+            avatarEl.innerHTML = `
+                <img src="${photoUrl || '/images/default-avatar.png'}"
+                     alt="${fullName}"
+                     style="width:100%;
+                            height:100%;
+                            border-radius:50%;
+                            object-fit:cover;">
+            `;
+        }
+
+            closeChooseCandidateModal();
+        }
+
+                        async function savePositions(partyListId) {
+            const assignments = Object.keys(stagedAssignments).map(position => ({
+                position: position,
+                candidateId: stagedAssignments[position].candidateId
+            }));
+
+            if (assignments.length === 0) {
+                return;
+            }
+
+        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!tokenInput) {
+                console.error('Antiforgery token not found on page.');
+                alert('Security token missing — please refresh the page and try again.');
+                return;
+            }
+            const token = tokenInput.value;
+
+            const btn = document.getElementById('savePositionsBtn');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/PartyLists/AddCandidates', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ partyListId, assignments })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert(result.message || 'Failed to save.');
+                }
+            } catch (err) {
+                console.error('Save failed:', err);
+                alert('Something went wrong while saving.');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+}

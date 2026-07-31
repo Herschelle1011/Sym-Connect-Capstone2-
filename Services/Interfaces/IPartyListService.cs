@@ -1,0 +1,21 @@
+﻿using Sym_Connect__Capstone2_.ViewModels.Election;
+using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+
+namespace Sym_Connect__Capstone2_.Services.Interfaces
+{
+    public interface IPartyListService
+    {
+        Task<List<PartyListsViewModel>> GetAllPartyListsAsync();
+        Task<List<PartyListsViewModel>> GetUnassignedPartyListsAsync();
+        Task<PartyListDetailsViewModel?> GetPartyListByIdAsync(int id);
+        Task AssignPartyListsToElectionAsync(int electionId, List<int> partyListIds);
+        Task CreatePartyListAsync(CreatePartyListViewModel vm);
+        Task AddCandidateAsync(AddCandidateViewModel vm);
+
+        Task EditPartyListAsync(EditPartyListViewModel vm);
+        Task ArchivePartyListAsync(int id);
+        Task AddOrUpdateCandidatesAsync(BulkAddCandidatesViewModel model);
+
+        Task<List<CandidateMemberSearchViewModel>> SearchActiveMembersAsync(string term, int partyListId);
+    }
+}

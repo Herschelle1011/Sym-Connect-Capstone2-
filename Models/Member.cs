@@ -30,8 +30,7 @@ namespace Sym_Connect__Capstone2_.Models
         [Required]
         public string ContactNumber { get; set; } = string.Empty;
         public string? Address { get; set; } = string.Empty;
-        [Required]
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
         [Required]
         public string Gender { get; set; } = string.Empty;
@@ -44,6 +43,9 @@ namespace Sym_Connect__Capstone2_.Models
         [NotMapped]
         public DateTime DateJoined { get; set; } = DateTime.Now;
         public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
+
+        public string? ProfilePictureUrl { get; set; }
+
 
     }
 }

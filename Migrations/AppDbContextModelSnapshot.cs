@@ -190,6 +190,138 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("Attendances");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Candidates", b =>
+                {
+                    b.Property<int>("CandidateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CandidateId"));
+
+                    b.Property<int>("MemberId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PartyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("position")
+                        .HasColumnType("int");
+
+                    b.HasKey("CandidateId");
+
+                    b.HasIndex("MemberId");
+
+                    b.HasIndex("PartyId");
+
+                    b.ToTable("Candidates");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Election", b =>
+                {
+                    b.Property<int>("ElectionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ElectionId"));
+
+                    b.Property<DateTime?>("ArchivedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ElectionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool?>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ElectionId");
+
+                    b.ToTable("Elections");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.PartyList", b =>
+                {
+                    b.Property<int>("PartyListId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PartyListId"));
+
+                    b.Property<DateTime?>("ArchivedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ElectionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PartyListDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PartyName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("isArchived")
+                        .HasColumnType("bit");
+
+                    b.HasKey("PartyListId");
+
+                    b.HasIndex("ElectionId");
+
+                    b.ToTable("PartyLists");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Vote", b =>
+                {
+                    b.Property<int>("VoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VoteId"));
+
+                    b.Property<int>("CandidateId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateVoted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ElectionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("VoteId");
+
+                    b.HasIndex("CandidateId");
+
+                    b.HasIndex("ElectionId");
+
+                    b.HasIndex("UserId", "ElectionId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("Votes");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
                     b.Property<int>("EvaluationId")
@@ -554,7 +686,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.HasIndex("MemberId");
+                    b.HasIndex("MemberId")
+                        .IsUnique()
+                        .HasFilter("[MemberId] IS NOT NULL");
 
                     b.ToTable("GroupDetails");
                 });
@@ -570,7 +704,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("BirthDate")
+                    b.Property<DateTime?>("BirthDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ContactNumber")
@@ -597,6 +731,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("MiddleName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
@@ -825,6 +962,61 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("ScannedByUser");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Candidates", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.ElectionModels.PartyList", "PartyList")
+                        .WithMany("candidates")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Member");
+
+                    b.Navigation("PartyList");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.PartyList", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.ElectionModels.Election", "Election")
+                        .WithMany("partyLists")
+                        .HasForeignKey("ElectionId");
+
+                    b.Navigation("Election");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Vote", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.ElectionModels.Candidates", "Candidate")
+                        .WithMany()
+                        .HasForeignKey("CandidateId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.ElectionModels.Election", "Election")
+                        .WithMany()
+                        .HasForeignKey("ElectionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Candidate");
+
+                    b.Navigation("Election");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.Event", null)
@@ -985,6 +1177,16 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("Group");
 
                     b.Navigation("SubmittedBy");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Election", b =>
+                {
+                    b.Navigation("partyLists");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.PartyList", b =>
+                {
+                    b.Navigation("candidates");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>

@@ -348,6 +348,41 @@ namespace Sym_Connect__Capstone2_.Controllers
             return PartialView("_RemoveMemberForm", vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> getTranferMember(int memberId, int groupId)
+        {
+            if (memberId == 0) return NotFound();
+            var groups = await _groupService.GetAllGroupsAsync();
+            var viewmodel = new TransferMemberViewModel
+            {
+                memberId = memberId,
+                currentGroupId = groupId,
+                availableGroups = groups
+                .Where(g => g.GroupId != groupId)
+                .Select(g => new GroupOptionViewModel
+                {
+                    groupId = g.GroupId,
+                    groupName = g.GroupName,
+                    
+                    memberName = g.Leader?.FullName ?? "No Leader"
+                }).ToList()
+            };
+            return PartialView("_TransferMemberModal", viewmodel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmedTranferMember(TransferMemberViewModel vm)
+        {
+            if (vm.memberId == 0 || vm.newGroupId == 0)
+            {
+                return Json(new { success = false, message = "Please select a group." });
+            }
+
+            await _groupService.TransferAMemberAsync(vm.memberId, vm.newGroupId);
+            return Json(new { success = true });
+        }
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveMemberFromGroupAsync(RemoveMemberViewModel vm)

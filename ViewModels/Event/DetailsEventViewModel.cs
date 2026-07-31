@@ -10,7 +10,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string? EventDescription { get; set; }
 
         public EventStatus Status { get; set; }
-
+     
         public bool IsAllDay { get; set; }
 
         public DateTime StartDate { get; set; }

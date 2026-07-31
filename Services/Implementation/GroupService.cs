@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Group;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -92,9 +93,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             // Get IDs already in the group
             var existingIds = await _context.GroupDetails
-                .Where(gd => gd.GroupId == groupId)
                 .Select(gd => gd.MemberId)
                 .ToListAsync();
+
 
             // Return Active members NOT yet in the group
             return await _context.Members
@@ -103,7 +104,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
         public async Task AddMemberToGroupAsync(int groupId, int memberId)
         {
-            var AlreadyExist = await _context.GroupDetails.AnyAsync(m => m.MemberId == memberId && groupId == m.GroupId);
+            var AlreadyExist = await _context.GroupDetails.AnyAsync(m => m.MemberId == memberId);
+            
             if (!AlreadyExist)
             {
                 var group = new GroupDetails
@@ -114,9 +116,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 _context.GroupDetails.Add(group);
                 await _context.SaveChangesAsync();
-
             }
-
         }
         //EXLUDE Id = skip this current ID edited and check all facility id except the current ONE 
         public async Task<bool> GroupNameExists(string name, int? excludeId = null)
@@ -145,6 +145,23 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _context.GroupDetails.Remove(groupDetail);
             await _context.SaveChangesAsync();
             
+        }
+
+        //transfer A Member to existing group 
+        public async Task TransferAMemberAsync(int memberId, int groupId)
+        {
+            var member = await _context.GroupDetails
+                          .Include(gd => gd.Group)
+                                .FirstOrDefaultAsync(m => m.MemberId == memberId);
+
+            var Group =  await _context.Groups.FindAsync(groupId);
+            if (member == null || Group == null)
+            {
+                throw new Exception("Member or Group not found.");
+            }
+            //update from old group to a new  group
+                member.GroupId = groupId; 
+            await _context.SaveChangesAsync();
         }
 
     }

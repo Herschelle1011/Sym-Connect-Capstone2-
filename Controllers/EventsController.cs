@@ -68,47 +68,51 @@ public class EventsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
-            ViewBag.Groups = await _groupService.GetAllGroupsAsync();
-
-            var year = DateTime.Now.Year;
-            var month = DateTime.Now.Month;
-
-            var indexVm = new EventListViewModel
-            {
-                Year = year,
-                Month = month,
-                Events = await _eventService.GetAllEventAsync(year, month)
-            };
-
-            ViewBag.FailedCreateVm = vm;
-            ViewBag.ShowCreatePanel = true;
-
-            return View("Index", indexVm);
+            return await ReturnToCalendarWithFailedForm(vm);
         }
 
         var success = await _eventService.CreateEventAsync(vm);
         if (!success)
         {
             ModelState.AddModelError("", "This facility is already booked during the selected date/time.");
-            return View("Index", vm); 
+            return await ReturnToCalendarWithFailedForm(vm);
         }
 
         return RedirectToAction(nameof(Index));
     }
 
-    // GET: EVENTS/Edit/5
-    public async Task<IActionResult> Edit(int? eventid)
+    // Small helper so both failure paths build the SAME correct view model
+    private async Task<IActionResult> ReturnToCalendarWithFailedForm(CreateEventViewModel vm)
     {
-        if (eventid == null)
+        ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
+        ViewBag.Groups = await _groupService.GetAllGroupsAsync();
+
+        var year = DateTime.Now.Year;
+        var month = DateTime.Now.Month;
+
+        var indexVm = new EventListViewModel
         {
-            return NotFound();
-        }
+            Year = year,
+            Month = month,
+            Events = await _eventService.GetAllEventAsync(year, month)
+        };
+
+        ViewBag.FailedCreateVm = vm;
+        ViewBag.ShowCreatePanel = true;
+
+        return View("Index", indexVm);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetEditForm(int eventid)
+    {
+        ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
+        ViewBag.Groups = await _groupService.GetAllGroupsAsync();
 
         var existingEvent = await _eventService.GetEventForEditAsync(eventid);
         if (existingEvent == null) return NotFound();
 
-        return View(existingEvent);
+        return PartialView("_EditEventPanel", existingEvent);
     }
 
     // POST: EVENTS/Edit/5

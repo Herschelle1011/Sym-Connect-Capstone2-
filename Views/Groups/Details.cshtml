@@ -199,12 +199,17 @@
                                 @member.DateRegistered.ToString("MMMM dd, yyyy")
                             </td>
                             <td class="text-center">
+
                                 <div class="d-flex justify-content-center gap-3">
-                                    <a asp-action="EditMember"
-                                       asp-route-id="@member.MemberId"
-                                       style="color:#2563eb;">
-                                        <i class="ti ti-edit" style="font-size:16px;"></i>
+                                    <a href="javascript:void(0)"
+                                       class="open-modal"
+                                       data-url="@Url.Action("getTranferMember", "Groups", new { groupId = Model.GroupId, memberId = member.MemberId })"
+                                       data-title="Transfer member"
+                                       style="color:#2563eb;"
+                                       title="Transfer to another group">
+                                        <i class="ti ti-transfer" style="font-size:16px;"></i>
                                     </a>
+
                                     <a href="javascript:void(0)"
                                        class="open-modal"
                                        data-url="@Url.Action("GetRemoveMemberForm", "Groups", new { groupId = Model.GroupId, memberId = member.MemberId })"

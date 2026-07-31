@@ -1,0 +1,149 @@
+﻿@model TakeVoteViewModel
+
+@{
+    ViewData["Title"] = "Cast Your Vote";
+    Layout = "_MemberLayout";
+
+    var ballot = ViewBag.BallotLayout as List<PositionBallot>;
+}
+<style>
+    .candidate-photo {
+        width: 160px;
+        height: 160px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 4px solid transparent;
+        transition: 0.15s;
+    }
+
+    .candidate-option {
+        cursor: pointer;
+    }
+
+        .candidate-option:has(.candidate-radio:checked) .candidate-photo {
+            border-color: #0d6efd;
+        }
+</style>
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-0">Cast Your Vote</h2>
+    <p class="text-muted small mb-4">Vote for you future leaders</p>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <form asp-action="TakeVoteElection" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="electionId" />
+        <input type="hidden" asp-for="memberId" />
+
+        <div class="card shadow-sm border-0 rounded-4 p-4">
+
+            @for (int i = 0; i < ballot.Count; i++)
+            {
+                var position = ballot[i];
+
+                <div class="ballot-slide" data-index="@i" style="display:@(i == 0 ? "block" : "none")">
+                    <p class="text-muted text-center small mb-1">Position @(i + 1) of @ballot.Count</p>
+                    <h5 class="fw-bold text-center mb-4">@position.Position.ToString().ToUpper()</h5>
+
+                    <input type="hidden" asp-for="selectedVotes[i].position" value="@position.Position" />
+
+                    <div class="row g-4 justify-content-center">
+                        @foreach (var candidate in position.Candidates)
+                        {
+                            <div class="col-auto text-center">
+                                <label class="candidate-option d-inline-block">
+                                    <input type="radio"
+                                           name="selectedVotes[@i].CandidateId"
+                                           value="@candidate.CandidateId"
+                                           class="candidate-radio d-none" />
+
+                                    <img src="@candidate.PhotoUrl"
+                                         class="rounded-circle candidate-photo"
+                                         alt="@candidate.MemberName" />
+
+                                    <div class="fw-semibold mt-2">@candidate.MemberName</div>
+                                    <div class="text-muted small">@candidate.PartyName</div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <span class="text-muted small">Step @(i + 1) of @ballot.Count</span>
+
+                        <div class="d-flex gap-2">
+                            @if (i > 0)
+                            {
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 back-btn" data-index="@i">
+                                    ← Back
+                                </button>
+                            }
+
+                            @if (i == ballot.Count - 1)
+                            {
+                                <button type="submit" class="btn btn-primary rounded-pill px-4" id="submitBallotBtn" style="display:none">
+                                    Submit Ballot
+                                </button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-primary rounded-pill px-4 next-btn" data-index="@i" style="display:none">
+                                    Next →
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </form>
+</div>
+
+
+
+
+<script>
+    const slides = document.querySelectorAll('.ballot-slide');
+    let current = 0;
+
+    function toggleActionButton() {
+        const currentSlide = slides[current];
+        const answered = currentSlide.querySelector('.candidate-radio:checked') !== null;
+        const isLast = current === slides.length - 1;
+
+        if (isLast) {
+            const submitBtn = document.getElementById('submitBallotBtn');
+            if (submitBtn) submitBtn.style.display = answered ? 'inline-block' : 'none';
+        } else {
+            const nextBtn = currentSlide.querySelector('.next-btn');
+            if (nextBtn) nextBtn.style.display = answered ? 'inline-block' : 'none';
+        }
+    }
+
+    document.querySelectorAll('.candidate-radio').forEach(radio => {
+        radio.addEventListener('change', () => {
+            toggleActionButton();
+        });
+    });
+
+    document.querySelectorAll('.next-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            goToSlide(parseInt(btn.dataset.index) + 1);
+        });
+    });
+
+    document.querySelectorAll('.back-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            goToSlide(parseInt(btn.dataset.index) - 1);
+        });
+    });
+
+    function goToSlide(index) {
+        slides[current].style.display = 'none';
+        current = index;
+        slides[current].style.display = 'block';
+        toggleActionButton();
+    }
+</script>

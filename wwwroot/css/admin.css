@@ -361,3 +361,13 @@
     font-weight: 500;
     flex-shrink: 0;
 }
+
+#globalLoadingOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

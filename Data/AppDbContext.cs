@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.ElectionModels;
 namespace Sym_Connect__Capstone2_.Data
 {
     public class AppDbContext : IdentityDbContext<User>
@@ -31,6 +32,11 @@ namespace Sym_Connect__Capstone2_.Data
 
         public DbSet<EvaluationResponse> EvaluationResponses { get; set; }
 
+        public DbSet<Election> Elections { get; set; }
+        public DbSet<PartyList> PartyLists { get; set; }
+        public DbSet<Candidates> Candidates { get; set; }
+
+        public DbSet<Vote> Votes { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -51,7 +57,12 @@ namespace Sym_Connect__Capstone2_.Data
                 .HasOne(gd => gd.Member)
                 .WithMany(m => m.GroupDetails)
                 .HasForeignKey(gd => gd.MemberId)
+                
                 .OnDelete(DeleteBehavior.ClientSetNull);
+
+            modelBuilder.Entity<GroupDetails>()
+            .HasIndex(gd => new {gd.MemberId })
+            .IsUnique();
 
             // GROUP → LEADER (Leader is a Member)
             // One Group has one Leader which comes from Members table
@@ -71,10 +82,35 @@ namespace Sym_Connect__Capstone2_.Data
 
 
             modelBuilder.Entity<EvaluationResponse>()
-    .HasOne(r => r.EvaluationSubmission)
-    .WithMany()
-    .OnDelete(DeleteBehavior.Restrict);   // changed from Cascade
+                .HasOne(r => r.EvaluationSubmission)
+                .WithMany()
+                .OnDelete(DeleteBehavior.Restrict);   // changed from Cascade
 
+            modelBuilder.Entity<Vote>()
+            .HasIndex(v => new { v.UserId, v.ElectionId, v.Position })
+            .IsUnique();
+
+
+            modelBuilder.Entity<Vote>()
+        .HasOne(v => v.User)
+        .WithMany()
+        .HasForeignKey(v => v.UserId)
+        .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Vote>()
+                .HasOne(v => v.Election)
+                .WithMany()
+                .HasForeignKey(v => v.ElectionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Vote>()
+                .HasOne(v => v.Candidate)
+                .WithMany()
+                .HasForeignKey(v => v.CandidateId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
+
+
     }
-}
+    }
+

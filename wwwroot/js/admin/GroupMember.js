@@ -167,3 +167,28 @@ document.addEventListener('submit', function (e) {
             bootstrap.Modal.getInstance(document.getElementById('appModal'))?.hide();
         });
 });
+
+
+document.addEventListener('submit', function (e) {
+    if (e.target.id !== 'transferMemberForm') return;
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const token = formData.get('__RequestVerificationToken');
+
+    fetch('/Groups/ConfirmedTranferMember', {
+        method: 'POST',
+        headers: { 'RequestVerificationToken': token },
+        body: formData
+    })
+        .then(r => r.json())
+        .then(result => {
+            if (!result.success) return;
+
+            const memberId = formData.get('memberId');
+            document.querySelector(`tr[data-member-id="${memberId}"]`)?.remove();
+
+            bootstrap.Modal.getInstance(document.getElementById('appModal'))?.hide();
+        });
+});

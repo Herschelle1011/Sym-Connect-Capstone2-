@@ -1,0 +1,140 @@
+﻿@model EditEventViewModel
+
+<div class="offcanvas offcanvas-end event-panel" tabindex="-1" id="editEventPanel" style="width: 420px;">
+
+    <div class="offcanvas-header border-bottom pb-2">
+        <h5 class="offcanvas-title fw-medium">Edit Event</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+        <form asp-action="Edit" asp-controller="Events" asp-route-eventid="@Model.EventId" method="post" id="editEventForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="EventId" />
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+
+            <div class="mb-3">
+                <label class="form-label">Event Title <span class="text-danger">*</span></label>
+                <input asp-for="EventTitle" class="form-control" placeholder="Enter a title for this event" />
+                <span asp-validation-for="EventTitle" class="text-danger" style="font-size:12px;"></span>
+            </div>
+
+            <div class="form-check form-switch mb-3">
+                <input class="form-check-input" type="checkbox" asp-for="IsAllDay" id="editIsAllDayToggle" />
+                <label class="form-check-label" style="font-size:14px;" for="editIsAllDayToggle">
+                    This is an All Day Event
+                    <i class="ti ti-help-circle text-muted" style="font-size:12px;"></i>
+                </label>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                    <input asp-for="StartDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="editStartDateInput" />
+                </div>
+                <div class="col-6" id="editStartTimeGroup">
+                    <label class="form-label">Start Time <span class="text-danger">*</span></label>
+                    <input asp-for="StartTime" type="time" class="form-control" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-6">
+                    <label class="form-label">End Date <span class="text-danger">*</span></label>
+                    <input asp-for="EndDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="editEndDateInput" />
+                </div>
+                <div class="col-6" id="editEndTimeGroup">
+                    <label class="form-label">End Time <span class="text-danger">*</span></label>
+                    <input asp-for="EndTime" type="time" class="form-control" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Facility <span class="text-danger">*</span></label>
+                <select asp-for="FacilityId" class="form-control" id="editFacilitySelect">
+                    <option value="">Select a facility...</option>
+                    @foreach (var f in (List<Sym_Connect__Capstone2_.Models.Facility>)ViewBag.Facilities)
+                    {
+                        <option value="@f.FacilityId">@f.FacilityName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Expected Groups</label>
+                <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
+                    @foreach (var g in (List<Sym_Connect__Capstone2_.Models.Group>)ViewBag.Groups)
+                    {
+                        var isChecked = Model.SelectedGroupIds != null && Model.SelectedGroupIds.Contains(g.GroupId);
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="SelectedGroupIds"
+                                   value="@g.GroupId" id="edit-group-@g.GroupId" checked="@isChecked" />
+                            <label class="form-check-label" style="font-size:14px;" for="edit-group-@g.GroupId">
+                                @g.GroupName
+                            </label>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Event Description</label>
+                <textarea asp-for="EventDescription"
+                          class="form-control"
+                          rows="3"
+                          maxlength="500"
+                          placeholder="Add a description for this event..."></textarea>
+
+                <span asp-validation-for="EventDescription"
+                      class="text-danger"
+                      style="font-size:12px;"></span>
+            </div>
+
+            <div class="d-flex gap-2 mt-4 pb-3">
+                <button type="button" class="btn btn-outline-secondary w-50" data-bs-dismiss="offcanvas">Cancel</button>
+                <button type="submit" class="btn btn-primary w-50">
+                    <i class="ti ti-device-floppy"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const editIsAllDayToggle = document.getElementById("editIsAllDayToggle");
+    const editStartTimeGroup = document.getElementById("editStartTimeGroup");
+    const editEndTimeGroup = document.getElementById("editEndTimeGroup");
+    const editStartDateInput = document.getElementById("editStartDateInput");
+    const editEndDateInput = document.getElementById("editEndDateInput");
+
+
+    function toggleEditTimeInputs() {
+        const hide = editIsAllDayToggle.checked;
+        editStartTimeGroup.style.display = hide ? "none" : "block";
+        editEndTimeGroup.style.display = hide ? "none" : "block";
+    }
+
+    editIsAllDayToggle.addEventListener("change", toggleEditTimeInputs);
+    toggleEditTimeInputs();
+
+    function toggleEditTimeInputs() {
+        const hide = editIsAllDayToggle.checked;
+        editStartTimeGroup.style.display = hide ? "none" : "block";
+        editEndTimeGroup.style.display = hide ? "none" : "block";
+    }
+
+    function syncEditEndDate() {
+        if (!editStartDateInput.value) return;
+        editEndDateInput.min = editStartDateInput.value;
+        if (!editEndDateInput.value || editEndDateInput.value < editStartDateInput.value) {
+            editEndDateInput.value = editStartDateInput.value;
+        }
+    }
+
+    editStartDateInput.addEventListener("change", syncEditEndDate);
+    editIsAllDayToggle.addEventListener("change", toggleEditTimeInputs);
+    toggleEditTimeInputs();
+
+
+</script>

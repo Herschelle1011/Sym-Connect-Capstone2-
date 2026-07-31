@@ -13,7 +13,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string EventDescription { get; set; } = string.Empty;
         public bool IsAllDay { get; set; }
         [Required(ErrorMessage = "Start Date is required")]
-        public DateTime StartDate { get; set; }
+        public DateTime StartDate { get; set; } = DateTime.UtcNow;
 
         [Required(ErrorMessage = "End Date is required")]
         public DateTime EndDate { get; set; }

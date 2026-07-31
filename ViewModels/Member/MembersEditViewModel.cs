@@ -18,8 +18,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         [Required(ErrorMessage = "Contactnumber is required.")]
         public string ContactNumber { get; set; } = string.Empty;
         public string? Address { get; set; } = string.Empty;
-        [Required(ErrorMessage = "BirthDate is required.")]
-        public DateTime BirthDate { get; set; }
+        public DateTime? BirthDate { get; set; }
 
         [Required]
         public string Gender { get; set; } = string.Empty;

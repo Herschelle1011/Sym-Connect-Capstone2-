@@ -13,6 +13,10 @@
     --nav-text-color: #2f3a52;
     /* --- Hover state --- */
     --nav-hover-bg: #f3f7fc;
+    /* --- Dropdown submenu panel --- */
+    --nav-dropdown-bg: #0d4a85;
+    --nav-dropdown-hover: rgba(255, 255, 255, 0.14);
+    --nav-dropdown-active: rgba(255, 255, 255, 0.22);
     /* --- Animation --- */
     --transition: 0.28s cubic-bezier(.4, 0, .2, 1);
 }
@@ -28,12 +32,14 @@ body {
     font-family: 'Segoe UI', sans-serif;
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 /* ── Sidebar ── */
 #sidebar {
     width: var(--sidebar-collapsed-width);
     min-height: 100vh;
+    min-height: 100dvh;
     background: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
     display: flex;
@@ -177,6 +183,7 @@ body {
     .nav-item:not(.active):hover .nav-label {
         color: var(--nav-active-bg); /* label turns blue */
     }
+
 .nav-item.active {
     background: var(--nav-active-bg);
     color: var(--nav-active-color);
@@ -343,7 +350,7 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
 
 @media (max-width: 768px) {
     #sidebar {
-        width: 0; /* hide sidebar off-canvas */
+        width: var(--sidebar-collapsed-width); /* show icons, not fully hidden */
         overflow: hidden;
     }
 
@@ -352,10 +359,101 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
         }
 
     #main-content {
-        margin-left: 0; /* content takes full width */
+        margin-left: var(--sidebar-collapsed-width); /* leave room for the icon bar */
     }
 
     #sidebar.expanded ~ #main-content {
         margin-left: 0; /* sidebar overlays instead of pushing */
     }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ELECTION DROPDOWN (Election / Partylist / Create Voting)
+   ══════════════════════════════════════════════════════════════ */
+
+/* Give the toggle row room for the chevron on the right */
+.nav-dropdown-toggle {
+    justify-content: space-between;
+    padding-right: 14px;
+}
+
+    /* Parent row stays plain white/default even while open, and even when a child page (Partylist/Create Voting) is active — only the arrow flips */
+    .nav-dropdown-toggle.active {
+        background: transparent;
+        color: var(--nav-icon-color);
+    }
+
+        .nav-dropdown-toggle.active i,
+        .nav-dropdown-toggle.active .nav-label,
+        .nav-dropdown-toggle.active .dropdown-arrow {
+            color: var(--nav-text-color);
+        }
+
+        .nav-dropdown-toggle.active i {
+            color: var(--nav-icon-color);
+        }
+
+        .nav-dropdown-toggle.active:hover {
+            background: var(--nav-hover-bg);
+        }
+
+            .nav-dropdown-toggle.active:hover i,
+            .nav-dropdown-toggle.active:hover .nav-label {
+                color: var(--nav-active-bg);
+            }
+
+/* Submenu panel — solid navy rounded container */
+.nav-dropdown-menu {
+    display: none;
+    margin: 4px 8px 2px;
+    padding: 6px 0;
+    background: var(--nav-dropdown-bg);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.nav-dropdown.open .nav-dropdown-menu {
+    display: block;
+}
+
+/* Sub-items sit flush inside the panel, no extra rounding/margin per-item */
+.nav-dropdown-menu .nav-item.sub-item {
+    margin: 0;
+    border-radius: 0;
+    padding: 10px 14px 10px 45px;
+    color: #ffffff;
+}
+
+    .nav-dropdown-menu .nav-item.sub-item i,
+    .nav-dropdown-menu .nav-item.sub-item .nav-label {
+        color: #ffffff;
+    }
+
+    /* Override the generic hover rule so sub-items stay white-on-navy, not white-on-white */
+    .nav-dropdown-menu .nav-item.sub-item:not(.active):hover {
+        background: var(--nav-dropdown-hover);
+    }
+
+        .nav-dropdown-menu .nav-item.sub-item:not(.active):hover i,
+        .nav-dropdown-menu .nav-item.sub-item:not(.active):hover .nav-label {
+            color: #ffffff;
+        }
+
+    /* Currently selected sub-page gets a slightly lighter fill instead of the site-wide blue */
+    .nav-dropdown-menu .nav-item.sub-item.active {
+        background: var(--nav-dropdown-active);
+    }
+
+        .nav-dropdown-menu .nav-item.sub-item.active i,
+        .nav-dropdown-menu .nav-item.sub-item.active .nav-label {
+            color: #ffffff;
+        }
+
+.dropdown-arrow {
+    margin-left: auto;
+    transition: .25s;
+}
+
+.nav-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
 }
