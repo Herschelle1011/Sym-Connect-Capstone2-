@@ -34,6 +34,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 .Select(e => new GetAllElectionListViewModel
                {
                     electionId = e.ElectionId,
+                    ElectionName = e.ElectionName,
                     StartDate = e.StartDate,
                     EndDate = e.EndDate,
                     StartTime = e.StartTime,
@@ -69,30 +70,35 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 }).ToList();
         }
 
+        public async Task<bool> HasMemberVotedAsync(string memberId, int electionId)
+        {
+            return await _context.Votes
+        .AnyAsync(v => v.UserId == memberId && v.ElectionId == electionId);
+        }
 
-        public async Task<bool> CastVote(TakeVoteViewModel vm)
+        public async Task<VoteResult> CastVote(TakeVoteViewModel vm)
         {
             var member = await _context.Users
               .FirstOrDefaultAsync(u => u.Id == vm.memberId);
 
             if (member == null)
-                return false;
+                return VoteResult.InvalidSelection;
 
             bool isAlreadyVoted = await _context.Votes.AnyAsync(v =>
                 v.ElectionId == vm.electionId
                 && v.UserId == vm.memberId);
 
-            if (isAlreadyVoted) return false;
+            if (isAlreadyVoted) return VoteResult.AlreadyVoted;
 
             var election = await _context.Elections.FindAsync(vm.electionId);
-            if(election == null ||  election.Status != "Open") return false;
+            if(election == null ||  election.Status != "Open") return VoteResult.InvalidSelection;
 
-            if (vm.selectedVotes == null || vm.selectedVotes.Count == 0) return false;
+            if (vm.selectedVotes == null || vm.selectedVotes.Count == 0) return VoteResult.InvalidSelection;
 
             bool hasDuplicatePositions = vm.selectedVotes
             .GroupBy(v => v.position)
             .Any(g => g.Count() > 1);
-                    if (hasDuplicatePositions) return false;
+                    if (hasDuplicatePositions) return VoteResult.InvalidSelection;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -100,12 +106,17 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 foreach(var voteSubmission in vm.selectedVotes)
                 {
                     bool validCandidate = await _context.Candidates.AnyAsync(c =>
-                c.CandidateId == voteSubmission.CandidateId &&
-                c.position == voteSubmission.position &&
-                c.PartyList.ElectionId == vm.electionId);
+                        c.CandidateId == voteSubmission.CandidateId &&
+                        c.position == voteSubmission.position &&
+                        c.PartyList.ElectionId == vm.electionId);
 
-                    if (!validCandidate) return false;
+                    if (!validCandidate)
+                    {
+                        await transaction.RollbackAsync();
+                        return VoteResult.InvalidSelection;
+                    }
 
+                    //ADD NEW VOTE
                     _context.Votes.Add(new Vote
                     {
                         ElectionId = vm.electionId,
@@ -118,12 +129,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 // Save all records together as one single block
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return true;
+                return VoteResult.Success;
             }
             catch (Exception)
             {
                 await transaction.RollbackAsync();
-                return false;
+                return VoteResult.InvalidSelection;
             }
         }
         

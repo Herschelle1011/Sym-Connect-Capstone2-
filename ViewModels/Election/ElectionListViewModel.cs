@@ -2,6 +2,7 @@
 {
     public class ElectionListViewModel
     {
+        public int ElectionId { get; set; }
         public string ElectionName { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

@@ -10,8 +10,10 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces
 
         Task<List<GetAllElectionListViewModel>> getAllElectionList();
         
-        Task<bool> CastVote(TakeVoteViewModel vm);
+        Task<VoteResult> CastVote(TakeVoteViewModel vm);
 
         Task<List<PositionBallot>> GetBallot(int electionId);
+
+        Task<bool> HasMemberVotedAsync(string memberId, int electionId);
     }
 }

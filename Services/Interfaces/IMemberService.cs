@@ -8,8 +8,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<List<Member>> GetAllMembersAsync();
         Task<Member?> GetMemberByIdAsync(int id);
         Task<bool> CreateMember(MembersCreateViewModel vm, IFormFile? photo);
-        Task UpdateMemberAsync(Member member);
-        Task DeleteMemberAsync(int id);
+        Task UpdateMemberAsync(MembersEditViewModel vm, IFormFile? photo);
+         Task DeleteMemberAsync(int id);
         Task<bool> MemberExists(int id);
 
         //LOAD ALL Members dropDown

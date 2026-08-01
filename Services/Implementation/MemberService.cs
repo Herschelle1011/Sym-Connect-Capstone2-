@@ -60,15 +60,48 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     member.ProfilePictureUrl = url;
                     await _context.SaveChangesAsync(); // second save just for the URL
                 }
+                else if (!string.IsNullOrWhiteSpace(url))
+                {
+                    member.ProfilePictureUrl = url.Trim();
+                    await _context.SaveChangesAsync();
+                }
             }
 
             return true;
         }
 
-        public async Task UpdateMemberAsync(Member member)
+        public async Task UpdateMemberAsync(MembersEditViewModel vm, IFormFile? photo)
         {
+            var member = await _context.Members.FindAsync(vm.memberId);
+            if (member == null) return; // or throw, depending on how you want to handle a missing record
+
+            member.FirstName = vm.FirstName;
+            member.LastName = vm.LastName;
+            member.MiddleName = vm.MiddleName;
+            member.Email = vm.Email;
+            member.ContactNumber = vm.ContactNumber;
+            member.Address = vm.Address;
+            member.BirthDate = vm.BirthDate;
+            member.Gender = vm.Gender;
+            member.Status = vm.Status;
+
             _context.Members.Update(member);
             await _context.SaveChangesAsync();
+
+            if (photo != null)
+            {
+                var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
+                if (url != null)
+                {
+                    member.ProfilePictureUrl = url;
+                    await _context.SaveChangesAsync(); // second save just for the URL
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(vm.photoUrl))
+            {
+                member.ProfilePictureUrl = vm.photoUrl.Trim();
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task DeleteMemberAsync(int id)

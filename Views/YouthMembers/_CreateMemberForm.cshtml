@@ -10,8 +10,24 @@
             <img id="photoPreview" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
             <i class="bi bi-person-fill" id="placeholderIcon" style="font-size:40px;color:#999;"></i>
         </div>
-        <!-- Added inline onchange handler to guarantee execution inside dynamic modals -->
-        <input type="file" name="Photo" id="photoInput" accept="image/*" class="form-control" onchange="previewProfilePhoto(this)" />
+
+        <!-- Toggle between Upload / Paste Link -->
+        <div class="btn-group btn-group-sm mb-2" role="group">
+            <input type="radio" class="btn-check" name="photoMode" id="modeUpload" checked onchange="togglePhotoMode('upload')">
+            <label class="btn btn-outline-primary" for="modeUpload">Upload Photo</label>
+
+            <input type="radio" class="btn-check" name="photoMode" id="modeUrl" onchange="togglePhotoMode('url')">
+            <label class="btn btn-outline-primary" for="modeUrl">Paste Link</label>
+        </div>
+
+        <div id="uploadInputWrapper">
+            <input type="file" name="Photo" id="photoInput" accept="image/*" class="form-control" onchange="previewProfilePhoto(this)" />
+        </div>
+
+        <div id="urlInputWrapper" style="display:none;">
+            <input type="url" asp-for="PhotoUrl" id="photoUrlInput" class="form-control" placeholder="https://example.com/photo.jpg" oninput="previewFromUrl(this.value)" />
+            <span asp-validation-for="PhotoUrl" class="text-danger small"></span>
+        </div>
     </div>
 
     <div class="row mb-3">

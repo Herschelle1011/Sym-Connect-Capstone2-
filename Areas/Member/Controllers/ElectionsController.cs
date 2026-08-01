@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels;
+using Sym_Connect__Capstone2_.Models.Enums;
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
@@ -74,6 +76,11 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 return RedirectToAction("VerifyMember", new { electionId = id });
             }
 
+            bool ifAlreadyVoted = await _electionService.HasMemberVotedAsync(memberIdStr, id);
+            if (ifAlreadyVoted)
+            {
+                return RedirectToAction(nameof(AlreadyVoted));
+            }
 
             // 2. Fetch the segmented candidates and group layout structures from service
             var positionsGroup = await _electionService.GetBallot(id);
@@ -123,9 +130,9 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             model.selectedVotes.RemoveAll(v => v.CandidateId <= 0);
 
             // 3. Fire the secure service execution method
-            bool success = await _electionService.CastVote(model);
+            var result = await _electionService.CastVote(model);
 
-            if (!success)
+            if (result == VoteResult.AlreadyVoted)
             {
                 // Handle potential failures (e.g., Already Voted, Invalid Status, Tampered Candidates)
                 ModelState.AddModelError(string.Empty, "Unable to cast your ballot. You may have already voted, chosen multiple candidates for the same job, or select details have closed.");
@@ -147,6 +154,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         public IActionResult VerifyMember(int? electionId)
         {
             ViewBag.ElectionId = electionId;
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult AlreadyVoted()
+        {
             return View();
         }
 

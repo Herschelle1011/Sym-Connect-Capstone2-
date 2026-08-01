@@ -81,3 +81,60 @@
         // ── First render ──────────────────────────────────────────────
         renderPage();
 
+function togglePhotoMode(mode) {
+    const uploadWrapper = document.getElementById('uploadInputWrapper');
+    const urlWrapper = document.getElementById('urlInputWrapper');
+    const photoInput = document.getElementById('photoInput');
+    const photoUrlInput = document.getElementById('photoUrlInput');
+    const preview = document.getElementById('photoPreview');
+    const placeholder = document.getElementById('placeholderIcon');
+
+    if (mode === 'upload') {
+        uploadWrapper.style.display = 'block';
+        urlWrapper.style.display = 'none';
+        photoUrlInput.value = '';           // clear so only one source is submitted
+    } else {
+        uploadWrapper.style.display = 'none';
+        urlWrapper.style.display = 'block';
+        photoInput.value = '';              // clear file input
+    }
+
+    preview.src = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'block';
+}
+
+function previewProfilePhoto(input) {
+    const preview = document.getElementById('photoPreview');
+    const placeholder = document.getElementById('placeholderIcon');
+
+    if (input.files && input.files[0]) {
+        const blobUrl = URL.createObjectURL(input.files[0]);
+        preview.src = blobUrl;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+
+        preview.onload = function () {
+            URL.revokeObjectURL(blobUrl);
+        };
+    } else {
+        preview.src = "";
+        preview.style.display = 'none';
+        placeholder.style.display = 'block';
+    }
+}
+
+function previewFromUrl(url) {
+    const preview = document.getElementById('photoPreview');
+    const placeholder = document.getElementById('placeholderIcon');
+
+    if (url) {
+        preview.src = url;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+    } else {
+        preview.src = '';
+        preview.style.display = 'none';
+        placeholder.style.display = 'block';
+    }
+}

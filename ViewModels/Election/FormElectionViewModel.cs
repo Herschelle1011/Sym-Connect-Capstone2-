@@ -1,31 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
 using System.ComponentModel.DataAnnotations;
 
 namespace Sym_Connect__Capstone2_.ViewModels.Election
 {
-    public class FormElectionViewModel
+    public class FormElectionViewModel 
     {
-        [Required(ErrorMessage = "Election Name is required")]
+        [Required(ErrorMessage = "Election name is required.")]
+        [StringLength(150)]
         public string ElectionName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Starting Date is required")]
+        [Required(ErrorMessage = "Opening date is required.")]
+        [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
 
-        [Required(ErrorMessage = "Close Date is required")]
+        [Required(ErrorMessage = "Closing date is required.")]
+        [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
 
-
-        [Required(ErrorMessage = "Starting Time is required")]
+        [Required(ErrorMessage = "Start time is required.")]
+        [DataType(DataType.Time)]
         public TimeSpan StartTime { get; set; }
 
-        [Required(ErrorMessage = "Close Time is required")]
+        [Required(ErrorMessage = "End time is required.")]
+        [DataType(DataType.Time)]
         public TimeSpan EndTime { get; set; }
 
-        [Required(ErrorMessage = "Please select at least one party-list for this election.")]
+        public List<PartyListsViewModel> AvailablePartyLists { get; set; } = new();
+
+
         public List<int> SelectedPartyListIds { get; set; } = new();
 
-        // Populated via your service method inside the Controller's Get method
-        public List<PartyListsViewModel> AvailablePartyLists { get; set; } = new();
+        public List<PartyListAssignmentsViewModel> PartyListAssignments { get; set; } = new();
+
 
     }
 }

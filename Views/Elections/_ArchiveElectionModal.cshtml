@@ -1,0 +1,57 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Election.ArchiveElectionViewModel
+
+<form id="archiveElectionForm"
+      class="modal-ajax-form"
+      asp-action="Archive"
+      asp-controller="Elections"
+      method="post">
+
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="electionId" />
+
+    <p>
+        Are you sure you want to archive
+        <strong>@Model.electionTitle</strong>?
+    </p>
+
+    @if (Model.HasVotes)
+    {
+        <div class="alert alert-warning d-flex gap-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div>
+                <strong>Note:</strong> This election has
+                <strong>@Model.TotalVotes</strong> vote(s) recorded across
+                <strong>@Model.TotalCandidates</strong> candidate(s)
+                @if (Model.PositionsContested.Any())
+                {
+                    <span>
+                        for the position@(Model.PositionsContested.Count > 1 ? "s" : "")
+                        @string.Join(", ", Model.PositionsContested)
+                    </span>
+                }
+                .
+                Archiving will hide this election and its results from active views,
+                but all votes and records will be preserved.
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info d-flex gap-2" role="alert">
+            <i class="bi bi-info-circle-fill"></i>
+            <div>
+                No votes have been cast yet for this election.
+                Archiving will remove it from the active elections list.
+            </div>
+        </div>
+    }
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+            Cancel
+        </button>
+        <button type="submit" class="btn btn-danger px-4">
+            Archive
+        </button>
+    </div>
+</form>

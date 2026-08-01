@@ -21,13 +21,20 @@ public class ElectionsController : Controller
         var elections = await _electionService.GetAllElectionListAsync();
         return View(elections);
     }
+    public async Task<IActionResult> Result(int? electionId)
+    {
+        if (electionId == null) return NotFound();
+        var Result = await _electionService.GetElectionResultAsync(electionId.Value);
+        if (Result == null) return NotFound();
+        return View(Result);
+    }
 
     // GET: ELECTIONS/Details/5
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(int? ElectionId)
     {
-        if (id == null) return NotFound();
+        if (ElectionId == null) return NotFound();
 
-        var electionDetails = await _electionService.GetElectionByIdAsync(id);
+        var electionDetails = await _electionService.GetElectionByIdAsync(ElectionId);
         if (electionDetails == null) return NotFound();
 
         return View(electionDetails);
@@ -45,6 +52,8 @@ public class ElectionsController : Controller
 
         return View(vm);
     }
+
+   
 
     // POST: ELECTIONS/Create
     // Single submit for the entire wizard: creates the Election, assigns the 2 chosen
@@ -98,7 +107,37 @@ public class ElectionsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // ---------------- Archive ----------------
+    // ---------------- Archive ----------------\
+
+
+
+
+
+    public async Task<IActionResult> GetArchive(int? id)
+    {
+        if (id == null) return NotFound();
+
+        var election = await _electionService.GetArchiveElectionAsync(id);
+        if (election == null) return NotFound();
+
+        return PartialView("_ArchiveElectionModal",election);
+    }
+
+    // POST: ELECTIONS/Delete/5
+    [HttpPost]
+    [ActionName("Archive")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ArchiveConfirmed(int electionId)
+    {
+        await _electionService.ArchiveElectionAsync(electionId);
+        return Json(new { success = true });
+    }
+
+
+
+
+
+
 
     // GET: ELECTIONS/Delete/5
     public async Task<IActionResult> Delete(int? id)

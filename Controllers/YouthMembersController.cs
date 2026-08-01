@@ -106,7 +106,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         }
 
         // GET: YouthMembers/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, IFormFile? photo)
         {
             if (id == null)
             {
@@ -127,6 +127,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 BirthDate = member.BirthDate,
                 Gender = member.Gender,
                 Status = member.Status,
+                photoUrl = member.ProfilePictureUrl,
             };
 
             return PartialView("_EditMemberForm", vm);
@@ -137,7 +138,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(MembersEditViewModel vm, int id)
+        public async Task<IActionResult> Edit(MembersEditViewModel vm, int id, IFormFile? photo)
         {
             if (vm.memberId != id)
             {
@@ -146,41 +147,26 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (!ModelState.IsValid)
             {
-                return View("_EditMemberForm",vm);
+                return View("_EditMemberForm", vm);
             }
-            var viewModel = new Member
+
+            try
             {
-                MemberId = vm.memberId,
-                Email = vm.Email,
-                FirstName = vm.FirstName,
-                MiddleName = vm.MiddleName,
-                LastName = vm.LastName,
-                ContactNumber = vm.ContactNumber,
-                Address = vm.Address,
-                Gender = vm.Gender,
-                BirthDate = vm.BirthDate,
-                Status = vm.Status,
-            };
-                try
-                {
-
-                    await _memberService.UpdateMemberAsync(viewModel);
-
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (await MemberExists(vm.memberId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                
+                await _memberService.UpdateMemberAsync(vm, photo);
             }
-            return RedirectToAction(nameof(Index));
+            catch (DbUpdateConcurrencyException)
+            {
+                if (await MemberExists(vm.memberId))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
+            return RedirectToAction(nameof(Index));
         }
 
 

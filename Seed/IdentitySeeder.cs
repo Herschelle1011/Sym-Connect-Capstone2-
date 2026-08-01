@@ -29,6 +29,24 @@ namespace Sym_Connect__Capstone2_.Seed
                 lastName: "User",
                 role: "Leader"
             );
+
+            await SeedUserAsync(
+            userManager,
+            email: "herschelle@gmail.com",
+            password: "hers123456",
+            firstName: "Hers",
+            lastName: "User",
+            role: "Member"
+        );
+
+            await SeedUserAsync(
+            userManager,
+            email: "Jason@gmail.com",
+            password: "jason123456",
+            firstName: "Jason",
+            lastName: "User",
+            role: "Member"
+        );
         }
 
         private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)

@@ -1,0 +1,60 @@
+@model Sym_Connect__Capstone2_.ViewModels.Election.PartyList.EditPartyListViewModel
+
+<form id="editPartyListForm"
+      class="modal-ajax-form"
+      asp-action="Edit"
+      asp-controller="PartyLists"
+      asp-route-id="@Model.partyListId"
+      method="post">
+
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+    <input type="hidden" asp-for="partyListId" />
+
+    @* Avatar preview that mirrors the candidate-avatar style from Details *@
+    <div class="d-flex align-items-center gap-3 mb-4"
+         style="padding:14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px;">
+        <div id="editAvatarPreview"
+             style="width:44px; height:44px; border-radius:50%;
+            background:#dbeafe; color:#1e40af;
+            display:flex; align-items:center; justify-content:center;
+            font-size:15px; font-weight:600; flex-shrink:0;">
+            @(!string.IsNullOrWhiteSpace(Model.PartyListName) && Model.PartyListName.Length >= 2
+                ? Model.PartyListName.Substring(0, 2).ToUpper()
+                : "PL")
+        </div>
+        <div>
+            <p class="mb-0 text-muted" style="font-size:12px;">Editing</p>
+            <p class="mb-0 fw-medium" style="font-size:14px;" id="editNamePreview">
+                @(string.IsNullOrWhiteSpace(Model.PartyListName) ? "Untitled Party List" : Model.PartyListName)
+            </p>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="PartyListName" class="form-label fw-medium" style="font-size:13px; color:#374151;"></label>
+        <input asp-for="PartyListName" class="form-control"
+               oninput="document.getElementById('editNamePreview').innerText = this.value || 'Untitled Party List';
+        document.getElementById('editAvatarPreview').innerText=this.value.length>= 2 ? this.value.substring(0,2).toUpperCase() : 'PL';"
+               style="border-radius:10px; border:1px solid #e5e7eb; padding:10px 14px; font-size:14px;" />
+        <span asp-validation-for="PartyListName" class="text-danger" style="font-size:12px;"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="PartyListDescription" class="form-label fw-medium" style="font-size:13px; color:#374151;"></label>
+        <textarea asp-for="PartyListDescription" class="form-control" rows="3"
+                  style="border-radius:10px; border:1px solid #e5e7eb; padding:10px 14px; font-size:14px; resize:vertical;"></textarea>
+        <span asp-validation-for="PartyListDescription" class="text-danger" style="font-size:12px;"></span>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn rounded-pill px-4"
+                style="background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; font-size:13px;"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+        <button type="submit" class="btn btn-primary rounded-pill px-4" style="font-size:13px;">
+            <i class="ti ti-device-floppy"></i> Save Changes
+        </button>
+    </div>
+</form>

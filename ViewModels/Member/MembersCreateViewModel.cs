@@ -25,5 +25,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         [Required]
         public string Status { get; set; } = "Active";
 
+        public string? PhotoUrl { get; set; }
+
     }
 }

@@ -68,7 +68,7 @@ public class PartyListsController : Controller
             PartyListDescription = partyList.partyDescription
         };
 
-        return View(editModel);
+        return PartialView("_EditPartyListModal",editModel);
     }
 
     // POST: PARTYLISTS/Edit/5
@@ -78,7 +78,8 @@ public class PartyListsController : Controller
     public async Task<IActionResult> Edit(int id, EditPartyListViewModel model)
     {
         if (id != model.partyListId) return NotFound();
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid) return PartialView("_EditPartyListModal", model);
+
 
         await _partyListService.EditPartyListAsync(model);
         return RedirectToAction(nameof(Index));
@@ -86,26 +87,25 @@ public class PartyListsController : Controller
 
     // GET: PARTYLISTS/Delete/5
     // FIX: Changed 'partylistid' to 'id'
-    public async Task<IActionResult> Delete(int? id)
+    public async Task<IActionResult> Archive(int? id)
     {
         if (id == null) return NotFound();
 
-        var partyList = await _partyListService.GetPartyListByIdAsync(id.Value);
-        if (partyList == null) return NotFound();
+        var modalVm = await _partyListService.GetArchiveModalAsync(id.Value);
+        if (modalVm == null) return NotFound();
 
-        return View(partyList);
+        return PartialView("_ArchiveFormModal", modalVm);
     }
 
     // POST: PARTYLISTS/Delete/5
     // FIX: Changed 'partylistid' to 'id'
-    [HttpPost, ActionName("Delete")]
+    [HttpPost, ActionName("Archive")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteConfirmed(int id)
+    public async Task<IActionResult> ArchiveConfirmed(int id)
     {
         await _partyListService.ArchivePartyListAsync(id);
-        return RedirectToAction(nameof(Index));
+        return Json(new { success = true });
     }
-
     // GET: PARTYLISTS/ManageCandidates/5
     // FIX: Changed 'partylistid' to 'id'
     public async Task<IActionResult> ManageCandidates(int id)

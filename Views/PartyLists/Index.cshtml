@@ -54,23 +54,47 @@
                             </div>
 
                             @* Description *@
-                            <p class="text-muted mb-0" style="font-size:13px; min-height:2.5em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
+                            <p class="text-muted mb-2"
+                               style="font-size:13px; min-height:2.5em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">
                                 @item.PartyListDescription
                             </p>
 
-                            @* Bottom: Action Icons *@
-                            <div class="d-flex justify-content-end align-items-center pt-2 mt-3" style="border-top: 1px solid #f1f3f5;">
+                            @* Date Created *@
+                            <div class="d-flex align-items-center text-muted mb-3"
+                                 style="font-size:12px;">
+                                <i class="bi bi-calendar3 me-2"></i>
+                                <span>
+                                    Created
+                                    <strong class="text-dark">
+                                        @item.DateCreated?.ToString("MMM dd, yyyy") 
+                                    </strong>
+                                </span>
+                            </div>
+
+                            @* Bottom: Actions *@
+                            <div class="d-flex justify-content-end align-items-center pt-2 mt-auto"
+                                 style="border-top:1px solid #f1f3f5;">
+
                                 <div class="d-flex gap-1">
-                                    <a onclick="event.stopPropagation(); openModal('Edit partylist', '@Url.Action("Edit", "PartyLists", new { id = item.Id })')"
+
+                                    @* Edit *@
+                                    <a onclick="event.stopPropagation(); openModal('Edit Partylist', '@Url.Action("Edit", "PartyLists", new { id = item.Id })')"
                                        class="d-flex align-items-center justify-content-center action-icon"
-                                       style="width:30px; height:30px; border-radius:7px; color:#2563eb; font-size:14px; cursor:pointer;">
+                                       title="Edit"
+                                       style="width:32px;height:32px;border-radius:8px;color:#2563eb;">
                                         <i class="ti ti-edit"></i>
                                     </a>
-                                    <a onclick="event.stopPropagation(); openModal('Delete partylist', '@Url.Action("GetDeleteForm", "PartyLists", new { id = item.Id })')"
+
+                                    @* Archive *@
+                                    <a onclick="event.stopPropagation(); openModal('Archive Partylist', '@Url.Action("Archive", "PartyLists", new { id = item.Id })')"
                                        class="d-flex align-items-center justify-content-center action-icon"
-                                       style="width:30px; height:30px; border-radius:7px; color:#dc2626; font-size:14px; cursor:pointer;">
-                                        <i class="ti ti-trash"></i>
+                                       style="width:30px; height:30px; border-radius:7px; color:#f59e0b; font-size:14px; cursor:pointer;"
+                                       title="Archive">
+                                        <i class="bi bi-archive"></i>
                                     </a>
+
+                                  
+
                                 </div>
                             </div>
                         </div>
@@ -113,27 +137,6 @@
         }
 </style>
 
-<script>
-    document.addEventListener("submit", async function (e) {
-        if (e.target.id !== "_CreatePartyList") return;
-
-        e.preventDefault();
-        const form = e.target;
-
-        const response = await fetch(form.action, {
-            method: "POST",
-            body: new FormData(form)
-        });
-
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            const result = await response.json();
-            if (result.success) {
-                location.reload();
-            }
-        } else {
-            const html = await response.text();
-            document.getElementById("appModalBody").innerHTML = html;
-        }
-    });
-</script>
+@section Scripts {
+    <script src="~/js/site.js" asp-append-version="true"></script>
+}

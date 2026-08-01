@@ -13,7 +13,11 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task EditElectionAsync(EditElectionViewModel vm);
 
         Task<EditElectionViewModel?> GetEditElectionByIdAsync(int id);
-        Task ArchiveElectionAsync(int? id);
+        Task<ArchiveElectionViewModel?> GetArchiveElectionAsync(int? electionid);
+
+        Task<bool> ArchiveElectionAsync(int? id);
+
+        Task<ResultViewModel> GetElectionResultAsync(int electionId); 
 
     }
 }

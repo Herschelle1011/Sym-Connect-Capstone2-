@@ -11,6 +11,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Election
 
         public List<CandidateViewModel> candidates { get; set; } = new List<CandidateViewModel>();
 
+        public DateTime? DateCreated { get; set; }
 
     }
 }

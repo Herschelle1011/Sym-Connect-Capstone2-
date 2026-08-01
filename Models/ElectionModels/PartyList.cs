@@ -14,6 +14,7 @@ namespace Sym_Connect__Capstone2_.Models.ElectionModels
       
         public int? ElectionId { get; set; }
 
+        //public DateTime? DateCreated { get; set; }
 
         public bool? isArchived { get; set; } = false;
         public DateTime? ArchivedDate { get; set; }

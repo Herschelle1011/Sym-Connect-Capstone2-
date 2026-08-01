@@ -27,7 +27,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             Id = p.PartyListId,
                             PartyListName = p.PartyName,
                             PartyListDescription = p.PartyListDescription,
-                           
+                            //DateCreated = p.DateCreated ?? DateTime.Today 
+
                         }).ToListAsync();
         }
 
@@ -105,6 +106,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 PartyName = vm.PartyListName,
                 PartyListDescription = vm.PartyListDescription,
+                //DateCreated = DateTime.Now
             };
             _context.PartyLists.Add(NewPartyList);
             await _context.SaveChangesAsync();
@@ -171,14 +173,53 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _context.SaveChangesAsync();
         }
 
+
+        public async Task<ArchiveModalViewModel> GetArchiveModalAsync(int partyListId)
+        {
+            var partyList = await _context.PartyLists
+                .FirstOrDefaultAsync(p => p.PartyListId == partyListId); // adjust PK name
+
+            if (partyList == null) return null;
+
+            var candidateNames = await _context.Candidates
+                .Where(c => c.PartyId == partyListId)
+                .Include(c => c.Member)
+                .Select(c => c.Member.FirstName + " " + c.Member.LastName) // adjust to your naming
+                .ToListAsync();
+
+            return new ArchiveModalViewModel
+            {
+                partylistId = partyList.PartyListId,
+                partyListName = partyList.PartyName,
+                partyDescription = partyList.PartyListDescription,
+                CandidateNames = candidateNames
+            };
+        }
+
+
+
         public async Task ArchivePartyListAsync(int id)
         {
-            var existingPartyList = await _context.PartyLists.FirstOrDefaultAsync(p => p.PartyListId == id);
-            if (existingPartyList == null) return;
-            existingPartyList.isArchived = true;
-            existingPartyList.ArchivedDate = DateTime.Now;
+            var candidates = await _context.Candidates.Where(c => c.PartyId == id).ToListAsync();
 
+            var candidateIds = candidates.Select(c => c.CandidateId).ToList();
+
+            var vote = await _context.Votes.Where(v => candidateIds.Contains(v.CandidateId)).ToListAsync();
+
+            _context.Votes.RemoveRange(vote); //remove connected fk first
+            _context.Candidates.RemoveRange(candidates);
             await _context.SaveChangesAsync();
+
+            var existingPartyList = await _context.PartyLists.FindAsync(id);
+            if (existingPartyList == null) return;
+            if(existingPartyList != null)
+            {
+                existingPartyList.isArchived = true;
+                existingPartyList.ArchivedDate = DateTime.Now;
+
+                await _context.SaveChangesAsync();
+            }
+         
         }
         public async Task<List<CandidateMemberSearchViewModel>> SearchActiveMembersAsync(string term, int partyListId)
         {
@@ -205,7 +246,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Select(x => new CandidateMemberSearchViewModel
                 {
                     MemberId = x.Member.MemberId,
-                    FullName = x.Member.FirstName + " " + x.Member.LastName
+                    FullName = x.Member.FirstName + " " + x.Member.LastName,
+                    PhotoUrl = x.Member.ProfilePictureUrl
                 })
                 .ToListAsync();
         }
