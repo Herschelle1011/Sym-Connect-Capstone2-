@@ -35,7 +35,9 @@
         border-radius: 999px;
     }
 
-    .status-active {
+    /* "Open" is the actual Status value coming from the model — this rule was missing before,
+           so Active/Open badges rendered with no background/color at all. */
+    .status-open {
         background: #DCFCE7;
         color: #15803D;
     }
@@ -94,6 +96,10 @@
         font-size: 0.75rem;
         color: #64748B;
     }
+
+    .election-card-wrapper[hidden] {
+        display: none !important;
+    }
 </style>
 
 <!-- Main Wrapper with Bootstrap Background Gray -->
@@ -116,8 +122,8 @@
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3 bg-white rounded-4 border p-2 mb-4 shadow-sm">
             <div class="d-flex align-items-center gap-1 flex-wrap" id="filterTabs">
                 <button type="button" data-filter="all" class="filter-tab active-tab">All</button>
-                <button type="button" data-filter="active" class="filter-tab">Active</button>
-                <button type="button" data-filter="draft" class="filter-tab">Draft</button>
+                <button type="button" data-filter="open" class="filter-tab">Active</button>
+                <button type="button" data-filter="incoming" class="filter-tab">Incoming</button>
                 <button type="button" data-filter="closed" class="filter-tab">Closed</button>
             </div>
 
@@ -134,14 +140,13 @@
             <div class="row g-4" id="electionGrid">
                 @foreach (var election in Model)
                 {
-                    <div class="col-12 col-md-6 election-card-wrapper">
+                    <div class="col-12 col-md-6 election-card-wrapper" data-status="@election.Status.ToLower()">
                         <div class="card h-100 border rounded-4 p-4 shadow-sm election-card" data-title="@election.ElectionName.ToLower()">
 
                             <div class="d-flex align-items-start justify-content-between gap-3 mb-2">
                                 <h3 class="h5 fw-bold text-dark mb-0">@election.ElectionName</h3>
                             </div>
 
-                            <!-- JavaScript inserts computing info cleanly into this badge container -->
                             <div>
                                 <span class="status-badge status-@election.Status.ToLower()">
                                     @if (election.Status == "Open")
@@ -173,20 +178,20 @@
                                 </span>
                                 <span class="meta-item">
                                     <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a4 4 0 10-8 0" /></svg>
-                                    &mdash; Candidates
+                                    @election.candidateCount Candidates
                                 </span>
                                 <span class="meta-item">
                                     <svg style="width:14px; height:14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                    &mdash; Votes
+                                    @election.VoteCount Votes
                                 </span>
                             </div>
 
-                            <div class="border-top mt-4 pt-3 d-flex align-items-center justify-between">
-                                <a href="#" class="text-secondary text-primary-hover" title="Edit">
+                            <div class="border-top mt-4 pt-3 d-flex align-items-center justify-content-between">
+                                <a asp-action="Edit" asp-controller="Elections" asp-route-id="@election.ElectionId" class="text-secondary text-primary-hover" title="Edit">
                                     <svg style="width:18px; height:18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.5-9.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 8.5-8.5z" /></svg>
                                 </a>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <a asp-action="Details" asp-controller="Elections" asp-route-electionId="@election.ElectionId" class="pill-ghost">View Details</a>
+                                    <a asp-action="Details" asp-controller="Elections" asp-route-id="@election.ElectionId" class="pill-ghost">View Details</a>
                                     <a asp-action="Result" asp-controller="Elections" asp-route-electionId="@election.ElectionId" class="pill-solid">
                                         Results
                                     </a>
@@ -202,10 +207,13 @@
                     </div>
                 }
             </div>
+
+            <div id="noResultsMessage" class="bg-white rounded-4 border p-5 text-center shadow-sm my-4" hidden>
+                <p class="text-muted small mb-0">No elections match your filter/search.</p>
+            </div>
         }
         else
         {
-            <!-- Fully Restructured Native Bootstrap Empty Block Placeholder [^1] -->
             <div class="bg-white rounded-4 border p-5 text-center shadow-sm my-4">
                 <svg class="text-muted mb-3" style="width:42px; height:42px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -215,24 +223,48 @@
         }
     </div>
 </div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-    // Paint active, draft, or closed properties
-    document.querySelectorAll(".status-badge").forEach(function (badge) {
-    const start = new Date(badge.dataset.start);
-    const end = new Date(badge.dataset.end);
-    const now = new Date();
-    const wrapper = badge.closest(".election-card-wrapper");
-    const card = badge.closest(".election-card");
+        const filterTabs = document.querySelectorAll("#filterTabs .filter-tab");
+        const searchInput = document.getElementById("searchInput");
+        const cards = document.querySelectorAll(".election-card-wrapper");
+        const noResultsMessage = document.getElementById("noResultsMessage");
 
-    let status, label, iconPath;
+        let activeFilter = "all";
 
-    if (now < start) {
-    status = "draft";
-    label = "Starts " + start.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    iconPath = "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z";
-    } else if (now >= start && now <= end) {
-    status = "active";
+        function applyFilters() {
+            const term = (searchInput?.value || "").trim().toLowerCase();
+            let visibleCount = 0;
 
+            cards.forEach(function (wrapper) {
+                const status = wrapper.dataset.status;
+                const title = wrapper.querySelector(".election-card").dataset.title;
 
-    </script>
+                const matchesFilter = activeFilter === "all" || status === activeFilter;
+                const matchesSearch = !term || title.includes(term);
+                const isVisible = matchesFilter && matchesSearch;
+
+                wrapper.hidden = !isVisible;
+                if (isVisible) visibleCount++;
+            });
+
+            if (noResultsMessage) {
+                noResultsMessage.hidden = visibleCount !== 0;
+            }
+        }
+
+        filterTabs.forEach(function (tab) {
+            tab.addEventListener("click", function () {
+                filterTabs.forEach(function (t) { t.classList.remove("active-tab"); });
+                tab.classList.add("active-tab");
+                activeFilter = tab.dataset.filter;
+                applyFilters();
+            });
+        });
+
+        if (searchInput) {
+            searchInput.addEventListener("input", applyFilters);
+        }
+    });
+</script>

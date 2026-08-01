@@ -30,11 +30,11 @@ public class ElectionsController : Controller
     }
 
     // GET: ELECTIONS/Details/5
-    public async Task<IActionResult> Details(int? ElectionId)
+    public async Task<IActionResult> Details(int? id)
     {
-        if (ElectionId == null) return NotFound();
+        if (id == null) return NotFound();
 
-        var electionDetails = await _electionService.GetElectionByIdAsync(ElectionId);
+        var electionDetails = await _electionService.GetElectionByIdAsync(id);
         if (electionDetails == null) return NotFound();
 
         return View(electionDetails);

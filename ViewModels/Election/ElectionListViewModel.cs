@@ -10,6 +10,10 @@
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
 
+
+        public int candidateCount { get; set; }
+        public int VoteCount { get; set; }
+
         public string Status { get; set; } = string.Empty;
 
 

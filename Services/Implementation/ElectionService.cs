@@ -33,6 +33,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                 EndDate = e.EndDate,
                                 StartTime = e.StartTime,
                                 EndTime = e.EndTime,
+                                candidateCount = e.partyLists.SelectMany(p => p.candidates).Count(),
+                                VoteCount = _context.Votes.Count(v => v.ElectionId == e.ElectionId),
                                 Status = now < e.StartDate ? "Incoming" : (now <= e.EndDate ? "Open" : "Closed")
                             }).ToListAsync();
         }
