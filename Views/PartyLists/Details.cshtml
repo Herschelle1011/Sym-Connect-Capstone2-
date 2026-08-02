@@ -302,7 +302,105 @@
         .search-result-item:hover {
             background: #f3f7fc;
         }
+
+    /* ── Toast ── */
+    .cc-toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .cc-toast {
+        min-width: 280px;
+        max-width: 360px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 8px 28px rgba(15, 23, 42, .16);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        color: #1a1f2b;
+        border-left: 4px solid #0d6efd;
+        animation: cc-toast-in .25s ease-out;
+    }
+
+        .cc-toast.success {
+            border-left-color: #16a34a;
+        }
+
+        .cc-toast.error {
+            border-left-color: #dc2626;
+        }
+
+        .cc-toast.warning {
+            border-left-color: #d97706;
+        }
+
+        .cc-toast i {
+            font-size: 16px;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .cc-toast.success i {
+            color: #16a34a;
+        }
+
+        .cc-toast.error i {
+            color: #dc2626;
+        }
+
+        .cc-toast.warning i {
+            color: #d97706;
+        }
+
+    .cc-toast-close {
+        margin-left: auto;
+        background: none;
+        border: none;
+        color: #9aa3b8;
+        cursor: pointer;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .cc-toast.cc-toast-out {
+        animation: cc-toast-out .2s ease-in forwards;
+    }
+
+    @@keyframes cc-toast-in {
+        from {
+            transform: translateX(30px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes cc-toast-out {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        to {
+            transform: translateX(30px);
+            opacity: 0;
+        }
+    }
 </style>
+
+<div id="ccToastContainer" class="cc-toast-container"></div>
 
 <div class="partylist-details-page">
 
@@ -426,11 +524,50 @@
 
 @section Scripts {
     <script>
-        // Staged assignments: { "President": { id, name }, ... }
-        const stagedAssignments = {};
+        // Staged assignments: { "President": { candidateId, fullName, photoUrl }, ... }
+        // Seeded from server-rendered candidates so duplicates already in the DB
+        // are caught by the same check, not just ones picked this session.
+        const stagedAssignments = {
+            @if (Model.Candidates != null)
+            {
+                    foreach (var c in Model.Candidates)
+                    {
+                            @:"@c.Positions": { candidateId: @c.CandidateId, fullName: "@c.FullName.Replace("\"", "\\\"")", photoUrl: "@Html.Raw(c.PhotoUrl)" },
+                    }
+            }
+        };
 
         let currentPosition = null;
         let searchDebounce = null;
+
+        // ── Toast helper ──
+        function showToast(message, type = 'info', duration = 3500) {
+            const container = document.getElementById('ccToastContainer');
+
+            const icons = {
+                success: 'ti ti-circle-check',
+                error: 'ti ti-circle-x',
+                warning: 'ti ti-alert-triangle',
+                info: 'ti ti-info-circle'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `cc-toast ${type}`;
+            toast.innerHTML = `
+                <i class="${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+                <button class="cc-toast-close" onclick="this.parentElement.remove()">
+                    <i class="ti ti-x"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('cc-toast-out');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, duration);
+        }
 
         function openChooseCandidateModal(position, positionLabel) {
             currentPosition = position;
@@ -508,6 +645,16 @@
         function selectCandidate(candidateId, fullName, photoUrl) {
             if (!currentPosition) return;
 
+            // Block if this member is already staged/assigned to a DIFFERENT position
+            const duplicatePosition = Object.keys(stagedAssignments).find(
+                pos => pos !== currentPosition && stagedAssignments[pos].candidateId === candidateId
+            );
+
+            if (duplicatePosition) {
+                showToast(`${fullName} is already assigned to ${duplicatePosition} for this party list.`, 'warning');
+                return;
+            }
+
             stagedAssignments[currentPosition] = {
                 candidateId,
                 fullName,
@@ -533,6 +680,7 @@
 
             slot.classList.add('filled');
 
+            showToast(`${fullName} staged for ${currentPosition}.`, 'success', 2000);
             closeChooseCandidateModal();
         }
 
@@ -543,13 +691,14 @@
             }));
 
             if (assignments.length === 0) {
+                showToast('Pick at least one candidate before saving.', 'warning');
                 return;
             }
 
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             if (!tokenInput) {
                 console.error('Antiforgery token not found on page.');
-                alert('Security token missing — please refresh the page and try again.');
+                showToast('Security token missing — please refresh the page and try again.', 'error');
                 return;
             }
             const token = tokenInput.value;
@@ -570,13 +719,14 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    location.reload();
+                    showToast('Positions saved successfully.', 'success');
+                    setTimeout(() => location.reload(), 1200);
                 } else {
-                    alert(result.message || 'Failed to save.');
+                    showToast(result.message || 'Failed to save.', 'error');
                 }
             } catch (err) {
                 console.error('Save failed:', err);
-                alert('Something went wrong while saving.');
+                showToast('Something went wrong while saving.', 'error');
             } finally {
                 btn.disabled = false;
             }

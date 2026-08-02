@@ -10,7 +10,7 @@ namespace Sym_Connect__Capstone2_.Models.Enums
         [Display(Name = "Internal")]
         Internal,
 
-        [Display(Name = "External VP")]
+        [Display(Name = "External Vice President")]
         ExternalVP,
 
         [Display(Name = "Secretary")]

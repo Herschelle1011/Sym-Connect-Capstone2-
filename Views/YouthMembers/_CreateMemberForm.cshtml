@@ -80,7 +80,10 @@
     <div class="row mb-3">
         <div class="col-6">
             <div class="form-floating">
-                <input asp-for="BirthDate" type="date" class="form-control" />
+                <input asp-for="BirthDate"
+                       type="date"
+                       class="form-control"
+                       value="@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy-MM-dd") : "")" />
                 <label asp-for="BirthDate">Birth Date</label>
                 <span asp-validation-for="BirthDate" class="text-danger small"></span>
             </div>

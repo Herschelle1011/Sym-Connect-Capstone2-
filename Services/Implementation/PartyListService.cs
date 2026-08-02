@@ -5,6 +5,8 @@ using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
 using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
+
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -112,10 +114,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddOrUpdateCandidatesAsync(BulkAddCandidatesViewModel model)
+        public async Task<BulkAddCandidatesResult> AddOrUpdateCandidatesAsync(BulkAddCandidatesViewModel model)
         {
+            var Result = new BulkAddCandidatesResult { Success = true };
+
             var partyListExists = await _context.PartyLists.AnyAsync(p => p.PartyListId == model.partyListId);
-            if (!partyListExists) return;
+            if (!partyListExists) {
+                Result.Success = false;
+                Result.Message = "Party list not found.";
+                return Result;
+            }
+            ;
 
             foreach (var assignment in model.Assignments)
             {
@@ -125,8 +134,23 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 var memberExists = await _context.Members.AnyAsync(m => m.MemberId == assignment.CandidateId);
                 if (!memberExists) continue;
 
+                var alreadyAssignedElsewhere = await _context.Candidates
+                 .AnyAsync(c => c.PartyId == model.partyListId
+                     && c.MemberId == assignment.CandidateId
+                     && c.position != positionEnum);
+
+                if (alreadyAssignedElsewhere)
+                {
+                    Result.Success = false;
+                    Result.Errors.Add($"This member is already assigned to another position in this party list.");
+                    continue; // skip this assignment, keep processing the rest
+                }
+
+
                 var existingCandidate = await _context.Candidates
                     .FirstOrDefaultAsync(c => c.PartyId == model.partyListId && c.position == positionEnum);
+
+
 
                 if (existingCandidate != null)
                 {
@@ -143,7 +167,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }
             }
 
-            await _context.SaveChangesAsync();
+            if (Result.Success)
+            {
+                await _context.SaveChangesAsync();
+            }
+            return Result;
+
         }
 
         public async Task AddCandidateAsync(AddCandidateViewModel vm)

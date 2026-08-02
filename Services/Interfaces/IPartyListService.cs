@@ -15,7 +15,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task EditPartyListAsync(EditPartyListViewModel vm);
         Task<ArchiveModalViewModel> GetArchiveModalAsync(int partyListId);
          Task ArchivePartyListAsync(int id);
-        Task AddOrUpdateCandidatesAsync(BulkAddCandidatesViewModel model);
+        Task<BulkAddCandidatesResult> AddOrUpdateCandidatesAsync(BulkAddCandidatesViewModel model);
 
         Task<List<CandidateMemberSearchViewModel>> SearchActiveMembersAsync(string term, int partyListId);
     }

@@ -123,19 +123,23 @@ public class PartyListsController : Controller
     {
         if (model == null || model.Assignments == null || model.Assignments.Count == 0)
         {
-
             return Json(new { success = false, message = "No assignments provided." });
         }
 
-        try
+        var result = await _partyListService.AddOrUpdateCandidatesAsync(model);
+
+        if (!result.Success)
         {
-            await _partyListService.AddOrUpdateCandidatesAsync(model);
-            return Json(new { success = true });
+            return Json(new
+            {
+                success = false,
+                message = result.Errors.Count > 0
+                    ? string.Join(" ", result.Errors)
+                    : (result.Message ?? "Failed to save positions.")
+            });
         }
-        catch (Exception)
-        {
-            return Json(new { success = false, message = "Failed to save assignments." });
-        }
+
+        return Json(new { success = true, message = result.Message ?? "Positions saved successfully." });
     }
 
     // GET: PARTYLISTS/SearchMembers?term=juan&partyListId=5

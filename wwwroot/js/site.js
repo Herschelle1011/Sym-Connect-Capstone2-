@@ -7,7 +7,7 @@ function openModal(title, url) {
         .then(html => {
             document.getElementById("appModalBody").innerHTML = html;
 
-            const modal = new bootstrap.Modal(document.getElementById("appModal"));
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"));
             modal.show();
 
             if (window.jQuery && $.validator) {

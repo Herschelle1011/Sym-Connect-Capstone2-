@@ -68,8 +68,6 @@ builder.Services.AddScoped<IMemberService, MemberService>(); // for members
 builder.Services.AddScoped<IFacilityService, FacilityService>(); // for facility
 builder.Services.AddScoped<IEventService, EventService>(); // for evaluation
 
-builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
-                            Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IEvaluationService,
                             Sym_Connect__Capstone2_.Services.Implementation.EvaluationService>();
@@ -78,6 +76,9 @@ builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IEvaluati
 
 builder.Services.AddScoped<IPartyListService, PartyListService>(); // for Elections
 
+
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
+                            Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
 //member
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IElectionService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ElectionService>();
