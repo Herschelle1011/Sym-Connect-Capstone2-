@@ -2,7 +2,7 @@
 
 namespace Sym_Connect__Capstone2_.Models.Enums
 {
-    public enum Positions
+    public enum PositionsEnum
     {
         [Display(Name = "President")]
         President,

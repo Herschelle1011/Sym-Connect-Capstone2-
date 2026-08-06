@@ -49,24 +49,30 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 .AsNoTracking()
                 .Include(c => c.Member)
                 .Include(c => c.PartyList)
+                .Include(P => P.Position)
                 .Where(c => c.PartyList.ElectionId == electionId)
                 .ToListAsync();
 
             return candidates
-                .GroupBy(c => c.position)
+                .GroupBy(c => c.positionId)
                 .Select(g => new PositionBallot
                 {
-                    Position = g.Key,
-                    Candidates = g.Select(c => new CandidateOption
-                    {
-                        CandidateId = c.CandidateId,
-                        MemberName = c.Member.FullName,
-                        PartyName = c.PartyList.PartyName,
-                        PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
-                    ? "/images/default-avatar.png"
-                    : c.Member.ProfilePictureUrl
-
-                    }).ToList()
+                    PositionId = g.Key,
+                    positionName = g.First().Position.PositionName,
+                    Tickets = g.GroupBy(c => c.PartyId)
+                        .Select(g => new CandidateTicketViewModel
+                        {
+                            PartyListId = g.Key,
+                            PartyListName = g.First().PartyList.PartyName,
+                            candidates = g.Select(c => new CandidateOption
+                            {
+                                CandidateId = c.CandidateId,
+                                MemberName = c.Member.FirstName + " " + c.Member.LastName,
+                                PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
+                            ? "/images/default-avatar.png"
+                            : c.Member.ProfilePictureUrl
+                            }).ToList()
+                        }).ToList()
                 }).ToList();
         }
 
@@ -96,18 +102,18 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             if (vm.selectedVotes == null || vm.selectedVotes.Count == 0) return VoteResult.InvalidSelection;
 
             bool hasDuplicatePositions = vm.selectedVotes
-            .GroupBy(v => v.position)
+            .GroupBy(v => v.positionId)
             .Any(g => g.Count() > 1);
                     if (hasDuplicatePositions) return VoteResult.InvalidSelection;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                foreach(var voteSubmission in vm.selectedVotes)
+                foreach (var voteSubmission in vm.selectedVotes)
                 {
                     bool validCandidate = await _context.Candidates.AnyAsync(c =>
                         c.CandidateId == voteSubmission.CandidateId &&
-                        c.position == voteSubmission.position &&
+                        c.positionId == voteSubmission.positionId &&
                         c.PartyList.ElectionId == vm.electionId);
 
                     if (!validCandidate)
@@ -116,15 +122,37 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                         return VoteResult.InvalidSelection;
                     }
 
-                    //ADD NEW VOTE
                     _context.Votes.Add(new Vote
                     {
                         ElectionId = vm.electionId,
                         UserId = vm.memberId,
-                        Position = voteSubmission.position,
+                        positionId = voteSubmission.positionId,
                         CandidateId = voteSubmission.CandidateId,
                         DateVoted = DateTime.Now
                     });
+
+                    if (voteSubmission.CandidateId2.HasValue)
+                    {
+                        bool validCandidate2 = await _context.Candidates.AnyAsync(c =>
+                            c.CandidateId == voteSubmission.CandidateId2.Value &&
+                            c.positionId == voteSubmission.positionId &&
+                            c.PartyList.ElectionId == vm.electionId);
+
+                        if (!validCandidate2)
+                        {
+                            await transaction.RollbackAsync();
+                            return VoteResult.InvalidSelection;
+                        }
+
+                        _context.Votes.Add(new Vote
+                        {
+                            ElectionId = vm.electionId,
+                            UserId = vm.memberId,
+                            positionId = voteSubmission.positionId,
+                            CandidateId = voteSubmission.CandidateId2.Value,
+                            DateVoted = DateTime.Now
+                        });
+                    }
                 }
                 // Save all records together as one single block
                 await _context.SaveChangesAsync();

@@ -6,7 +6,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Election
     {
         public int partyListId { get; set; }
         public int memberId { get; set; }
-        public int electionId { get; set; }
-        public Positions position;
+
+        public int positionId;
     }
 }

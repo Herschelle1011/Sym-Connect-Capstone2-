@@ -12,7 +12,7 @@ namespace Sym_Connect__Capstone2_.Models.ElectionModels
 
         public string UserId { get; set; }      // who is voting
         public int ElectionId { get; set; }
-        public Positions Position { get; set; } // President, VP, etc.
+        public int positionId { get; set; } // President, VP, etc.
         public int CandidateId { get; set; }    // who they voted for
 
         public DateTime DateVoted { get; set; } = DateTime.Now;
@@ -26,5 +26,8 @@ namespace Sym_Connect__Capstone2_.Models.ElectionModels
 
         [ForeignKey(nameof(CandidateId))]
         public Candidates? Candidate { get; set; }
+
+        [ForeignKey(nameof(positionId))]
+        public Position? Position { get; set; }
     }
 }

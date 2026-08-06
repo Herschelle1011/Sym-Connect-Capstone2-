@@ -1,29 +1,17 @@
-@model PartyListDetailsViewModel
-@using System.ComponentModel.DataAnnotations
-@using Sym_Connect__Capstone2_.Models.Enums
-
+@model GetPartyListPositionViewModel
 @{
     ViewData["Title"] = "Details";
     Layout = "_AdminLayout";
 
-    string GetDisplayName(Positions position)
-    {
-        var field = position.GetType().GetField(position.ToString());
-        var attr = field?.GetCustomAttributes(typeof(DisplayAttribute), false)
-                        .FirstOrDefault() as DisplayAttribute;
-        return attr?.Name ?? position.ToString();
-    }
-
-    // Palette cycles per card so avatars don't all look the same
     var palette = new[]
     {
-        ("#dcfce7", "#166534"), // green
-        ("#dbeafe", "#1e40af"), // blue
-        ("#fce7f3", "#9d174d"), // pink
-        ("#ede9fe", "#5b21b6"), // purple
-        ("#fef3c7", "#92400e"), // amber
-        ("#e0f2fe", "#0369a1"), // sky
-        ("#fee2e2", "#991b1b"), // red
+        ("#dcfce7", "#166534"),
+        ("#dbeafe", "#1e40af"),
+        ("#fce7f3", "#9d174d"),
+        ("#ede9fe", "#5b21b6"),
+        ("#fef3c7", "#92400e"),
+        ("#e0f2fe", "#0369a1"),
+        ("#fee2e2", "#991b1b"),
     };
 }
 
@@ -89,6 +77,67 @@
         margin-bottom: 22px;
     }
 
+    /* ── Position group (new) ── */
+    .position-group {
+        border: 1px solid #eef0f5;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #fcfcfe;
+        transition: background .15s, border-color .15s;
+    }
+
+        .position-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .position-group:not(.locked) {
+            border-color: #bcd6ff;
+            background: #f5f9ff;
+        }
+
+    .position-group-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .position-group-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1a1f2b;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+    }
+
+    .btn-edit-group {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #eef4ff;
+        color: #0d6efd;
+        border: none;
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: 5px 12px;
+        cursor: pointer;
+        transition: background .15s;
+    }
+
+        .btn-edit-group:hover {
+            background: #dce9ff;
+        }
+
+    /* Buttons inside a locked group become inert */
+    .position-group.locked .btn-choose,
+    .position-group.locked .btn-change-icon {
+        opacity: .35;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+
     .position-slot {
         border: 1px solid #eef0f5;
         border-radius: 12px;
@@ -98,6 +147,7 @@
         align-items: center;
         justify-content: space-between;
         transition: border-color .15s, background .15s;
+        height: 100%;
     }
 
         .position-slot:hover {
@@ -412,69 +462,120 @@
         <a asp-action="Index" class="back-link" title="Back to Party Lists">
             <i class="ti ti-arrow-left"></i>
         </a>
-        <h1 class="page-heading">@Model.partyListName</h1>
+        <h1 class="page-heading">@Model.PartyListName</h1>
     </div>
-    <p class="page-subtext mb-4">@Model.partyDescription</p>
 
     <div class="positions-card">
         <div class="positions-card-title">Positions Available</div>
 
-        <div class="row g-3" id="positionsGrid">
+        <div id="positionsGrid">
             @{
-                var positions = Enum.GetValues(typeof(Positions)).Cast<Positions>().ToList();
                 var i = 0;
             }
-            @foreach (var position in positions)
+            @foreach (var position in Model.Positions.OrderBy(p => p.DisplayOrder))
             {
-                var candidate = Model.Candidates?.FirstOrDefault(c => c.Positions == position);
                 var (bg, fg) = palette[i % palette.Length];
                 i++;
 
-                <div class="col-md-6">
-                    <div class="position-slot @(candidate != null ? "filled" : "")"
-                         id="slot-@position"
-                         data-position="@position">
+                var hasSlots = position.Slots != null && position.Slots.Any();
+                var filledCount = hasSlots ? position.Slots.Count(s => !s.IsEmpty) : 0;
+                var isLocked = filledCount > 0;
 
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="position-avatar" style="background:@bg; color:@fg; border-radius:50%;">
-                                @if (candidate != null && !string.IsNullOrEmpty(candidate.PhotoUrl))
-                                {
-                                    <img src="@candidate.PhotoUrl"
-                                         alt="@candidate.FullName"
-                                         style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />
-                                }
-                                else if (candidate != null)
-                                {
-                                    @(candidate.FullName.Length >= 2
-                                        ? candidate.FullName.Substring(0, 2).ToUpper()
-                                        : candidate.FullName.ToUpper())
-                                }
-                                else
-                                {
-                                    <i class="ti ti-user-plus" style="font-size:16px;"></i>
-                                }
-                            </div>
-                            <div>
-                                <p class="position-name mb-0">@GetDisplayName(position)</p>
-                                <p class="position-candidate-name text-muted mb-0">
-                                    @(candidate != null ? candidate.FullName : "choose a candidate")
-                                </p>
-                            </div>
-                        </div>
+                <div class="position-group @(isLocked ? "locked" : "")" data-position-id="@position.positionId">
+                    <div class="position-group-header">
+                        <span class="position-group-title">@position.positionName</span>
 
-                        @if (candidate != null)
+                        @if (isLocked)
                         {
-                            <span class="btn-change-icon"
-                                  onclick="openChooseCandidateModal('@position', '@GetDisplayName(position)')"
-                                  title="Change candidate">
-                                <i class="ti ti-edit"></i>
-                            </span>
+                            <button type="button" class="btn-edit-group"
+                                    onclick="toggleGroupEdit(@position.positionId, this)">
+                                <i class="ti ti-lock"></i>
+                                <span class="edit-label">Edit</span>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="row g-3">
+                        @if (hasSlots)
+                        {
+                            @foreach (var slot in position.Slots)
+                            {
+                                var hasCandidate = !slot.IsEmpty;
+                                var slotDomId = hasCandidate
+                                    ? $"slot-{slot.Candidate.CandidateId}"
+                                    : $"slot-new-{position.positionId}-{position.Slots.IndexOf(slot)}";
+
+                                <div class="col-md-6">
+                                    <div class="position-slot @(hasCandidate ? "filled" : "")"
+                                         id="@slotDomId"
+                                         data-position-id="@position.positionId"
+                                         data-position-name="@position.positionName"
+                                         data-candidate-id="@(hasCandidate ? slot.Candidate.CandidateId.ToString() : "")">
+
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="position-avatar" style="background:@bg; color:@fg;">
+                                                @if (hasCandidate && !string.IsNullOrEmpty(slot.Candidate.PhotoUrl))
+                                                {
+                                                    <img src="@slot.Candidate.PhotoUrl" alt="@slot.Candidate.FullName"
+                                                         style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />
+                                                }
+                                                else
+                                                {
+                                                    <i class="ti ti-user-plus" style="font-size:16px;"></i>
+                                                }
+                                            </div>
+                                            <div>
+                                                <p class="position-name mb-0">@position.positionName</p>
+                                                <p class="position-candidate-name text-muted mb-0">
+                                                    @(hasCandidate ? slot.Candidate.FullName : "choose a candidate")
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        @if (hasCandidate)
+                                        {
+                                            <span class="btn-change-icon"
+                                                  onclick="openChooseCandidateModal(@position.positionId, '@position.positionName', this.closest('.position-slot'))"
+                                                  title="Change candidate">
+                                                <i class="ti ti-edit"></i>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-choose"
+                                                    onclick="openChooseCandidateModal(@position.positionId, '@position.positionName', this.closest('.position-slot'))">
+                                                <i class="ti ti-circle-plus"></i> Choose
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            }
                         }
                         else
                         {
-                            <button class="btn-choose" onclick="openChooseCandidateModal('@position', '@GetDisplayName(position)')">
-                                <i class="ti ti-circle-plus"></i> Choose
-                            </button>
+                            <div class="col-md-6">
+                                <div class="position-slot"
+                                     id="slot-new-@(position.positionId)-0"
+                                     data-position-id="@position.positionId"
+                                     data-position-name="@position.positionName"
+                                     data-candidate-id="">
+
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="position-avatar" style="background:@bg; color:@fg;">
+                                            <i class="ti ti-user-plus" style="font-size:16px;"></i>
+                                        </div>
+                                        <div>
+                                            <p class="position-name mb-0">@position.positionName</p>
+                                            <p class="position-candidate-name text-muted mb-0">choose a candidate</p>
+                                        </div>
+                                    </div>
+
+                                    <button class="btn-choose"
+                                            onclick="openChooseCandidateModal(@position.positionId, '@position.positionName', this.closest('.position-slot'))">
+                                        <i class="ti ti-circle-plus"></i> Choose
+                                    </button>
+                                </div>
+                            </div>
                         }
                     </div>
                 </div>
@@ -482,7 +583,7 @@
         </div>
 
         <div class="d-flex justify-content-end mt-4">
-            <button id="savePositionsBtn" class="btn-save-positions" onclick="savePositions(@Model.partyListid)">
+            <button id="savePositionsBtn" class="btn-save-positions" onclick="savePositions(@Model.partyListId)">
                 <i class="ti ti-device-floppy"></i> Click to Save
             </button>
         </div>
@@ -493,10 +594,9 @@
     </div>
 </div>
 
-@* ===== CHOOSE CANDIDATE MODAL ===== *@
+@* ===== CHOOSE CANDIDATE MODAL — unchanged HTML ===== *@
 <div id="chooseCandidateModal" class="cc-modal-overlay">
     <div class="cc-modal-box">
-
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="cc-modal-title">
                 Choose candidate for <span id="modalPositionLabel"></span>
@@ -524,33 +624,29 @@
 
 @section Scripts {
     <script>
-        // Staged assignments: { "President": { candidateId, fullName, photoUrl }, ... }
-        // Seeded from server-rendered candidates so duplicates already in the DB
-        // are caught by the same check, not just ones picked this session.
+        // Staged assignments now keyed by the slot's DOM id (one entry per chair, not per position).
         const stagedAssignments = {
-            @if (Model.Candidates != null)
+            @foreach (var position in Model.Positions)
             {
-                    foreach (var c in Model.Candidates)
+                    @foreach (var slot in position.Slots.Where(s => !s.IsEmpty))
                     {
-                            @:"@c.Positions": { candidateId: @c.CandidateId, fullName: "@c.FullName.Replace("\"", "\\\"")", photoUrl: "@Html.Raw(c.PhotoUrl)" },
+                            @:"slot-@slot.Candidate.CandidateId": { positionId: @position.positionId, candidateId: @slot.Candidate.CandidateId, memberId: @slot.Candidate.MemberId, fullName: "@slot.Candidate.FullName.Replace("\"", "\\\"")", photoUrl: "@Html.Raw(slot.Candidate.PhotoUrl)" },
                     }
             }
         };
 
-        let currentPosition = null;
+        let currentPositionId = null;
+        let currentSlotDomId = null;
         let searchDebounce = null;
 
-        // ── Toast helper ──
         function showToast(message, type = 'info', duration = 3500) {
             const container = document.getElementById('ccToastContainer');
-
             const icons = {
                 success: 'ti ti-circle-check',
                 error: 'ti ti-circle-x',
                 warning: 'ti ti-alert-triangle',
                 info: 'ti ti-info-circle'
             };
-
             const toast = document.createElement('div');
             toast.className = `cc-toast ${type}`;
             toast.innerHTML = `
@@ -560,28 +656,56 @@
                     <i class="ti ti-x"></i>
                 </button>
             `;
-
             container.appendChild(toast);
-
             setTimeout(() => {
                 toast.classList.add('cc-toast-out');
                 toast.addEventListener('animationend', () => toast.remove());
             }, duration);
         }
 
-        function openChooseCandidateModal(position, positionLabel) {
-            currentPosition = position;
+        // ── Per-position lock/unlock toggle ──
+        function toggleGroupEdit(positionId, btnEl) {
+            const group = document.querySelector(`.position-group[data-position-id="${positionId}"]`);
+            if (!group) return;
+
+            group.classList.toggle('locked');
+            const isLocked = group.classList.contains('locked');
+
+            const icon = btnEl.querySelector('i');
+            const label = btnEl.querySelector('.edit-label');
+
+            if (isLocked) {
+                icon.className = 'ti ti-lock';
+                label.innerText = 'Edit';
+                showToast('Position locked again.', 'info', 1500);
+            } else {
+                icon.className = 'ti ti-lock-open';
+                label.innerText = 'Done';
+                showToast('You can now choose or change candidates for this position.', 'info', 2000);
+            }
+        }
+
+        function openChooseCandidateModal(positionId, positionLabel, slotElement) {
+            // Defense in depth: block if the group is locked, even if CSS pointer-events was bypassed.
+            const group = slotElement.closest('.position-group');
+            if (group && group.classList.contains('locked')) {
+                showToast('Click "Edit" on this position first to make changes.', 'warning', 2500);
+                return;
+            }
+
+            currentPositionId = positionId;
+            currentSlotDomId = slotElement.id;
             document.getElementById('modalPositionLabel').innerText = positionLabel;
             document.getElementById('candidateSearchInput').value = '';
             document.getElementById('candidateSearchResults').innerHTML =
                 '<div id="candidateSearchPlaceholder" class="cc-results-placeholder">Start typing to search candidates...</div>';
-
             document.getElementById('chooseCandidateModal').style.display = 'flex';
         }
 
         function closeChooseCandidateModal() {
             document.getElementById('chooseCandidateModal').style.display = 'none';
-            currentPosition = null;
+            currentPositionId = null;
+            currentSlotDomId = null;
         }
 
         function searchCandidates(term) {
@@ -596,7 +720,7 @@
 
             searchDebounce = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/PartyLists/SearchMembers?term=${encodeURIComponent(term)}&partyListId=@Model.partyListid`);
+                    const response = await fetch(`/PartyLists/SearchMembers?term=${encodeURIComponent(term)}&partyListId=@Model.partyListId`);
 
                     if (!response.ok) {
                         resultsEl.innerHTML = '<div class="cc-results-placeholder" style="color:#dc2626;">Connection error.</div>';
@@ -625,16 +749,10 @@
                             </div>
                         `;
                         row.onclick = function () {
-                            selectCandidate(
-                                member.memberId,
-                                member.fullName,
-                                member.photoUrl
-                            );
+                            selectCandidate(member.memberId, member.fullName, member.photoUrl);
                         };
-
                         resultsEl.appendChild(row);
                     });
-
                 } catch (error) {
                     console.error("Asynchronous member search failed:", error);
                     resultsEl.innerHTML = '<div class="cc-results-placeholder" style="color:#dc2626;">Something went wrong.</div>';
@@ -642,26 +760,26 @@
             }, 300);
         }
 
-        function selectCandidate(candidateId, fullName, photoUrl) {
-            if (!currentPosition) return;
+        function selectCandidate(memberId, fullName, photoUrl) {
+            if (currentSlotDomId === null) return;
 
-            // Block if this member is already staged/assigned to a DIFFERENT position
-            const duplicatePosition = Object.keys(stagedAssignments).find(
-                pos => pos !== currentPosition && stagedAssignments[pos].candidateId === candidateId
+            const duplicateKey = Object.keys(stagedAssignments).find(
+                key => key !== currentSlotDomId && stagedAssignments[key].memberId === memberId
             );
 
-            if (duplicatePosition) {
-                showToast(`${fullName} is already assigned to ${duplicatePosition} for this party list.`, 'warning');
+            if (duplicateKey) {
+                showToast(`${fullName} is already assigned to another position for this party list.`, 'warning');
                 return;
             }
 
-            stagedAssignments[currentPosition] = {
-                candidateId,
-                fullName,
-                photoUrl
+            const existing = stagedAssignments[currentSlotDomId];
+            stagedAssignments[currentSlotDomId] = {
+                positionId: currentPositionId,
+                candidateId: existing ? existing.candidateId : null, // null = this is a brand-new chair
+                memberId, fullName, photoUrl
             };
 
-            const slot = document.getElementById(`slot-${currentPosition}`);
+            const slot = document.getElementById(currentSlotDomId);
             const nameEl = slot.querySelector('p.position-candidate-name');
             const avatarEl = slot.querySelector('.position-avatar');
 
@@ -673,21 +791,18 @@
                          style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
                 `;
             }
-
-            if (nameEl) {
-                nameEl.innerText = fullName;
-            }
-
+            if (nameEl) nameEl.innerText = fullName;
             slot.classList.add('filled');
 
-            showToast(`${fullName} staged for ${currentPosition}.`, 'success', 2000);
+            showToast(`${fullName} staged.`, 'success', 2000);
             closeChooseCandidateModal();
         }
 
         async function savePositions(partyListId) {
-            const assignments = Object.keys(stagedAssignments).map(position => ({
-                position: position,
-                candidateId: stagedAssignments[position].candidateId
+            const assignments = Object.values(stagedAssignments).map(a => ({
+                positionId: a.positionId,
+                memberId: a.memberId,
+                existingCandidateId: a.candidateId
             }));
 
             if (assignments.length === 0) {
@@ -697,7 +812,6 @@
 
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
             if (!tokenInput) {
-                console.error('Antiforgery token not found on page.');
                 showToast('Security token missing — please refresh the page and try again.', 'error');
                 return;
             }

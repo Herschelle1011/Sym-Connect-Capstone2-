@@ -1,4 +1,4 @@
-﻿using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+﻿using Sym_Connect__Capstone2_.ViewModels.Election;
 using System.ComponentModel.DataAnnotations;
 
 namespace Sym_Connect__Capstone2_.ViewModels.Election

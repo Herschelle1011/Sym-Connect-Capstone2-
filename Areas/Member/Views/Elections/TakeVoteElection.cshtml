@@ -44,26 +44,32 @@
 
                 <div class="ballot-slide" data-index="@i" style="display:@(i == 0 ? "block" : "none")">
                     <p class="text-muted text-center small mb-1">Position @(i + 1) of @ballot.Count</p>
-                    <h5 class="fw-bold text-center mb-4">@position.Position.ToString().ToUpper()</h5>
+                    <h5 class="fw-bold text-center mb-4">@position.positionName.ToString().ToUpper()</h5>
 
-                    <input type="hidden" asp-for="selectedVotes[i].position" value="@position.Position" />
+                    <input type="hidden" asp-for="selectedVotes[i].positionId" value="@position.PositionId" />
 
                     <div class="row g-4 justify-content-center">
-                        @foreach (var candidate in position.Candidates)
+                        @foreach (var ticket in position.Tickets)
                         {
                             <div class="col-auto text-center">
                                 <label class="candidate-option d-inline-block">
                                     <input type="radio"
                                            name="selectedVotes[@i].CandidateId"
-                                           value="@candidate.CandidateId"
+                                           value="@ticket.candidates[0].CandidateId"
+                                           data-partner-id="@(ticket.candidates.Count > 1 ? ticket.candidates[1].CandidateId.ToString() : "")"
                                            class="candidate-radio d-none" />
 
-                                    <img src="@candidate.PhotoUrl"
-                                         class="rounded-circle candidate-photo"
-                                         alt="@candidate.MemberName" />
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        @foreach (var member in ticket.candidates)
+                                        {
+                                            <img src="@member.PhotoUrl" class="rounded-circle candidate-photo" alt="@member.MemberName" />
+                                        }
+                                    </div>
 
-                                    <div class="fw-semibold mt-2">@candidate.MemberName</div>
-                                    <div class="text-muted small">@candidate.PartyName</div>
+                                    <div class="fw-semibold mt-2">
+                                        @string.Join(" & ", ticket.candidates.Select(m => m.MemberName))
+                                    </div>
+                                    <div class="text-muted small">@ticket.PartyListName</div>
                                 </label>
                             </div>
                         }

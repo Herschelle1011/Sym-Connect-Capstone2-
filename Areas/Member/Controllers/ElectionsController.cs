@@ -82,14 +82,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 return RedirectToAction(nameof(AlreadyVoted));
             }
 
-            // 2. Fetch the segmented candidates and group layout structures from service
             var positionsGroup = await _electionService.GetBallot(id);
             if (positionsGroup == null || positionsGroup.Count == 0)
             {
                 return NotFound("No candidates found or this election layout is unavailable.");
             }
 
-            // 3. Build and pre-allocate the ViewModel for index data binding matching inside the Razor View
             var viewModel = new TakeVoteViewModel
             {
                 electionId = id,
@@ -97,17 +95,15 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 selectedVotes = new List<SelectedCandidateViewModel>()
             };
 
-            // Pre-fill the array index paths so Razor can bind radio collections cleanly back to the server
             foreach (var positionGroup in positionsGroup)
             {
                 viewModel.selectedVotes.Add(new SelectedCandidateViewModel
                 {
-                    position = positionGroup.Position,
-                    CandidateId = 0 // Initial default state before selection
+                    positionId = positionGroup.PositionId,
+                    CandidateId = 0 
                 });
             }
 
-            // Keep a temporary visual representation available to render the HTML structure cards
             ViewBag.BallotLayout = positionsGroup;
 
             return View(viewModel);
@@ -129,19 +125,25 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             // 2. Clear out any unselected/blank lines if a user intentionally left radio fields empty
             model.selectedVotes.RemoveAll(v => v.CandidateId <= 0);
 
-            // 3. Fire the secure service execution method
             var result = await _electionService.CastVote(model);
 
-            if (result == VoteResult.AlreadyVoted)
+            switch (result)
             {
-                // Handle potential failures (e.g., Already Voted, Invalid Status, Tampered Candidates)
-                ModelState.AddModelError(string.Empty, "Unable to cast your ballot. You may have already voted, chosen multiple candidates for the same job, or select details have closed.");
-                ViewBag.BallotLayout = await _electionService.GetBallot(model.electionId);
-                return View(model);
+                case VoteResult.Success:
+                    return RedirectToAction(nameof(ThankYouForVoting));
+
+                case VoteResult.AlreadyVoted:
+                    ModelState.AddModelError(string.Empty, "You have already voted in this election.");
+                    ViewBag.BallotLayout = await _electionService.GetBallot(model.electionId);
+                    return View(model);
+
+                case VoteResult.InvalidSelection:
+                default:
+                    ModelState.AddModelError(string.Empty, "Something went wrong while submitting your ballot. Please try again.");
+                    ViewBag.BallotLayout = await _electionService.GetBallot(model.electionId);
+                    return View(model);
             }
 
-            // Successfully committed transaction! Redirect safely back to the dash dashboard
-            return RedirectToAction(nameof(ThankYouForVoting));
         }
 
         [HttpGet]

@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AspNetCoreGeneratedDocument;
+using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
-using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+using Sym_Connect__Capstone2_.ViewModels.PartyList;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 
@@ -67,8 +68,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             Candidates = p.candidates.Select(c => new CandidateViewModel
             {
                 CandidateId = c.CandidateId,
-                Positions = c.position,
-                PositionName = "",
+                PositionId = c.positionId,
+                PositionName = c.Position.PositionName,
                 FullName = c.Member.FirstName + " " + c.Member.LastName,
                 PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
                     ? "/images/default-avatar.png"
@@ -76,14 +77,67 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }).ToList()
         })
       .FirstOrDefaultAsync();
-
-            if (existingPartyList == null) return null;
-            foreach (var candidate in existingPartyList.Candidates)
-            {
-                candidate.PositionName = candidate.Positions.ToString();
-            }
             return existingPartyList;
         }
+
+
+        public async Task<GetPartyListPositionViewModel> GetPositionsForPartyListAsync(int partyListId)
+        {
+            var partyList = await _context.PartyLists.FindAsync(partyListId);
+
+            var positions = await _context.positions
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.DisplayOrder)
+                .ToListAsync();
+
+            var candidates = await _context.Candidates
+                .Where(c => c.PartyId == partyListId)
+                .Include(m => m.Member)
+                .ToListAsync();
+
+
+            var viewModel = new GetPartyListPositionViewModel
+            {
+                partyListId = partyList.PartyListId,
+                PartyListName = partyList.PartyName,
+                Positions = positions.Select(p =>
+                {
+
+                    var positionCandidates = candidates.Where(c => c.positionId == p.PositionId);
+
+                    var slots = positionCandidates.Select(c => new CandidateSlotDisplayViewModel
+                    {
+                        Candidate = new CandidateViewModel
+                        {
+                            CandidateId = c.CandidateId,
+                            PositionId = c.positionId,
+                            PositionName = p.PositionName,
+                            FullName = c.Member.FullName,
+                            MemberId = c.MemberId,
+                            PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
+                              ? "/images/default-avatar.png"
+                              : c.Member.ProfilePictureUrl
+                        }
+                    }).ToList();
+    
+                    while(slots.Count < p.MaxCandidates)
+                    {
+                        slots.Add(new CandidateSlotDisplayViewModel { Candidate = null });
+                    }
+                    return new PartyListPositionItemViewModel
+                    {
+                        positionId = p.PositionId,
+                        positionName = p.PositionName,
+                        DisplayOrder = p.DisplayOrder,
+                        maxCandidates = p.MaxCandidates,
+                        Slots = slots                   
+                    };
+                }).ToList()
+            };
+
+            return viewModel;
+        }
+
 
 
         public async Task AssignPartyListsToElectionAsync(int electionId, List<int> partyListIds)
@@ -128,45 +182,79 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             foreach (var assignment in model.Assignments)
             {
-                if (!Enum.TryParse<Positions>(assignment.Position, out var positionEnum))
-                    continue; // skip anything that doesn't match a valid enum name
 
-                var memberExists = await _context.Members.AnyAsync(m => m.MemberId == assignment.CandidateId);
+                var memberExists = await _context.Members.AnyAsync(m => m.MemberId == assignment.MemberId);
                 if (!memberExists) continue;
+
+                if (assignment.ExistingCandidateId.HasValue)
+                {
+                    var currentCandidate = await _context.Candidates
+                        .FirstOrDefaultAsync(c => c.CandidateId == assignment.ExistingCandidateId.Value);
+
+                    if (currentCandidate != null && currentCandidate.MemberId == assignment.MemberId)
+                    {
+                        continue; 
+                    }
+                }
+
 
                 var alreadyAssignedElsewhere = await _context.Candidates
                  .AnyAsync(c => c.PartyId == model.partyListId
-                     && c.MemberId == assignment.CandidateId
-                     && c.position != positionEnum);
+                     && c.MemberId == assignment.MemberId
+                     && c.positionId != assignment.PositionId);
+
+                var alreadyInThisPosition = await _context.Candidates
+                .AnyAsync(c => c.PartyId == model.partyListId
+                    && c.positionId == assignment.PositionId
+                    && c.MemberId == assignment.MemberId);
+
+                if (alreadyInThisPosition)
+                {
+                    Result.Success = false;
+                    if(!Result.Errors.Contains("This member is already assigned to this position."))
+                    Result.Errors.Add("This member is already assigned to this position.");
+                    continue;
+                }
+
+
 
                 if (alreadyAssignedElsewhere)
                 {
                     Result.Success = false;
+                    if (!Result.Errors.Contains("This member is already assigned to this position."))
                     Result.Errors.Add($"This member is already assigned to another position in this party list.");
-                    continue; // skip this assignment, keep processing the rest
+                    continue; 
                 }
 
-
-                var existingCandidate = await _context.Candidates
-                    .FirstOrDefaultAsync(c => c.PartyId == model.partyListId && c.position == positionEnum);
-
-
-
-                if (existingCandidate != null)
+                if (assignment.ExistingCandidateId.HasValue)
                 {
-                    existingCandidate.MemberId = assignment.CandidateId;
+                    var existingCandidate = await _context.Candidates
+                        .FirstOrDefaultAsync(c => c.PartyId == model.partyListId && c.positionId == assignment.PositionId);
+
+                    if (existingCandidate != null) existingCandidate.MemberId = assignment.MemberId;
                 }
                 else
                 {
+                    var position = await _context.positions.FindAsync(assignment.PositionId);
+
+                    var existingCount = await _context.Candidates.Where(c => c.PartyId == model.partyListId && c.positionId == assignment.PositionId).CountAsync();
+
+                    if (existingCount >= position.MaxCandidates)
+                    {
+                        Result.Success = false;
+                        Result.Errors.Add($"{position.PositionName} is already full.");
+                        continue;
+                    }
+
                     _context.Candidates.Add(new Candidates
                     {
                         PartyId = model.partyListId,
-                        position = positionEnum,
-                        MemberId = assignment.CandidateId
-                    });
-                }
-            }
+                        positionId = assignment.PositionId,
+                        MemberId = assignment.MemberId
 
+                    });
+                }            
+            }
             if (Result.Success)
             {
                 await _context.SaveChangesAsync();
@@ -185,7 +273,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var newCandidate = new Candidates
             {
                 PartyId = vm.partyListId,
-                position = vm.position,
+                positionId = vm.positionId,
                 MemberId = vm.memberId
             };
             _context.Candidates.Add(newCandidate);

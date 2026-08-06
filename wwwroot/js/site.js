@@ -57,3 +57,24 @@ document.addEventListener("submit", async function (e) {
         form.dataset.submitting = "false";
     }
 });
+
+
+// ── Position status toggle (instant AJAX, no modal) ──
+document.addEventListener("change", function (e) {
+    if (!e.target.classList.contains("toggle-status")) return;
+
+    const id = e.target.dataset.positionId;
+    const isActive = e.target.checked;
+
+    fetch("/Position/ToggleStatus", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `id=${id}&isActive=${isActive}`
+    })
+        .then(res => res.json())
+        .then(result => {
+            if (!result.success) {
+                e.target.checked = !isActive; // revert on failure
+            }
+        });
+});

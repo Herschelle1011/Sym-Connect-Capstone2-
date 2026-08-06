@@ -1,6 +1,6 @@
 ﻿using Sym_Connect__Capstone2_.Models.Enums;
 
-namespace Sym_Connect__Capstone2_.ViewModels.Election.PartyList
+namespace Sym_Connect__Capstone2_.ViewModels.PartyList
 {
     public class PartyListDetailsViewModel
     {

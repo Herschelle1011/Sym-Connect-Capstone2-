@@ -4,7 +4,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels
 {
     public class SelectedCandidateViewModel
     {
-        public Positions position { get; set; }
+        public int positionId { get; set; }
         public int CandidateId { get; set; }
+        public int? CandidateId2 { get; set; } 
     }
 }

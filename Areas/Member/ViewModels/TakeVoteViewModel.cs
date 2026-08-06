@@ -7,7 +7,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels
         public string memberId { get; set; }
 
         public int electionId { get; set; }
-        public Positions position { get; set; }
+        public int positionId { get; set; }
         public int candidateId { get; set; }
 
         public List<SelectedCandidateViewModel> selectedVotes { get; set; } = new List<SelectedCandidateViewModel>();

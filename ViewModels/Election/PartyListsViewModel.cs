@@ -1,5 +1,5 @@
 ﻿using Sym_Connect__Capstone2_.Models.ElectionModels;
-using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+using Sym_Connect__Capstone2_.ViewModels.PartyList;
 
 namespace Sym_Connect__Capstone2_.ViewModels.Election
 {

@@ -28,7 +28,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Election
 
     public class PositionResultViewModel
     {
-        public Positions Position { get; set; }         // President, VP, etc.
+        public int positionId { get; set; }         // President, VP, etc.
         public List<CandidateResultViewModel> Candidates { get; set; } = new();
     }
 

@@ -4,7 +4,7 @@ using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
-using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+using Sym_Connect__Capstone2_.ViewModels.PartyList;
 
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -16,6 +16,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public ElectionService(AppDbContext context)
         {
             _context = context;
+        
         }
 
         public async Task<List<ElectionListViewModel>> GetAllElectionListAsync()
@@ -62,7 +63,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                         candidates = p.candidates.Select(c => new CandidateViewModel
                                         {
                                             CandidateId = c.CandidateId,
-                                            Positions = c.position,
+                                            PositionId = c.positionId,
                                             PositionName = "",
                                             FullName = c.Member.FullName,
                                         }).ToList()
@@ -74,7 +75,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 foreach (var candidate in party.candidates)
                 {
-                    candidate.PositionName = candidate.Positions.ToString();
+                    candidate.PositionName = candidate.PositionName;
                 }
             }
 
@@ -86,7 +87,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             electionData.TotalCandidates = electionData.partyLists.Sum(p => p.candidates.Count);
             electionData.TotalPositions = electionData.partyLists
                 .SelectMany(p => p.candidates)
-                .Select(c => c.Positions)
+                .Select(c => c.PositionId)
                 .Distinct()
                 .Count();
             electionData.TotalVotes = await _context.Votes.CountAsync(v => v.ElectionId == id);
@@ -185,7 +186,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     _context.Candidates.Add(new Candidates
                     {
                         PartyId = assignment.PartyListId,
-                        position = slot.Positions,
+                        positionId = slot.PositionId,
                         MemberId = slot.MemberId.Value
                     });
                 }
@@ -211,11 +212,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var eligibleVoters = await _context.Members.CountAsync(m => m.Status == "Active");
 
 
-            var positions = votes.GroupBy(v => v.Position)
+            var positions = votes.GroupBy(v => v.positionId)
                                      .OrderBy(g => (int)g.Key)
                                 .Select(g => new PositionResultViewModel
                                 {
-                                    Position = g.Key,
+                                    positionId = g.Key,
                                     Candidates = g.GroupBy(v => v.CandidateId)
                                     .Select(cg => new CandidateResultViewModel
                                     {

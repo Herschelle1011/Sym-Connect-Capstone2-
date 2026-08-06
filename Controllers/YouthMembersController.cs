@@ -12,6 +12,7 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
+   
     public class YouthMembersController : Controller
     {
         private readonly IMemberService _memberService;

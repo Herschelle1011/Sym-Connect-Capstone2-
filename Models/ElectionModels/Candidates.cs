@@ -10,7 +10,7 @@ namespace Sym_Connect__Capstone2_.Models.ElectionModels
         [Key]
         public int CandidateId { get; set; }
 
-        public Positions position { get; set; }
+        public int positionId { get; set; }
 
         public int MemberId { get; set; }
         public int PartyId { get; set; }
@@ -22,6 +22,9 @@ namespace Sym_Connect__Capstone2_.Models.ElectionModels
 
         [ForeignKey(nameof(PartyId))]
         public PartyList PartyList { get; set; }
+
+        [ForeignKey(nameof(positionId))]
+        public Position? Position { get; set; }
 
 
     }

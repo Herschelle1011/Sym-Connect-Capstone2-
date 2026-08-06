@@ -1,0 +1,34 @@
+﻿@model EditPositionViewModel
+
+<form class="modal-ajax-form" asp-controller="Position" asp-action="Edit" method="post">
+    <input type="hidden" asp-for="positionId" />
+
+    <div class="mb-3">
+        <label class="form-label">Position Name</label>
+        <input asp-for="PositionName" class="form-control" />
+        <span asp-validation-for="PositionName" class="text-danger small"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control" rows="2"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Display Order</label>
+        <input asp-for="DisplayOrder" type="number" class="form-control" min="1" />
+        <span asp-validation-for="DisplayOrder" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Max Candidates</label>
+        <select asp-for="MaxCandidate" class="form-select">
+            <option value="1">1 (standard position)</option>
+            <option value="2">2 (allows a pair, e.g. PIO + partner)</option>
+        </select>
+        <div class="form-text">Most positions should stay at 1.</div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </div>
+</form>

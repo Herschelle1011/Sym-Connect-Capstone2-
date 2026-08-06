@@ -8,6 +8,9 @@ using Sym_Connect__Capstone2_.Seed;
 using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Swashbuckle.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+
 
 
 
@@ -67,6 +70,7 @@ builder.Services.AddScoped<IGroupService, GroupService>(); //for groups
 builder.Services.AddScoped<IMemberService, MemberService>(); // for members
 builder.Services.AddScoped<IFacilityService, FacilityService>(); // for facility
 builder.Services.AddScoped<IEventService, EventService>(); // for evaluation
+builder.Services.AddScoped<IPositionService, PositionService>(); // for evaluation
 
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IEvaluationService,
@@ -94,7 +98,21 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+//api for swagger
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
 var app = builder.Build();
+
+//api for swagger
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(); // This generates the webpage layout
+}
 
 
 

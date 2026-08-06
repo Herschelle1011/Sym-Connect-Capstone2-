@@ -1,16 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
-using Sym_Connect__Capstone2_.ViewModels.Election.PartyList;
+using Sym_Connect__Capstone2_.ViewModels.PartyList;
 using System.Threading.Tasks;
+
 
 public class PartyListsController : Controller
 {
     private readonly IPartyListService _partyListService;
+    private readonly IPositionService _positionService;
 
-    public PartyListsController(IPartyListService partyListService)
+    public PartyListsController(IPartyListService partyListService, IPositionService positionService)
     {
         _partyListService = partyListService;
+        _positionService = positionService;
     }
 
     // GET: PARTYLISTS
@@ -20,13 +23,20 @@ public class PartyListsController : Controller
         return View(partyLists);
     }
 
+    public async Task<IActionResult> Position()
+    {
+        var positions = _positionService.GetPositionListViewModels();
+        return View(positions);
+    }
+
+
     // GET: PARTYLISTS/Details/5
     // FIX: Changed 'partylistid' to 'id' so it matches the view's routing output
-    public async Task<IActionResult> Details(int? id)
+    public async Task<IActionResult> Details(int id)
     {
         if (id == null) return NotFound();
 
-        var partyList = await _partyListService.GetPartyListByIdAsync(id.Value);
+        var partyList = await _partyListService.GetPositionsForPartyListAsync(id);
         if (partyList == null) return NotFound();
 
         return View(partyList);
@@ -107,7 +117,6 @@ public class PartyListsController : Controller
         return Json(new { success = true });
     }
     // GET: PARTYLISTS/ManageCandidates/5
-    // FIX: Changed 'partylistid' to 'id'
     public async Task<IActionResult> ManageCandidates(int id)
     {
         var partyList = await _partyListService.GetPartyListByIdAsync(id);
@@ -127,6 +136,11 @@ public class PartyListsController : Controller
         }
 
         var result = await _partyListService.AddOrUpdateCandidatesAsync(model);
+
+        if (!ModelState.IsValid)
+        {
+            return Json(new { success = false, message = "Invalid Submission." });
+        }
 
         if (!result.Success)
         {

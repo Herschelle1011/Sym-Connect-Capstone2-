@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sym_Connect__Capstone2_.ViewModels.Election.PartyList
+namespace Sym_Connect__Capstone2_.ViewModels.PartyList
 {
     public class BulkAddCandidatesViewModel
     {
@@ -11,9 +11,11 @@ namespace Sym_Connect__Capstone2_.ViewModels.Election.PartyList
     public class CandidateAssignmentItem
     {
         [Required]
-        public string Position { get; set; }
+        public int PositionId { get; set; }
 
         [Required]
-        public int CandidateId { get; set; }
+        public int MemberId { get; set; }
+
+        public int? ExistingCandidateId { get; set; }
     }
 }

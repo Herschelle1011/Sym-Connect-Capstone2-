@@ -204,7 +204,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("PartyId")
                         .HasColumnType("int");
 
-                    b.Property<int>("position")
+                    b.Property<int>("positionId")
                         .HasColumnType("int");
 
                     b.HasKey("CandidateId");
@@ -212,6 +212,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.HasIndex("MemberId");
 
                     b.HasIndex("PartyId");
+
+                    b.HasIndex("positionId");
 
                     b.ToTable("Candidates");
                 });
@@ -303,12 +305,12 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("ElectionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Position")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("positionId")
+                        .HasColumnType("int");
 
                     b.HasKey("VoteId");
 
@@ -316,7 +318,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasIndex("ElectionId");
 
-                    b.HasIndex("UserId", "ElectionId", "Position")
+                    b.HasIndex("positionId");
+
+                    b.HasIndex("UserId", "ElectionId", "positionId")
                         .IsUnique();
 
                     b.ToTable("Votes");
@@ -745,6 +749,37 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("Members");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Position", b =>
+                {
+                    b.Property<int>("PositionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PositionId"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxCandidates")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PositionName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("PositionId");
+
+                    b.ToTable("positions");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.User", b =>
                 {
                     b.Property<string>("Id")
@@ -976,9 +1011,17 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Position", "Position")
+                        .WithMany()
+                        .HasForeignKey("positionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Member");
 
                     b.Navigation("PartyList");
+
+                    b.Navigation("Position");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.PartyList", b =>
@@ -995,13 +1038,13 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.HasOne("Sym_Connect__Capstone2_.Models.ElectionModels.Candidates", "Candidate")
                         .WithMany()
                         .HasForeignKey("CandidateId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.ElectionModels.Election", "Election")
                         .WithMany()
                         .HasForeignKey("ElectionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
@@ -1010,9 +1053,17 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Position", "Position")
+                        .WithMany()
+                        .HasForeignKey("positionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Candidate");
 
                     b.Navigation("Election");
+
+                    b.Navigation("Position");
 
                     b.Navigation("User");
                 });

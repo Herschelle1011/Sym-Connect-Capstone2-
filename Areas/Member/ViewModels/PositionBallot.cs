@@ -4,7 +4,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels
 {
     public class PositionBallot
     {
-       public Positions Position { get; set; }
-        public List<CandidateOption> Candidates { get; set; } = new();
+       public int PositionId { get; set; }
+        public string positionName { get; set; } = string.Empty;
+        public List<CandidateTicketViewModel> Tickets { get; set; } = new();
     }
 }
