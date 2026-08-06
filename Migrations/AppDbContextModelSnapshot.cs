@@ -740,11 +740,21 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("QRToken")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("MemberId");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Members");
                 });
@@ -862,63 +872,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.YouthActivity", b =>
-                {
-                    b.Property<int>("ActivityId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityId"));
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("time");
-
-                    b.Property<int?>("FacilityId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PointsAwarded")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ScheduleDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("time");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SubmittedById")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("ActivityId");
-
-                    b.HasIndex("FacilityId");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("SubmittedById");
-
-                    b.ToTable("Activities");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1209,25 +1162,13 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("Member");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.YouthActivity", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>
                 {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.Facility", "Facility")
-                        .WithMany()
-                        .HasForeignKey("FacilityId");
+                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
+                        .WithOne("Member")
+                        .HasForeignKey("Sym_Connect__Capstone2_.Models.Member", "UserId");
 
-                    b.HasOne("Sym_Connect__Capstone2_.Models.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId");
-
-                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "SubmittedBy")
-                        .WithMany()
-                        .HasForeignKey("SubmittedById");
-
-                    b.Navigation("Facility");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("SubmittedBy");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.ElectionModels.Election", b =>
@@ -1277,6 +1218,11 @@ namespace Sym_Connect__Capstone2_.Migrations
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>
                 {
                     b.Navigation("GroupDetails");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.User", b =>
+                {
+                    b.Navigation("Member");
                 });
 #pragma warning restore 612, 618
         }

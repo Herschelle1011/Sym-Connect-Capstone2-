@@ -20,9 +20,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public TimeSpan? EndTime { get; set; }
 
         public DateTime DateCreated { get; set; }
-
-        public bool IsArchived { get; set; }
-
         public string CreatedBy { get; set; } = string.Empty;
 
         // Facility
@@ -49,30 +46,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public bool HasAttendance => AttendanceCount > 0;
     }
 
-    public class ExpectedGroupCardVM
-    {
-        public int GroupId { get; set; }
 
-        public string GroupName { get; set; } = string.Empty;
-
-        public int MemberCount { get; set; }
-    }
-
-    public class FacilityPhotoVM
-    {
-        public int FacilityPhotoId { get; set; }
-
-        public string PhotoUrl { get; set; } = string.Empty;
-
-        public int FacilityId { get; set; }
 
  
-    }
-
-    public class ScheduleTimelineVM
-    {
-        public string Time { get; set; } = string.Empty;
-
-        public string Description { get; set; } = string.Empty;
-    }
+    
 }

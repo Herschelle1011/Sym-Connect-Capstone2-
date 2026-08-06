@@ -1,0 +1,215 @@
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile.ProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "_MemberLayout";
+
+    var initials = $"{Model.FirstName.FirstOrDefault()}{Model.LastName.FirstOrDefault()}".ToUpper();
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .profile-page, .profile-page * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .profile-page {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 1.5rem 0;
+    }
+
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 1.5rem;
+    }
+
+    .profile-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #EEF4FF;
+        color: #3860D6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 16px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .profile-name {
+        font-weight: 600;
+        font-size: 17px;
+        color: #1a1f2b;
+        margin: 0;
+    }
+
+    .profile-subtext {
+        font-size: 13px;
+        color: #7b8397;
+        margin: 0;
+    }
+
+    .info-card {
+        background: #fff;
+        border: 1px solid #eef0f5;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 12px;
+    }
+
+    .info-card-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #1a1f2b;
+        margin-bottom: 10px;
+    }
+
+    .info-table {
+        width: 100%;
+        font-size: 13px;
+        border-collapse: collapse;
+    }
+
+        .info-table td {
+            padding: 6px 0;
+            border-bottom: 1px solid #f5f6fa;
+        }
+
+        .info-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #7b8397;
+    }
+
+    .info-value {
+        text-align: right;
+        color: #1a1f2b;
+        font-weight: 500;
+    }
+
+    .qr-card {
+        background: #fff;
+        border: 1px solid #eef0f5;
+        border-radius: 12px;
+        padding: 1.25rem;
+        text-align: center;
+    }
+
+    .qr-card-heading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+        .qr-card-heading p {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a1f2b;
+            margin: 0;
+        }
+
+    .qr-image-box {
+        width: 160px;
+        height: 160px;
+        margin: 0 auto 12px;
+        background: #fbfbfd;
+        border: 1px solid #eef0f5;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .qr-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+    .qr-caption {
+        font-size: 12px;
+        color: #9aa3b8;
+        margin: 0 0 12px;
+    }
+
+    .btn-download-qr {
+        width: 100%;
+        background: #0d6efd;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        font-size: 13.5px;
+        border-radius: 999px;
+        padding: 10px 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: background .15s;
+    }
+
+        .btn-download-qr:hover {
+            background: #0b5ed7;
+            color: #fff;
+        }
+</style>
+
+<div class="profile-page">
+
+    <div class="profile-header">
+        @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+        {
+            <img src="@Model.PhotoUrl" alt="@Model.FirstName @Model.LastName" class="profile-avatar" />
+        }
+        else
+        {
+            <div class="profile-avatar">@initials</div>
+        }
+        <div>
+            <p class="profile-name">@Model.FirstName @Model.LastName</p>
+            <p class="profile-subtext">Member</p>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-title">Personal information</div>
+        <table class="info-table">
+            <tr>
+                <td class="info-label">Address</td>
+                <td class="info-value">@Model.Address</td>
+            </tr>
+            <tr>
+                <td class="info-label">Contact number</td>
+                <td class="info-value">@Model.ContactNumber</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="qr-card">
+        <div class="qr-card-heading">
+            <i class="ti ti-qrcode"></i>
+            <p>My QR code</p>
+        </div>
+        <div class="qr-image-box">
+            <img id="qrImage" src="@Url.Action("MyQrCode", "Profile", new { area = "Member" })" alt="My QR Code" />
+        </div>
+        <p class="qr-caption">Show this at events to check in</p>
+        <a id="qrDownloadLink" href="@Url.Action("MyQrCode", "Profile", new { area = "Member" })" download="my-qr-code.png" class="btn-download-qr">
+            <i class="ti ti-download"></i> Download QR code
+        </a>
+    </div>
+
+</div>

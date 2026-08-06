@@ -1,4 +1,4 @@
-﻿using Sym_Connect__Capstone2_.Areas.Member.ViewModels;
+﻿using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Election;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 

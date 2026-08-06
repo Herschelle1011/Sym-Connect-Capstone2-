@@ -1,4 +1,4 @@
-﻿namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels
+﻿namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Election
 {
     public class CandidateTicketViewModel
     {

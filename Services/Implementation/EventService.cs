@@ -32,38 +32,74 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                 }).ToListAsync();                              
         }
 
-
-        public async Task<Event?> GetEventByIdAsync(int id)
+        public async Task<DetailsEventViewModel?> GetDetailsByAsync(int? id)
         {
-            return await _context.Events.
-                Include(f => f.Facility)
-                    .ThenInclude(fp => fp.FacilityPhotos)
-                .Include(u => u.CreatedByUser)
-                .Include(eg => eg.ExpectedGroups)
-                    .ThenInclude(g => g.Group)
-                        .ThenInclude(gd => gd.GroupDetails)
-                            .ThenInclude(m => m.Member)
-                .Include(e => e.Evaluations)
-                .Include( a => a.Attendances).
-                         ThenInclude(m => m.Member).
-                    FirstOrDefaultAsync(e => e.EventId == id && e.IsArchived == false);
-        }
-
-
-        public async Task<DetailsEventViewModel?> GetDetailsByAsync(int id)
-        {
-
+            if (id == null) return null;
             var existingEvent = await _context.Events
-                .Include(f => f.Facility)
-                    .ThenInclude(photo => photo.FacilityPhotos)
-                    .Include(eg => eg.ExpectedGroups)
-                        .ThenInclude(g => g.Group)
-                            .ThenInclude(gd => gd.GroupDetails)
-                                .ThenInclude(m => m.Member)
-                           .Include(ev => ev.Evaluations)
-                           .Include(u => u.CreatedByUser)
-                .FirstOrDefaultAsync(e => e.EventId == id);
+                .Where(e => e.EventId == id && e.IsArchived == false)
+                .Select(e => new DetailsEventViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    EventDescription = e.EventDescription,
+                    Status = e.Status,
+                    IsAllDay = e.IsAllDay,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    DateCreated = e.DateCreated,
+                    CreatedBy = e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName,
+                    FacilityId = e.FacilityId,
+                    FacilityName = e.Facility.FacilityName,
+                    FacilityDescription = e.Facility.FacilityDescription,
+                    FacilityCapacity = e.Facility.Capacity,
+
+                    FacilityPhotos = e.Facility.FacilityPhotos.Select(f => new FacilityPhotoVM
+                    {
+                        FacilityPhotoId = f.FacilityPhotoId,
+                        PhotoUrl = f.PhotoUrl,
+                        FacilityId = f.FacilityId
+                    }).ToList(),
+
+
+                    ExpectedGroups = e.ExpectedGroups.Select(g => new ExpectedGroupCardVM
+                    {
+                        GroupId = g.GroupId,
+                        GroupName = g.Group.GroupName,
+                        MemberCount = g.Group.GroupDetails.Count()
+                    }).ToList(), 
+                    
+                    ScheduleTimeline = new List<ScheduleTimelineVM>()
+
+                }).FirstOrDefaultAsync();
             if (existingEvent == null) return null;
+
+
+            if (existingEvent.StartTime.HasValue && existingEvent.EndTime.HasValue)
+            {
+                var QrOpenTime = existingEvent.StartTime.Value.Add(TimeSpan.FromHours(-1));
+
+                existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
+                {
+                    Time = DateTime.Today.Add(QrOpenTime).ToString("h:mm tt"),
+                    Description = "QR Scanner Opens"
+                });
+
+
+                existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
+                {
+                    Time = DateTime.Today.Add(existingEvent.StartTime.Value).ToString("h:mm tt"),
+                    Description = "Event Starts"
+                });
+
+                existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
+                {
+                    Time = DateTime.Today.Add(existingEvent.EndTime.Value).ToString("h:mm tt"),
+                    Description = "Event ends"
+                });
+
+            }
 
             var startDate = existingEvent.StartDate.Date + (existingEvent.StartTime ?? TimeSpan.Zero);
             var endDate = existingEvent.EndDate.Date + (existingEvent.EndTime ?? TimeSpan.Zero);
@@ -83,41 +119,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 status = EventStatus.Completed;
             }
+            existingEvent.Status = status;
 
-            return new DetailsEventViewModel
-            {
-                EventId = existingEvent.EventId,
-                EventTitle = existingEvent.EventTitle,
-                EventDescription = existingEvent.EventDescription,
-                StartDate = existingEvent.StartDate,
-                EndDate = existingEvent.EndDate,
-                 Status = status,
-                EndTime = existingEvent.EndTime,         
-                FacilityId = existingEvent.FacilityId,
-                IsAllDay = existingEvent.IsAllDay,
-                FacilityName = existingEvent.Facility.FacilityName,
-                FacilityCapacity = existingEvent.Facility.Capacity,
-                FacilityDescription = existingEvent.Facility.FacilityDescription,
-                FacilityType = existingEvent.Facility.FacilityTypes,  
-                CreatedBy = existingEvent.CreatedByUserId ?? "N/A",
-                DateCreated = existingEvent.DateCreated, 
-                FacilityPhotos = existingEvent.Facility.FacilityPhotos.Select(photo => new FacilityPhotoVM
-                {
-                    FacilityPhotoId = photo.FacilityPhotoId,
-                    FacilityId = photo.FacilityId,
-                    PhotoUrl = photo.PhotoUrl
-                }).ToList(),
-
-                ExpectedGroups = existingEvent.ExpectedGroups.Select(eg => new ExpectedGroupCardVM
-                {
-                    GroupId = eg.GroupId,
-                    GroupName = eg.Group.GroupName,
-                    MemberCount = eg.Group.GroupDetails.Count
-                }).ToList(),
-                
-                
-
-            };
+            return existingEvent;            
         }
         public async Task<bool> CreateEventAsync(CreateEventViewModel vm)
         {
@@ -221,6 +225,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
              
                 .FirstOrDefaultAsync(e => e.EventId == id);
             if (existingEvent == null) return null;
+
             return new EditEventViewModel
             {
                 EventTitle = existingEvent.EventTitle,

@@ -1,6 +1,6 @@
 ﻿using Sym_Connect__Capstone2_.Models.Enums;
 
-namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels
+namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation
 {
     public class AnswerInputViewModel
     {

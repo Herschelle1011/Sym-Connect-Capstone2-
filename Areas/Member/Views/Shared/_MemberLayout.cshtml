@@ -46,8 +46,8 @@
                 <span class="nav-tooltip">Notifications</span>
             </a>
 
-            <a asp-controller="Home" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+            <a asp-controller="Dashboard" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
                 <i class="bi bi-grid"></i>
                 <span class="nav-label">Dashboard</span>
                 <span class="nav-tooltip">Dashboard</span>
@@ -62,16 +62,23 @@
 
             <a asp-controller="Evaluation" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluation" ? "active" : "")">
-                <i class="bi bi-star-half"></i>
-                <span class="nav-label">Evaluations</span>
+              <i class="bi bi-star-half"></i>               
+               <span class="nav-label">Evaluations</span>
                 <span class="nav-tooltip">Evaluations</span>
             </a>
 
             <a asp-controller="Elections" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Elections" ? "active" : "")">
-                <i class="bi bi-star-half"></i>
+                <i class="bi bi-hand-index-thumb"></i>
                 <span class="nav-label">Elections</span>
                 <span class="nav-tooltip">Elections</span>
+            </a>
+
+            <a asp-controller="Calendar" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Calendar" ? "active" : "")">
+                <i class="bi bi-calendar-event"></i>
+                <span class="nav-label">Calendar</span>
+                <span class="nav-tooltip">Calendar</span>
             </a>
 
         </div>
@@ -83,6 +90,13 @@
                 <i class="bi bi-person-circle"></i>
                 <span class="nav-label">Profile</span>
                 <span class="nav-tooltip">Profile</span>
+            </a>
+
+            <a asp-controller="Points" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Points" ? "active" : "")">
+                <i class="bi bi-person-check"></i>
+                <span class="nav-label">Points</span>
+                <span class="nav-tooltip">Points</span>
             </a>
 
             <a asp-controller="Help" asp-action="Index"

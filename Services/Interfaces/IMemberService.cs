@@ -5,12 +5,14 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
     public interface IMemberService
     {
-        Task<List<Member>> GetAllMembersAsync();
-        Task<Member?> GetMemberByIdAsync(int id);
+        Task<List<MemberListViewModel>> GetAllMembersAsync();
+         Task<Member?> GetMemberByIdAsync(int id);
         Task<bool> CreateMember(MembersCreateViewModel vm, IFormFile? photo);
         Task UpdateMemberAsync(MembersEditViewModel vm, IFormFile? photo);
          Task DeleteMemberAsync(int id);
         Task<bool> MemberExists(int id);
+
+        Task<string> GetOrCreateQrTokenAsync(int memberId);
 
         //LOAD ALL Members dropDown
         Task<List<Member>> GetMemberOptionsAsync(int groupId);

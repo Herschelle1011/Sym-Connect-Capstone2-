@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -19,11 +20,51 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _cloudinary = cloudinary;
         }
 
-        public async Task<List<Member>> GetAllMembersAsync()
+        //---- QR TOKEN PART ==== 
+
+
+        public async Task<string> GetOrCreateQrTokenAsync(int memberId)
         {
-            return await _context.Members
-                .Include(gd => gd.GroupDetails)             
-                .ThenInclude(g => g.Group).ToListAsync();
+            var member = await _context.Members.FindAsync(memberId);
+            if(member == null) throw new InvalidOperationException("Member not found.");
+
+            //IF QR token is empty
+            //convert to GUID -----
+            if (string.IsNullOrEmpty(member.QRToken))
+            {
+                member.QRToken = Guid.NewGuid().ToString();
+                await _context.SaveChangesAsync();
+            }
+
+            //return if already have QRToken
+            return member.QRToken;
+        }
+
+
+        public async Task<List<MemberListViewModel>> GetAllMembersAsync()
+        {
+            return await _context.Members.Select(m => new MemberListViewModel
+            {
+                MemberId = m.MemberId,
+                FirstName = m.FirstName,
+                MiddleName = m.MiddleName ?? "",
+                LastName = m.LastName,
+                Email = m.Email,
+                ContactNumber = m.ContactNumber,
+                Address = m.Address,
+                BirthDate = m.BirthDate,
+                Gender = m.Gender,
+                Status = m.Status,
+                DateRegistered = m.DateRegistered,
+                GroupDetails = m.GroupDetails.Select(gd => new MemberGroupDetailsViewModel
+                {
+                    GroupDetailsId = gd.GroupDetailsId,
+                    GroupId = gd.GroupId,
+                    MemberId = gd.MemberId,
+                    GroupName = gd.Group.GroupName ?? "",
+                   
+                }).ToList()
+            }).ToListAsync();         
         }
 
         public async Task <Member?> GetMemberByIdAsync(int id)

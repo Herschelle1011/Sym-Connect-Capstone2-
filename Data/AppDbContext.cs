@@ -17,8 +17,6 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<Member> Members { get; set; }
         public DbSet<GroupDetails> GroupDetails { get; set; }
 
-        public DbSet<YouthActivity> Activities { get; set; }
-
         public DbSet<Facility> Facilities { get; set; }
         public DbSet<FacilityPhoto> FacilityPhotos { get; set; }
 
@@ -98,6 +96,14 @@ namespace Sym_Connect__Capstone2_.Data
             modelBuilder.Entity<Vote>()
                 .HasIndex(v => new { v.UserId, v.ElectionId, v.positionId })
                 .IsUnique();
+
+
+            modelBuilder.Entity<Member>()
+            .HasOne(m => m.User)
+            .WithOne(u => u.Member)
+            .HasForeignKey<Member>(m => m.UserId)
+            .IsRequired(false) // allows null UserId
+            .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Vote>()
                 .HasOne(v => v.Position)

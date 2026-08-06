@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
-using Sym_Connect__Capstone2_.Areas.Member.ViewModels;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {

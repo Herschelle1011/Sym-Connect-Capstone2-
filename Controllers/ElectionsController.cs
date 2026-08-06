@@ -133,12 +133,6 @@ public class ElectionsController : Controller
         return Json(new { success = true });
     }
 
-
-
-
-
-
-
     // GET: ELECTIONS/Delete/5
     public async Task<IActionResult> Delete(int? id)
     {

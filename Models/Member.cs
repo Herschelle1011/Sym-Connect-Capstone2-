@@ -8,6 +8,15 @@ namespace Sym_Connect__Capstone2_.Models
         [Key]
         public int MemberId { get; set; }
 
+
+
+        public string? QRToken { get; set; }
+
+        //temporary only
+
+        public string? UserId { get; set; }
+        public User? User { get; set; }
+
         [Required]
         public string FirstName { get; set; } = string.Empty;
         public string? MiddleName { get; set; } = string.Empty;

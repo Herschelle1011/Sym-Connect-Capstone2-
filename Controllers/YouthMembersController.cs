@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.ViewModels.Member;
-using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Member;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection.Emit;
+using System.Threading.Tasks;
+using QRCoder;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
@@ -26,24 +28,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         public async Task<IActionResult> Index()
         {
             var members = await _memberService.GetAllMembersAsync();
-
-            var viewModel = members.Select(member => new MemberListViewModel
-            {
-                MemberId = member.MemberId,
-                Email = member.Email,
-                FirstName = member.FirstName,
-                MiddleName = member.MiddleName,
-                LastName = member.LastName,
-                Status = member.Status,
-                Address = member.Address,
-                BirthDate = member.BirthDate,
-                ContactNumber = member.ContactNumber,
-                Gender = member.Gender,
-                DateRegistered = member.DateRegistered,
-                GroupDetails = member.GroupDetails
-            }).ToList();
-
-            return View(viewModel);
+            return View(members);
         }
         // GET: YouthMembers/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -105,6 +90,19 @@ namespace Sym_Connect__Capstone2_.Controllers
             }
             return RedirectToAction("Index");
         }
+
+        //GET QR GENERATOR
+
+        public async Task<IActionResult> ViewQrCode(int memberId)
+        {
+            var token = await _memberService.GetOrCreateQrTokenAsync(memberId);
+            var qrGenerator = new QRCodeGenerator();
+            using var qrData = qrGenerator.CreateQrCode(token, QRCoder.QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new QRCoder.PngByteQRCode(qrData);
+            byte[] qrImageBytes = qrCode.GetGraphic(20); 
+            return File(qrImageBytes, "image/png");
+        }
+
 
         // GET: YouthMembers/Edit/5
         public async Task<IActionResult> Edit(int? id, IFormFile? photo)

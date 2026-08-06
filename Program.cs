@@ -89,6 +89,9 @@ builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfa
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IEvaluationService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.EvaluationService>();
 
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IProfileService,
+                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ProfileService>();
+
 builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

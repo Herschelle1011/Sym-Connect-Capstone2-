@@ -15,6 +15,8 @@ namespace Sym_Connect__Capstone2_.Models
 
         public string? ProfilePictureUrl { get; set; } 
 
+        public Member? Member { get; set; }
+
         public DateTime DateRegistered { get; set; } = DateTime.Now;    
 
         //public YouthMember? GroupMember { get; set; }

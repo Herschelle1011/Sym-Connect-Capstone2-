@@ -213,6 +213,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var distinctVoters = votes.Select(v => v.UserId).Distinct().Count();
             var eligibleVoters = await _context.Members.CountAsync(m => m.Status == "Active");
+            var positionNames = await _context.positions
+                   .ToDictionaryAsync(p => p.PositionId, p => p.PositionName);
+
 
 
             var positions = votes.GroupBy(v => v.positionId)
@@ -220,13 +223,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                 .Select(g => new PositionResultViewModel
                                 {
                                     positionId = g.Key,
+                                    PositionName = positionNames.TryGetValue((int)g.Key, out var name) ? name : "Unknown Position",
                                     Candidates = g.GroupBy(v => v.CandidateId)
                                     .Select(cg => new CandidateResultViewModel
                                     {
                                         CandidateId = cg.Key,
-                                        Name = cg.First().Candidate.Member.FullName,       // adjust to your Member property name
+                                        Name = cg.First().Candidate.Member.FullName,      
                                         PhotoUrl = cg.First().Candidate.Member.ProfilePictureUrl,
-                                        PartyName = cg.First().Candidate.PartyList.PartyName, // adjust to your PartyList property name
+                                        PartyName = cg.First().Candidate.PartyList.PartyName, 
                                         Votes = cg.Count()
                                     })
                                     .OrderByDescending(c => c.Votes)
@@ -268,7 +272,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var votes = await _context.Votes.Where(v => v.ElectionId == electionid).ToListAsync();
 
             var candidateIds = votes.Select(v => v.CandidateId).Distinct().ToList();
-            var positions = votes.Select(v => v.Position.ToString()).Distinct().ToList();
+            var positions = votes.Select(v => v.Position?.ToString()).Distinct().ToList();
 
             return new ArchiveElectionViewModel
             {

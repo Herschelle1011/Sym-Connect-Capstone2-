@@ -20,8 +20,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
 
         public DateTime DateRegistered { get; set; } = DateTime.Now;
 
-        public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
+        public ICollection<MemberGroupDetailsViewModel> GroupDetails { get; set; } = new List<MemberGroupDetailsViewModel>();
         public string FullName =>
-      $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
+                $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
     }
 }

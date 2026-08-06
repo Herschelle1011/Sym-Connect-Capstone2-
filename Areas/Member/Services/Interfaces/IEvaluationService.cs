@@ -1,4 +1,4 @@
-﻿using Sym_Connect__Capstone2_.Areas.Member.ViewModels;
+﻿using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Models;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces
