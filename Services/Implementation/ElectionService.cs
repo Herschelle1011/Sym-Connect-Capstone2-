@@ -85,6 +85,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             electionData.Status = now < election.StartDate ? "Incoming" : (now <= election.EndDate ? "Open" : "Closed");
 
             electionData.TotalCandidates = electionData.partyLists.Sum(p => p.candidates.Count);
+
             electionData.TotalPositions = electionData.partyLists
                 .SelectMany(p => p.candidates)
                 .Select(c => c.PositionId)
@@ -161,6 +162,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             };
             _context.Elections.Add(election);
             await _context.SaveChangesAsync();
+
+
 
             var partyLists = await _context.PartyLists
                 .Where(p => vm.SelectedPartyListIds.Contains(p.PartyListId) && p.ElectionId == null)
@@ -247,16 +250,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 ElectionTitle = existingelection.ElectionName,
                 StartDate = existingelection.StartDate,
                 EndDate = existingelection.EndDate,
-                Status = existingelection.Status.ToString(),      // if you have an enum
-                TotalVotes = votes.Count,
+                Status = existingelection.Status.ToString(),     
+                TotalVotes = distinctVoters,
                 TotalCandidates = votes.Select(v => v.CandidateId).Distinct().Count(),
                 ParticipationPercentage = eligibleVoters == 0 ? 0 : (double)distinctVoters / eligibleVoters * 100,
                 Positions = positions,
                 LastUpdated = DateTime.Now,
                 IsFinalized = existingelection.Status == "Closed"
             };
-
         }
+
 
         public async Task<ArchiveElectionViewModel?> GetArchiveElectionAsync(int? electionid)
         {
@@ -289,7 +292,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             foreach(var remove in partylist)
             {
-                remove.ElectionId = null; // set to null first --- partylist fk to electionId
+                remove.ElectionId = null; 
             }
 
             await _context.SaveChangesAsync();

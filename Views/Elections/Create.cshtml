@@ -200,7 +200,7 @@
                     </div>
 
                     <div class="row g-3">
-                        @if (Model.AvailablePartyLists != null)
+                        @if (Model.AvailablePartyLists != null && Model.AvailablePartyLists.Any())
                         {
                             @foreach (var party in Model.AvailablePartyLists)
                             {
@@ -215,13 +215,21 @@
                                             </div>
                                             <div>
                                                 <p class="fw-semibold text-dark text-sm mb-1" style="font-size: 0.9rem;">@party.PartyListName</p>
-                                                <!-- Native text line truncation using standard CSS styles -->
                                                 <p class="text-muted small mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.78rem; line-height: 1.3;">@party.PartyListDescription</p>
                                             </div>
                                         </div>
                                     </label>
                                 </div>
                             }
+                        }
+                        else
+                        {
+                            <div class="col-12 text-center py-4">
+                                <p class="text-muted small mb-0">
+                                    No party lists are ready yet. A party list must have candidates
+                                    assigned to every position before it can be added to an election.
+                                </p>
+                            </div>
                         }
                     </div>
                 </div>

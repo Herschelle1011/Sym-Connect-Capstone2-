@@ -42,7 +42,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.PartyLists
                 .AsNoTracking() 
-                .Where(p => p.ElectionId == null && p.isArchived == false) 
+                .Where(p => p.ElectionId == null && p.isArchived == false && p.candidates.Any(c => c.MemberId != null && c.MemberId != 0)) 
                 .Select(p => new PartyListsViewModel
                 {
                     Id = p.PartyListId,
