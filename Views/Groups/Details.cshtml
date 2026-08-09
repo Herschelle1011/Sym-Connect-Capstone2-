@@ -4,76 +4,56 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+
 <div class="container-fluid py-4">
 
-    @* {{-- Group Name + Member Count --}} *@
-    <div class="d-flex align-items-center gap-3 mb-3">
-
-        @* {{-- Back button --}} *@
+    @* {{-- Back + Group Name + Member Count --}} *@
+    <div class="d-flex align-items-start gap-2 mb-1">
         <a asp-action="Index"
-           style="color:#6b7280; font-size:20px; text-decoration:none;"
+           style="color:#6b7280; font-size:20px; text-decoration:none; margin-top:2px;"
            title="Back to Groups">
             <i class="ti ti-arrow-left"></i>
         </a>
-
-        <h1 class="fs-4 fw-medium mb-0">@Model.GroupName</h1>
-        <div class="d-flex align-items-center gap-1 px-2 py-1"
-             style="background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px;">
-            <i class="ti ti-crown" style="color:#f59e0b; font-size:14px;"></i>
-            <span class="fw-medium" style="font-size:13px;">@Model.TotalMembers</span>
-            <span class="text-muted" style="font-size:11px;">members</span>
+        <div>
+            <p class="group-eyebrow">Group</p>
+            <div class="group-title-row">
+                <h1 class="group-title">@Model.GroupName</h1>
+                <div class="member-count-badge">
+                    <i class="ti ti-crown"></i>
+                    <span class="count">@Model.TotalMembers</span>
+                    <span class="label">members</span>
+                </div>
+            </div>
         </div>
     </div>
 
     @* {{-- Leader Info --}} *@
-    <div class="d-flex align-items-start gap-3 mb-4">
-
-        @* {{-- Leader Avatar --}} *@
-        <div style="width:56px; height:56px; border-radius:50%;
-                    background:#dbeafe; color:#1e40af;
-                    display:flex; align-items:center; justify-content:center;
-                    font-size:16px; font-weight:500; flex-shrink:0;">
+    <div class="leader-section">
+        <div class="leader-avatar">
             @(Model.LeaderName.Length >= 2
                         ? Model.LeaderName.Substring(0, 2).ToUpper()
                         : Model.LeaderName.ToUpper())
         </div>
 
         <div>
-            @* {{-- Name + Status --}} *@
-            <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="fw-medium" style="font-size:16px;">@Model.LeaderName</span>
+            <div class="leader-name-row">
+                <span class="leader-name">@Model.LeaderName</span>
                 @if (Model.Status == "Active")
                 {
-                    <span style="background:#dcfce7; color:#166534;
-                                     font-size:11px; padding:3px 10px;
-                                     border-radius:99px;">
-                        Active
-                    </span>
+                    <span class="status-badge active">Active</span>
                 }
                 else
                 {
-                    <span style="background:#fee2e2; color:#991b1b;
-                                     font-size:11px; padding:3px 10px;
-                                     border-radius:99px;">
-                        Inactive
-                    </span>
+                    <span class="status-badge inactive">Inactive</span>
                 }
             </div>
 
-            @* {{-- Email + Contact --}} *@
-            <div class="d-flex gap-3 mb-2">
-                <span class="text-muted" style="font-size:13px;">
-                    <i class="ti ti-mail" style="font-size:14px;"></i>
-                    @Model.LeaderEmail
-                </span>
-                <span class="text-muted" style="font-size:13px;">
-                    <i class="ti ti-phone" style="font-size:14px;"></i>
-                    @Model.LeaderContact
-                </span>
+            <div class="leader-contact">
+                <span><i class="ti ti-mail"></i> @Model.LeaderEmail</span>
+                <span><i class="ti ti-phone"></i> @Model.LeaderContact</span>
             </div>
 
-            @* {{-- Description --}} *@
-            <p class="text-muted mb-0" style="font-size:13px;">
+            <p class="leader-description">
                 <strong>Description</strong><br />
                 @Model.Description
             </p>
@@ -87,38 +67,39 @@
         var inactiveCount = Model.Members.Count(m => m.Status == "Inactive");
     }
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex gap-2">
-            <button class="tab-btn active"
-                    onclick="filterMembers('all', this)">
-                All (@totalCount)
-            </button>
-            <button class="tab-btn"
-                    onclick="filterMembers('Active', this)">
-                Active (@activeCount)
-            </button>
-            <button class="tab-btn"
-                    onclick="filterMembers('Inactive', this)">
-                Inactive (@inactiveCount)
-            </button>
+    <div class="group-toolbar">
+        <div class="toolbar-tabs-row">
+            <div class="tab-group">
+                <button class="tab-btn active" onclick="filterMembers('all', this)">
+                    All (@totalCount)
+                </button>
+                <button class="tab-btn" onclick="filterMembers('Active', this)">
+                    Active (@activeCount)
+                </button>
+                <button class="tab-btn" onclick="filterMembers('Inactive', this)">
+                    Inactive (@inactiveCount)
+                </button>
+            </div>
+            <div class="filter-date-group">
+                <button class="btn-outline-sm">
+                    <i class="ti ti-filter"></i> Filter
+                </button>
+                <button class="btn-outline-sm">
+                    <i class="ti ti-calendar"></i> Date
+                </button>
+            </div>
         </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary btn-sm">
-                <i class="ti ti-filter"></i> Filter
-            </button>
-            <button class="btn btn-outline-secondary btn-sm">
-                <i class="ti ti-calendar"></i> Date
-            </button>
 
+        <div class="add-member-row">
             @* {{-- Add Member — wire this to your AddMember action later --}} *@
-            <button class="btn btn-primary btn-sm" onclick="openAddMemberModal()">
+            <button class="btn-add-member" onclick="openAddMemberModal()">
                 <i class="ti ti-plus"></i> Add Member
             </button>
         </div>
     </div>
 
     @* {{-- Members Table --}} *@
-    <div style="border:1px solid #e5e7eb; border-radius:12px; overflow:hidden;">
+    <div class="table-card">
         <table class="table members-table mb-0">
             <thead>
                 <tr>
@@ -152,11 +133,7 @@
                                     This group has no members. Start by adding one.
                                 </p>
 
-                                <button onclick="openAddMemberModal()"
-                                        style="margin-top:4px; padding:8px 20px;
-                                       background:#2563eb; color:#fff; border:none;
-                                       border-radius:8px; font-size:13px;
-                                       font-weight:500; cursor:pointer;">
+                                <button onclick="openAddMemberModal()" class="btn-add-member" style="margin-top:4px; border-radius:8px;">
                                     <i class="ti ti-plus"></i> Add Member
                                 </button>
 
@@ -168,7 +145,7 @@
                 {
                     @foreach (var member in Model.Members)
                     {
-                        <tr data-status="@member.Status" data-member-id = "@member.MemberId">
+                        <tr data-status="@member.Status" data-member-id="@member.MemberId">
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="avatar">
@@ -184,23 +161,18 @@
                             <td class="text-center">
                                 @if (member.Status == "Active")
                                 {
-                                    <span style="background:#dcfce7; color:#166534;
-                                                 font-size:11px; padding:3px 10px;
-                                                 border-radius:99px;">Active</span>
+                                    <span class="status-badge active">Active</span>
                                 }
                                 else
                                 {
-                                    <span style="background:#fee2e2; color:#991b1b;
-                                                 font-size:11px; padding:3px 10px;
-                                                 border-radius:99px;">Inactive</span>
+                                    <span class="status-badge inactive">Inactive</span>
                                 }
                             </td>
                             <td class="text-muted">
                                 @member.DateRegistered.ToString("MMMM dd, yyyy")
                             </td>
                             <td class="text-center">
-
-                                <div class="d-flex justify-content-center gap-3">
+                                <div class="action-icons">
                                     <a href="javascript:void(0)"
                                        class="open-modal"
                                        data-url="@Url.Action("getTranferMember", "Groups", new { groupId = Model.GroupId, memberId = member.MemberId })"

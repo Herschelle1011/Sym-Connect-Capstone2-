@@ -4,9 +4,9 @@
     --status-active-text: #63C700;
     --status-active-bg: #edfad6;
     --status-active-border: #7BC524;
-    --status-inactive-text: #FE0000;
-    --status-inactive-bg: #ffe5e5;
-    --status-inactive-border: #FE0000;
+    --status-inactive-text: #B87400;
+    --status-inactive-bg: #fdf1cf;
+    --status-inactive-border: #E8A317;
     --table-header-bg: #0089D9;
     --table-header-color: #ffffff;
     --border-color: #e4e8f0;
@@ -16,8 +16,12 @@
     --radius: 10px;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 .member-page {
-    padding: 28px 32px;
+    padding: 20px 16px 32px;
     background: var(--bg-page);
     min-height: 100vh;
     font-family: 'Segoe UI', sans-serif;
@@ -25,15 +29,16 @@
 
 .page-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
-    margin-bottom: 22px;
+    gap: 12px;
+    margin-bottom: 18px;
 }
 
 .page-title-row {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .back-btn {
@@ -50,9 +55,15 @@
 }
 
 .page-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--text-main);
+    margin: 0;
+}
+
+.page-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
     margin: 0;
 }
 
@@ -61,8 +72,8 @@
     color: #fff;
     border: none;
     border-radius: var(--radius);
-    padding: 10px 22px;
-    font-size: 14px;
+    padding: 10px 18px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
@@ -70,6 +81,8 @@
     align-items: center;
     gap: 7px;
     transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
     .btn-add:hover {
@@ -77,30 +90,34 @@
         color: #fff;
     }
 
-.filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-}
-
+/* Filter tabs sit on their own row, scroll horizontally rather than wrap */
 .filter-tabs {
     display: flex;
     gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    margin-bottom: 12px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
+
+    .filter-tabs::-webkit-scrollbar {
+        display: none;
+    }
 
 .filter-tab {
     border: 1.5px solid var(--border-color);
     background: #fff;
     color: var(--text-main);
     border-radius: 20px;
-    padding: 6px 18px;
+    padding: 7px 18px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     text-decoration: none;
     transition: all 0.18s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
     .filter-tab.active-tab,
@@ -110,8 +127,17 @@
         border-color: var(--primary);
     }
 
+/* Search / date / filter stack full-width on mobile, row on wider screens */
+.filter-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
 .spacer {
-    flex: 1;
+    display: none;
 }
 
 .search-box {
@@ -120,8 +146,9 @@
     background: #fff;
     border: 1.5px solid var(--border-color);
     border-radius: var(--radius);
-    padding: 7px 14px;
+    padding: 9px 14px;
     gap: 8px;
+    width: 100%;
 }
 
     .search-box input {
@@ -130,7 +157,7 @@
         font-size: 13px;
         color: var(--text-main);
         background: transparent;
-        width: 180px;
+        width: 100%;
     }
 
     .search-box i {
@@ -138,19 +165,26 @@
         font-size: 16px;
     }
 
+.filter-bar-row {
+    display: flex;
+    gap: 10px;
+}
+
 .btn-filter,
 .btn-date {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     border: 1.5px solid var(--border-color);
     background: #fff;
     border-radius: var(--radius);
-    padding: 7px 16px;
+    padding: 9px 16px;
     font-size: 13px;
-    color: var(--text-main);
+    color: var(--text-muted);
     cursor: pointer;
     font-family: 'Segoe UI', sans-serif;
+    flex: 1;
 }
 
     .btn-filter:hover,
@@ -159,18 +193,20 @@
         color: var(--primary);
     }
 
+/* Table scrolls horizontally instead of squashing on mobile */
 .table-card {
     background: #fff;
     border-radius: var(--radius);
     border: 1px solid var(--border-color);
-    overflow: hidden;
+    overflow-x: auto;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .members-table {
     width: 100%;
+    min-width: 640px;
     border-collapse: collapse;
-    font-size: 13.5px;
+    font-size: 12.5px;
 }
 
     .members-table thead tr {
@@ -180,10 +216,10 @@
     .members-table thead th {
         color: var(--table-header-color);
         font-weight: 600;
-        padding: 13px 14px;
+        padding: 12px 12px;
         text-align: left;
         white-space: nowrap;
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .members-table tbody tr {
@@ -196,20 +232,21 @@
         }
 
     .members-table tbody td {
-        padding: 12px 14px;
+        padding: 10px 12px;
         color: var(--text-main);
         vertical-align: middle;
-        white-space: nowrap;
+        white-space: normal;
+        line-height: 1.35;
     }
 
 .badge-status {
     display: inline-block;
-    padding: 4px 14px;
+    padding: 4px 12px;
     border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11.5px;
+    font-weight: 700;
     text-align: center;
-    min-width: 72px;
+    min-width: 64px;
 }
 
 .badge-active {
@@ -264,4 +301,55 @@
     color: var(--text-muted);
     padding: 40px;
     font-size: 14px;
+}
+
+/* From ~600px up, let the filter row sit inline instead of stacking full-width */
+@media (min-width: 600px) {
+    .member-page {
+        padding: 28px 32px;
+    }
+
+    .page-header {
+        align-items: center;
+    }
+
+    .filter-bar {
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-tabs {
+        overflow-x: visible;
+    }
+
+    .spacer {
+        display: block;
+        flex: 1;
+    }
+
+    .search-box {
+        width: auto;
+    }
+
+        .search-box input {
+            width: 180px;
+        }
+
+    .filter-bar-row {
+        display: contents;
+    }
+
+    .btn-filter,
+    .btn-date {
+        flex: none;
+    }
+
+    .members-table {
+        font-size: 13.5px;
+    }
+
+        .members-table tbody td {
+            white-space: nowrap;
+        }
 }
