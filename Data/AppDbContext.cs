@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
+using Sym_Connect__Capstone2_.Models.EvaluationModels;
+using Sym_Connect__Capstone2_.Models.EventModels;
+using Sym_Connect__Capstone2_.Models.FacilityModels;
 namespace Sym_Connect__Capstone2_.Data
 {
     public class AppDbContext : IdentityDbContext<User>

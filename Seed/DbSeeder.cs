@@ -1,7 +1,7 @@
 ﻿using CloudinaryDotNet.Actions;
 using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Models.FacilityModels;
 
 namespace Sym_Connect__Capstone2_.Seed
 {

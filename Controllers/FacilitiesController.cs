@@ -1,11 +1,11 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.Models.FacilityModels;
 
 
 public class FacilitiesController : Controller

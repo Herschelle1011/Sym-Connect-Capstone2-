@@ -621,10 +621,10 @@
                
                         @if (isEventLive)
                         {
-                            //TO BE CONNECT TO THE QR CODE SCANNER 
-                            <button type="button" class="btn btn-primary w-100 mb-2">
+                            //connect QR SCANNER
+                            <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
                                 <i class="ti ti-qrcode"></i> Open QR Scanner
-                            </button>
+                            </a>
                         }
                         else if (ifAllDay)
                         {
@@ -724,11 +724,9 @@
                 @(Model.HasEvaluation ? $"{Model.EvaluationCount} evaluation(s) recorded." : "No evaluation created for this event yet.")
             </div>
         </div>
-        <div class="tab-pane fade" id="tab-attendance">
-            <div class="details-card text-center text-muted py-5">
-                @(Model.HasAttendance ? $"{Model.AttendanceCount} attendee(s) recorded." : "No attendance recorded for this event yet.")
+            <div class="tab-pane fade" id="tab-attendance">
+                @await Html.PartialAsync("_ViewAttendance", Model.AttendanceRecords)
             </div>
-        </div>
         <div class="tab-pane fade" id="tab-files">
             <div class="details-card text-center text-muted py-5">No files or attachments have been added.</div>
         </div>

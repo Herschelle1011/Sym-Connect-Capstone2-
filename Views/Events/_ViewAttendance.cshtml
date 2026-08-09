@@ -1,0 +1,159 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Event.AttendanceRowViewModel>
+
+<style>
+    .attendance-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .attendance-date {
+        font-size: 13px;
+        color: #7b8397;
+        font-weight: 500;
+    }
+
+    .status-pill-group {
+        display: flex;
+        gap: 6px;
+        background: #f1f2f6;
+        border-radius: 999px;
+        padding: 4px;
+    }
+
+    .status-pill {
+        border: none;
+        background: transparent;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #7b8397;
+        padding: 6px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+
+        .status-pill.active {
+            background: #0d6efd;
+            color: #fff;
+        }
+
+    .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .attendance-table thead th {
+            background: #0d6efd;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+            padding: 12px 16px;
+            text-align: left;
+        }
+
+        .attendance-table tbody tr {
+            border-bottom: 1px solid #f0f1f5;
+        }
+
+        .attendance-table td {
+            padding: 12px 16px;
+            font-size: 13.5px;
+            vertical-align: middle;
+        }
+
+    .attendance-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 10px;
+    }
+
+    .attendance-name-cell {
+        display: flex;
+        align-items: center;
+    }
+
+    .status-badge-sm {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+        text-transform: capitalize;
+    }
+
+        .status-badge-sm.present {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .status-badge-sm.late {
+            background: #fef9c3;
+            color: #a16207;
+        }
+
+        .status-badge-sm.pending {
+            background: #f1f2f6;
+            color: #64748b;
+        }
+
+        .status-badge-sm.absent {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+</style>
+
+<div class="attendance-toolbar">
+    <div class="attendance-date">
+        Today, @DateTime.Today.ToString("MMMM d, yyyy")
+    </div>
+    <div class="status-pill-group">
+        <button class="status-pill active" data-filter="all">All</button>
+        <button class="status-pill" data-filter="present">Present</button>
+        <button class="status-pill" data-filter="late">Late</button>
+        <button class="status-pill" data-filter="pending">Pending</button>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center text-muted py-5">No attendance recorded for this event yet.</div>
+}
+else
+{
+    <table class="attendance-table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Group</th>
+                <th>Time In</th>
+                <th>Time Out</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="attendance-name-cell">
+                            <img src="@(row.PhotoUrl ?? "/images/default-avatar.png")" class="attendance-avatar" />
+                            @row.FullName
+                        </div>
+                    </td>
+                    <td>@row.GroupName</td>
+                    <td>@(row.TimeIn.HasValue ? row.TimeIn.Value.ToString("h:mm tt") : "N/A")</td>
+                    <td>@(row.TimeOut.HasValue ? row.TimeOut.Value.ToString("h:mm tt") : "N/A")</td>
+                    <td>
+                        <span class="status-badge-sm @row.Status.ToLower()">@row.Status</span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

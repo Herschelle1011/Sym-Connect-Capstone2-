@@ -1,5 +1,5 @@
-﻿using Sym_Connect__Capstone2_.Models;
-using Sym_Connect__Capstone2_.Models.Enums;
+﻿using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Models.EvaluationModels;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
 namespace Sym_Connect__Capstone2_.Services.Interfaces

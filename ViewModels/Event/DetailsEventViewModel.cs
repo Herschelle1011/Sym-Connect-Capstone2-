@@ -44,6 +44,9 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         // Flags
         public bool HasEvaluation => EvaluationCount > 0;
         public bool HasAttendance => AttendanceCount > 0;
+
+
+        public List<AttendanceRowViewModel> AttendanceRecords { get; set; } = new();
     }
 
 

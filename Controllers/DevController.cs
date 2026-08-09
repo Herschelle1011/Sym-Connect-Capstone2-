@@ -7,10 +7,10 @@ namespace Sym_Connect__Capstone2_.Controllers
     public class DevController : Controller
     {
         [HttpGet("set-session")]
-        public IActionResult DevSetSession()
+        public IActionResult DevSetSession(int memberId)
         {
-            HttpContext.Session.SetInt32("CurrentMemberId", 1);
-            return Content("Session set: CurrentMemberId = 1");
+            HttpContext.Session.SetInt32("CurrentMemberId", memberId);
+            return RedirectToAction("Index", "Profile", new {area = "Member"});
         }
     }
 #endif

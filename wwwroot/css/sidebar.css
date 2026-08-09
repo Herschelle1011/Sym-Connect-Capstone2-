@@ -1,7 +1,6 @@
 ﻿:root {
     /* --- Sidebar size --- */
-    --sidebar-collapsed-width: 68px;
-    --sidebar-expanded-width: 230px;
+    --sidebar-width: 250px;
     /* --- Sidebar base --- */
     --sidebar-bg: #ffffff;
     --sidebar-border: #e8eaf0;
@@ -17,8 +16,11 @@
     --nav-dropdown-bg: #0d4a85;
     --nav-dropdown-hover: rgba(255, 255, 255, 0.14);
     --nav-dropdown-active: rgba(255, 255, 255, 0.22);
+    /* --- Topbar --- */
+    --topbar-height: 56px;
     /* --- Animation --- */
     --transition: 0.28s cubic-bezier(.4, 0, .2, 1);
+    --topbar-accent: #007ECA;
 }
 
 * {
@@ -30,14 +32,111 @@ body {
     padding: 0;
     background: #f5f7fb;
     font-family: 'Segoe UI', sans-serif;
-    display: flex;
     min-height: 100vh;
     min-height: 100dvh;
 }
 
-/* ── Sidebar ── */
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+/* ══════════════════════════════════════
+   TOP BAR (always visible, holds hamburger)
+   ══════════════════════════════════════ */
+#topbar {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--topbar-height);
+    background: #ffffff;
+    border-bottom: 1px solid var(--topbar-accent);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    z-index: 150;
+}
+
+#sidebar-toggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--topbar-accent);
+    cursor: pointer;
+    padding: 4px 6px;
+    line-height: 1;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+    #sidebar-toggle:hover {
+        background: var(--nav-hover-bg);
+    }
+
+.topbar-brand {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--nav-text-color);
+    flex: 1;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.topbar-icon-btn {
+    position: relative;
+    font-size: 18px;
+    color: var(--nav-text-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+    .topbar-icon-btn .notif-dot {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        color: var(--nav-text-color);
+        width: 7px;
+        height: 7px;
+        background: #e5484d;
+        border-radius: 50%;
+    }
+
+.topbar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ══════════════════════════════════════
+   OVERLAY (dims the page behind the drawer)
+   ══════════════════════════════════════ */
+#sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 20, 35, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition);
+    z-index: 190;
+}
+
+    #sidebar-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+/* ══════════════════════════════════════
+   SIDEBAR (off-canvas drawer, hidden by default)
+   ══════════════════════════════════════ */
 #sidebar {
-    width: var(--sidebar-collapsed-width);
+    width: var(--sidebar-width);
     min-height: 100vh;
     min-height: 100dvh;
     background: var(--sidebar-bg);
@@ -47,55 +146,31 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 100;
-    transition: width var(--transition);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform var(--transition);
     overflow: hidden;
+    box-shadow: 4px 0 24px rgba(15, 20, 35, 0.08);
 }
 
-    #sidebar.expanded {
-        width: var(--sidebar-expanded-width);
+    #sidebar.show {
+        transform: translateX(0);
     }
 
-/* ── Toggle button ── */
-#sidebar-toggle {
-    position: absolute;
-    top: 18px;
-    right: 14px;
-    background: none;
-    border: none;
-    color: var(--nav-icon-color);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 2px;
-    line-height: 1;
-    opacity: 0;
-    transition: opacity var(--transition), color 0.2s;
-    z-index: 10;
-}
-
-#sidebar.expanded #sidebar-toggle {
-    opacity: 1;
-}
-
-#sidebar-toggle:hover {
-    color: var(--nav-active-color);
-}
-
-/* ── Brand / Logo ── */
+/* ── Brand row w/ close button ── */
 .sidebar-brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 18px 14px 14px;
+    padding: 14px 10px 14px 18px;
     min-height: 64px;
     border-bottom: 1px solid var(--sidebar-border);
     white-space: nowrap;
-    overflow: hidden;
 }
 
     .sidebar-brand img {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
@@ -105,16 +180,25 @@ body {
     font-size: 15px;
     font-weight: 700;
     color: var(--nav-text-color);
-    opacity: 0;
-    transform: translateX(-8px);
-    transition: opacity var(--transition), transform var(--transition);
-    pointer-events: none;
+    flex: 1;
 }
 
-#sidebar.expanded .sidebar-brand-name {
-    opacity: 1;
-    transform: translateX(0);
+#sidebar-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: var(--nav-icon-color);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    line-height: 1;
+    transition: background 0.2s, color 0.2s;
 }
+
+    #sidebar-close:hover {
+        background: var(--nav-hover-bg);
+        color: var(--nav-active-bg);
+    }
 
 /* ── Nav items ── */
 .sidebar-nav {
@@ -137,7 +221,7 @@ body {
     display: flex;
     align-items: center;
     gap: 13px;
-    padding: 11px 0 11px 20px;
+    padding: 11px 14px 11px 18px;
     cursor: pointer;
     border-radius: 10px;
     margin: 2px 8px;
@@ -149,9 +233,9 @@ body {
 }
 
     .nav-item i {
-        font-size: 20px;
+        font-size: 19px;
         flex-shrink: 0;
-        width: 24px;
+        width: 22px;
         text-align: center;
         transition: color 0.2s;
     }
@@ -160,73 +244,25 @@ body {
         font-size: 14px;
         font-weight: 500;
         color: var(--nav-text-color);
-        opacity: 0;
-        transform: translateX(-10px);
-        transition: opacity var(--transition), transform var(--transition);
-        pointer-events: none;
     }
 
-#sidebar.expanded .nav-item .nav-label {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-/* ✅ FIXED HOVER */
-.nav-item:not(.active):hover {
-    background: var(--nav-hover-bg); /* soft #f3f7fc */
-}
-
-    .nav-item:not(.active):hover i {
-        color: var(--nav-active-bg); /* icon turns blue */
+    .nav-item:not(.active):hover {
+        background: var(--nav-hover-bg);
     }
 
-    .nav-item:not(.active):hover .nav-label {
-        color: var(--nav-active-bg); /* label turns blue */
+        .nav-item:not(.active):hover i,
+        .nav-item:not(.active):hover .nav-label {
+            color: var(--nav-active-bg);
+        }
+
+    .nav-item.active {
+        background: var(--nav-active-bg);
     }
 
-.nav-item.active {
-    background: var(--nav-active-bg);
-    color: var(--nav-active-color);
-}
-
-    .nav-item.active i,
-    .nav-item.active .nav-label {
-        color: var(--nav-active-color);
-    }
-
-/* Tooltip for collapsed state */
-.nav-item .nav-tooltip {
-    position: absolute;
-    left: calc(var(--sidebar-collapsed-width) + 8px);
-    background: #2d3650;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 500;
-    padding: 5px 10px;
-    border-radius: 6px;
-    white-space: nowrap;
-    pointer-events: none;
-    opacity: 0;
-    transform: translateX(-6px);
-    transition: opacity 0.18s, transform 0.18s;
-    z-index: 200;
-}
-
-    .nav-item .nav-tooltip::before {
-        content: '';
-        position: absolute;
-        left: -5px;
-        top: 50%;
-        transform: translateY(-50%);
-        border: 5px solid transparent;
-        border-right-color: #2d3650;
-        border-left: none;
-    }
-
-#sidebar:not(.expanded) .nav-item:hover .nav-tooltip {
-    opacity: 1;
-    transform: translateX(0);
-}
+        .nav-item.active i,
+        .nav-item.active .nav-label {
+            color: var(--nav-active-color);
+        }
 
 /* ── Divider ── */
 .sidebar-divider {
@@ -267,15 +303,7 @@ body {
     }
 
 .sidebar-user-info {
-    opacity: 0;
-    transform: translateX(-8px);
-    transition: opacity var(--transition), transform var(--transition);
-    pointer-events: none;
-}
-
-#sidebar.expanded .sidebar-user-info {
-    opacity: 1;
-    transform: translateX(0);
+    flex: 1;
 }
 
 .sidebar-user-name {
@@ -295,75 +323,27 @@ body {
     margin-left: auto;
     font-size: 13px;
     color: #9aa3b8;
-    opacity: 0;
-    transition: opacity var(--transition);
     flex-shrink: 0;
 }
 
-#sidebar.expanded .sidebar-user-chevron {
-    opacity: 1;
-}
-
-/* ── Main content ── */
+/* ── Main content (no longer pushed — sidebar overlays) ── */
 #main-content {
-    margin-left: var(--sidebar-collapsed-width);
     flex: 1;
-    transition: margin-left var(--transition);
     min-height: 100vh;
     padding: 0;
-}
-
-#sidebar.expanded ~ #main-content {
-    margin-left: var(--sidebar-expanded-width);
 }
 
 .content-wrapper {
     padding: 28px;
 }
 
-/* ── Hover-to-expand ── */
-#sidebar:hover {
-    width: var(--sidebar-expanded-width);
-}
-
-    #sidebar:hover .sidebar-brand-name,
-    #sidebar:hover .nav-item .nav-label,
-    #sidebar:hover .sidebar-user-info,
-    #sidebar:hover .sidebar-user-chevron {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    #sidebar:hover #sidebar-toggle {
-        opacity: 1;
-    }
-
-/* When sidebar is hovered (not pinned), push content */
-body:has(#sidebar:hover:not(.expanded)) #main-content {
-    margin-left: var(--sidebar-expanded-width);
-}
-
-/* Hide tooltip when expanded/hovered */
-#sidebar:hover .nav-item .nav-tooltip {
-    display: none;
-}
-
 @media (max-width: 768px) {
-    #sidebar {
-        width: var(--sidebar-collapsed-width); /* show icons, not fully hidden */
-        overflow: hidden;
+    .content-wrapper {
+        padding: 18px;
     }
 
-        #sidebar.expanded {
-            width: var(--sidebar-expanded-width);
-        }
-
-    #main-content {
-        margin-left: var(--sidebar-collapsed-width); /* leave room for the icon bar */
-    }
-
-    #sidebar.expanded ~ #main-content {
-        margin-left: 0; /* sidebar overlays instead of pushing */
+    .topbar-brand {
+        font-size: 14px;
     }
 }
 
@@ -371,13 +351,11 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
    ELECTION DROPDOWN (Election / Partylist / Create Voting)
    ══════════════════════════════════════════════════════════════ */
 
-/* Give the toggle row room for the chevron on the right */
 .nav-dropdown-toggle {
     justify-content: space-between;
     padding-right: 14px;
 }
 
-    /* Parent row stays plain white/default even while open, and even when a child page (Partylist/Create Voting) is active — only the arrow flips */
     .nav-dropdown-toggle.active {
         background: transparent;
         color: var(--nav-icon-color);
@@ -402,7 +380,6 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
                 color: var(--nav-active-bg);
             }
 
-/* Submenu panel — solid navy rounded container */
 .nav-dropdown-menu {
     display: none;
     margin: 4px 8px 2px;
@@ -416,7 +393,6 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
     display: block;
 }
 
-/* Sub-items sit flush inside the panel, no extra rounding/margin per-item */
 .nav-dropdown-menu .nav-item.sub-item {
     margin: 0;
     border-radius: 0;
@@ -429,7 +405,6 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
         color: #ffffff;
     }
 
-    /* Override the generic hover rule so sub-items stay white-on-navy, not white-on-white */
     .nav-dropdown-menu .nav-item.sub-item:not(.active):hover {
         background: var(--nav-dropdown-hover);
     }
@@ -439,7 +414,6 @@ body:has(#sidebar:hover:not(.expanded)) #main-content {
             color: #ffffff;
         }
 
-    /* Currently selected sub-page gets a slightly lighter fill instead of the site-wide blue */
     .nav-dropdown-menu .nav-item.sub-item.active {
         background: var(--nav-dropdown-active);
     }

@@ -24,8 +24,13 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         {
             return View();
         }
+        public IActionResult SimulateLogin(int memberId)
+        {
+            HttpContext.Session.SetInt32("CurrentMemberId", memberId);
+            return RedirectToAction("Index", "Profile");
+        }
 
-      
+
 
     }
 }

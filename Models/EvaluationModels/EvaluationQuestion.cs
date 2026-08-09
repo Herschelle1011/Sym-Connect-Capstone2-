@@ -2,7 +2,7 @@
 using Sym_Connect__Capstone2_.Models.Enums;
 
 
-namespace Sym_Connect__Capstone2_.Models
+namespace Sym_Connect__Capstone2_.Models.EvaluationModels
 {    
     public class EvaluationQuestion
     {

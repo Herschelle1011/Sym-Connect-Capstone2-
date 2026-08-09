@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 
-namespace Sym_Connect__Capstone2_.Models
+namespace Sym_Connect__Capstone2_.Models.EvaluationModels
 {
     public class Evaluation
     {

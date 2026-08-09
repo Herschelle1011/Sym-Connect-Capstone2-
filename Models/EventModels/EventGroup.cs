@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sym_Connect__Capstone2_.Models
+namespace Sym_Connect__Capstone2_.Models.EventModels
 {
     public class EventGroup
     {

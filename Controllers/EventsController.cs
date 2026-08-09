@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Event;
@@ -21,7 +22,34 @@ public class EventsController : Controller
         _groupService = groupService;
     }
 
-    // GET: EVENTS
+
+    //------------ SCAN TIME IN ------
+    [HttpPost]
+    public async Task<IActionResult> ScanTimeIn([FromBody] ScanAttendanceRequest request)
+    {
+        var result = await _eventService.RecordTimeInAsync(request.QrToken, request.EventId);
+        return Json(new { success = result.Success, message = result.Message });
+    }
+
+    public async Task<IActionResult> Scanner(int eventId)
+    {
+        var state = await _eventService.GetScannerStateAsync(eventId);
+        if (state == null) return NotFound();
+
+        return View(state);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetScannerState(int eventId)
+    {
+        var state = await _eventService.GetScannerStateAsync(eventId);
+        if (state == null) return NotFound();
+
+        return Json(state);
+    }
+
+
+    // --------GET: EVENTS--------------
     public async Task<IActionResult> Index(int? year, int? month)    
     {
         ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
@@ -51,7 +79,9 @@ public class EventsController : Controller
         return View(eventDetails);
     }
 
-    // GET: EVENTS/Create
+
+
+
     // GET: EVENTS/Create
     public async Task<IActionResult> Create()
     {
@@ -164,7 +194,4 @@ public class EventsController : Controller
         var photoUrl = facility?.FacilityPhotos?.FirstOrDefault()?.PhotoUrl;
         return Json(new { photoUrl });
     }
-
-
-
 }

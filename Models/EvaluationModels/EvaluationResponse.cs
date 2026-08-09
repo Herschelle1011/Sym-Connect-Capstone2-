@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Sym_Connect__Capstone2_.Models
+namespace Sym_Connect__Capstone2_.Models.EvaluationModels
 {
     public class EvaluationResponse
     {

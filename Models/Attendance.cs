@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Sym_Connect__Capstone2_.Models.EventModels;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sym_Connect__Capstone2_.Models
 {
@@ -15,11 +16,13 @@ namespace Sym_Connect__Capstone2_.Models
         public int MemberId { get; set; }
         public Member Member { get; set; } = null!;
 
+        public DateTime? TimeIn { get; set; }
+        public DateTime? TimeOut { get; set; }
+
         //scanned by
         public string? ScannedByUserId { get; set; }
         public User? ScannedByUser { get; set; }
 
-        //date
-        public DateTime DateScanned { get; set; }
+   
     }
 }
