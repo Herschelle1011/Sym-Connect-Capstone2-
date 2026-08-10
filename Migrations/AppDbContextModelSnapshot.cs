@@ -173,8 +173,15 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("MemberId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
                     b.Property<string>("ScannedByUserId")
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("TimeIn")
                         .HasColumnType("datetime2");
@@ -329,7 +336,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("Votes");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.Evaluation", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
                     b.Property<int>("EvaluationId")
                         .ValueGeneratedOnAdd()
@@ -373,7 +380,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("Evaluations");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationDetails", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationDetails", b =>
                 {
                     b.Property<int>("EvaluationDetailId")
                         .ValueGeneratedOnAdd()
@@ -405,7 +412,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("EvaluationDetail");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationQuestion", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationQuestion", b =>
                 {
                     b.Property<int>("QuestionId")
                         .ValueGeneratedOnAdd()
@@ -429,7 +436,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("EvaluationQuestions");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationResponse", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationResponse", b =>
                 {
                     b.Property<int>("ResponseId")
                         .ValueGeneratedOnAdd()
@@ -460,7 +467,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("EvaluationResponses");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationSubmission", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationSubmission", b =>
                 {
                     b.Property<int>("SubmissionId")
                         .ValueGeneratedOnAdd()
@@ -531,6 +538,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -723,6 +733,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.Property<DateTime>("DateRegistered")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("EarnedPoints")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -1027,22 +1040,22 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.Evaluation", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.EventModels.Event", null)
                         .WithMany("Evaluations")
                         .HasForeignKey("EventId");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationDetails", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationDetails", b =>
                 {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationModels.Evaluation", "Evaluation")
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Evaluation", "Evaluation")
                         .WithMany("EvaluationDetails")
                         .HasForeignKey("EvaluationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationQuestion", "EvaluationQuestion")
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationQuestion", "EvaluationQuestion")
                         .WithMany("EvaluationDetails")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1053,19 +1066,19 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("EvaluationQuestion");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationResponse", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationResponse", b =>
                 {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationDetails", "EvaluationDetail")
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationDetails", "EvaluationDetail")
                         .WithMany()
                         .HasForeignKey("EvaluationDetailId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationSubmission", null)
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationSubmission", null)
                         .WithMany("EvaluationResponse")
                         .HasForeignKey("EvaluationSubmissionSubmissionId");
 
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationSubmission", "EvaluationSubmission")
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationSubmission", "EvaluationSubmission")
                         .WithMany()
                         .HasForeignKey("SubmissionId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -1076,9 +1089,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("EvaluationSubmission");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationSubmission", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationSubmission", b =>
                 {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationModels.Evaluation", "Evaluation")
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Evaluation", "Evaluation")
                         .WithMany()
                         .HasForeignKey("EvaluationId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1188,17 +1201,17 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("candidates");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.Evaluation", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
                     b.Navigation("EvaluationDetails");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationQuestion", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationQuestion", b =>
                 {
                     b.Navigation("EvaluationDetails");
                 });
 
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationModels.EvaluationSubmission", b =>
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationSubmission", b =>
                 {
                     b.Navigation("EvaluationResponse");
                 });

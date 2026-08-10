@@ -7,9 +7,10 @@ namespace Sym_Connect__Capstone2_.ViewModels.Evaluation
     {
         public int EvaluationId { get; set; }
 
-        public List<QuestionRowViewModel> Questions { get; set; } = new();
+        public List<QuestionRowViewModel> RatingScale { get; set; } = new();
+        public List<QuestionRowViewModel> ShortAnswerQuestion { get; set; } = new();
+
         public List<AvailableQuestionViewModel> AvailableQuestions { get; set; } = new();
 
- 
     }
 }

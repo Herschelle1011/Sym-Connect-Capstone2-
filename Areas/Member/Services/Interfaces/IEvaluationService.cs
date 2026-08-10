@@ -1,6 +1,5 @@
 ﻿using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Models;
-using Sym_Connect__Capstone2_.Models.EvaluationModels;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces
 {

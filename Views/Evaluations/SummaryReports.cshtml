@@ -1,0 +1,88 @@
+﻿@model SummaryResponseReportViewModel
+@{
+    ViewData["Title"] = "Summary of Responses";
+    Layout = "_AdminLayout";
+}
+
+<style>
+
+</style>
+
+<div class="container summary-page">
+
+    <a asp-action="Details" asp-route-id="@Model.EvaluationId" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+
+    <h2>Summary of Responses</h2>
+    <p class="subtitle">@Model.EvaluationTitle</p>
+
+    <!-- ===== Stats banner ===== -->
+    <div class="stats-banner">
+        <div class="stat-block">
+            <p class="stat-label">Responses</p>
+            <p class="stat-value">@Model.TotalResponses</p>
+        </div>
+        <div class="stat-block">
+            <p class="stat-label">Complete rate</p>
+            <p class="stat-value">@Model.CompletionRate.ToString("0")%</p>
+        </div>
+        <div class="stat-block">
+            <p class="stat-label">Avg. rating</p>
+            <p class="stat-value">@Model.AverageRating.ToString("0.0") <span class="unit">/ 5 avg.</span></p>
+        </div>
+        <div class="stat-block">
+            <p class="stat-label">Status</p>
+            <p class="stat-value">@Model.Status</p>
+        </div>
+    </div>
+
+    <!-- ===== Rating scale questions ===== -->
+    <div class="section-card">
+        <h5>Rating scale</h5>
+
+        @if (Model.Questions == null || !Model.Questions.Any())
+        {
+            <p class="text-muted mb-0">No responses yet.</p>
+        }
+        else
+        {
+            foreach (var q in Model.Questions)
+            {
+                <div class="question-summary-card">
+                    <div class="question-header">
+                        <p class="question-text">@q.QuestionText</p>
+                        <span class="avg-rating">@q.AverageRating.ToString("0.0") <span class="unit">/ 5 avg.</span></span>
+                    </div>
+
+                    <div class="rating-row">
+                        <span>Very Excellent</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:@q.VeryExcellentPercent.ToString("0")%;"></div></div>
+                        <span class="count">@q.VeryExcellent</span>
+                    </div>
+                    <div class="rating-row">
+                        <span>Excellent</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:@q.ExcellentPercent.ToString("0")%;"></div></div>
+                        <span class="count">@q.Excellent</span>
+                    </div>
+                    <div class="rating-row">
+                        <span>Neutral</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:@q.NeutralPercent.ToString("0")%;"></div></div>
+                        <span class="count">@q.Neutral</span>
+                    </div>
+                    <div class="rating-row">
+                        <span>Poor</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:@q.PoorPercent.ToString("0")%;"></div></div>
+                        <span class="count">@q.Poor</span>
+                    </div>
+                    <div class="rating-row">
+                        <span>Very Poor</span>
+                        <div class="bar-track"><div class="bar-fill" style="width:@q.VeryPoorPercent.ToString("0")%;"></div></div>
+                        <span class="count">@q.VeryPoor</span>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+</div>

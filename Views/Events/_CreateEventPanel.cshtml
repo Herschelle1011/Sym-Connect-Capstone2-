@@ -23,6 +23,8 @@
 
         
 
+        
+
             <div class="form-check form-switch mb-3">
                 <input class="form-check-input" type="checkbox" asp-for="IsAllDay" id="isAllDayToggle" />
                 <label class="form-check-label" style="font-size:14px;" for="isAllDayToggle">
@@ -62,6 +64,14 @@
                         <option value="@f.FacilityId">@f.FacilityName</option>
                     }
                 </select>
+            </div>
+
+
+            <div class="mb-3">
+                <label class="form-label">Points <span class="text-danger">*</span></label>
+                <input asp-for="Points" type="number" min="0" max="100" class="form-control" value="3" />
+                <span asp-validation-for="Points" class="text-danger" style="font-size:12px;"></span>
+                <div class="form-text" style="font-size:12px;">Points a member earns for attending this event. Default is 3.</div>
             </div>
 
             <div class="mb-3">

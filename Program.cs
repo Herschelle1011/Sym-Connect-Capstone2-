@@ -1,6 +1,9 @@
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore;
+using Sym_Connect__Capstone2_.Areas.Member.Services.Implementation;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
@@ -8,8 +11,6 @@ using Sym_Connect__Capstone2_.Seed;
 using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
-using Swashbuckle.AspNetCore;
-using Microsoft.AspNetCore.Builder;
 
 
 
@@ -91,6 +92,11 @@ builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfa
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IProfileService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ProfileService>();
+
+
+
+// Program.cs
+builder.Services.AddScoped<ICalendarService, CalendarService>();
 
 builder.Services.AddSession();
 builder.Services.AddDistributedMemoryCache();

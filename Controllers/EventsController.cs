@@ -33,6 +33,16 @@ public class EventsController : Controller
 
     public async Task<IActionResult> Scanner(int eventId)
     {
+        var eventEntity = await _eventService.GetEventByIdAsync(eventId);
+        if (eventEntity == null) return NotFound();
+
+        var eventStart = eventEntity.StartDate.Date + (eventEntity.StartTime ?? TimeSpan.Zero);
+        var eventEnd = eventEntity.EndDate.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
+
+        bool isLive = DateTime.Now >= eventStart.AddMinutes(-30) && DateTime.Now <= eventEnd;
+        if (!isLive)
+            return RedirectToAction("Details", new { id = eventId });  
+
         var state = await _eventService.GetScannerStateAsync(eventId);
         if (state == null) return NotFound();
 
@@ -47,6 +57,38 @@ public class EventsController : Controller
 
         return Json(state);
     }
+
+
+    //------------ SCAN TIME OUT ------
+
+    public async Task<IActionResult> ScannerForTimeOut(int eventId)
+    {
+        var state = await _eventService.GetScannerStateAsync(eventId);
+        if (state == null) return NotFound();
+        return View(state);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ScanTimeOut([FromBody] ScanAttendanceRequest request)
+    {
+        var result = await _eventService.RecordTimeOutAsync(request.QrToken, request.EventId);
+        return Json(new { success = result.Success, message = result.Message });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> NoTimeOut(string qrToken, int eventId)
+    {
+        bool success = await _eventService.NoTimeOut(qrToken, eventId);
+
+        if (!success)
+        {
+            return Json(new { success = false, message = "Member or event not found." });
+        }
+
+        return Json(new { success = true, message = "Attendance reconciled." });
+    }
+
+
 
 
     // --------GET: EVENTS--------------

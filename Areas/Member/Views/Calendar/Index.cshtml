@@ -1,0 +1,374 @@
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Calendar.MemberCalendarPageViewModel
+@{
+    ViewData["Title"] = "Calendar";
+    Layout = "_MemberLayout";
+
+    var monthName = new DateTime(Model.Year, Model.Month, 1).ToString("MMMM yyyy");
+    var dayNames = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+    string StatusPillBg(Sym_Connect__Capstone2_.Models.Enums.MemberEventStatus status) => status switch
+    {
+        Sym_Connect__Capstone2_.Models.Enums.MemberEventStatus.Live => "#dcfce7",
+        Sym_Connect__Capstone2_.Models.Enums.MemberEventStatus.Upcoming => "#dbeafe",
+        _ => "#f3f4f6"
+    };
+
+    string StatusPillColor(Sym_Connect__Capstone2_.Models.Enums.MemberEventStatus status) => status switch
+    {
+        Sym_Connect__Capstone2_.Models.Enums.MemberEventStatus.Live => "#16a34a",
+        Sym_Connect__Capstone2_.Models.Enums.MemberEventStatus.Upcoming => "#2563eb",
+        _ => "#6b7280"
+    };
+}
+
+<style>
+    :root {
+        --brand-blue: #2F6FED;
+    }
+
+    .cal-wrapper {
+        max-width: 1200px;
+    }
+
+    .cal-heading {
+        font-size: 28px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .cal-tabs {
+        border-bottom: 1px solid #e5e7eb;
+        margin-bottom: 18px;
+    }
+
+        .cal-tabs a {
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            text-decoration: none;
+            padding: 8px 2px;
+            margin-right: 24px;
+            border-bottom: 2px solid transparent;
+        }
+
+            .cal-tabs a.active {
+                color: var(--brand-blue);
+                border-bottom-color: var(--brand-blue);
+                font-weight: 600;
+            }
+
+    .cal-group-label {
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 12px;
+    }
+
+    .cal-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .cal-day-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .cal-day-header span {
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+    .cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+
+    .cal-cell {
+        min-height: 96px;
+        border-right: 1px solid #f3f4f6;
+        border-bottom: 1px solid #f3f4f6;
+        padding: 8px;
+        vertical-align: top;
+    }
+
+        .cal-cell:nth-child(7n) {
+            border-right: none;
+        }
+
+        .cal-cell.not-current {
+            background: #fafafa;
+        }
+
+            .cal-cell.not-current .cal-date-num {
+                color: #d1d5db;
+            }
+
+        .cal-cell.today {
+            background: #eff4ff;
+            box-shadow: inset 0 0 0 1.5px var(--brand-blue);
+        }
+
+    .cal-date-num {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 4px;
+    }
+
+    .cal-event-chip {
+        display: block;
+        font-size: 11px;
+        line-height: 1.4;
+        padding: 1px 0;
+        color: #111827;
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+        .cal-event-chip::before {
+            content: "•";
+            color: var(--brand-blue);
+            margin-right: 4px;
+        }
+
+        .cal-event-chip.all-day {
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+            .cal-event-chip.all-day::before {
+                content: "";
+                margin-right: 0;
+            }
+
+        .cal-event-chip.attended::before {
+            color: #16a34a;
+        }
+
+    .side-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 18px;
+    }
+
+    .side-date {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-bottom: 6px;
+    }
+
+    .side-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 2px;
+    }
+
+    .side-group {
+        font-size: 12px;
+        color: var(--brand-blue);
+        margin-bottom: 6px;
+    }
+
+    .side-status {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .side-empty {
+        font-size: 13px;
+        color: #9ca3af;
+        text-align: center;
+        padding: 10px 0;
+    }
+
+    .upcoming-heading {
+        font-size: 12px;
+        font-weight: 600;
+        color: #9ca3af;
+        text-transform: uppercase;
+        margin: 20px 0 10px;
+    }
+
+    .upcoming-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .upcoming-item:last-child {
+            border-bottom: none;
+        }
+
+    .upcoming-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .upcoming-room {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .cal-nav-btn {
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: 8px;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #374151;
+        text-decoration: none;
+    }
+</style>
+
+<div class="cal-wrapper mx-auto">
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h1 class="cal-heading mb-0">@monthName</h1>
+        <div class="d-flex align-items-center gap-2">
+            <a class="btn btn-outline-secondary btn-sm"
+               asp-action="Index"
+               asp-route-year="@DateTime.Today.Year"
+               asp-route-month="@DateTime.Today.Month"
+               asp-route-activeTab="@Model.ActiveTab">Today</a>
+
+            @{
+                var prevMonth = Model.Month == 1 ? 12 : Model.Month - 1;
+                var prevYear = Model.Month == 1 ? Model.Year - 1 : Model.Year;
+                var nextMonth = Model.Month == 12 ? 1 : Model.Month + 1;
+                var nextYear = Model.Month == 12 ? Model.Year + 1 : Model.Year;
+            }
+            <a class="cal-nav-btn" asp-action="Index" asp-route-year="@prevYear" asp-route-month="@prevMonth" asp-route-activeTab="@Model.ActiveTab">
+                <i class="ti ti-chevron-left"></i>
+            </a>
+            <a class="cal-nav-btn" asp-action="Index" asp-route-year="@nextYear" asp-route-month="@nextMonth" asp-route-activeTab="@Model.ActiveTab">
+                <i class="ti ti-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="cal-tabs">
+        <a class="@(Model.ActiveTab == "MyGroupEvents" ? "active" : "")"
+           asp-action="Index" asp-route-year="@Model.Year" asp-route-month="@Model.Month" asp-route-activeTab="MyGroupEvents">
+            My group events
+        </a>
+        <a class="@(Model.ActiveTab == "Attended" ? "active" : "")"
+           asp-action="Index" asp-route-year="@Model.Year" asp-route-month="@Model.Month" asp-route-activeTab="Attended">
+            Attended
+        </a>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.GroupName) && Model.ActiveTab == "MyGroupEvents")
+    {
+        <div class="cal-group-label">@Model.GroupName</div>
+    }
+
+    <div class="row g-3">
+        <!-- CALENDAR GRID -->
+        <div class="col-lg-9">
+            <div class="cal-card">
+                <div class="cal-day-header">
+                    @foreach (var d in dayNames)
+                    {
+                        <span>@d</span>
+                    }
+                </div>
+                <div class="cal-grid">
+                    @foreach (var day in Model.Days)
+                    {
+                        <div class="cal-cell @(day.IsCurrentMonth ? "" : "not-current") @(day.IsToday ? "today" : "")">
+                            <div class="cal-date-num">@day.Date.Day</div>
+                            @foreach (var ev in day.Events.Take(3))
+                            {
+                                var chipClass = ev.isAllDay ? "all-day" : (Model.ActiveTab == "Attended" ? "attended" : "");
+                                <a class="cal-event-chip @chipClass"
+                                   asp-controller="Events" asp-action="Details" asp-route-eventid="@ev.eventId"
+                                   title="@ev.EventTitle">
+                                    @if (ev.isAllDay)
+                                    {
+                                        <text>All day</text>
+                                        <br />
+                                    }
+                                    @ev.EventTitle
+                                </a>
+                            }
+                            @if (day.Events.Count > 3)
+                            {
+                                <span class="cal-event-chip text-muted">+@(day.Events.Count - 3) more</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-3">
+            <div class="side-card">
+                @if (Model.TodayPanel.HasEventToday)
+                {
+                    <div class="side-date">Today &middot; @DateTime.Today.ToString("MMM d")</div>
+                    <div class="side-title">@Model.TodayPanel.EventTitle</div>
+                    @if (!string.IsNullOrEmpty(Model.TodayPanel.GroupName))
+                    {
+                        <div class="side-group">@Model.TodayPanel.GroupName</div>
+                    }
+                    <div class="side-status" style="color:@(Model.TodayPanel.IsLiveNow ? "#16a34a" : "#6b7280");">
+                        @if (Model.TodayPanel.IsLiveNow)
+                        {
+                            @:Live now &ndash; ends @Model.TodayPanel.EndTime.ToString("h:mm tt")
+                        }
+                        else
+                        {
+                            @:Ends @Model.TodayPanel.EndTime.ToString("h:mm tt")
+                        }
+                    </div>
+                    <a class="btn btn-outline-secondary w-100 btn-sm"
+                       asp-controller="Events" asp-action="Details" asp-route-eventid="@Model.TodayPanel.EventId">
+                        View Details
+                    </a>
+                }
+                else
+                {
+                    <div class="side-date">Today &middot; @DateTime.Today.ToString("MMM d")</div>
+                    <div class="side-empty">No event today.</div>
+                }
+
+                <div class="upcoming-heading">Up coming</div>
+                @if (Model.UpcomingEvents.Any())
+                {
+                    @foreach (var up in Model.UpcomingEvents)
+                    {
+                        <div class="upcoming-item">
+                            <div class="upcoming-title">@up.EventTitle</div>
+                            @if (!string.IsNullOrEmpty(up.FacilityName))
+                            {
+                                <div class="upcoming-room">@up.FacilityName</div>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="side-empty">Nothing coming up.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

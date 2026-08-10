@@ -18,6 +18,9 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         [Required(ErrorMessage = "End Date is required")]
         public DateTime EndDate { get; set; }
 
+        [Range(1, 100, ErrorMessage = "Must be below or equal to 100")]
+        public int Points { get; set; } = 10;
+
         //time if its not ALLDAY
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }

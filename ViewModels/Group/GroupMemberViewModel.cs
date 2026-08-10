@@ -2,7 +2,7 @@
 {
     public class GroupMemberViewModel
     {
-        public int MemberId { get; set; }
+        public int? MemberId { get; set; }
 
         public string FullName { get; set; } = string.Empty;
 

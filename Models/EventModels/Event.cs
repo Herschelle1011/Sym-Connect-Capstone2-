@@ -1,5 +1,4 @@
 ﻿using Sym_Connect__Capstone2_.Models.Enums;
-using Sym_Connect__Capstone2_.Models.EvaluationModels;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
 using System.ComponentModel.DataAnnotations;
 
@@ -22,6 +21,8 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
+        [Range(1, 100)]
+        public int Points { get; set; } = 3;
 
         public int FacilityId { get; set; }
         public Facility Facility { get; set; } = null!;

@@ -17,6 +17,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _context = context;
         }
 
+
+        public async Task<Event?> GetEventByIdAsync(int eventId)
+        {
+            return await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+        }
+
+
+
+
         public async Task<List<EventCalendarViewModel>> GetAllEventAsync(int year, int month )
         {
             return await _context.Events
@@ -46,6 +55,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     IsAllDay = e.IsAllDay,
                     StartDate = e.StartDate,
                     EndDate = e.EndDate,
+                    Points = e.Points,
                     StartTime = e.StartTime,
                     EndTime = e.EndTime,
                     DateCreated = e.DateCreated,
@@ -145,6 +155,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var newEvent = new Event
             {
                 EventTitle = vm.EventTitle,
+                Points = vm.Points,
                 EventDescription = vm.EventDescription,
                 IsAllDay = vm.IsAllDay,
                 FacilityId = vm.FacilityId,
@@ -180,10 +191,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime, excludeEventId: gId);
             if (hasConflict) return false;
 
+            if (vm.IsAllDay)
+            {
+                vm.StartTime = null;
+                vm.EndTime = null;
+            }
+
             existingEvent.EventTitle = vm.EventTitle;
             existingEvent.EventDescription = vm.EventDescription;
             existingEvent.StartDate = vm.StartDate;
             existingEvent.EndDate = vm.EndDate;
+            existingEvent.Points = vm.Points;
             existingEvent.StartTime = vm.StartTime;
             existingEvent.IsAllDay = vm.IsAllDay;
             existingEvent.EndTime = vm.EndTime;
@@ -231,11 +249,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return new EditEventViewModel
             {
+
+                EventId = existingEvent.EventId,
                 EventTitle = existingEvent.EventTitle,
                 EventDescription = existingEvent.EventDescription ?? "N/A",
                 IsAllDay = existingEvent.IsAllDay,
                 StartDate = existingEvent.StartDate,
                 EndDate = existingEvent.EndDate,
+                Points = existingEvent.Points,
                 StartTime = existingEvent.StartTime,
                 EndTime = existingEvent.EndTime,
                 FacilityId = existingEvent.FacilityId,
@@ -252,7 +273,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return new ArchiveViewModel
             {
                 EventId = existingEvent.EventId,
-                EventTitle = existingEvent.EventTitle,
+                EventTitle = existingEvent.EventTitle,            
                 Description = existingEvent.EventDescription ?? "N/A",
                 StartDate = existingEvent.StartDate,
                 FacilityId = existingEvent.FacilityId,
@@ -303,44 +324,49 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<ScannerViewModel> GetScannerStateAsync(int eventId)
         {
-            var ExistingEvent = await _context.Events
-                .Include(e => e.ExpectedGroups)
-                        .ThenInclude(g => g.Group)
-                            .ThenInclude(gd => gd.GroupDetails)
-                                .ThenInclude(m => m.Member)   
-                                 .FirstOrDefaultAsync(e => e.EventId == eventId);
-                      if (ExistingEvent == null) return null;
+            
+            var scannerState = await _context.Events
+                .AsNoTracking()
+                .Where(e => e.EventId == eventId)
+                .Select(e => new
+                {
+                    e.EventTitle,
+                    TotalMembersCount = e.ExpectedGroups
+                        .SelectMany(eg => eg.Group.GroupDetails.Select(gd => gd.MemberId))
+                        .Distinct()
+                        .Count()
+                })
+                .FirstOrDefaultAsync();
 
-            var allMembers = ExistingEvent.ExpectedGroups
-              .SelectMany(eg => eg.Group.GroupDetails.Select(gm => gm.Member))
-              .DistinctBy(m => m.MemberId)
-              .ToList();
+            if (scannerState == null) return null;
 
-            var checkIns = await _context.Attendances
-                    .Where(ev => ev.EventId == eventId)
-                    .Include(c => c.Member)
-                        .ThenInclude(gd => gd.GroupDetails)
-                         .ThenInclude(g => g.Group)
-
-                    .OrderByDescending(t => t.TimeIn).ToListAsync();
-                   
+            var participants = await _context.Attendances
+                .AsNoTracking()
+                .Where(a => a.EventId == eventId)
+                .OrderByDescending(a => a.TimeIn)
+                .Select(a => new ParticipantCheckInViewModel
+                {
+                    MemberId = a.MemberId,
+                    FullName = a.Member.FullName,
+                    PhotoUrl = a.Member.ProfilePictureUrl,
+                    GroupName = a.Member.GroupDetails
+                        .Where(gd => _context.Events
+                            .Where(e => e.EventId == eventId)
+                            .SelectMany(e => e.ExpectedGroups)
+                            .Any(eg => eg.GroupId == gd.GroupId))
+                        .Select(gd => gd.Group.GroupName)
+                        .FirstOrDefault(),
+                    CheckedInAt = a.TimeIn
+                })
+                .ToListAsync();
 
             return new ScannerViewModel
             {
                 EventId = eventId,
-                EventName = ExistingEvent.EventTitle,
-                TotalMembersCount = allMembers.Count,
-                PresentCount = checkIns.Select(c => c.MemberId).Distinct().Count(),
-                Participants = checkIns.Select(c => new ParticipantCheckInViewModel
-                {
-                    MemberId = c.MemberId,
-                    FullName = c.Member.FullName,
-                    PhotoUrl = c.Member.ProfilePictureUrl,
-                    GroupName = c.Member.GroupDetails?
-                    .FirstOrDefault(gd => ExistingEvent.ExpectedGroups.Any(eg => eg.GroupId == gd.GroupId))
-                    ?.Group?.GroupName,
-                    CheckedInAt = c.TimeIn
-                }).ToList()
+                EventName = scannerState.EventTitle,
+                TotalMembersCount = scannerState.TotalMembersCount,
+                PresentCount = participants.Select(p => p.MemberId).Distinct().Count(),
+                Participants = participants
             };
         }
 
@@ -375,18 +401,28 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 return new ScanResult { Success = false, Message = $"{member.FirstName} {member.LastName} already Checked In" };
             }
 
-            var EventEntity = await _context.Events
-                .Include(g => g.ExpectedGroups)
-                .FirstOrDefaultAsync(e => e.EventId == eventId);
+            var expectedGroupIds = await _context.Events
+          .AsNoTracking()
+          .Where(e => e.EventId == eventId)
+          .SelectMany(e => e.ExpectedGroups)
+          .Select(eg => eg.GroupId)
+          .ToListAsync();
 
-            var groupMembersIds = await _context.GroupDetails
-                                         .Where(e => e.MemberId == member.MemberId)
-                                         .Select(g => g.GroupId).ToListAsync();
+            var eventEntity = await _context.Events
+            .AsNoTracking()
+            .Where(e => e.EventId == eventId)
+            .Select(e => new { e.Points })
+            .FirstOrDefaultAsync();
 
-            if (EventEntity == null) return new ScanResult { Success = false, Message = "Event not found." };
-            if (groupMembersIds == null) return new ScanResult { Success = false, Message = "Event not found." };
 
-            bool isExpected = EventEntity.ExpectedGroups.Any(eg => groupMembersIds.Contains(eg.GroupId));
+            var memberGroupIds = await _context.GroupDetails
+            .Where(gd => gd.MemberId == member.MemberId)
+            .Select(gd => gd.GroupId)
+            .ToListAsync();
+
+            if (memberGroupIds == null) return new ScanResult { Success = false, Message = "Event not found." };
+
+            bool isExpected = expectedGroupIds.Any(id => memberGroupIds.Contains(id));
 
             if (!isExpected)
                 return new ScanResult { Success = false, Message = $"{member.FirstName} is not part of the expected groups for this event." };
@@ -395,8 +431,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 MemberId = member.MemberId,
                 EventId = eventId,
+                Points = eventEntity.Points,
                 TimeIn = DateTime.Now,
-                TimeOut = null
+                TimeOut = null,
+                Status = "Pending"
             });
 
             await _context.SaveChangesAsync();
@@ -404,46 +442,126 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return new ScanResult { Success = true, Message = $"{member.FirstName} Checked in Successfully." };
         }
 
-        private string ComputeStatus(DateTime? timeIn, DateTime? timeOut, DateTime eventStartDate, TimeSpan? eventStartTime)
+
+        public async Task<bool> NoTimeOut(string qrToken, int eventId)
         {
-            if (!timeIn.HasValue)
-                return "Absent";
+            var memberTask = _context.Members.FirstOrDefaultAsync(m => m.QRToken == qrToken);
+            var eventTask = _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
 
-            var eventStart = eventStartDate.Date + (eventStartTime ?? TimeSpan.Zero);
+            await Task.WhenAll(memberTask, eventTask);
 
-            bool isLate = timeIn.Value > eventStart;
+            var member = await memberTask;
+            var existingEvent = await eventTask;
 
-            if (!timeOut.HasValue)
-                return isLate ? "Late" : "Pending";
+            if (member == null || existingEvent == null)
+            {
+                return false;
+            }
 
-            return isLate ? "Late" : "Present";
+            var currentDateTime = DateTime.Now;
+            bool isEventExpired = existingEvent.EndDate < currentDateTime.Date ||
+                                 (existingEvent.EndDate == currentDateTime.Date && existingEvent.EndTime < currentDateTime.TimeOfDay);
+
+            if (isEventExpired)
+            {
+                var attendance = await _context.Attendances
+                    .FirstOrDefaultAsync(a => a.MemberId == member.MemberId && a.EventId == eventId);
+
+                if (attendance != null && attendance.Status == "Pending")
+                {
+                    attendance.Status = "Absent";
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return true;
         }
+
+
+
+        public async Task<ScanResult> RecordTimeOutAsync(string qrToken, int eventId)
+        {
+            var member = await _context.Members
+              .FirstOrDefaultAsync(m => m.QRToken == qrToken);
+            if (member == null)
+            {
+                return new ScanResult { Success = false, Message = "QR code not recognized." };
+            }
+
+            var eventExists = await _context.Events.AnyAsync(e => e.EventId == eventId);
+            if (!eventExists)
+                return new ScanResult { Success = false, Message = "Event not found." };
+
+
+            var MemberhasTimeIn = await _context.Attendances.FirstOrDefaultAsync(m => m.MemberId == member.MemberId && m.EventId == eventId);
+         
+            if (MemberhasTimeIn == null)
+            {
+                return new ScanResult { Success = false, Message = $"{member.FirstName} never checked in — cannot record time-out." };
+            }
+
+            if (MemberhasTimeIn.TimeOut.HasValue)
+                return new ScanResult { Success = false, Message = $"{member.FirstName} already timed out." };
+
+
+            MemberhasTimeIn.TimeOut = DateTime.Now;
+            MemberhasTimeIn.Status = "Present";
+            await _context.SaveChangesAsync();
+
+            return new ScanResult { Success = true, Message = $"{member.FirstName} Timed Out Successfully." };
+
+        }
+
+
+        //private string ComputeStatus(
+        //      DateTime? timeIn,
+        //      DateTime? timeOut,
+        //      DateTime startDate,
+        //      TimeSpan startTime)
+        //{
+        //    if (!timeIn.HasValue)
+        //        return "Pending";
+
+        //    var eventStart = startDate.Date.Add(startTime);
+
+        //    // 10-minute grace period
+        //    var lateThreshold = eventStart.AddMinutes(10);
+
+        //    if (timeIn.Value <= lateThreshold)
+        //        return "Present";
+
+        //    return "Late";
+        //}
 
 
         //------------ATTENDANCE PART --------
 
         public async Task<List<AttendanceRowViewModel>> ViewAttendanceForEventAsync(int eventId)
         {
-            var eventEntity = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
-            if (eventEntity == null) return new List<AttendanceRowViewModel>();
+            var eventTiming = await _context.Events.AsNoTracking()
+                            .Where(e => e.EventId == eventId)
+                            .Select(e => new { e.StartDate, e.StartTime })
+                            .FirstOrDefaultAsync();
 
-            var attendances = await _context.Attendances
+            if (eventTiming == null) return new List<AttendanceRowViewModel>();
+
+            var rows = await _context.Attendances
+                .AsNoTracking()
                 .Where(a => a.EventId == eventId)
-                .Include(a => a.Member)
-                    .ThenInclude(m => m.GroupDetails)
-                        .ThenInclude(gd => gd.Group)
+                .Select(a => new AttendanceRowViewModel
+                {
+                    MemberId = a.MemberId,
+                    FullName = a.Member.FullName,
+                    PhotoUrl = a.Member.ProfilePictureUrl,
+                    Points = a.Points,
+                    GroupName = a.Member.GroupDetails.Select(gd => gd.Group.GroupName).FirstOrDefault() ?? "-",
+                    TimeIn = a.TimeIn,
+                    TimeOut = a.TimeOut,
+                    Status = a.Status
+                })
                 .ToListAsync();
 
-            return attendances.Select(a => new AttendanceRowViewModel
-            {
-                MemberId = a.MemberId,
-                FullName = a.Member.FullName,
-                PhotoUrl = a.Member.ProfilePictureUrl,
-                GroupName = a.Member.GroupDetails.FirstOrDefault()?.Group?.GroupName ?? "-",
-                TimeIn = a.TimeIn,
-                TimeOut = a.TimeOut,
-                Status = ComputeStatus(a.TimeIn, a.TimeOut, eventEntity.StartDate, eventEntity.StartTime)
-            }).ToList();
+            return rows;
         }
 
 

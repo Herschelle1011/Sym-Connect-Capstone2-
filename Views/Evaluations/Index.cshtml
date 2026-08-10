@@ -44,6 +44,139 @@
             color: #fff;
         }
 
+    /* ===== Toolbar (search + status pills + date range + sort) ===== */
+    .eval-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 22px;
+        flex-wrap: wrap;
+    }
+
+    .eval-search {
+        position: relative;
+        flex: 1;
+        min-width: 220px;
+        max-width: 320px;
+    }
+
+        .eval-search i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .eval-search input {
+            width: 100%;
+            padding: 9px 14px 9px 36px;
+            border: 1px solid var(--border-color, #EEE);
+            border-radius: 999px;
+            font-size: 13px;
+        }
+
+            .eval-search input:focus {
+                outline: none;
+                border-color: #1877F2;
+                box-shadow: 0 0 0 3px rgba(24,119,242,0.12);
+            }
+
+    .eval-filter-pills {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .filter-pill {
+        border: 1px solid var(--border-color, #EEE);
+        background: #fff;
+        color: var(--text-secondary, #5B6472);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 16px;
+        border-radius: 999px;
+        cursor: pointer;
+    }
+
+        .filter-pill:hover {
+            background: #F7F9FC;
+        }
+
+        .filter-pill.active[data-status="all"] {
+            background: #1877F2;
+            border-color: #1877F2;
+            color: #fff;
+        }
+
+        .filter-pill.active[data-status="open"] {
+            background: #E6F4EA;
+            border-color: #1E7E34;
+            color: #1E7E34;
+        }
+
+        .filter-pill.active[data-status="upcoming"] {
+            background: #FFF4E0;
+            border-color: #B7791F;
+            color: #B7791F;
+        }
+
+        .filter-pill.active[data-status="closed"] {
+            background: #FBEAEA;
+            border-color: #BB1414;
+            color: #BB1414;
+        }
+
+    .eval-date-range {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .eval-date-range .date-field {
+            position: relative;
+        }
+
+            .eval-date-range .date-field i {
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-muted);
+                font-size: 11px;
+                pointer-events: none;
+            }
+
+            .eval-date-range .date-field input {
+                padding: 8px 10px 8px 30px;
+                border: 1px solid var(--border-color, #EEE);
+                border-radius: 10px;
+                font-size: 12px;
+                width: 145px;
+            }
+
+        .eval-date-range .date-sep {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+    .eval-sort {
+        margin-left: auto;
+        padding: 9px 14px;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 10px;
+        font-size: 13px;
+        color: var(--text-secondary, #5B6472);
+        min-width: 160px;
+    }
+
+    .eval-no-results {
+        display: none;
+        color: var(--text-muted);
+        margin-top: 24px;
+    }
+
     /* ===== Cards Grid ===== */
     .eval-grid {
         display: grid;
@@ -131,20 +264,20 @@
         font-size: 1.1rem;
     }
 
-        .eval-date-info.text-open {
-            background: #E6F4EA;
-            color: #1E7E34;
-        }
+    .eval-date-info.text-open {
+        background: #E6F4EA;
+        color: #1E7E34;
+    }
 
-        .eval-date-info.text-upcoming {
-            background: #FFF4E0;
-            color: #B7791F;
-        }
+    .eval-date-info.text-upcoming {
+        background: #FFF4E0;
+        color: #B7791F;
+    }
 
-        .eval-date-info.text-closed {
-            background: #FBEAEA;
-            color: #BB1414;
-        }
+    .eval-date-info.text-closed {
+        background: #FBEAEA;
+        color: #BB1414;
+    }
 
     /* ===== Description ===== */
     .eval-description {
@@ -194,6 +327,40 @@
         </a>
     </div>
 
+    @* ---- TOOLBAR: search + status filter + date range + sort ---- *@
+    <div class="eval-toolbar">
+        <div class="eval-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="evalSearchInput" placeholder="Search evaluations..." />
+        </div>
+
+        <div class="eval-filter-pills" id="evalStatusFilter">
+            <button type="button" class="filter-pill active" data-status="all">All</button>
+            <button type="button" class="filter-pill" data-status="open">Open</button>
+            <button type="button" class="filter-pill" data-status="upcoming">Upcoming</button>
+            <button type="button" class="filter-pill" data-status="closed">Closed</button>
+        </div>
+
+        <div class="eval-date-range">
+            <div class="date-field">
+                <i class="bi bi-calendar3"></i>
+                <input type="date" id="evalDateFrom" />
+            </div>
+            <span class="date-sep">–</span>
+            <div class="date-field">
+                <i class="bi bi-calendar3"></i>
+                <input type="date" id="evalDateTo" />
+            </div>
+        </div>
+
+        <select id="evalSortSelect" class="eval-sort">
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="title-asc">Title A–Z</option>
+            <option value="closing-soon">Closing soon</option>
+        </select>
+    </div>
+
     @* ---- CARDS GRID ---- *@
     @if (!Model.Any())
     {
@@ -203,12 +370,16 @@
     }
     else
     {
-        <div class="eval-grid">
+        <div class="eval-grid" id="evalGrid">
             @foreach (var item in Model)
             {
                 @* Map status to a short css-safe key: "open" | "upcoming" | "closed" *@
                 var statusKey = item.Status.ToLower();
                 <div class="eval-card"
+                     data-title="@item.EvaluationTitle"
+                     data-status="@statusKey"
+                     data-open-at="@item.OpenAt.ToString("yyyy-MM-dd")"
+                     data-closed-at="@item.ClosesAt.ToString("yyyy-MM-dd")"
                      onclick="handleCardClick(event, '@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })')">
 
                     @* ---- TITLE + STATUS LABEL ---- *@
@@ -242,11 +413,14 @@
                             <i class="bi bi-archive"></i>
                         </button>
 
+                      
                     </div>
 
                 </div>
             }
         </div>
+
+        <p class="eval-no-results" id="evalNoResults">No evaluations match your search/filters.</p>
     }
 </div>
 
@@ -256,6 +430,7 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
     <script>
         // Whole-card click navigates to Details — BUT only if the click
         // didn't originate from the footer (Edit link / Archive button).
@@ -269,19 +444,81 @@
             location.href = detailsUrl;
         }
 
-        $(document).on("click", ".open-modal", function () {
-            const url = $(this).data("url");
-            const title = $(this).data("title");
+        // ===== Toolbar: search + status filter + date range + sort =====
+        const evalGrid = document.getElementById("evalGrid");
 
-            $("#appModalLabel").text(title);
-            $("#appModalBody").html("Loading...");
+        if (evalGrid) {
+            const searchInput = document.getElementById("evalSearchInput");
+            const dateFrom = document.getElementById("evalDateFrom");
+            const dateTo = document.getElementById("evalDateTo");
+            const sortSelect = document.getElementById("evalSortSelect");
+            const noResultsMsg = document.getElementById("evalNoResults");
+            const statusPills = document.querySelectorAll(".filter-pill");
 
-            $.get(url, function (html) {
-                $("#appModalBody").html(html);
+            statusPills.forEach(function (pill) {
+                pill.addEventListener("click", function () {
+                    statusPills.forEach(p => p.classList.remove("active"));
+                    pill.classList.add("active");
+                    applyEvalFilters();
+                });
             });
 
-            const modal = new bootstrap.Modal(document.getElementById("appModal"));
-            modal.show();
-        });
+            searchInput.addEventListener("input", applyEvalFilters);
+            dateFrom.addEventListener("change", applyEvalFilters);
+            dateTo.addEventListener("change", applyEvalFilters);
+            sortSelect.addEventListener("change", applyEvalFilters);
+
+            function applyEvalFilters() {
+                const term = searchInput.value.trim().toLowerCase();
+                const activeStatus = document.querySelector(".filter-pill.active").dataset.status;
+                const fromVal = dateFrom.value; // "yyyy-MM-dd" or ""
+                const toVal = dateTo.value;
+
+                const cards = Array.from(evalGrid.querySelectorAll(".eval-card"));
+                let visibleCount = 0;
+
+                cards.forEach(function (card) {
+                    const title = card.dataset.title.toLowerCase();
+                    const status = card.dataset.status;
+                    const openAt = card.dataset.openAt;
+
+                    const matchesSearch = title.includes(term);
+                    const matchesStatus = activeStatus === "all" || status === activeStatus;
+                    const matchesFrom = !fromVal || openAt >= fromVal;
+                    const matchesTo = !toVal || openAt <= toVal;
+
+                    const isVisible = matchesSearch && matchesStatus && matchesFrom && matchesTo;
+                    card.style.display = isVisible ? "" : "none";
+                    if (isVisible) visibleCount++;
+                });
+
+                noResultsMsg.style.display = visibleCount === 0 ? "block" : "none";
+
+                applyEvalSort(cards);
+            }
+
+            function applyEvalSort(cards) {
+                const sortBy = sortSelect.value;
+
+                const sorted = cards.slice().sort(function (a, b) {
+                    if (sortBy === "newest") {
+                        return b.dataset.openAt.localeCompare(a.dataset.openAt);
+                    }
+                    if (sortBy === "oldest") {
+                        return a.dataset.openAt.localeCompare(b.dataset.openAt);
+                    }
+                    if (sortBy === "title-asc") {
+                        return a.dataset.title.localeCompare(b.dataset.title);
+                    }
+                    if (sortBy === "closing-soon") {
+                        return a.dataset.closedAt.localeCompare(b.dataset.closedAt);
+                    }
+                    return 0;
+                });
+
+               
+                sorted.forEach(card => evalGrid.appendChild(card));
+            }
+        }
     </script>
 }

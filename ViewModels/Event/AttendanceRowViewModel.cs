@@ -10,6 +10,8 @@
         public DateTime? TimeIn { get; set; }
         public DateTime? TimeOut { get; set; }
 
+        public int Points { get; set; }
+
         public string Status { get; set; } = string.Empty;
     }
 }

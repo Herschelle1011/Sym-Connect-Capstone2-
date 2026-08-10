@@ -1,5 +1,5 @@
-﻿using Sym_Connect__Capstone2_.Models.Enums;
-using Sym_Connect__Capstone2_.Models.EvaluationModels;
+﻿using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
 namespace Sym_Connect__Capstone2_.Services.Interfaces
@@ -17,10 +17,17 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<UpdateEvaluationViewModel?> GetUpdateEvaluationAsync(int id);
         Task DeleteEvaluationAsync(int id);
         Task<ArchiveEvaluationViewModel?> GetArchiveEvaluationConfirmation(int id);
-        Task <List<EvaluationQuestion>> GetAllQuestionsAsync();
+        Task<List<EvaluationQuestion>> GetAllQuestionsAsync();
         Task ArchiveEvaluation(int id);
         Task<bool> EvaluationExist(int id);
 
         Task EditQuestionAsync(EditQuestionViewModel vm);
+
+        Task<List<SubmissionListItemViewModel>> GetSubmissionsForEvaluationAsync(int evaluationId);
+        Task<SubmissionDetailsViewModel?> GetSubmissionDetailsAsync(int submissionId);
+
+        Task<SummaryResponseReportViewModel> summaryReport(int? evaluationId);
+
+        Task<string?> GetCurrentStatusAsync(int evaluationId);
     }
 }

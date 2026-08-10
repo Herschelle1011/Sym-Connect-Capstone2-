@@ -7,7 +7,6 @@ using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 using System.Runtime.Intrinsics.X86;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 
-
 public class EvaluationsController : Controller
 {
     private readonly IEvaluationService _evaluationservice;
@@ -27,7 +26,7 @@ public class EvaluationsController : Controller
         {
             EvaluationId = e.EvaluationId,
             EvaluationTitle = e.EvaluationTitle,
-            Description = e.Description,  
+            Description = e.Description,
             OpenAt = e.OpenAt,
             ClosesAt = e.ClosedAt,
             DateCreated = e.DateCreated
@@ -65,15 +64,25 @@ public class EvaluationsController : Controller
                 QuestionId = q.QuestionId,
                 QuestionText = q.EvaluationQuestion!.QuestionText,
                 AnswerType = q.EvaluationQuestion.AnswerType,
-                
-            }).ToList()
+
+            }).ToList(),
+            Submissions = await _evaluationservice.GetSubmissionsForEvaluationAsync(id.Value) // ✅ new
+
         };
 
         return View(Evaluations);
     }
 
+    public async Task<IActionResult> SubmissionDetails(int id)
+    {
+        var details = await _evaluationservice.GetSubmissionDetailsAsync(id);
+        if (details == null) return NotFound();
+
+        return PartialView("_SubmissionDetails", details);
+    }
+
     // GET: EVALUATIONS/Create
-    public async Task <IActionResult> Create()
+    public async Task<IActionResult> Create()
     {
         var getallquestions = await _evaluationservice.GetAllQuestionsAsync();
 
@@ -86,9 +95,10 @@ public class EvaluationsController : Controller
             {
                 QuestionId = q.QuestionId,
                 QuestionText = q.QuestionText,
+                AnswerType = q.AnswerType,
             }).ToList()
         };
-               
+
         return View(vm);
     }
 
@@ -109,17 +119,32 @@ public class EvaluationsController : Controller
             {
                 QuestionId = q.QuestionId,
                 QuestionText = q.QuestionText,
+                AnswerType = q.AnswerType,
             }).ToList();
 
             return View(vm);
         }
-           await _evaluationservice.CreateEvaluationAsync(vm);
-           return RedirectToAction(nameof(Index));
+        await _evaluationservice.CreateEvaluationAsync(vm);
+        return RedirectToAction(nameof(Index));
     }
 
     // GET: EVALUATIONS/Edit/5
     public async Task<IActionResult> Edit(int id)
     {
+        var status = await _evaluationservice.GetCurrentStatusAsync(id);
+        if (status == null)
+        {
+            return NotFound();
+        }
+        ;
+
+        if (status != "Upcoming")
+        {
+            TempData["ErrorMessage"] = "This evaluation can only be edited while it's still Upcoming.";
+            return RedirectToAction("Details", new { id });
+        }
+
+
         var evaluation = await _evaluationservice.GetUpdateEvaluationAsync(id);
         if (evaluation == null)
         {
@@ -135,6 +160,13 @@ public class EvaluationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UpdateEvaluationViewModel vm)
     {
+        var status = await _evaluationservice.GetCurrentStatusAsync(vm.EvaluationId);
+        if (status != "Upcoming")
+        {
+            TempData["ErrorMessage"] = "This evaluation can only be edited while it's still Upcoming.";
+            return RedirectToAction("Details", new { vm.EvaluationId });
+        }
+
         DateValidation(vm);
 
         if (vm.EvaluationId == 0)
@@ -143,7 +175,14 @@ public class EvaluationsController : Controller
         }
         if (!ModelState.IsValid)
         {
-            return PartialView("_EditEvaluationForm",vm);
+            var allQuestions = await _evaluationservice.GetAllQuestionsAsync();
+            vm.AvailableQuestions = allQuestions.Select(q => new AvailableQuestionViewModel
+            {
+                QuestionId = q.QuestionId,
+                QuestionText = q.QuestionText,
+                AnswerType = q.AnswerType
+            }).ToList();
+            return View(vm);
         }
         try
         {
@@ -242,8 +281,17 @@ public class EvaluationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(int evaluationid)
     {
-         await _evaluationservice.DeleteEvaluationAsync(evaluationid);
-          return RedirectToAction(nameof(Index));
+        await _evaluationservice.DeleteEvaluationAsync(evaluationid);
+        return RedirectToAction(nameof(Index));
+    }
+
+    //TO BE CHECKED, LACKING IS UI 
+    public async Task<IActionResult> SummaryReports(int? id)
+    {
+        if (id == null) { return NotFound(); }
+        var report = await _evaluationservice.summaryReport(id);
+        if (report == null) { return NotFound(); }
+        return PartialView("_SummaryReportsPartial", report);
     }
 
 
@@ -253,7 +301,7 @@ public class EvaluationsController : Controller
         {
             ModelState.AddModelError(nameof(vm.ClosedAt), "Close date must be after the open date.");
         }
-        
+
     }
 
 }

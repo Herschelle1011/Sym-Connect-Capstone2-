@@ -9,7 +9,11 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\" />
-    <Folder Include="Areas\Leader\" />
+    <Folder Include="Areas\Leader\Controllers\" />
+    <Folder Include="Areas\Leader\ViewModels\" />
+    <Folder Include="Areas\Leader\Services\Implementation\" />
+    <Folder Include="Areas\Leader\Services\Interfaces\" />
+    <Folder Include="Areas\Leader\View\Events\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

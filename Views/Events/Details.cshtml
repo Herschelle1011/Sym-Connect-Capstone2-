@@ -38,7 +38,7 @@
 
     if (Model.StartTime.HasValue && Model.EndTime.HasValue)
     {
-        var span = Model.EndTime.Value - Model.StartTime.Value;  
+        var span = Model.EndTime.Value - Model.StartTime.Value;
         if (span.TotalMinutes > 0)
         {
             durationText = span.Hours > 0
@@ -401,18 +401,18 @@
             }
             else if (Model.StartTime.HasValue && Model.EndTime.HasValue)
             {
-                
-                    DateTime? startDateTime = Model.StartTime.HasValue
-                        ? Model.StartDate.Date + Model.StartTime.Value
-                        : (DateTime?)null;
 
-                    DateTime? endDateTime = Model.EndTime.HasValue
-                        ? Model.EndDate.Date + Model.EndTime.Value
-                        : (DateTime?)null;
+                DateTime? startDateTime = Model.StartTime.HasValue
+                ? Model.StartDate.Date + Model.StartTime.Value
+                : (DateTime?)null;
 
-                    bool spansMultipleDays = startDateTime.HasValue && endDateTime.HasValue
-                        && startDateTime.Value.Date != endDateTime.Value.Date; 
-                        
+                DateTime? endDateTime = Model.EndTime.HasValue
+                ? Model.EndDate.Date + Model.EndTime.Value
+                : (DateTime?)null;
+
+                bool spansMultipleDays = startDateTime.HasValue && endDateTime.HasValue
+                && startDateTime.Value.Date != endDateTime.Value.Date;
+
                 @(startDateTime.Value.ToString("h:mm tt"))
                 @:&nbsp;-&nbsp;
 
@@ -446,7 +446,7 @@
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button">Attendance</button>
         </li>
-  
+
     </ul>
 
     <div class="tab-content">
@@ -487,6 +487,13 @@
                                 <span class="info-label"><i class="ti ti-calendar-event"></i>All Day Event</span>
                                 <span class="info-value">@(Model.IsAllDay ? "Yes" : "No")</span>
                             </div>
+
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-star"></i>Points</span>
+                                <span class="info-value">@Model.Points pts</span>
+                            </div>
+
+
                             <div class="info-row">
                                 <span class="info-label"><i class="ti ti-user"></i>Created By</span>
                                 <span class="info-value">@Model.CreatedBy</span>
@@ -495,7 +502,7 @@
                                 <span class="info-label"><i class="ti ti-calendar-plus"></i>Date Created</span>
                                 <span class="info-value">@Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
                             </div>
-                      
+
                         </div>
                     </div>
 
@@ -573,14 +580,61 @@
 
                 <!-- RIGHT COLUMN -->
                 <div class="col-lg-4">
+
+                    @{
+                        bool ifAllDay = Model.StartTime == null && Model.EndTime == null;
+
+                        bool isEventLive;
+                        bool ifEventEnd;
+                        bool ifNotStarted;
+
+                        bool timeOutIsLive;
+                        bool timeOutNotYetOpen;
+                        bool timeOutClosed;
+
+                        if (ifAllDay)
+                        {
+                            var eventStart = Model.StartDate.Date;
+                            var eventEnd = Model.EndDate.Date.AddDays(1);
+
+                            isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
+                            ifNotStarted = DateTime.Now < eventStart;
+                            ifEventEnd = DateTime.Now >= eventEnd;
+
+                            var timeOutOpens = eventEnd.AddMinutes(-30);
+                            timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now < eventEnd;
+                            timeOutNotYetOpen = DateTime.Now < timeOutOpens;
+                            timeOutClosed = DateTime.Now >= eventEnd;
+                        }
+                        else
+                        {
+                            var eventStart = Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
+                            var eventEnd = Model.EndDate.Date + (Model.EndTime ?? TimeSpan.Zero);
+
+                            var timeInOpens = eventStart.AddMinutes(-30);
+
+                            isEventLive = DateTime.Now >= timeInOpens && DateTime.Now <= eventEnd;
+                            ifNotStarted = DateTime.Now < timeInOpens;
+                            ifEventEnd = DateTime.Now > eventEnd;
+
+                            var timeOutOpens = eventEnd.AddMinutes(-30);
+                            var timeOutCloses = eventEnd.AddMinutes(30);
+
+                            timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now <= timeOutCloses;
+                            timeOutNotYetOpen = DateTime.Now < timeOutOpens;
+                            timeOutClosed = DateTime.Now > timeOutCloses;
+                        }
+                    }
+
+                    <!-- TIME IN CARD -->
                     <div class="details-card mb-3">
-                        <div class="details-card-title">Event Actions</div>
+                        <div class="details-card-title">Time In</div>
 
                         <div class="qr-panel mb-3">
                             <div class="qr-label"><i class="ti ti-clock"></i>QR Scanner will be available in</div>
                             <div class="qr-time">
                                 @(Model.StartTime.HasValue
-                                    ? DateTime.Today.Add(Model.StartTime.Value).AddHours(-1).ToString("h:mm tt")
+                                    ? DateTime.Today.Add(Model.StartTime.Value).AddMinutes(-30).ToString("h:mm tt")
                                     : "-")
                             </div>
                             <div class="qr-sub">
@@ -590,51 +644,18 @@
                             </div>
                         </div>
 
-                        @{
-
-                            bool ifAllDay = Model.StartTime == null && Model.EndTime == null;
-
-                            bool isEventLive;
-                            bool ifEventEnd;
-                            bool ifNotStarted;
-
-                            if (ifAllDay)
-                            {
-                                var eventStart = Model.StartDate.Date;
-                                var eventEnd = Model.EndDate.Date.AddDays(1);
-
-                                isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
-                                ifNotStarted = DateTime.Now < eventStart;
-                                ifEventEnd = DateTime.Now >= eventEnd;
-                            }
-                            else
-                            {
-                                var eventStart = Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
-                                var eventEnd = Model.EndDate.Date+ (Model.EndTime ?? TimeSpan.Zero);
-
-                                isEventLive = DateTime.Now >= eventStart && DateTime.Now <= eventEnd;
-                                ifNotStarted = DateTime.Now < eventStart;
-                                ifEventEnd = DateTime.Now > eventEnd;
-                            }
-
-                        }
-               
                         @if (isEventLive)
                         {
-                            //connect QR SCANNER
                             <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
                                 <i class="ti ti-qrcode"></i> Open QR Scanner
                             </a>
                         }
                         else if (ifAllDay)
                         {
-
                             <button type="button" class="btn btn-secondary w-100 mb-2">
                                 <i class="ti ti-qrcode"></i> Open All-Day Scanner
                             </button>
                         }
-                         
-                  
                         else if (ifEventEnd)
                         {
                             <button type="button"
@@ -669,12 +690,80 @@
                                 </div>
                             </div>
                         }
-                            
-                        <button type="button" class="btn btn-outline-secondary w-100">
+
+                        <button type="button" class="btn btn-outline-secondary w-100 mt-2">
                             <i class="ti ti-bell"></i> Send Reminder
                         </button>
+                    </div>
 
+                    <!-- TIME OUT CARD -->
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">Time Out</div>
 
+                        <div class="qr-panel mb-3">
+                            <div class="qr-label"><i class="ti ti-clock"></i>QR Scanner will be available in</div>
+                            <div class="qr-time">
+                                @(Model.EndTime.HasValue
+                                    ? DateTime.Today.Add(Model.EndTime.Value).AddMinutes(-30).ToString("h:mm tt")
+                                    : "-")
+                            </div>
+                            <div class="qr-sub">
+                                @(Model.EndTime.HasValue
+                                    ? "(" + DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt") + ")"
+                                    : "")
+                            </div>
+                        </div>
+
+                        @if (timeOutIsLive)
+                        {
+                            <a asp-action="ScannerForTimeOut" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open QR Scanner
+                            </a>
+                        }
+                        else if (ifAllDay)
+                        {
+                            <button type="button" class="btn btn-secondary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open All-Day Scanner
+                            </button>
+                        }
+                        else if (timeOutClosed)
+                        {
+                            <button type="button"
+                                    class="btn btn-secondary w-100 mb-2"
+                                    disabled
+                                    title="This event has already ended. Attendance can no longer be recorded.">
+                                <i class="ti ti-lock"></i> QR Scanner Unavailable
+                            </button>
+
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Closed</strong><br />
+                                    This event has already ended. The QR attendance scanner is no longer available.
+                                </div>
+                            </div>
+                        }
+                        else if (timeOutNotYetOpen)
+                        {
+                            <button type="button"
+                                    class="btn btn-secondary w-100 mb-2"
+                                    disabled
+                                    title="QR attendance will be available near the end of the event.">
+                                <i class="ti ti-clock"></i> QR Scanner Unavailable
+                            </button>
+
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Not Yet Open</strong><br />
+                                    QR code scanning will become available near the end of the event.
+                                </div>
+                            </div>
+                        }
+
+                        <button type="button" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="ti ti-bell"></i> Send Reminder
+                        </button>
                     </div>
 
                     <div class="details-card mb-3">
@@ -718,15 +807,15 @@
             </div>
         </div>
 
-       
+
         <div class="tab-pane fade" id="tab-evaluations">
             <div class="details-card text-center text-muted py-5">
                 @(Model.HasEvaluation ? $"{Model.EvaluationCount} evaluation(s) recorded." : "No evaluation created for this event yet.")
             </div>
         </div>
-            <div class="tab-pane fade" id="tab-attendance">
-                @await Html.PartialAsync("_ViewAttendance", Model.AttendanceRecords)
-            </div>
+        <div class="tab-pane fade" id="tab-attendance">
+            @await Html.PartialAsync("_ViewAttendance", Model.AttendanceRecords)
+        </div>
         <div class="tab-pane fade" id="tab-files">
             <div class="details-card text-center text-muted py-5">No files or attachments have been added.</div>
         </div>
@@ -742,7 +831,6 @@
     <script>
                document.addEventListener('DOMContentLoaded', function () {
             const editBtn = document.querySelector('.edit-event-btn');
-
             if (editBtn) {
                 editBtn.addEventListener('click', async function () {
                     const eventId = editBtn.getAttribute('data-eventid');

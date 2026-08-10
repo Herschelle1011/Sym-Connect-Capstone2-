@@ -16,25 +16,44 @@
 </head>
 <body>
 
-    <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
     @{
         var currentUser = await UserManager.GetUserAsync(User);
         var profilePicture = currentUser?.ProfilePictureUrl;
-        var fallbackAvatar =
-        $"https://ui-avatars.com/api/?name={User.Identity?.Name ?? "User"}&background=4a6cf7&color=fff&size=34";
+        var userName = User.Identity?.Name ?? "User";
+        var fallbackAvatar = $"https://ui-avatars.com/api/?name={userName}&background=4a6cf7&color=fff&size=34";
     }
 
-    <nav id="sidebar">
-
-        <button id="sidebar-toggle" title="Pin sidebar">
-            <i class="bi bi-layout-sidebar-inset"></i>
+    <!-- ═══════════════════════════════ TOP BAR ═══════════════════════════════ -->
+    <div id="topbar">
+        <button id="sidebar-toggle" title="Open menu">
+            <i class="bi bi-list"></i>
         </button>
+        <span class="topbar-brand">SYM-Connect</span>
+        <div class="topbar-actions">
+            <a asp-controller="Notifications" asp-action="Index" class="topbar-icon-btn" title="Notifications">
+                <i class="bi bi-bell"></i>
+                <span class="notif-dot"></span>
+            </a>
+            <img class="topbar-avatar"
+                 src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
+                 alt="User Avatar" />
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════ OVERLAY ═══════════════════════════════ -->
+    <div id="sidebar-overlay"></div>
+
+    <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+    <nav id="sidebar">
 
         <div class="sidebar-brand">
             <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/q_auto/f_auto/v1778759822/profiles/8f97c2e0-2fc4-46d0-a8ad-499b0f30e2c1.png"
                  alt="SYM-Connect Logo"
                  onerror="this.src='https://ui-avatars.com/api/?name=SYM&background=4a6cf7&color=fff&size=36'" />
             <span class="sidebar-brand-name">SYM-Connect</span>
+            <button id="sidebar-close" title="Close menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
 
         <div class="sidebar-nav">
@@ -43,45 +62,41 @@
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
                 <i class="bi bi-bell"></i>
                 <span class="nav-label">Notifications</span>
-                <span class="nav-tooltip">Notifications</span>
             </a>
 
             <a asp-controller="Dashboard" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
                 <i class="bi bi-grid"></i>
                 <span class="nav-label">Dashboard</span>
-                <span class="nav-tooltip">Dashboard</span>
             </a>
 
             @* <a asp-controller="Events" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")">
                 <i class="bi bi-calendar-event"></i>
                 <span class="nav-label">Events</span>
-                <span class="nav-tooltip">Events</span>
             </a> *@
 
             <a asp-controller="Evaluation" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluation" ? "active" : "")">
-              <i class="bi bi-star-half"></i>               
-               <span class="nav-label">Evaluations</span>
-                <span class="nav-tooltip">Evaluations</span>
+                <i class="bi bi-star-half"></i>
+                <span class="nav-label">Evaluations</span>
             </a>
 
             <a asp-controller="Elections" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Elections" ? "active" : "")">
                 <i class="bi bi-hand-index-thumb"></i>
                 <span class="nav-label">Elections</span>
-                <span class="nav-tooltip">Elections</span>
             </a>
 
             <a asp-controller="Calendar" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Calendar" ? "active" : "")">
                 <i class="bi bi-calendar-event"></i>
                 <span class="nav-label">Calendar</span>
-                <span class="nav-tooltip">Calendar</span>
             </a>
 
         </div>
+
+        <div class="sidebar-divider"></div>
 
         <div class="sidebar-bottom">
 
@@ -89,21 +104,18 @@
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Profile" ? "active" : "")">
                 <i class="bi bi-person-circle"></i>
                 <span class="nav-label">Profile</span>
-                <span class="nav-tooltip">Profile</span>
             </a>
 
             <a asp-controller="Points" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Points" ? "active" : "")">
                 <i class="bi bi-person-check"></i>
                 <span class="nav-label">Points</span>
-                <span class="nav-tooltip">Points</span>
             </a>
 
             <a asp-controller="Help" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Help" ? "active" : "")">
                 <i class="bi bi-question-circle"></i>
                 <span class="nav-label">Help</span>
-                <span class="nav-tooltip">Help</span>
             </a>
 
             <a asp-controller="Account" asp-action="Logout"
@@ -112,7 +124,6 @@
                onclick="return confirm('Are you sure you want to logout?')">
                 <i class="bi bi-box-arrow-right"></i>
                 <span class="nav-label">Logout</span>
-                <span class="nav-tooltip">Logout</span>
             </a>
 
         </div>
@@ -121,46 +132,56 @@
             <img src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
                  alt="User Avatar" />
             <div class="sidebar-user-info">
-                <div class="sidebar-user-name">@(User.Identity?.Name ?? "Guest")</div>
-                <div class="sidebar-user-role">Member</div>
+                <div>
+                    <div class="sidebar-user-name">@(User.Identity?.Name ?? "Guest")</div>
+                    <div class="sidebar-user-role">Member</div>
+                </div>
+                <i class="bi bi-chevron-down sidebar-user-chevron"></i>
             </div>
-            <i class="bi bi-chevron-down sidebar-user-chevron"></i>
+
+        </nav>
+        <!-- ══════════════════════════════════════════════════════════════════════ -->
+
+        <div id="main-content">
+            <div class="content-wrapper">
+                <main role="main" class="pb-3">
+                    @RenderBody()
+                </main>
+            </div>
         </div>
 
-    </nav>
-    <!-- ══════════════════════════════════════════════════════════════════════ -->
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="~/js/site.js" asp-append-version="true"></script>
+        @await RenderSectionAsync("Scripts", required: false)
 
-    <div id="main-content">
-        <div class="content-wrapper">
-            <main role="main" class="pb-3">
-                @RenderBody()
-            </main>
-        </div>
-    </div>
+        <script>
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const openBtn = document.getElementById('sidebar-toggle');
+            const closeBtn = document.getElementById('sidebar-close');
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+            function openSidebar() {
+            sidebar.classList.add('show');
+            overlay.classList.add('show');
+            document.body.classList.add('sidebar-open');
+            }
 
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('sidebar-toggle');
+            function closeSidebar() {
+            sidebar.classList.remove('show');
+            overlay.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+            }
 
-        if (localStorage.getItem('sidebarPinned') === 'true') {
-        sidebar.classList.add('expanded');
-        toggleBtn.innerHTML = '<i class="bi bi-layout-sidebar"></i>';
-        }
+            openBtn.addEventListener('click', openSidebar);
+            closeBtn.addEventListener('click', closeSidebar);
+            overlay.addEventListener('click', closeSidebar);
 
-        toggleBtn.addEventListener('click', () => {
-        const isPinned = sidebar.classList.toggle('expanded');
-        localStorage.setItem('sidebarPinned', isPinned);
-        toggleBtn.innerHTML = isPinned
-        ? '<i class="bi bi-layout-sidebar"></i>'
-        : '<i class="bi bi-layout-sidebar-inset"></i>';
-        });
-    </script>
+            document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('show')) closeSidebar();
+            });
+        </script>
 
-    <partial name="_Modal" />
-</body>
+        <partial name="_Modal" />
+    </body>
 </html>

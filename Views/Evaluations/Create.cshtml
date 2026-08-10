@@ -5,109 +5,659 @@
 }
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+    /* Multi-step form */
+    .step-section {
+        display: none;
+        animation: slideIn .3s ease;
+    }
+
+        .step-section.active {
+            display: block;
+        }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(25px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
     .eval-create-page, .eval-create-page * {
         font-family: 'Poppins', sans-serif;
     }
-</style>
 
-<div class="container mt-4 eval-create-page">
-    <h2>Create New Evaluation</h2>
-    <p class="text-muted">Add questions and set the answer type for each one.</p>
+    .eval-create-page {
+        background: #F4F7FC;
+        min-height: 100vh;
+        padding: 32px 0;
+    }
 
-    <form asp-action="Create" method="post">
+    .section-banner {
+        background: #0D8FE8;
+        border-radius: 12px;
+        padding: 18px 26px;
+        margin-bottom: 20px;
+    }
 
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-        <!-- Evaluation Info -->
-        <div class="card p-3 mb-3">
-            <div class="mb-3">
-                <label class="form-label">Evaluation title</label>
-                <input asp-for="EvaluationTitle" class="form-control" placeholder="Enter title here..." />
-                <span asp-validation-for="EvaluationTitle" class="text-danger"></span>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <input asp-for="Description" class="form-control" placeholder="Enter description here..." />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <label class="form-label">Open</label>
-                    <input asp-for="OpenAt" type="date" id="openAtInput" class="form-control" />
-                    <span asp-validation-for="OpenAt" class="text-danger"></span>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Closes</label>
-                    <input asp-for="ClosedAt" type="date" id="closedAtInput" class="form-control" />
-                    <span asp-validation-for="ClosedAt" class="text-danger"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Suggested Questions (click to reuse) -->
-        @if (Model.AvailableQuestions != null && Model.AvailableQuestions.Any())
-        {
-            <div class="mb-3">
-                <label class="form-label d-block">Suggested questions (click to add)</label>
-                @foreach (var q in Model.AvailableQuestions)
-                {
-                    <span class="badge bg-light text-dark border suggestion-chip me-2 mb-2 p-2"
-                          style="cursor:pointer;"
-                          data-id="@q.QuestionId"
-                          data-text="@q.QuestionText">
-                        @q.QuestionText
-                    </span>
-                }
-            </div>
+        .section-banner h5 {
+            color: #fff;
+            font-weight: 600;
+            font-size: 19px;
+            margin: 0;
         }
 
-        <!-- Question blocks get added here by JS -->
-        <div id="questionsContainer"></div>
+    .eval-create-page h2 {
+        font-weight: 600;
+        font-size: 22px;
+        margin-bottom: 2px;
+    }
 
-        <div id="noQuestionsError" class="text-danger mb-3" style="display:none; font-size:13px;">
-            Please add at least one question.
+    .eval-create-page .subtitle {
+        color: #8A93A3;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .step-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+        .step-card .top-bar {
+            height: 6px;
+            background: #2F6FED;
+        }
+
+        .step-card .card-body {
+            padding: 28px 32px;
+        }
+
+    .eval-create-page .form-label {
+        font-size: 13px;
+        color: #5B6472;
+        font-weight: 500;
+        margin-bottom: 6px;
+    }
+
+    .eval-create-page .form-control {
+        border: 1px solid #E3E7ED;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+        .eval-create-page .form-control:focus {
+            border-color: #2F6FED;
+            box-shadow: 0 0 0 3px rgba(47,111,237,0.12);
+        }
+
+    .eval-create-page textarea.form-control {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .date-field {
+        position: relative;
+    }
+
+        .date-field i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8A93A3;
+            pointer-events: none;
+        }
+
+        .date-field input {
+            padding-left: 38px;
+        }
+
+    .step-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 16px;
+    }
+
+        .step-footer .step-indicator {
+            color: #8A93A3;
+            font-size: 14px;
+        }
+
+    .btn-proceed {
+        background: #2F6FED;
+        border: none;
+        color: #fff;
+        padding: 10px 28px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+        .btn-proceed:hover {
+            background: #2559C7;
+            color: #fff;
+        }
+
+    .btn-back {
+        background: #fff;
+        border: 1px solid #E3E7ED;
+        color: #5B6472;
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+
+    .question-block {
+        background: #fff;
+        border-left: 4px solid #28A745;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 14px 18px;
+        margin-bottom: 14px;
+        position: relative;
+    }
+
+        .question-block .question-label {
+            font-size: 14px;
+            color: #1F2937;
+            font-weight: 600;
+        }
+
+    .btn-add-question {
+        background: #fff;
+        border: 1.5px dashed #2F6FED;
+        color: #2F6FED;
+        border-radius: 10px;
+        padding: 10px;
+        font-weight: 500;
+    }
+
+        .btn-add-question:hover {
+            background: #F0F5FF;
+            color: #2F6FED;
+        }
+
+    .suggestion-chip {
+        border-radius: 999px !important;
+    }
+
+    .common-questions-box {
+        background: #fff;
+        border-left: 4px solid #28A745;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 20px 24px;
+        margin-bottom: 16px;
+    }
+
+        .common-questions-box .box-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .common-questions-box .box-subtitle {
+            color: #8A93A3;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+    .search-wrapper {
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8A93A3;
+        }
+
+        .search-wrapper input {
+            padding-left: 38px;
+            background: #F7F9FC;
+        }
+
+    /* Listbox-style question picker */
+    .common-question-listbox {
+        border: 1px solid #E3E7ED;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    /* ===== IMPROVED TOOLBAR LAYOUT ===== */
+    .listbox-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #F7F9FC;
+        border-bottom: 1px solid #E3E7ED;
+        padding: 10px 14px;
+    }
+
+        .listbox-toolbar .listbox-count {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2F6FED;
+            background: #EAF2FE;
+            padding: 4px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .listbox-toolbar .select-all-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #5B6472;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 0;
+        }
+
+            .listbox-toolbar .select-all-label input {
+                margin: 0;
+                accent-color: #2F6FED;
+            }
+
+    .common-question-list {
+        max-height: 260px;
+        overflow-y: auto;
+    }
+
+    .common-question-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 9px 14px;
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;
+        border-bottom: 1px solid #E3E7ED;
+    }
+
+    .question-block .remove-question {
+        color: #ADB5BD;
+        font-size: 14px;
+    }
+
+    .common-question-list .common-question-item:last-child {
+        border-bottom: none;
+    }
+
+    .common-question-item:hover {
+        background: #F7F9FC;
+    }
+
+    .common-question-item.is-checked {
+        background: #EAF2FE;
+    }
+
+    .common-question-item input[type="checkbox"] {
+        margin: 3px 0 0;
+        flex-shrink: 0;
+        accent-color: #2F6FED;
+    }
+
+    .common-question-item .empty-state {
+        color: #8A93A3;
+        font-size: 13px;
+        padding: 14px;
+        text-align: center;
+    }
+
+    .new-question-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #8A93A3;
+        font-size: 12px;
+        margin: 14px 0;
+    }
+
+        .new-question-divider::before, .new-question-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #E3E7ED;
+        }
+
+    /* ===== Overview ===== */
+    .overview-heading {
+        margin-bottom: 20px;
+    }
+
+        .overview-heading h2 {
+            font-weight: 600;
+            font-size: 22px;
+            color: #1F2937;
+            margin: 0 0 2px;
+        }
+
+        .overview-heading p {
+            color: #8A93A3;
+            font-size: 14px;
+            margin: 0;
+        }
+
+    .overview-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+        .overview-card .top-bar {
+            height: 6px;
+            background: #2F6FED;
+        }
+
+        .overview-card .overview-card-body {
+            padding: 28px 32px;
+        }
+
+        .overview-card hr {
+            border: none;
+            border-top: 1px solid #E3E7ED;
+            margin: 18px 0;
+        }
+
+    .overview-eval-title {
+        font-weight: 700;
+        font-size: 22px;
+        color: #1F2937;
+        margin: 0;
+    }
+
+    .overview-description {
+        color: #4B5563;
+        font-size: 14px;
+        line-height: 1.7;
+        margin: 0;
+    }
+
+    .overview-dates {
+        display: flex;
+        gap: 40px;
+    }
+
+        .overview-dates .overview-date-item {
+            font-size: 13px;
+            color: #1F2937;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .overview-dates .overview-date-label {
+            color: #8A93A3;
+        }
+
+        .overview-dates i {
+            color: #8A93A3;
+            font-size: 13px;
+        }
+
+    .overview-question-block {
+        background: #fff;
+        border-left: 4px solid #28A745;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 20px 26px;
+        margin-bottom: 16px;
+    }
+
+        .overview-question-block .overview-question-label {
+            font-weight: 600;
+            font-size: 15px;
+            color: #1F2937;
+            margin: 0 0 20px;
+        }
+
+    .overview-star-row {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .overview-star-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        flex: 1;
+    }
+
+        .overview-star-item i {
+            font-size: 22px;
+            color: #C7CEDA;
+        }
+
+        .overview-star-item span {
+            font-size: 12px;
+            color: #8A93A3;
+        }
+
+    .btn-overview-back {
+        background: #fff;
+        border: 1px solid #E3E7ED;
+        color: #5B6472;
+        padding: 10px 26px;
+        border-radius: 999px;
+        font-weight: 500;
+    }
+
+    .btn-overview-publish {
+        background: #2F6FED;
+        border: none;
+        color: #fff;
+        padding: 10px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+        .btn-overview-publish:hover {
+            background: #2559C7;
+            color: #fff;
+        }
+</style>
+
+<div class="container eval-create-page">
+    <h3>Create New Evaluation</h3>
+    <p class="subtitle">Create evaluation details.</p>
+
+    <form asp-action="Create" method="post" id="evaluationForm">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <!-- ========== STEP 1 ========== -->
+        <div class="step-section active" data-step="1">
+            <div class="step-card">
+                <div class="top-bar"></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Evaluation Title</label>
+                        <input asp-for="EvaluationTitle" class="form-control" placeholder="Enter title..." />
+                        <span asp-validation-for="EvaluationTitle" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea asp-for="Description" class="form-control" placeholder="Enter description..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Opens</label>
+                            <div class="date-field">
+                                <input asp-for="OpenAt" type="date" id="openAtInput" class="form-control" placeholder="Select date" />
+                            </div>
+                            <span asp-validation-for="OpenAt" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Closes</label>
+                            <div class="date-field">
+                                <input asp-for="ClosedAt" type="date" id="closedAtInput" class="form-control" placeholder="Select date" />
+                            </div>
+                            <span asp-validation-for="ClosedAt" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-footer">
+                <span class="step-indicator">Step 1 of 3</span>
+                <button type="button" class="btn btn-proceed next-step">Proceed</button>
+            </div>
         </div>
 
-        <button type="button" id="addQuestionBtn" class="btn btn-primary w-100 mb-3">+ Add Question</button>
+        <!-- ========== STEP 2: Rating Scale Questions ========== -->
+        <div class="step-section" data-step="2">
 
-        <div class="d-flex justify-content-end gap-2">
-            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <div class="section-banner">
+                <h5>Rating Scale</h5>
+            </div>
+
+            @{
+                var ratingSuggestions = Model.AvailableQuestions
+                    .Where(q => q.AnswerType == Sym_Connect__Capstone2_.Models.Enums.AnswerType.RatingScale)
+                    .ToList();
+            }
+
+            <div class="common-questions-box"
+                 data-list="RatingQuestions"
+                 data-container="ratingQuestionsContainer">
+
+                <p class="box-title mb-0">Commonly used questions</p>
+                <p class="box-subtitle">Select questions to add to this rating scale.</p>
+
+                <div class="search-wrapper">
+                    <input type="text"
+                           class="form-control common-search-input"
+                           placeholder="Search questions..." />
+                </div>
+
+                <div class="common-question-listbox">
+                    <div class="listbox-toolbar">
+                        <span class="listbox-count">0 of @ratingSuggestions.Count selected</span>
+                        <label class="select-all-label">
+                            <input type="checkbox" class="select-all-checkbox" />
+                            Select all
+                        </label>
+                    </div>
+                    <div class="common-question-list">
+                        @if (!ratingSuggestions.Any())
+                        {
+                            <div class="d-flex justify-content-center my-5">
+                                <div class="card border-0 shadow-sm text-center p-4" style="max-width: 400px;">
+                                    <div class="mb-3">
+                                        <i class="bi bi-chat-square-text text-secondary" style="font-size: 4rem;"></i>
+                                    </div>
+                                    <h5 class="fw-semibold mb-2">No Suggested Questions</h5>
+                                    <p class="text-muted mb-0">
+                                        There are currently no suggested evaluation questions available.
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var q in ratingSuggestions)
+                            {
+                                <label class="common-question-item">
+                                    <input type="checkbox"
+                                           class="common-question-checkbox"
+                                           data-id="@q.QuestionId"
+                                           data-text="@q.QuestionText" />
+                                    <span>@q.QuestionText</span>
+                                </label>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div id="ratingQuestionsContainer"></div>
+            <div class="text-danger" id="ratingError" style="display:none; font-size:13px;">
+                Please add at least one question.
+            </div>
+            <button type="button" id="addRatingQuestionBtn" class="btn btn-add-question w-100 mt-2">+ Add Question</button>
+
+            <div class="step-footer">
+                <span class="step-indicator">Step 2 of 3</span>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-back prev-step">Back</button>
+                    <button type="button" class="btn btn-proceed next-step">Proceed</button>
+                </div>
+            </div>
         </div>
 
+        <!-- ========== STEP 3: Overview (member's-eye preview) ========== -->
+        <div class="step-section" data-step="3">
+
+            <div class="overview-heading">
+                <h2>Evaluation Overview</h2>
+                <p>This is how members will see the evaluation.</p>
+            </div>
+
+            <div class="overview-card">
+                <div class="top-bar"></div>
+                <div class="overview-card-body">
+                    <h3 class="overview-eval-title" id="overviewTitle"></h3>
+                    <hr />
+                    <p class="overview-description" id="overviewDescription"></p>
+                    <hr />
+                    <div class="overview-dates">
+                        <div class="overview-date-item">
+                            <span class="overview-date-label">Open date:</span>
+                            <i class="bi bi-calendar3" aria-hidden="true"></i>
+                            <span id="overviewOpenDate"></span>
+                        </div>
+                        <div class="overview-date-item">
+                            <span class="overview-date-label">Close date:</span>
+                            <i class="bi bi-calendar3" aria-hidden="true"></i>
+                            <span id="overviewCloseDate"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="overviewContent"></div>
+
+            <div class="step-footer">
+                <span class="step-indicator">Step 3 of 3</span>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-overview-back prev-step">Back</button>
+                    <button type="submit" class="btn btn-overview-publish">Publish Evaluation</button>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 
-<!-- Template for one question block (not visible, just a blueprint) -->
 <template id="questionTemplate">
-    <div class="card p-3 mb-3 question-block eval-create-page">
+    <div class="question-block">
         <div class="d-flex justify-content-between align-items-start mb-2">
-            <label class="form-label question-label">Question</label>
+            <label class="question-label mb-0">Question</label>
             <span class="text-danger remove-question" style="cursor:pointer;">
-                <i class="bi bi-trash"></i>
+                <i class="bi bi-x-lg"></i>
             </span>
         </div>
-        <div class="d-flex gap-2 mb-2">
-            <input type="hidden" class="question-id-input" name="" value="" />
-            <div class="flex-grow-1">
-                <input type="text" class="form-control question-text-input" name="" placeholder="Type your question here" />
-                <span class="text-danger question-text-error" style="font-size:12px;"></span>
-            </div>
-            <div>
-                <select class="form-select answer-type-select" style="max-width:200px;">
-                    @* <option value="" disabled>Answer Type</option> *@
-                    <option value="" selected disabled>Answer Type</option>
-                    <option value="RatingScale">Rating Scale</option>
-                    <option value="TextFeedback">Short Answer</option>
-                </select>
-                <span class="text-danger answer-type-error d-block" style="font-size:12px;"></span>
-            </div>
-        </div>
-        <div class="answer-preview text-muted">Choose an answer type first...</div>
+        <input type="hidden" class="question-id-input" value="" />
+        <input type="text" class="form-control question-text-input" placeholder="Type your question here" />
+        <span class="text-danger question-text-error" style="font-size:12px;"></span>
     </div>
 </template>
 
@@ -116,133 +666,213 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        let questionIndex = 0;
+        let currentStep = 1;
+        const addedBlocksByQuestionId = {};
+        const overviewCardColors = ["#28A745", "#F5B301", "#0D8FE8", "#DC3545", "#8B5CF6"];
+
+        // ---- Date validation ----
         const openAtInput = document.getElementById("openAtInput");
         const closedAtInput = document.getElementById("closedAtInput");
         const today = new Date().toISOString().split("T")[0];
-
-                openAtInput.min = today;
-
-        // Whenever Open changes, Closes must be after it
+        openAtInput.min = today;
+        closedAtInput.min = today;
         openAtInput.addEventListener("change", function () {
             if (openAtInput.value) {
                 closedAtInput.min = openAtInput.value;
-
-                // if Closes was already set to something now invalid, clear it
                 if (closedAtInput.value && closedAtInput.value < openAtInput.value) {
                     closedAtInput.value = "";
                 }
             }
         });
 
-      function buildAnswerPreview(type) {
-                     if (type === "RatingScale") {
-            const labels = ["Very Poor", "Poor", "Fair", "Good", "Excellent"];
-            return `
-                <div class="row text-center g-0">
-                    ${labels.map((label, idx) => `
-                        <div class="col">
-                            <div class="small fw-semibold mb-1">${idx + 1}</div>
-                            <i class="bi bi-star fs-2 text-secondary"></i>
-                            <div class="small text-muted">${label}</div>
-                        </div>
-                    `).join("")}
-                </div>
-            `;
-        }
-
-            if (type === "TextFeedback") {
-                return `<input type="text" class="form-control" placeholder="Short answer..." disabled />`;
-            }
-
-            return `<span class="text-muted">Choose an answer type first...</span>`;
-        }
-
-        function addQuestionBlock(questionId = "", questionText = "") {
+        // ---- Core: add one question block into a given section ----
+        function addQuestionBlock(listName, containerId, questionId = "", questionText = "") {
             const template = document.getElementById("questionTemplate").content.cloneNode(true);
             const block = template.querySelector(".question-block");
-            const i = questionIndex;
+            const container = document.getElementById(containerId);
+            const i = container.querySelectorAll(".question-block").length;
 
             block.querySelector(".question-label").textContent = `Question ${i + 1}`;
 
             const idInput = block.querySelector(".question-id-input");
-            idInput.name = `Questions[${i}].QuestionId`;
+            idInput.name = `${listName}[${i}].QuestionId`;
             idInput.value = questionId;
 
             const textInput = block.querySelector(".question-text-input");
-            textInput.name = `Questions[${i}].QuestionText`;
+            textInput.name = `${listName}[${i}].QuestionText`;
             textInput.value = questionText;
-
-            const typeSelect = block.querySelector(".answer-type-select");
-            typeSelect.name = `Questions[${i}].AnswerType`;
-
-            const preview = block.querySelector(".answer-preview");
-
-            typeSelect.addEventListener("change", function () {
-                preview.innerHTML = buildAnswerPreview(this.value);
-                block.querySelector(".answer-type-error").textContent = "";
-                typeSelect.classList.remove("border-danger");
-            });
 
             textInput.addEventListener("input", function () {
                 block.querySelector(".question-text-error").textContent = "";
+                updateOverview();
             });
 
-               block.querySelector(".remove-question").addEventListener("click", function () {
-            block.remove();
-            renumberQuestions();
-        });
-            document.getElementById("questionsContainer").appendChild(block);
-            questionIndex++;
+            block.querySelector(".remove-question").addEventListener("click", function () {
+                block.remove();
+                renumberQuestions(containerId, listName);
+                updateOverview();
+            });
+
+            container.appendChild(block);
+            updateOverview();
+            return block;
         }
 
-        document.getElementById("addQuestionBtn").addEventListener("click", function () {
-            addQuestionBlock();
-        });
-
-        document.querySelectorAll(".suggestion-chip").forEach(function (chip) {
-            chip.addEventListener("click", function () {
-                addQuestionBlock(this.dataset.id, this.dataset.text);
+        function renumberQuestions(containerId, listName) {
+            document.querySelectorAll(`#${containerId} .question-block`).forEach(function (block, idx) {
+                block.querySelector(".question-label").textContent = `Question ${idx + 1}`;
+                block.querySelector(".question-id-input").name = `${listName}[${idx}].QuestionId`;
+                block.querySelector(".question-text-input").name = `${listName}[${idx}].QuestionText`;
             });
-        });
+        }
 
-        addQuestionBlock();
+        function updateListboxCount(box) {
+            const checkboxes = box.querySelectorAll(".common-question-checkbox");
+            const total = checkboxes.length;
+            const checked = box.querySelectorAll(".common-question-checkbox:checked").length;
+            const countEl = box.querySelector(".listbox-count");
+            if (countEl) countEl.textContent = `${checked} of ${total} selected`;
 
-        document.querySelector("form").addEventListener("submit", function (e) {
-            let hasError = false;
-            const blocks = document.querySelectorAll(".question-block");
+            const selectAll = box.querySelector(".select-all-checkbox");
+            if (selectAll) {
+                selectAll.checked = total > 0 && checked === total;
+                selectAll.indeterminate = checked > 0 && checked < total;
+            }
+        }
 
-            if (blocks.length === 0) {
-                document.getElementById("noQuestionsError").style.display = "block";
-                hasError = true;
-            } else {
-                document.getElementById("noQuestionsError").style.display = "none";
+        function setupCommonQuestionsBox(boxSelector, listName, containerId) {
+            const box = document.querySelector(boxSelector);
+
+            box.querySelector(".common-search-input").addEventListener("input", function () {
+                const term = this.value.trim().toLowerCase();
+                box.querySelectorAll(".common-question-item").forEach(function (item) {
+                    const text = item.querySelector("span").textContent.toLowerCase();
+                    item.style.display = text.includes(term) ? "flex" : "none";
+                });
+            });
+
+            box.querySelectorAll(".common-question-checkbox").forEach(function (checkbox) {
+                checkbox.addEventListener("change", function () {
+                    this.closest(".common-question-item").classList.toggle("is-checked", this.checked);
+
+                    const key = `${listName}:${this.dataset.id}`;
+                    if (this.checked) {
+                        addedBlocksByQuestionId[key] = addQuestionBlock(listName, containerId, this.dataset.id, this.dataset.text);
+                    } else {
+                        const block = addedBlocksByQuestionId[key];
+                        if (block) {
+                            block.remove();
+                            renumberQuestions(containerId, listName);
+                            delete addedBlocksByQuestionId[key];
+                            updateOverview();
+                        }
+                    }
+                    updateListboxCount(box);
+                });
+            });
+
+            const selectAll = box.querySelector(".select-all-checkbox");
+            if (selectAll) {
+                selectAll.addEventListener("change", function () {
+                    box.querySelectorAll(".common-question-item:not([style*='display: none']) .common-question-checkbox").forEach(function (checkbox) {
+                        if (checkbox.checked !== selectAll.checked) {
+                            checkbox.checked = selectAll.checked;
+                            checkbox.dispatchEvent(new Event("change"));
+                        }
+                    });
+                });
             }
 
-            blocks.forEach(function (block) {
-                const text = block.querySelector(".question-text-input");
-                const type = block.querySelector(".answer-type-select");
-                const textError = block.querySelector(".question-text-error");
-                const typeError = block.querySelector(".answer-type-error");
+            updateListboxCount(box);
+        }
 
-                if (!text.value.trim()) {
-                    textError.textContent = "Question text is required.";
-                    hasError = true;
-                } else {
-                    textError.textContent = "";
-                }
+        function goToStep(stepNumber) {
+            document.querySelectorAll(".step-section").forEach(function (section) {
+                section.classList.toggle("active", section.dataset.step == stepNumber);
+            });
+            currentStep = stepNumber;
+            if (stepNumber === 3) updateOverview();
+        }
 
-                if (!type.value) {
-                    typeError.textContent = "Required.";
-                    type.classList.add("border-danger");
-                    hasError = true;
-                } else {
-                    typeError.textContent = "";
-                    type.classList.remove("border-danger");
+        function validateStep(stepNumber) {
+            if (stepNumber === 1) {
+                return document.querySelector('[name="EvaluationTitle"]').value.trim()
+                    && openAtInput.value && closedAtInput.value;
+            }
+            if (stepNumber === 2) {
+                const filled = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input"))
+                    .some(i => i.value.trim());
+                document.getElementById("ratingError").style.display = filled ? "none" : "block";
+                return filled;
+            }
+            return true;
+        }
+
+        document.querySelectorAll(".next-step").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                if (currentStep === 1 && !$("#evaluationForm").valid()) {
+                    return;
                 }
+                if (validateStep(currentStep)) goToStep(currentStep + 1);
+            });
+        });
+        document.querySelectorAll(".prev-step").forEach(function (btn) {
+            btn.addEventListener("click", function () { goToStep(currentStep - 1); });
+        });
+
+        document.getElementById("addRatingQuestionBtn").addEventListener("click", function () {
+            addQuestionBlock("RatingQuestions", "ratingQuestionsContainer");
+        });
+
+        function formatOverviewDate(value) {
+            if (!value) return "Not set";
+            const parts = value.split("-");
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+        }
+
+        function updateOverview() {
+            const title = document.querySelector('[name="EvaluationTitle"]').value || "(No title yet)";
+            const description = document.querySelector('[name="Description"]').value || "";
+
+            document.getElementById("overviewTitle").textContent = title;
+            document.getElementById("overviewDescription").textContent = description;
+            document.getElementById("overviewOpenDate").textContent = formatOverviewDate(openAtInput.value);
+            document.getElementById("overviewCloseDate").textContent = formatOverviewDate(closedAtInput.value);
+
+            const ratingTexts = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input"))
+                .map(i => i.value.trim()).filter(Boolean);
+
+            const starLabels = ["Very poor", "Poor", "Neutral", "Excellent", "Very Excellent"];
+            let colorIndex = 0;
+            let html = "";
+
+            ratingTexts.forEach(t => {
+                const color = overviewCardColors[colorIndex % overviewCardColors.length];
+                colorIndex++;
+                html += `<div class="overview-question-block" style="border-left-color:${color}">
+                    <p class="overview-question-label">${t}</p>
+                    <div class="overview-star-row">
+                        ${starLabels.map(label => `<div class="overview-star-item"><i class="bi bi-star"></i><span>${label}</span></div>`).join("")}
+                    </div>
+                </div>`;
             });
 
-            if (hasError) e.preventDefault();
+            document.getElementById("overviewContent").innerHTML = html;
+        }
+
+        setupCommonQuestionsBox('.common-questions-box[data-list="RatingQuestions"]', "RatingQuestions", "ratingQuestionsContainer");
+
+        document.getElementById("evaluationForm").addEventListener("submit", function (e) {
+            if (!$(this).valid()) {
+                e.preventDefault();
+                goToStep(1);
+                return;
+            }
+            if (!validateStep(2)) {
+                e.preventDefault();
+                goToStep(2);
+            }
         });
     </script>
 }

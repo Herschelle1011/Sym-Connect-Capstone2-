@@ -1,4 +1,5 @@
 ﻿using Sym_Connect__Capstone2_.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 
 namespace Sym_Connect__Capstone2_.ViewModels.Event
 {
@@ -18,6 +19,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
+        public int Points { get; set; }
 
         public DateTime DateCreated { get; set; }
         public string CreatedBy { get; set; } = string.Empty;

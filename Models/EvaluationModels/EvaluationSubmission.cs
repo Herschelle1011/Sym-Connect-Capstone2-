@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Sym_Connect__Capstone2_.Models.Enums;
 
-namespace Sym_Connect__Capstone2_.Models.EvaluationModels
+namespace Sym_Connect__Capstone2_.Models
 {
     public class EvaluationSubmission
     {
@@ -15,7 +15,7 @@ namespace Sym_Connect__Capstone2_.Models.EvaluationModels
         [ForeignKey(nameof(User))]
         public string UserId { get; set; } = string.Empty;
 
-        public SubmissionStatus Status { get; set; } 
+        public SubmissionStatus Status { get; set; }
         public DateTime? SubmittedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Sym_Connect__Capstone2_.Models.EvaluationModels
+namespace Sym_Connect__Capstone2_.Models
 {
 
     public class EvaluationDetails
@@ -12,7 +12,7 @@ namespace Sym_Connect__Capstone2_.Models.EvaluationModels
         [ForeignKey(nameof(Evaluation))]
         public int EvaluationId { get; set; }
 
-        
+
         [ForeignKey(nameof(EvaluationQuestion))]
         public int QuestionId { get; set; }
 
@@ -21,9 +21,9 @@ namespace Sym_Connect__Capstone2_.Models.EvaluationModels
         public EvaluationQuestion? EvaluationQuestion { get; set; }
 
         //ARCHIVED SECTION
-        public bool? IsArchived { get; set; } = false;  
+        public bool? IsArchived { get; set; } = false;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? ArchiveDate { get; set; }
-        
+
     }
 }

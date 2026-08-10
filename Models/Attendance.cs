@@ -19,6 +19,10 @@ namespace Sym_Connect__Capstone2_.Models
         public DateTime? TimeIn { get; set; }
         public DateTime? TimeOut { get; set; }
 
+        public string Status { get; set; } = string.Empty;
+
+        public int Points { get; set; }
+
         //scanned by
         public string? ScannedByUserId { get; set; }
         public User? ScannedByUser { get; set; }

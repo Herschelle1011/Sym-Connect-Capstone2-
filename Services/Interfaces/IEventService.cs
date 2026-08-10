@@ -1,4 +1,5 @@
 ﻿using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 
 namespace Sym_Connect__Capstone2_.Services.Interfaces
@@ -11,10 +12,16 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<ScannerViewModel> GetScannerStateAsync(int eventId);
         Task<DetailsEventViewModel?> GetDetailsByAsync(int id);
+
+        Task<bool> NoTimeOut(string qrToken, int eventId);
+
+        Task<Event?> GetEventByIdAsync(int eventId);
         Task<bool> CreateEventAsync(CreateEventViewModel vm);
         Task<bool> UpdateEventAsync(int? gId, EditEventViewModel vm);
         Task<ArchiveViewModel?> ConfirmationArchiveAsync(int? id);
         Task ArchiveEventAsync(int id);
+
+        Task<ScanResult> RecordTimeOutAsync(string qrToken, int eventId);
 
         Task<List<AttendanceRowViewModel>> ViewAttendanceForEventAsync(int eventId);
 

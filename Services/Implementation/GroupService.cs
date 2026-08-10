@@ -18,15 +18,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
         //GET ALL GROUPS
-        public async Task<List<Group>> GetAllGroupsAsync()
-        {
-            return await _context.Groups
-                .Where(g => g.IsArchived == false)
-                .Include(g => g.Leader)
-                    .Include(gd => gd.GroupDetails)
-                          .ThenInclude(m => m.Member)
-                            .ToListAsync();
-        }
+         public async Task<List<Group>> GetAllGroupsAsync()
+      {
+          return await _context.Groups
+              .Where(g => g.IsArchived == false)
+              .Include(g => g.Leader)
+                  .Include(gd => gd.GroupDetails)
+                        .ThenInclude(m => m.Member)
+                          .ToListAsync();
+      }
+
+
+
+
 
         //GET GROUP BY ID
         public async Task<Group?> GetGroupByIdAsync(int id)

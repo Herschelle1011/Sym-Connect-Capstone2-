@@ -7,9 +7,6 @@ namespace Sym_Connect__Capstone2_.Models
     {
         [Key]
         public int MemberId { get; set; }
-
-
-
         public string? QRToken { get; set; }
 
         //temporary only
@@ -54,6 +51,8 @@ namespace Sym_Connect__Capstone2_.Models
         public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
 
         public string? ProfilePictureUrl { get; set; }
+
+        public int EarnedPoints { get; set; }
 
 
     }
