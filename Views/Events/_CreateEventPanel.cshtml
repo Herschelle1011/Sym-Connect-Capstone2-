@@ -12,8 +12,10 @@
             @Html.AntiForgeryToken()
 
 
-            <div asp-validation-summary="All" class="text-danger mb-3" style="font-size:13px;"></div>
-
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 mb-3" style="font-size:13px;"></div>
+            }
 
             <div class="mb-3">
                 <label class="form-label">Event Title <span class="text-danger">*</span></label>
@@ -37,10 +39,12 @@
                 <div class="col-6">
                     <label class="form-label">Start Date <span class="text-danger">*</span></label>
                     <input asp-for="StartDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="startDateInput" />
+                    <span asp-validation-for="StartDate" class="text-danger" style="font-size:12px;"></span>
                 </div>
                 <div class="col-6" id="startTimeGroup">
                     <label class="form-label">Start Time <span class="text-danger">*</span></label>
                     <input asp-for="StartTime" type="time" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger" style="font-size:12px;"></span>
                 </div>
             </div>
 
@@ -48,10 +52,12 @@
                 <div class="col-6">
                     <label class="form-label">End Date <span class="text-danger">*</span></label>
                     <input asp-for="EndDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="endDateInput" />
+                    <span asp-validation-for="EndDate" class="text-danger" style="font-size:12px;"></span>
                 </div>
                 <div class="col-6" id="endTimeGroup">
                     <label class="form-label">End Time <span class="text-danger">*</span></label>
                     <input asp-for="EndTime" type="time" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger" style="font-size:12px;"></span>
                 </div>
             </div>
 
@@ -64,8 +70,8 @@
                         <option value="@f.FacilityId">@f.FacilityName</option>
                     }
                 </select>
+                <span asp-validation-for="FacilityId" class="text-danger" style="font-size:12px;"></span>
             </div>
-
 
             <div class="mb-3">
                 <label class="form-label">Points <span class="text-danger">*</span></label>
@@ -76,12 +82,20 @@
 
             <div class="mb-3">
                 <label class="form-label">Expected Groups</label>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="selectAllGroups" />
+                    <label class="form-check-label fw-medium" style="font-size:14px;" for="selectAllGroups">
+                        All Groups
+                    </label>
+                </div>
+
                 <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
                     @foreach (var g in (List<Sym_Connect__Capstone2_.Models.Group>)ViewBag.Groups)
                     {
                         var isChecked = Model.SelectedGroupIds != null && Model.SelectedGroupIds.Contains(g.GroupId);
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="SelectedGroupIds"
+                            <input class="form-check-input group-checkbox" type="checkbox" name="SelectedGroupIds"
                                    value="@g.GroupId" id="group-@g.GroupId" checked="@isChecked" />
                             <label class="form-check-label" style="font-size:14px;" for="group-@g.GroupId">
                                 @g.GroupName
@@ -90,7 +104,6 @@
                     }
                 </div>
             </div>
-
             <div class="mb-3">
                 <label class="form-label">Event Description</label>
                 <textarea asp-for="EventDescription"
@@ -169,5 +182,18 @@
         });
     });
 
+
+        const selectAllGroups = document.getElementById("selectAllGroups");
+    const groupCheckboxes = document.querySelectorAll(".group-checkbox");
+
+    selectAllGroups.addEventListener("change", function () {
+        groupCheckboxes.forEach(cb => cb.checked = selectAllGroups.checked);
+    });
+
+    groupCheckboxes.forEach(cb => {
+        cb.addEventListener("change", function () {
+            selectAllGroups.checked = [...groupCheckboxes].every(c => c.checked);
+        });
+    });
 
 </script>

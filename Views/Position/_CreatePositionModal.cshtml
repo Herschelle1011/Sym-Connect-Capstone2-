@@ -6,10 +6,7 @@
         <input asp-for="PositionName" class="form-control" placeholder="e.g. External Vice President" />
         <span asp-validation-for="PositionName" class="text-danger small"></span>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Description</label>
-        <textarea asp-for="Description" class="form-control" rows="2" placeholder="What this role is responsible for"></textarea>
-    </div>
+
     <div class="mb-3">
         <label class="form-label">Display Order</label>
         <input asp-for="DisplayOrder" type="number" class="form-control" min="1" />

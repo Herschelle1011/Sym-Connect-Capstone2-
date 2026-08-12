@@ -12,7 +12,11 @@
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="EventId" />
 
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3" style="font-size:13px;"></div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 px-3 mb-3" style="font-size:13px;"></div>
+            }
+
 
             <div class="mb-3">
                 <label class="form-label">Event Title <span class="text-danger">*</span></label>
@@ -34,10 +38,12 @@
                 <div class="col-6">
                     <label class="form-label">Start Date <span class="text-danger">*</span></label>
                     <input asp-for="StartDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="editStartDateInput" />
+                    <span asp-validation-for="StartDate" class="text-danger" style="font-size:12px;"></span>
                 </div>
                 <div class="col-6" id="editStartTimeGroup">
                     <label class="form-label">Start Time <span class="text-danger">*</span></label>
                     <input asp-for="StartTime" type="time" class="form-control" />
+                    <span asp-validation-for="StartTime" class="text-danger" style="font-size:12px;"></span>
                 </div>
             </div>
 
@@ -45,22 +51,25 @@
                 <div class="col-6">
                     <label class="form-label">End Date <span class="text-danger">*</span></label>
                     <input asp-for="EndDate" asp-format="{0:yyyy-MM-dd}" type="date" class="form-control" id="editEndDateInput" />
+                    <span asp-validation-for="EndDate" class="text-danger" style="font-size:12px;"></span>
                 </div>
                 <div class="col-6" id="editEndTimeGroup">
                     <label class="form-label">End Time <span class="text-danger">*</span></label>
                     <input asp-for="EndTime" type="time" class="form-control" />
+                    <span asp-validation-for="EndTime" class="text-danger" style="font-size:12px;"></span>
                 </div>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Facility <span class="text-danger">*</span></label>
-                <select asp-for="FacilityId" class="form-control" id="editFacilitySelect">
+                <select asp-for="FacilityId" class="form-control" id="facilitySelect">
                     <option value="">Select a facility...</option>
                     @foreach (var f in (List<Sym_Connect__Capstone2_.Models.FacilityModels.Facility>)ViewBag.Facilities)
                     {
                         <option value="@f.FacilityId">@f.FacilityName</option>
                     }
                 </select>
+                <span asp-validation-for="FacilityId" class="text-danger" style="font-size:12px;"></span>
             </div>
 
 
@@ -111,40 +120,3 @@
     </div>
 </div>
 
-<script>
-    const editIsAllDayToggle = document.getElementById("editIsAllDayToggle");
-    const editStartTimeGroup = document.getElementById("editStartTimeGroup");
-    const editEndTimeGroup = document.getElementById("editEndTimeGroup");
-    const editStartDateInput = document.getElementById("editStartDateInput");
-    const editEndDateInput = document.getElementById("editEndDateInput");
-
-
-    function toggleEditTimeInputs() {
-        const hide = editIsAllDayToggle.checked;
-        editStartTimeGroup.style.display = hide ? "none" : "block";
-        editEndTimeGroup.style.display = hide ? "none" : "block";
-    }
-
-    editIsAllDayToggle.addEventListener("change", toggleEditTimeInputs);
-    toggleEditTimeInputs();
-
-    function toggleEditTimeInputs() {
-        const hide = editIsAllDayToggle.checked;
-        editStartTimeGroup.style.display = hide ? "none" : "block";
-        editEndTimeGroup.style.display = hide ? "none" : "block";
-    }
-
-    function syncEditEndDate() {
-        if (!editStartDateInput.value) return;
-        editEndDateInput.min = editStartDateInput.value;
-        if (!editEndDateInput.value || editEndDateInput.value < editStartDateInput.value) {
-            editEndDateInput.value = editStartDateInput.value;
-        }
-    }
-
-    editStartDateInput.addEventListener("change", syncEditEndDate);
-    editIsAllDayToggle.addEventListener("change", toggleEditTimeInputs);
-    toggleEditTimeInputs();
-
-
-</script>

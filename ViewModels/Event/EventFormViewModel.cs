@@ -16,7 +16,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public DateTime StartDate { get; set; } = DateTime.UtcNow;
 
         [Required(ErrorMessage = "End Date is required")]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         [Range(1, 100, ErrorMessage = "Must be below or equal to 100")]
         public int Points { get; set; } = 10;
@@ -25,7 +25,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
         [Required(ErrorMessage = "Select facility for this event")]
-        public int FacilityId { get; set; }
+        public int? FacilityId { get; set; }
 
         public List<int> SelectedGroupIds { get; set; } = new List<int>();
 

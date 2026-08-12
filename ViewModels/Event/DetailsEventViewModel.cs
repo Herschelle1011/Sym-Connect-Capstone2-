@@ -15,7 +15,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public bool IsAllDay { get; set; }
 
         public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
@@ -25,7 +25,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string CreatedBy { get; set; } = string.Empty;
 
         // Facility
-        public int FacilityId { get; set; }
+        public int? FacilityId { get; set; }
         public string FacilityName { get; set; } = string.Empty;
         public string FacilityType { get; set; } = string.Empty;
         public string FacilityDescription { get; set; } = string.Empty;

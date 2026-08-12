@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Models.EventModels;
+using Sym_Connect__Capstone2_.Models.FacilityModels;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Event;
+using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -26,7 +28,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
 
-        public async Task<List<EventCalendarViewModel>> GetAllEventAsync(int year, int month )
+        public async Task<List<EventCalendarViewModel>> GetAllEventAsync(int year, int month)
         {
             return await _context.Events
                                 .Where(e => !e.IsArchived &&
@@ -39,7 +41,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                     StartDate = e.StartDate,
                                     StartTime = e.StartTime,
                                     Status = e.Status,
-                                }).ToListAsync();                              
+                                }).ToListAsync();
         }
 
         public async Task<DetailsEventViewModel?> GetDetailsByAsync(int id)
@@ -78,8 +80,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         GroupId = g.GroupId,
                         GroupName = g.Group.GroupName,
                         MemberCount = g.Group.GroupDetails.Count()
-                    }).ToList(), 
-                    
+                    }).ToList(),
+
+                    ExpectedGroupCount = e.ExpectedGroups.Count(),
+
                     ScheduleTimeline = new List<ScheduleTimelineVM>()
 
                 }).FirstOrDefaultAsync();
@@ -115,7 +119,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             var startDate = existingEvent.StartDate.Date + (existingEvent.StartTime ?? TimeSpan.Zero);
-            var endDate = existingEvent.EndDate.Date + (existingEvent.EndTime ?? TimeSpan.Zero);
+            var endDate = existingEvent.EndDate?.Date + (existingEvent.EndTime ?? TimeSpan.Zero);
 
             var now = DateTime.UtcNow;
             EventStatus status;
@@ -134,23 +138,49 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
             existingEvent.Status = status;
 
-            return existingEvent;            
+            return existingEvent;
         }
-        public async Task<bool> CreateEventAsync(CreateEventViewModel vm)
+        public async Task<EventResult> CreateEventAsync(CreateEventViewModel vm)
         {
             if (vm.StartDate == default(DateTime) || vm.EndDate == default(DateTime))
             {
-                return false;
+                return EventResult.Fail("Please provide valid start and end dates.");
+            }
+            if (vm.EndDate < vm.StartDate.Date)
+            {
+                return EventResult.Fail("End date must be higher than start date.");
             }
 
-            var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
-            if (hasConflict) return false;
+            if (vm.StartDate.Date < DateTime.Today)
+            {
+                return EventResult.Fail("You cannot create an event in the past.");
+            }
 
-            if (vm.IsAllDay)
+
+            var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
+            if (hasConflict != null)
+            {
+                return new EventResult
+                {
+
+                    Success = false,
+                    ErrorMessage = $"This facility is already booked for \"{hasConflict.EventTitle}\" during that time.",
+                    ConflictingEventTitle = hasConflict.EventTitle
+                };
+            }
+            if (!vm.IsAllDay && (vm.StartDate.Date == null || vm.EndDate == null))
+            {
+                return EventResult.Fail("Start time and end time is required.");
+            }
+
+
+            if (vm.IsAllDay && (vm.StartTime == null || vm.EndTime == null))
             {
                 vm.StartTime = null;
                 vm.EndTime = null;
             }
+
+ 
 
             var newEvent = new Event
             {
@@ -161,7 +191,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 FacilityId = vm.FacilityId,
                 DateCreated = DateTime.UtcNow,
                 StartDate = vm.StartDate.Date,
-                EndDate  = vm.EndDate.Date,
+                EndDate  = vm.EndDate?.Date,
                 StartTime = vm.StartTime ,
                 EndTime = vm.EndTime ,
                 IsArchived = false
@@ -175,22 +205,23 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
-            return true;
-
+            return EventResult.Ok();
         }
 
-        public async Task<bool> UpdateEventAsync(int? gId, EditEventViewModel vm)
+        public async Task<EventResult> UpdateEventAsync(int? gId, EditEventViewModel vm)
         {
             //find the ID first from the EVENT
             var existingEvent = await _context.Events.
                             Include(eg => eg.ExpectedGroups)
                             .FirstOrDefaultAsync(e => e.EventId == gId);
 
-            if (existingEvent == null) return false;
+            if (existingEvent == null) return EventResult.Fail("Event doesn't exist");
 
             var hasConflict = await HasFacilityConflictAsync(vm.FacilityId, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime, excludeEventId: gId);
-            if (hasConflict) return false;
-
+            if (hasConflict != null)
+            {
+                return EventResult.Fail($"This facility is already booked for \"{hasConflict.EventTitle}\" during that time.");
+            }
             if (vm.IsAllDay)
             {
                 vm.StartTime = null;
@@ -236,7 +267,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 });
             }
             await _context.SaveChangesAsync();
-            return true;
+            return EventResult.Ok();
         }
 
         public async Task <EditEventViewModel?> GetEventForEditAsync(int? id)
@@ -291,24 +322,24 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
-        private(DateTime StartDate, DateTime EndDate) EventRange(bool IsAllDay, DateTime startDate, DateTime endDate, TimeSpan? startTime, TimeSpan? endTime)
+        private(DateTime StartDate, DateTime EndDate) EventRange(bool IsAllDay, DateTime startDate, DateTime? endDate, TimeSpan? startTime, TimeSpan? endTime)
         {
             if (IsAllDay)
             {
-                return (startDate.Date, endDate.Date.AddDays(1));
+                return (startDate.Date, endDate.Value.Date.AddDays(1));
             }
-            return (startDate.Date + (startTime ?? TimeSpan.Zero), endDate.Date + (endTime ?? TimeSpan.Zero));
+            return (startDate.Date + (startTime ?? TimeSpan.Zero), endDate.Value.Date + (endTime ?? TimeSpan.Zero));
         }
 
         //understand this part >>>> to be check....
-        public async Task <bool> HasFacilityConflictAsync(int facilityId,bool isAllDay ,DateTime startDate, 
-                                        DateTime endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null)
+        public async Task <Event?> HasFacilityConflictAsync(int? facilityId,bool isAllDay ,DateTime startDate, 
+                                        DateTime? endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null)
         {
             var (newStart, newEnd) = EventRange(isAllDay, startDate, endDate, startTime, endTime);
             //list of those events in the same DATE
             var possibleEventConflicts = await _context.Events.Where(e => e.FacilityId == facilityId
-                                                                                && e.StartDate.Date <= endDate.Date
-                                                                                && e.EndDate.Date >= startDate.Date
+                                                                                && e.StartDate.Date <= endDate.Value.Date
+                                                                                && e.EndDate.Value.Date >= startDate.Date
                                                                                 && (excludeEventId == null || e.EventId != excludeEventId)).ToListAsync();
             //checks the list 
             foreach(var existing in possibleEventConflicts)
@@ -316,9 +347,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 var (existingStart, existingEnd) = EventRange
                     (existing.IsAllDay, existing.StartDate, existing.EndDate, existing.StartTime, existing.EndTime);
 
-                if (newStart < existingEnd && existingStart < newEnd) return true;
+                if (newStart < existingEnd && existingStart < newEnd) return existing;
             }
-            return false;
+            return null;
         }
 
 
@@ -562,6 +593,141 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
 
             return rows;
+        }
+
+        //==== SEARCH PANEL PART ==== 
+        public async Task<List<EventSearchResultViewModel>> SearchPanelAsync(string search)
+        {
+            var existingEvents = await _context.Events
+                .AsNoTracking()
+                .Where(e => e.EventTitle.Contains(search))
+                .Select(e => new EventSearchResultViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    IsAllDay = e.IsAllDay,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    FacilityName = e.Facility.FacilityName,
+                }).ToListAsync();
+
+            return existingEvents;
+        }
+
+
+        //==== VIEW AVAILABLE FACILITIES ==== 
+        public async Task<List<ViewAvailableFacilitiesViewModel>> GetAvailableFacilitiesAsync()
+        {
+            DateTime today = DateTime.Today;
+            DateTime startOfMonth = new DateTime(today.Year, today.Month, 1);
+            DateTime startOfNextMonth = startOfMonth.AddMonths(1);
+
+            var facilities = await _context.Facilities
+                .AsNoTracking()
+                     .Include(f => f.FacilityPhotos)
+                .Where(f =>
+                    f.Status != FacilityStatus.UnderMaintenance &&
+                    f.Status != FacilityStatus.Inactive && 
+                    f.IsArchived != true)
+                .ToListAsync();
+
+            var result = new List<ViewAvailableFacilitiesViewModel>();
+
+         
+
+            foreach (var facility in facilities)
+            {
+                var upcoming = await _context.Events
+                   .AsNoTracking()
+                   .Where(e =>
+                       e.FacilityId == facility.FacilityId &&
+                       e.StartDate.Date >= today)
+                   .OrderBy(e => e.StartDate)
+                   .Take(3)
+                   .Select(e => new { e.StartDate, e.EventTitle })
+                   .ToListAsync();
+
+                var upcomingList = upcoming
+         .Select(e => (Date: e.StartDate, Title: e.EventTitle))
+         .ToList();
+
+                bool hasEventToday = await _context.Events
+                    .AsNoTracking()
+                    .AnyAsync(e =>
+                        e.FacilityId == facility.FacilityId &&
+                        e.StartDate.Date <= today &&
+                        e.EndDate >= today
+                    );
+
+                int reservationsThisMonth = await _context.Events
+                  .AsNoTracking()
+                  .CountAsync(e =>
+                      e.FacilityId == facility.FacilityId &&
+                      e.StartDate.Date >= today &&
+                      e.StartDate < startOfNextMonth
+                  );
+
+                result.Add(new ViewAvailableFacilitiesViewModel
+                {
+                    FacilityId = facility.FacilityId,
+                    FacilityName = facility.FacilityName,
+                    FacilityDescription = facility.FacilityDescription,
+                    FacilityType = facility.FacilityTypes,
+                    Capacity = facility.Capacity,
+                    UpcomingReservations = upcomingList,
+                    Status = hasEventToday ? "Limited today" : "Available now",
+                    ReservationCountThisMonth = reservationsThisMonth,
+                    Photos = facility.FacilityPhotos
+                        .Select(p => p.PhotoUrl)
+                        .ToList()
+                });
+            }
+
+            return result;
+        }
+
+
+
+
+        //==== FACILITY SCHEDULE ====
+        public async Task<FacilityScheduleViewModel?> GetFacilityScheduleAsync(int facilityId, int year, int month)
+        {
+            var facility = await _context.Facilities
+                .AsNoTracking()
+                .FirstOrDefaultAsync(f => f.FacilityId == facilityId);
+
+            if (facility == null) return null;
+
+            var monthStart = new DateTime(year, month, 1);
+            var monthEnd = monthStart.AddMonths(1);
+
+            var events = await _context.Events
+                .AsNoTracking()
+                .Where(e =>
+                    e.FacilityId == facilityId &&
+                    e.StartDate < monthEnd &&
+                    e.EndDate >= monthStart)
+                .OrderBy(e => e.StartDate)
+                .ToListAsync();
+
+            return new FacilityScheduleViewModel
+            {
+                FacilityId = facility.FacilityId,
+                FacilityName = facility.FacilityName,
+                Year = year,
+                Month = month,
+                Events = events.Select(e => new FacilityScheduleEventViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    Date = e.StartDate,
+                    IsAllDay = e.IsAllDay,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime
+                }).ToList()
+            };
         }
 
 

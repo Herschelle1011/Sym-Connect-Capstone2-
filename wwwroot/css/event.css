@@ -246,3 +246,17 @@
     font-weight: 600;
     color: #111827;
 }
+
+.is-past {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.is-past {
+    pointer-events: none; /* ① blocks clicks on the WHOLE cell, including empty space */
+}
+
+    .is-past .event-pill {
+        pointer-events: auto; /* ② re-enables clicks ONLY on pills inside that cell */
+    }

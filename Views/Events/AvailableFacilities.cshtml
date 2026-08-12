@@ -1,0 +1,497 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Facility.ViewAvailableFacilitiesViewModel>
+@{
+    ViewData["Title"] = "View Available Facilities";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* ===== Page Header ===== */
+    .fac-page .breadcrumb-row {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+    }
+
+        .fac-page .breadcrumb-row a {
+            color: #000;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+    .fac-page .page-title {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+    .fac-page .page-subtitle {
+        margin: 4px 0 0 0;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    /* ===== Toolbar ===== */
+    .fac-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .fac-search {
+        position: relative;
+        flex: 1;
+        min-width: 220px;
+        max-width: 320px;
+    }
+
+        .fac-search i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .fac-search input {
+            width: 100%;
+            padding: 9px 14px 9px 36px;
+            border: 1px solid var(--border-color, #EEE);
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+    .fac-type-filter {
+        padding: 9px 16px;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 10px;
+        background: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary, #5B6472);
+    }
+
+    .fac-view-toggle {
+        display: inline-flex;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 10px;
+        overflow: hidden;
+        margin-left: auto;
+    }
+
+        .fac-view-toggle button {
+            border: none;
+            background: #fff;
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary, #5B6472);
+            cursor: pointer;
+        }
+
+            .fac-view-toggle button.active {
+                background: #1877F2;
+                color: #fff;
+            }
+
+    /* ===== Legend ===== */
+    .fac-legend {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+        background: #fff;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 12px;
+        padding: 12px 18px;
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--text-secondary, #5B6472);
+    }
+
+        .fac-legend .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .fac-legend strong {
+            color: #000;
+        }
+
+    .dot-available {
+        background: #1E7E34;
+    }
+
+    .dot-limited {
+        background: #B7791F;
+    }
+
+    .dot-reserved {
+        background: #1877F2;
+    }
+
+    /* ===== Cards Grid ===== */
+    .fac-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 22px;
+    }
+
+    .fac-card {
+        background: #fff;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 14px;
+        padding: 18px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .fac-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .status-pill {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .status-pill .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+    .status-available {
+        background: #E6F4EA;
+        color: #1E7E34;
+    }
+
+        .status-available .dot {
+            background: #1E7E34;
+        }
+
+    .status-limited {
+        background: #FFF4E0;
+        color: #B7791F;
+    }
+
+        .status-limited .dot {
+            background: #B7791F;
+        }
+
+    .capacity-pill {
+        background: #1877F2;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .fac-card-title {
+        margin: 4px 0 0 0;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .fac-card-desc {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .fac-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .fac-tag {
+        background: #F1F3F6;
+        color: #444;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 999px;
+    }
+
+    .fac-reservations {
+        border-top: 1px dashed var(--border-color, #EEE);
+        padding-top: 10px;
+        margin-top: 4px;
+    }
+
+        .fac-reservations .res-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+            .fac-reservations .res-header span {
+                color: #1877F2;
+                text-transform: none;
+                font-weight: 700;
+            }
+
+        .fac-reservations .res-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .fac-reservations .res-date {
+            background: #EAF1FE;
+            color: #1877F2;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .fac-reservations .res-empty {
+            font-size: 13px;
+            font-style: italic;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+    .fac-card-footer {
+        display: flex;
+        gap: 10px;
+        margin-top: 6px;
+    }
+
+        .fac-card-footer .btn-schedule {
+            flex: 1;
+            background: #1877F2;
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 0;
+            border-radius: 10px;
+        }
+
+        .fac-card-footer .btn-details {
+            background: #F1F3F6;
+            border: none;
+            color: #000;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 10px 18px;
+            border-radius: 10px;
+        }
+
+    /* ===== Facility Photo ===== */
+    .fac-card-photo {
+        width: calc(100% + 40px);
+        margin: -18px -20px 0 -20px;
+        height: 160px;
+        border-radius: 14px 14px 0 0;
+        overflow: hidden;
+        position: relative;
+        background: #F1F3F6;
+    }
+
+        .fac-card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .fac-card-photo .photo-count {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 999px;
+        }
+
+    .fac-card-photo-placeholder {
+        width: calc(100% + 40px);
+        margin: -18px -20px 0 -20px;
+        height: 160px;
+        border-radius: 14px 14px 0 0;
+        background: #F1F3F6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 28px;
+    }
+</style>
+
+<div class="member-page fac-page">
+
+    @* ---- BREADCRUMB + TITLE ---- *@
+    <div class="breadcrumb-row">
+        <a asp-controller="Facilities" asp-action="Index">Facilities</a> &rsaquo; View Available Facilities
+    </div>
+    <h1 class="page-title">View Available Facilities</h1>
+    <p class="page-subtitle">Browse facilities and see their upcoming reservation dates, pulled directly from the Events calendar.</p>
+
+    @* ---- TOOLBAR ---- *@
+    <div class="fac-toolbar">
+        <div class="fac-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="facilitySearchInput" placeholder="Search facilities..." />
+        </div>
+
+        <select id="facilityTypeFilter" class="fac-type-filter">
+            <option value="all">All Types</option>
+        </select>
+
+        <div class="fac-view-toggle">
+            <button type="button" class="active" data-view="grid">Grid</button>
+            <button type="button" data-view="calendar">Calendar</button>
+        </div>
+    </div>
+
+    @* ---- LEGEND ---- *@
+    <div class="fac-legend">
+        <div><span class="dot dot-available"></span><strong>Available now</strong> &mdash; no reservation today</div>
+        <div><span class="dot dot-limited"></span><strong>Limited</strong> &mdash; booked for part of today</div>
+        <div><span class="dot dot-reserved"></span><strong>Reserved dates</strong> come from Events with this facility assigned</div>
+    </div>
+
+    @* ---- CARDS GRID ---- *@
+    @if (Model == null || !Model.Any())
+    {
+        <p style="color: var(--text-muted); margin-top: 24px;">No facilities found.</p>
+    }
+    else
+    {
+        <div class="fac-grid" id="facilityGrid">
+            @foreach (var facility in Model)
+            {
+                var isLimited = facility.Status == "Limited today";
+                <div class="fac-card"
+                     data-name="@facility.FacilityName"
+                     data-type="@facility.FacilityType">
+
+                    @if (facility.Photos != null && facility.Photos.Any())
+                    {
+                        <div class="fac-card-photo">
+                            <img src="@facility.Photos.First()" alt="@facility.FacilityName" />
+                            @if (facility.Photos.Count > 1)
+                            {
+                                <span class="photo-count"><i class="bi bi-images"></i> @facility.Photos.Count</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="fac-card-photo-placeholder">
+                            <i class="bi bi-building"></i>
+                        </div>
+                    }
+
+                    <div class="fac-card-top">
+                        <span class="status-pill @(isLimited ? "status-limited" : "status-available")">
+                            <span class="dot"></span>@facility.Status
+                        </span>
+                        <span class="capacity-pill">
+                            <i class="bi bi-person-fill"></i> @facility.Capacity cap
+                        </span>
+                    </div>
+
+                    <h3 class="fac-card-title">@facility.FacilityName</h3>
+                    <p class="fac-card-desc">@facility.FacilityDescription</p>
+
+                    @* FacilityType is stored as a single comma-separated string, split into tag pills *@
+                    <div class="fac-tags">
+                        @foreach (var tag in facility.FacilityType.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <span class="fac-tag">@tag.Trim()</span>
+                        }
+                    </div>
+
+                    <div class="fac-reservations">
+                        <div class="res-header">
+                            <span>UPCOMING RESERVATIONS</span>
+                            <span>@(facility.ReservationCountThisMonth > 0 ? $"{facility.ReservationCountThisMonth} this month" : "None")</span>
+                        </div>
+
+                        @if (!facility.UpcomingReservations.Any())
+                        {
+                            <p class="res-empty">No events currently scheduled here.</p>
+                        }
+                        else
+                        {
+                            @foreach (var res in facility.UpcomingReservations)
+                            {
+                                <div class="res-row">
+                                    <span class="res-date">@res.Date.ToString("MMM d")</span>
+                                    <span>@res.Title</span>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="fac-card-footer">
+                        <button type="button" class="btn-schedule open-modal"
+                                data-title="@facility.FacilityName — Schedule"
+                                data-url="@Url.Action("Schedule", "Events", new { id = facility.FacilityId })"
+                                data-modal-size="lg">
+                            <i class="bi bi-calendar3"></i> View Schedule
+                        </button>
+                        <button type="button" class="btn-details"
+                                onclick="location.href='@Url.Action("Details", "Facilities", new { id = facility.FacilityId })'">
+                            Details
+                        </button>
+                    </div>
+
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const facilitySearchInput = document.getElementById("facilitySearchInput");
+        const facilityGrid = document.getElementById("facilityGrid");
+
+        if (facilitySearchInput && facilityGrid) {
+            facilitySearchInput.addEventListener("input", function () {
+                const term = facilitySearchInput.value.trim().toLowerCase();
+                const cards = facilityGrid.querySelectorAll(".fac-card");
+
+                cards.forEach(function (card) {
+                    const name = card.dataset.name.toLowerCase();
+                    card.style.display = name.includes(term) ? "" : "none";
+                });
+            });
+        }
+    </script>
+}

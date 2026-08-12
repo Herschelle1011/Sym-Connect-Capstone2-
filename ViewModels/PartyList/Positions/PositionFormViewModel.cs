@@ -7,8 +7,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.PartyList.Positions
    
         [Required(ErrorMessage = "Position Name is required.")]
         public string PositionName { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Description is required.")]
-        public string Description { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "DisplayOrder is required.")]
         public int DisplayOrder { get; set; }

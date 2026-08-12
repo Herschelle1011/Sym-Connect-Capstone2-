@@ -367,15 +367,18 @@
             <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
         </div>
         <div class="d-flex align-items-center gap-2">
+            @{
+                bool isPastEvent = Model.EndDate < DateTime.Today;
+            }
 
-            <button type="button" class="btn btn-outline-primary btn-sm edit-event-btn" data-eventid="@Model.EventId">
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm edit-event-btn"
+                    data-eventid="@Model.EventId"
+                    disabled="@(isPastEvent ? "disabled" : null)">
                 <i class="ti ti-pencil"></i> Edit Event
             </button>
 
 
-            <button type="button" class="btn btn-outline-secondary btn-sm">
-                <i class="ti ti-copy"></i> Duplicate
-            </button>
             <div class="dropdown">
                 <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="dropdown">
                     <i class="ti ti-dots"></i>
@@ -407,7 +410,7 @@
                 : (DateTime?)null;
 
                 DateTime? endDateTime = Model.EndTime.HasValue
-                ? Model.EndDate.Date + Model.EndTime.Value
+                ? Model.EndDate.Value.Date + Model.EndTime.Value
                 : (DateTime?)null;
 
                 bool spansMultipleDays = startDateTime.HasValue && endDateTime.HasValue
@@ -469,7 +472,7 @@
                             </div>
                             <div class="info-row">
                                 <span class="info-label"><i class="ti ti-calendar"></i>End Date</span>
-                                <span class="info-value">@Model.EndDate.ToString("MMMM d, yyyy")</span>
+                                <span class="info-value">@Model.EndDate?.ToString("MMMM d, yyyy")</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label"><i class="ti ti-clock"></i>Start Time</span>
@@ -595,7 +598,7 @@
                         if (ifAllDay)
                         {
                             var eventStart = Model.StartDate.Date;
-                            var eventEnd = Model.EndDate.Date.AddDays(1);
+                            var eventEnd = Model.EndDate.Value.Date.AddDays(1);
 
                             isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
                             ifNotStarted = DateTime.Now < eventStart;
@@ -609,7 +612,7 @@
                         else
                         {
                             var eventStart = Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
-                            var eventEnd = Model.EndDate.Date + (Model.EndTime ?? TimeSpan.Zero);
+                            var eventEnd = Model.EndDate.Value.Date + (Model.EndTime ?? TimeSpan.Zero);
 
                             var timeInOpens = eventStart.AddMinutes(-30);
 
@@ -768,7 +771,7 @@
 
                     <div class="details-card mb-3">
                         <div class="details-card-title">
-                            <i class="ti ti-users me-1"></i>Expected Groups (@Model.ExpectedGroupCount)
+                            <i class="ti ti-users me-1"></i>Expected Groups (@Model.ExpectedGroups.Count)
                         </div>
 
                         @for (int i = 0; i < Model.ExpectedGroups.Count; i++)
@@ -789,7 +792,8 @@
                         <button type="button" class="btn btn-outline-primary w-100 mt-2 btn-sm">View All Groups</button>
                     </div>
 
-                    <div class="details-card">
+                    @* ==== TO BE IMPLEMENTED EVALUATION ==== *@
+                    @* <div class="details-card">
                         <div class="details-card-title"><i class="ti ti-clipboard-list me-1"></i>Evaluations</div>
 
                         @if (Model.HasEvaluation)
@@ -802,7 +806,7 @@
                         }
 
                         <button type="button" class="btn btn-outline-primary w-100 btn-sm">Create Evaluation</button>
-                    </div>
+                    </div> *@
                 </div>
             </div>
         </div>

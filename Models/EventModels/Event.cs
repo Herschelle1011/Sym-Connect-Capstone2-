@@ -19,13 +19,13 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         public TimeSpan? EndTime { get; set; }
 
         public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
         [Range(1, 100)]
         public int Points { get; set; } = 3;
 
-        public int FacilityId { get; set; }
-        public Facility Facility { get; set; } = null!;
+        public int? FacilityId { get; set; }
+        public Facility? Facility { get; set; } = null!;
 
         public EventStatus Status { get; set; } = EventStatus.Upcoming;
 

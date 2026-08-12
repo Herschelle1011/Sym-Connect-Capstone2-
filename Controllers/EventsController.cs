@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -37,7 +37,7 @@ public class EventsController : Controller
         if (eventEntity == null) return NotFound();
 
         var eventStart = eventEntity.StartDate.Date + (eventEntity.StartTime ?? TimeSpan.Zero);
-        var eventEnd = eventEntity.EndDate.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
+        var eventEnd = eventEntity.EndDate.Value.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
 
         bool isLive = DateTime.Now >= eventStart.AddMinutes(-30) && DateTime.Now <= eventEnd;
         if (!isLive)
@@ -132,6 +132,9 @@ public class EventsController : Controller
         return PartialView("_CreateEventPanel");
     }
 
+
+
+
     // POST: EVENTS/Create
     // To protect from overposting attacks, enable the specific properties you want to bind to.
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -139,22 +142,20 @@ public class EventsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateEventViewModel vm)
     {
-        if (!ModelState.IsValid)
-        {
-            return await ReturnToCalendarWithFailedForm(vm);
-        }
+        if(!ModelState.IsValid) return await ReturnToCalendarWithFailedForm(vm);
 
-        var success = await _eventService.CreateEventAsync(vm);
-        if (!success)
+        var result = await _eventService.CreateEventAsync(vm);
+
+        if (!result.Success)
         {
-            ModelState.AddModelError("", "This facility is already booked during the selected date/time.");
+            ModelState.AddModelError("", result.ErrorMessage!);
             return await ReturnToCalendarWithFailedForm(vm);
         }
 
         return RedirectToAction(nameof(Index));
     }
 
-    // Small helper so both failure paths build the SAME correct view model
+    //if fail or error reload facilities and groups
     private async Task<IActionResult> ReturnToCalendarWithFailedForm(CreateEventViewModel vm)
     {
         ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
@@ -198,10 +199,10 @@ public class EventsController : Controller
         if (eventid != vm.EventId) return NotFound();     
         if (!ModelState.IsValid) return View(vm);
   
-                var success = await _eventService.UpdateEventAsync(eventid, vm);
-                    if (!success)
+                var result = await _eventService.UpdateEventAsync(eventid, vm);
+                    if (!result.Success)
                     {
-                        ModelState.AddModelError("", "This facility is already booked during the selected date/time.");
+                        ModelState.AddModelError("", result.ErrorMessage!);
                         return View(vm);
                     }
                       return RedirectToAction(nameof(Index));
@@ -235,5 +236,31 @@ public class EventsController : Controller
         var facility = await _facilityService.GetFacilityAsyncById(id);
         var photoUrl = facility?.FacilityPhotos?.FirstOrDefault()?.PhotoUrl;
         return Json(new { photoUrl });
+    }
+
+
+    public async Task<IActionResult> SearchPanel(string search)
+    {
+        var existingEvent = await _eventService.SearchPanelAsync(search);
+        return Json(existingEvent);
+
+    }
+
+    public async Task<IActionResult> AvailableFacilities()
+    {
+        var facilities = await _eventService.GetAvailableFacilitiesAsync();
+        return View(facilities);
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> Schedule(int id, int? year, int? month)
+    {
+        var today = DateTime.Today;
+        var vm = await _eventService.GetFacilityScheduleAsync(id, year ?? today.Year, month ?? today.Month);
+
+        if (vm == null) return NotFound();
+
+        return PartialView("_FacilityScheduleModal", vm);
     }
 }

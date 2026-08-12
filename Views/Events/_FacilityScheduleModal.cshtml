@@ -1,0 +1,154 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Facility.FacilityScheduleViewModel
+@{
+    var firstOfMonth = new DateTime(Model.Year, Model.Month, 1);
+    var startOffset = (int)firstOfMonth.DayOfWeek;
+    var gridStart = firstOfMonth.AddDays(-startOffset);
+    var today = DateTime.Today;
+
+    var prevMonth = firstOfMonth.AddMonths(-1);
+    var nextMonth = firstOfMonth.AddMonths(1);
+
+    var eventsByDate = Model.Events
+        .GroupBy(e => e.Date.Date)
+        .ToDictionary(g => g.Key, g => g.ToList());
+}
+
+<style>
+    .sched-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+
+    .sched-cell {
+        height: 44px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        font-size: 13px;
+        position: relative;
+    }
+
+        .sched-cell.is-outside {
+            color: #c9ccd1;
+        }
+
+        .sched-cell.is-today {
+            border: 1.5px solid #111827;
+            font-weight: 700;
+        }
+
+        .sched-cell.has-event {
+            background: #EAF1FE;
+            color: #1877F2;
+            font-weight: 700;
+        }
+
+    .sched-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #1877F2;
+        margin-top: 2px;
+    }
+
+    .sched-date-badge {
+        background: #111827;
+        color: #fff;
+        border-radius: 8px;
+        width: 48px;
+        padding: 6px 0;
+    }
+
+</style>
+
+<div class="sched-modal-body" data-facility-id="@Model.FacilityId">
+
+    <p class="text-muted small mb-3">Reservation dates are pulled automatically from Events assigned to this facility.</p>
+
+    <div class="d-flex gap-4 flex-wrap flex-md-nowrap">
+
+        <div class="sched-calendar" style="min-width:300px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0">@firstOfMonth.ToString("MMMM yyyy")</h6>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary schedule-nav"
+                            data-year="@prevMonth.Year" data-month="@prevMonth.Month">
+                        <i class="ti ti-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary schedule-nav"
+                            data-year="@nextMonth.Year" data-month="@nextMonth.Month">
+                        <i class="ti ti-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sched-grid sched-weekday-row">
+                @foreach (var d in new[] { "S", "M", "T", "W", "T", "F", "S" })
+                {
+                    <div class="text-center small text-muted fw-semibold py-1">@d</div>
+                }
+            </div>
+
+            <div class="sched-grid">
+                @for (int week = 0; week < 6; week++)
+                {
+                    @for (int day = 0; day < 7; day++)
+                    {
+                        var cellDate = gridStart.AddDays(week * 7 + day);
+                        var inMonth = cellDate.Month == Model.Month;
+                        var hasEvent = eventsByDate.ContainsKey(cellDate.Date);
+                        var isToday = cellDate.Date == today;
+
+                        var cls = "sched-cell"
+                            + (inMonth ? "" : " is-outside")
+                            + (isToday ? " is-today" : "")
+                            + (hasEvent ? " has-event" : "");
+
+                        <div class="@cls">
+                            <span>@cellDate.Day</span>
+                            @if (hasEvent)
+                            {
+                                <span class="sched-dot"></span>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="sched-list flex-fill">
+            <h6 class="fw-bold mb-3">All reservations</h6>
+
+            @if (!Model.Events.Any())
+            {
+                <p class="text-muted small fst-italic">No reservations for this facility.</p>
+            }
+            else
+            {
+                @foreach (var evt in Model.Events.OrderBy(e => e.Date))
+                {
+                    var timeLabel = evt.IsAllDay || !evt.StartTime.HasValue
+                        ? "All day"
+                        : evt.EndTime.HasValue
+                            ? $"{DateTime.Today.Add(evt.StartTime.Value):h:mm tt} \u2013 {DateTime.Today.Add(evt.EndTime.Value):h:mm tt}"
+                            : DateTime.Today.Add(evt.StartTime.Value).ToString("h:mm tt");
+
+                    <div class="sched-list-row d-flex align-items-center gap-3 border rounded-3 p-2 mb-2">
+                        <div class="sched-date-badge text-center flex-shrink-0">
+                            <div class="fw-bold">@evt.Date.Day</div>
+                            <div class="small text-uppercase">@evt.Date.ToString("MMM")</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">@evt.EventTitle</div>
+                            <div class="small text-muted">@timeLabel</div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+    </div>
+</div>

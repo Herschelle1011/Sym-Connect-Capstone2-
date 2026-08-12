@@ -21,7 +21,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     PositionId = p.PositionId,
                     PositionName = p.PositionName,
-                    Description = p.Description,
                     DisplayOrder = p.DisplayOrder,
                     maxCandidate = p.MaxCandidates,
                     IsActive = p.IsActive
@@ -33,7 +32,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var position = new Position
             {
                 PositionName = vm.PositionName,
-                Description = vm.Description,
                 DisplayOrder = vm.DisplayOrder,
                 MaxCandidates = vm.MaxCandidate,
                 IsActive = true,
@@ -54,7 +52,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                  {
                      positionId = P.PositionId,
                      PositionName = P.PositionName,
-                     Description = P.Description,
                      DisplayOrder = P.DisplayOrder,
                      MaxCandidate = P.MaxCandidates,
                      IsActive = P.IsActive
@@ -67,7 +64,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (ExistingPosition == null) return false;
 
             ExistingPosition.PositionName = vm.PositionName;
-            ExistingPosition.Description = vm.Description;
             ExistingPosition.DisplayOrder = vm.DisplayOrder;
             ExistingPosition.MaxCandidates = vm.MaxCandidate;
             await _context.SaveChangesAsync();

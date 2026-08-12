@@ -50,7 +50,16 @@
             <a asp-action="Index" asp-route-year="@Model.NextYear" asp-route-month="@Model.NextMonth"
                class="calendar-icon-circle"><i class="ti ti-chevron-right"></i></a>
 
-            <button type="button" class="calendar-icon-circle"><i class="ti ti-search"></i></button>
+            <button type="button"
+                    class="calendar-icon-circle"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#searchEventPanel">
+                <i class="ti ti-search"></i>
+            </button>
+
+            <a asp-action="AvailableFacilities" class="btn btn-outline-secondary ms-2">
+                <i class="ti ti-building"></i> View Facilities
+            </a>
 
             <button type="button" class="btn btn-primary ms-2" data-bs-toggle="offcanvas" data-bs-target="#eventPanel">
                 <i class="ti ti-plus"></i> Add Event
@@ -76,11 +85,13 @@
                     var cellDate = gridStart.AddDays(week * 7 + day);
                     var isCurrentMonth = cellDate.Month == Model.Month;
                     var isToday = cellDate.Date == today;
+                    var isPast = cellDate.Date < today;
                     var eventsToday = Model.Events.Where(e => e.StartDate.Date == cellDate.Date).ToList();
 
                     var cellClasses = "day-cell"
                     + (isCurrentMonth ? "" : " is-outside")
-                    + (isToday ? " is-today" : "");
+                    + (isToday ? " is-today" : "")
+                    + (isPast ? " is-past" : ""); 
 
                     <div class="@cellClasses" data-date="@cellDate.ToString("yyyy-MM-dd")">
 
@@ -184,4 +195,9 @@
     var createVm = ViewBag.FailedCreateVm as CreateEventViewModel
                    ?? new CreateEventViewModel();
 }
+
+@section Scripts {
+    <script src="~/js/admin/Eventsearchpanel.js"></script>
+}
 @await Html.PartialAsync("_CreateEventPanel", createVm)
+@await Html.PartialAsync("_SearchEventPanel")
