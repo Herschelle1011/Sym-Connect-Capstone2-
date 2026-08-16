@@ -46,7 +46,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                    e.EndDate,
                    e.StartTime,
                    e.EndTime,
-                   FacilityName = e.Facility.FacilityName,
+                   FacilityName = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
                    GroupName = e.ExpectedGroups
                        .Where(eg => myGroupId.Contains(eg.GroupId))
                        .Select(eg => eg.Group.GroupName)
@@ -141,7 +141,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                {
                    EventId = e.EventId,
                    EventTitle = e.EventTitle,
-                   FacilityName = e.FacilityName
+                   FacilityName = e.FacilityName,
                })
                .ToList();
 

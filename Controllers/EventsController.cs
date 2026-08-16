@@ -142,17 +142,20 @@ public class EventsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateEventViewModel vm)
     {
-        if(!ModelState.IsValid) return await ReturnToCalendarWithFailedForm(vm);
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return Json(new { success = false, message = string.Join(" ", errors) });
+        }
 
         var result = await _eventService.CreateEventAsync(vm);
 
         if (!result.Success)
         {
-            ModelState.AddModelError("", result.ErrorMessage!);
-            return await ReturnToCalendarWithFailedForm(vm);
+            return Json(new { success = false, message = result.ErrorMessage });
         }
 
-        return RedirectToAction(nameof(Index));
+        return Json(new { success = true, message = $"{vm.EventTitle} created successfully" });
     }
 
     //if fail or error reload facilities and groups
@@ -196,17 +199,22 @@ public class EventsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int? eventid, EditEventViewModel vm)
     {
-        if (eventid != vm.EventId) return NotFound();     
-        if (!ModelState.IsValid) return View(vm);
-  
-                var result = await _eventService.UpdateEventAsync(eventid, vm);
-                    if (!result.Success)
-                    {
-                        ModelState.AddModelError("", result.ErrorMessage!);
-                        return View(vm);
-                    }
-                      return RedirectToAction(nameof(Index));
- 
+        if (eventid != vm.EventId) return Json(new { success = false, message = "Event ID mismatch." });
+
+        if (!ModelState.IsValid)
+        {
+            var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+            return Json(new { success = false, message = string.Join(" ", errors) });
+        }
+
+        var result = await _eventService.UpdateEventAsync(eventid, vm);
+
+        if (!result.Success)
+        {
+            return Json(new { success = false, message = result.ErrorMessage });
+        }
+
+        return Json(new { success = true, message = $"{vm.EventTitle} updated successfully" });
     }
 
     // GET: EVENTS/Archive/5
@@ -234,8 +242,23 @@ public class EventsController : Controller
     public async Task<IActionResult> GetFacilityPhotoUrl(int id)
     {
         var facility = await _facilityService.GetFacilityAsyncById(id);
-        var photoUrl = facility?.FacilityPhotos?.FirstOrDefault()?.PhotoUrl;
+        var photoUrl = facility?.Photos?.FirstOrDefault()?.PhotoUrl;
         return Json(new { photoUrl });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ViewAllFacilitiesModal(int? id)
+    {
+        var facilities = await _eventService.GetFacilitiesForModalAsync(id);
+        return PartialView("_ViewAllFacilitiesModal", facilities);
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> ViewAllGroupsModal(int? id)
+    {
+        var groups = await _eventService.GetGroupsForModalAsync(id);
+        return PartialView("_ViewAllGroupsModal", groups);
     }
 
 
@@ -244,6 +267,13 @@ public class EventsController : Controller
         var existingEvent = await _eventService.SearchPanelAsync(search);
         return Json(existingEvent);
 
+    }
+
+    //OPEN SCANNER TIME MODIFY MODAL
+    [HttpGet]
+    public IActionResult GetScannerTimeModal()
+    {
+        return PartialView("_ScannerTimeModal");
     }
 
     public async Task<IActionResult> AvailableFacilities()

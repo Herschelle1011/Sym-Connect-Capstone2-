@@ -23,7 +23,7 @@ namespace Sym_Connect__Capstone2_.Models.FacilityModels
         public string Photos { get; set; } = string.Empty;
 
         [Required]
-        public string FacilityTypes { get; set; } = string.Empty;
+        public List<string> FacilityTypes { get; set; } = new List<string>();
 
         public bool? IsArchived { get; set; } = false;
         public DateTime? ArchiveDate { get; set; }

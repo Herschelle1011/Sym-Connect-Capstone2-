@@ -6,7 +6,7 @@
         public string EventTitle { get; set; } = string.Empty; 
         public string Description { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
-        public int? FacilityId { get; set; }
+        public List<int>? FacilityId { get; set; } = new List<int>();
 
 
         

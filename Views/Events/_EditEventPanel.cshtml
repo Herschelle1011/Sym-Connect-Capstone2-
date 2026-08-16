@@ -60,18 +60,32 @@
                 </div>
             </div>
 
+           
             <div class="mb-3">
-                <label class="form-label">Facility <span class="text-danger">*</span></label>
-                <select asp-for="FacilityId" class="form-control" id="facilitySelect">
-                    <option value="">Select a facility...</option>
+                <label class="form-label">Facilities <span class="text-danger">*</span></label>
+
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="selectAllFacilities" />
+                    <label class="form-check-label fw-medium" style="font-size:14px;" for="selectAllFacilities">
+                        All Facilities
+                    </label>
+                </div>
+
+                <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
                     @foreach (var f in (List<Sym_Connect__Capstone2_.Models.FacilityModels.Facility>)ViewBag.Facilities)
                     {
-                        <option value="@f.FacilityId">@f.FacilityName</option>
+                        var isChecked = Model.SelectedFacilityIds != null && Model.SelectedFacilityIds.Contains(f.FacilityId);
+                        <div class="form-check">
+                            <input class="form-check-input facility-checkbox" type="checkbox" name="SelectedFacilityIds"
+                                   value="@f.FacilityId" id="facility-@f.FacilityId" checked="@isChecked" />
+                            <label class="form-check-label" style="font-size:14px;" for="facility-@f.FacilityId">
+                                @f.FacilityName
+                            </label>
+                        </div>
                     }
-                </select>
-                <span asp-validation-for="FacilityId" class="text-danger" style="font-size:12px;"></span>
+                </div>
+                <span asp-validation-for="SelectedFacilityIds" class="text-danger" style="font-size:12px;"></span>
             </div>
-
 
             <div class="mb-3">
                 <label class="form-label">Points <span class="text-danger">*</span></label>
@@ -83,7 +97,7 @@
             <div class="mb-3">
                 <label class="form-label">Expected Groups</label>
                 <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
-                    @foreach (var g in (List<Sym_Connect__Capstone2_.Models.Group>)ViewBag.Groups)
+                    @foreach (var g in (List<Sym_Connect__Capstone2_.ViewModels.Group.GroupListViewModel>)ViewBag.Groups)
                     {
                         var isChecked = Model.SelectedGroupIds != null && Model.SelectedGroupIds.Contains(g.GroupId);
                         <div class="form-check">
@@ -120,3 +134,37 @@
     </div>
 </div>
 
+                      <script>
+
+                          
+        const selectAllGroups = document.getElementById("selectAllGroups");
+    const groupCheckboxes = document.querySelectorAll(".group-checkbox");
+
+    selectAllGroups.addEventListener("change", function () {
+        groupCheckboxes.forEach(cb => cb.checked = selectAllGroups.checked);
+    });
+
+    groupCheckboxes.forEach(cb => {
+        cb.addEventListener("change", function () {
+            selectAllGroups.checked = [...groupCheckboxes].every(c => c.checked);
+        });
+    });
+
+
+
+                            const selectAllFacilities = document.getElementById("selectAllFacilities");
+    const facilityCheckboxes = document.querySelectorAll(".facility-checkbox");
+
+    selectAllFacilities.addEventListener("change", function () {
+        facilityCheckboxes.forEach(cb => cb.checked = selectAllFacilities.checked);
+    });
+
+    facilityCheckboxes.forEach(cb => {
+        cb.addEventListener("change", function () {
+            selectAllFacilities.checked = [...facilityCheckboxes].every(c => c.checked);
+        });
+    });
+
+
+
+                      </script>

@@ -2,6 +2,7 @@
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 
@@ -29,17 +30,20 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 .Select(m => new ProfileViewModel
                 {
                     memberId = m.MemberId,
-                    FirstName = m.FirstName ?? "",
-                    MiddleName = m.MiddleName ?? "",
-                    LastName = m.LastName ?? "",
-                    Address = m.Address,
+                    FirstName = m.FirstName ?? "N/A",
+                    MiddleName = m.MiddleName ?? "N/A",
+                    LastName = m.LastName ?? "N/A",
+                    Country = m.Country,
+                    Province = m.Province,
+                    City = m.City,
+                    Barangay = m.Barangay,
                     ContactNumber = m.ContactNumber,
                     PhotoUrl = m.ProfilePictureUrl,
                     Email = m.Email,
                     Birthdate = m.BirthDate,
                     GroupName = m.GroupDetails.Select(
-                        gd=> gd.Group.GroupName).FirstOrDefault() ?? "",
-                    MemberSince = m.DateJoined,
+                        gd=> gd.Group.GroupName).FirstOrDefault() ?? "N/A",
+                    MemberSince = m.DateRegistered,
 
                 }).FirstOrDefaultAsync();
 
@@ -58,6 +62,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
         {
             // Check-ins
             var checkIns = await _context.Attendances
+                .AsNoTracking()
                 .Where(a => a.MemberId == memberId && a.TimeIn != null)
                 .Include(a => a.Event)
                 .OrderByDescending(a => a.TimeIn)
@@ -65,7 +70,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 .Select(a => new ActivityLogViewModel
                 {
                     Type = ActivityType.CheckIn,
-                    Description = $"Check-in at {a.Event.Facility.FacilityName} - {a.Event.EventTitle}",
+                    Description = $"Check-in at {string.Join(", ", a.Event.ExpectedFacilities.Select(ef => ef.Facility.FacilityName))} - {a.Event.EventTitle}",                    
                     Timestamp = a.TimeIn!.Value
                 }).ToListAsync();
 

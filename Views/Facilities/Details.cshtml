@@ -4,10 +4,9 @@
     ViewData["Title"] = "Facility Details";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
-    var types = (Model.FacilityType ?? "")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries)
-        .Select(t => t.Trim())
-        .ToList();
+    var types = Model.FacilityType.ToList();
+    var photoUrls = Model.Photos?.Select(p => p.PhotoUrl).ToList() ?? new List<string>();
+
 
     var statusClass = Model.Status switch
     {
@@ -40,20 +39,20 @@
 
         <!-- LEFT: Photo carousel -->
         <div class="fd-photo-col">
-            @if (Model.Photos != null && Model.Photos.Count > 0)
+            @if (photoUrls.Count > 0)
             {
                 <div class="fd-carousel" id="fdCarousel"
-                     data-photos="@string.Join("|", Model.Photos)">
+                     data-photos="@string.Join("|", photoUrls)">
 
                     <img id="fdMainImg"
                          class="fd-main-img"
-                         src="@Model.Photos[0]"
+                         src="@photoUrls[0]"
                          alt="@Model.FacilityName" />
 
-                    @if (Model.Photos.Count > 1)
+                    @if (photoUrls.Count > 1)
                     {
                         <div class="fd-dots">
-                            @for (int i = 0; i < Math.Min(Model.Photos.Count, 6); i++)
+                            @for (int i = 0; i < Math.Min(photoUrls.Count, 6); i++)
                             {
                                 <span class="fd-dot @(i == 0 ? "active" : "")"
                                       data-index="@i"
@@ -62,10 +61,10 @@
                         </div>
 
                         <div class="fd-thumbs">
-                            @for (int i = 0; i < Math.Min(Model.Photos.Count, 5); i++)
+                            @for (int i = 0; i < Math.Min(photoUrls.Count, 5); i++)
                             {
                                 <img class="fd-thumb @(i == 0 ? "active" : "")"
-                                     src="@Model.Photos[i]"
+                                     src="@photoUrls[i]"
                                      data-index="@i"
                                      alt="Photo @(i + 1)"
                                      onclick="fdGoToIndex(@i)" />

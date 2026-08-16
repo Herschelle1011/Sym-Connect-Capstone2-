@@ -26,11 +26,14 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
         // Facility
         public int? FacilityId { get; set; }
-        public string FacilityName { get; set; } = string.Empty;
+        public List<string> FacilityName { get; set; } = new List<string>();
         public string FacilityType { get; set; } = string.Empty;
         public string FacilityDescription { get; set; } = string.Empty;
         public int FacilityCapacity { get; set; }
 
+
+        public TimeSpan? TimeInScannerOpenTime { get; set; }
+        public TimeSpan? TimeOutScannerOpenTime { get; set; }
         public List<FacilityPhotoVM> FacilityPhotos { get; set; } = new();
 
         // Statistics
@@ -39,6 +42,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public int EvaluationCount { get; set; }
 
         // Cards
+        public List<ExpectedFacilityCardVM> Facilities { get; set; } = new();
+
         public List<ExpectedGroupCardVM> ExpectedGroups { get; set; } = new();
 
         public List<ScheduleTimelineVM> ScheduleTimeline { get; set; } = new();

@@ -1,107 +1,256 @@
 ﻿@model MembersCreateViewModel
 
-<form asp-action="Create" asp-controller="YouthMembers" method="post" enctype="multipart/form-data">
+<style>
+    .member-form-section {
+        margin-bottom: 24px;
+    }
+
+    .member-form-section-title {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #9aa3b8;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eef0f5;
+    }
+
+    /* ---- Photo upload block ---- */
+    .photo-upload-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0 8px;
+    }
+
+    .photo-preview-wrapper {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: #eef0f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-bottom: 14px;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 1px #eef0f5;
+    }
+
+        .photo-preview-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-preview-wrapper i {
+            font-size: 36px;
+            color: #b0b5bd;
+        }
+
+    .photo-mode-toggle {
+        display: inline-flex;
+        background: #f2f3f7;
+        border-radius: 999px;
+        padding: 3px;
+        margin-bottom: 14px;
+    }
+
+        .photo-mode-toggle .btn-check:checked + label {
+            background: #fff;
+            color: #1a1f2b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .photo-mode-toggle label {
+            border: none !important;
+            border-radius: 999px !important;
+            padding: 6px 16px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #9aa3b8;
+            background: transparent;
+        }
+
+    #uploadInputWrapper,
+    #urlInputWrapper {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    /* ---- Form field polish ---- */
+    .member-form-section .form-floating > .form-control,
+    .member-form-section .form-floating > .form-select {
+        border-radius: 10px;
+        border: 1px solid #e1e4ec;
+        font-size: 14px;
+    }
+
+        .member-form-section .form-floating > .form-control:focus,
+        .member-form-section .form-floating > .form-select:focus {
+            border-color: #3860D6;
+            box-shadow: 0 0 0 3px rgba(56,96,214,0.1);
+        }
+
+    .member-form-section .form-select:disabled {
+        background-color: #f7f8fb;
+        color: #b0b5bd;
+    }
+
+    .member-form-readonly {
+        border-radius: 10px;
+        border: 1px solid #e1e4ec;
+        background: #f7f8fb;
+        color: #6b7280;
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+</style>
+
+<form id="createMemberForm" asp-action="Create" asp-controller="YouthMembers" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
     @* ---------UPLOAD PHOTO *@
-    <div class="mb-3 text-center">
-        <div id="photoPreviewWrapper" class="rounded-circle mb-2 d-flex align-items-center justify-content-center" style="width:100px;height:100px;background:#e0e0e0;margin:0 auto;overflow:hidden;">
-            <img id="photoPreview" src="" style="width:100%;height:100%;object-fit:cover;display:none;" />
-            <i class="bi bi-person-fill" id="placeholderIcon" style="font-size:40px;color:#999;"></i>
+    <div class="photo-upload-block">
+        <div id="photoPreviewWrapper" class="photo-preview-wrapper">
+            <img id="photoPreview" src="" style="display:none;" />
+            <i class="bi bi-person-fill" id="placeholderIcon"></i>
         </div>
 
-        <!-- Toggle between Upload / Paste Link -->
-        <div class="btn-group btn-group-sm mb-2" role="group">
+        <div class="photo-mode-toggle" role="group">
             <input type="radio" class="btn-check" name="photoMode" id="modeUpload" checked onchange="togglePhotoMode('upload')">
-            <label class="btn btn-outline-primary" for="modeUpload">Upload Photo</label>
+            <label for="modeUpload">Upload Photo</label>
 
             <input type="radio" class="btn-check" name="photoMode" id="modeUrl" onchange="togglePhotoMode('url')">
-            <label class="btn btn-outline-primary" for="modeUrl">Paste Link</label>
+            <label for="modeUrl">Paste Link</label>
         </div>
 
         <div id="uploadInputWrapper">
-            <input type="file" name="Photo" id="photoInput" accept="image/*" class="form-control" onchange="previewProfilePhoto(this)" />
+            <input type="file" name="Photo" id="photoInput" accept="image/*" class="form-control form-control-sm" onchange="previewProfilePhoto(this)" />
         </div>
 
         <div id="urlInputWrapper" style="display:none;">
-            <input type="url" asp-for="PhotoUrl" id="photoUrlInput" class="form-control" placeholder="https://example.com/photo.jpg" oninput="previewFromUrl(this.value)" />
+            <input type="url" asp-for="PhotoUrl" id="photoUrlInput" class="form-control form-control-sm" placeholder="https://example.com/photo.jpg" oninput="previewFromUrl(this.value)" />
             <span asp-validation-for="PhotoUrl" class="text-danger small"></span>
         </div>
     </div>
 
-    <div class="row mb-3">
-        <div class="col-6">
-            <div class="form-floating">
-                <input asp-for="FirstName" class="form-control" placeholder="First Name" />
-                <label asp-for="FirstName">First Name</label>
-                <span asp-validation-for="FirstName" class="text-danger small"></span>
+    @* ---------PERSONAL INFO *@
+    <div class="member-form-section">
+        <div class="member-form-section-title">Personal Info</div>
+
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input asp-for="FirstName" class="form-control" placeholder="First Name" />
+                    <label asp-for="FirstName">First Name</label>
+                    <span asp-validation-for="FirstName" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <input asp-for="LastName" class="form-control" placeholder="Last Name" />
+                    <label asp-for="LastName">Last Name</label>
+                    <span asp-validation-for="LastName" class="text-danger small"></span>
+                </div>
             </div>
         </div>
-        <div class="col-6">
+
+        <div class="mb-3">
             <div class="form-floating">
-                <input asp-for="LastName" class="form-control" placeholder="Last Name" />
-                <label asp-for="LastName">Last Name</label>
-                <span asp-validation-for="LastName" class="text-danger small"></span>
+                <input asp-for="MiddleName" class="form-control" placeholder="Middle Name" />
+                <label asp-for="MiddleName">Middle Name</label>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="form-floating">
+                    <input asp-for="BirthDate"
+                           type="date"
+                           class="form-control"
+                           value="@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy-MM-dd") : "")" />
+                    <label asp-for="BirthDate">Birth Date</label>
+                    <span asp-validation-for="BirthDate" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-floating">
+                    <select asp-for="Gender" class="form-select">
+                        <option value="">-- Select Gender --</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                    <label asp-for="Gender">Gender</label>
+                    <span asp-validation-for="Gender" class="text-danger small"></span>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="mb-3">
-        <div class="form-floating">
-            <input asp-for="MiddleName" class="form-control" placeholder="Middle Name" />
-            <label asp-for="MiddleName">Middle Name</label>
-        </div>
-    </div>
+    @* ---------CONTACT INFO *@
+    <div class="member-form-section">
+        <div class="member-form-section-title">Contact Info</div>
 
-    <div class="mb-3">
-        <div class="form-floating">
-            <input asp-for="Email" class="form-control" placeholder="Email" />
-            <label asp-for="Email">Email</label>
-            <span asp-validation-for="Email" class="text-danger small"></span>
-        </div>
-    </div>
-
-    <div class="mb-3">
-        <div class="form-floating">
-            <input asp-for="ContactNumber" class="form-control" placeholder="Contact Number" />
-            <label asp-for="ContactNumber">Contact Number</label>
-            <span asp-validation-for="ContactNumber" class="text-danger small"></span>
-        </div>
-    </div>
-
-    <div class="mb-3">
-        <div class="form-floating">
-            <input asp-for="Address" class="form-control" placeholder="Address" />
-            <label asp-for="Address">Address</label>
-        </div>
-    </div>
-
-    <div class="row mb-3">
-        <div class="col-6">
+        <div class="mb-3">
             <div class="form-floating">
-                <input asp-for="BirthDate"
-                       type="date"
-                       class="form-control"
-                       value="@(Model.BirthDate.HasValue ? Model.BirthDate.Value.ToString("yyyy-MM-dd") : "")" />
-                <label asp-for="BirthDate">Birth Date</label>
-                <span asp-validation-for="BirthDate" class="text-danger small"></span>
+                <input asp-for="Email" class="form-control" placeholder="Email" />
+                <label asp-for="Email">Email</label>
+                <span asp-validation-for="Email" class="text-danger small"></span>
             </div>
         </div>
-        <div class="col-6">
+
+        <div class="mb-3">
             <div class="form-floating">
-                <select asp-for="Gender" class="form-select">
-                    <option value="">-- Select Gender --</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
+                <input asp-for="ContactNumber" class="form-control" placeholder="Contact Number" />
+                <label asp-for="ContactNumber">Contact Number</label>
+                <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+            </div>
+        </div>
+    </div>
+
+    @* ---------ADDRESS *@
+    <div class="member-form-section">
+        <div class="member-form-section-title">Address</div>
+
+        <div class="mb-3">
+            <label class="form-label small text-muted mb-1">Country</label>
+            <div class="member-form-readonly">Philippines</div>
+            <input type="hidden" asp-for="Country" value="Philippines" />
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-6">
+                <label class="form-label small text-muted mb-1">Province</label>
+                <select asp-for="Province" id="provinceSelect" class="form-select">
+                    <option value="">-- Select Province --</option>
                 </select>
-                <label asp-for="Gender">Gender</label>
-                <span asp-validation-for="Gender" class="text-danger small"></span>
+                <span asp-validation-for="Province" class="text-danger small"></span>
             </div>
+            <div class="col-6">
+                <label class="form-label small text-muted mb-1">City / Municipality</label>
+                <select asp-for="City" id="citySelect" class="form-select" disabled>
+                    <option value="">-- Select Province First --</option>
+                </select>
+                <span asp-validation-for="City" class="text-danger small"></span>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small text-muted mb-1">Barangay</label>
+            <select asp-for="Barangay" id="barangaySelect" class="form-select" disabled>
+                <option value="">-- Select City First --</option>
+            </select>
+            <span asp-validation-for="Barangay" class="text-danger small"></span>
         </div>
     </div>
 
-    <div class="mb-3">
+    @* ---------STATUS *@
+    <div class="member-form-section" style="margin-bottom: 12px;">
+        <div class="member-form-section-title">Membership</div>
+
         <div class="form-floating">
             <select asp-for="Status" class="form-select">
                 <option value="Active">Active</option>
@@ -112,32 +261,30 @@
         </div>
     </div>
 
-    <div class="d-flex justify-content-end gap-2 mt-3">
-        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal"> Cancel </button>
-        <button type="submit" class="btn btn-primary px-4"> Create </button>
+    <div class="d-flex justify-content-end gap-2 mt-3 pt-3" style="border-top: 1px solid #eef0f5;">
+        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary px-4">Create</button>
     </div>
 </form>
 
 <script>
     function previewProfilePhoto(input) {
-              const preview = document.getElementById('photoPreview');
-              const placeholder = document.getElementById('placeholderIcon');
+        const preview = document.getElementById('photoPreview');
+        const placeholder = document.getElementById('placeholderIcon');
 
-              if (input.files && input.files[0]) {
-                  const blobUrl = URL.createObjectURL(input.files[0]);
-                  preview.src = blobUrl;
-                  preview.style.display = 'block';
-                  placeholder.style.display = 'none';
+        if (input.files && input.files[0]) {
+            const blobUrl = URL.createObjectURL(input.files[0]);
+            preview.src = blobUrl;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
 
-                  preview.onload = function () {
-                      URL.revokeObjectURL(blobUrl);
-                  };
-              } else {
-                  preview.src = "";
-                  preview.style.display = 'none';
-                  placeholder.style.display = 'block';
-              }
-          }
+            preview.onload = function () {
+                URL.revokeObjectURL(blobUrl);
+            };
+        } else {
+            preview.src = "";
+            preview.style.display = 'none';
+            placeholder.style.display = 'block';
+        }
+    }
 </script>
-
-

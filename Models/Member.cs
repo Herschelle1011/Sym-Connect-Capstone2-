@@ -35,8 +35,12 @@ namespace Sym_Connect__Capstone2_.Models
 
         [Required]
         public string ContactNumber { get; set; } = string.Empty;
-        public string? Address { get; set; } = string.Empty;
-        public DateTime? BirthDate { get; set; }
+        public string Barangay { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Province { get; set; } = string.Empty;
+        public string Country { get; set; } = "Philippines"; public DateTime? BirthDate { get; set; }
+
+        public string Address { get; set; } = string.Empty;
 
         [Required]
         public string Gender { get; set; } = string.Empty;
@@ -46,8 +50,7 @@ namespace Sym_Connect__Capstone2_.Models
 
         public DateTime DateRegistered { get; set; } = DateTime.Now;
 
-        [NotMapped]
-        public DateTime DateJoined { get; set; } = DateTime.Now;
+  
         public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
 
         public string? ProfilePictureUrl { get; set; }

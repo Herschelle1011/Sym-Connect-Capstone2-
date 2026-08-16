@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -18,14 +20,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
         //GET ALL GROUPS
-         public async Task<List<Group>> GetAllGroupsAsync()
+         public async Task<List<GroupListViewModel>> GetAllGroupsAsync()
       {
-          return await _context.Groups
-              .Where(g => g.IsArchived == false)
-              .Include(g => g.Leader)
-                  .Include(gd => gd.GroupDetails)
-                        .ThenInclude(m => m.Member)
-                          .ToListAsync();
+            var groups = await _context.Groups
+                .AsNoTracking()
+                .Where(g => !g.IsArchived)
+                .Select(g => new GroupListViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+                    LeaderName = g.Leader!.FullName ?? "N/A",
+                    LeaderEmail = g.Leader!.Email ?? "N/A",
+                    Status = g.Status,
+                    Members = g.GroupDetails.Select(e => new GroupMemberViewModel
+                    {
+                        FullName = e.Member != null ? e.Member.FullName.Trim() : "N/A"
+                    }).ToList(),
+                }).ToListAsync();
+
+            return groups;
       }
 
 
@@ -33,45 +46,83 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
         //GET GROUP BY ID
-        public async Task<Group?> GetGroupByIdAsync(int id)
+        public async Task<GroupDetailsViewModel?> GetGroupByIdAsync(int id)
         {
-            return await _context.Groups.
-                      Where(g => g.IsArchived == false)
-                        .Include(g => g.Leader). //load leader
-                        Include(g => g.GroupDetails)
-                            .ThenInclude(gd => gd.Member) //load each members
-                      .FirstOrDefaultAsync(e => e.GroupId == id); //gives whole object of the group
+            var group = await _context.Groups
+                .AsNoTracking()
+                .Where(g => g.GroupId == id & !g.IsArchived)
+                .Select(g => new GroupDetailsViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+                    Description = g.Description,
+                    Status = g.Status,
+                    LeaderId = g.LeaderId,
+                    LeaderEmail = g.Leader.Email,
+                    LeaderName = g.Leader.FirstName,
+                    LeaderContact = g.Leader.ContactNumber,
+
+                    Members = g.GroupDetails.Where(m => m.MemberId != null)
+                    .Select(gd => new GroupMemberViewModel
+                    {
+                        MemberId = gd.MemberId ?? 0,
+                        FullName = gd.Member!.FullName,
+                        Email = gd.Member.Email,
+                        ContactNumber = gd.Member.ContactNumber,
+                        Status = gd.Member.Status,
+                        DateRegistered = gd.Member.DateRegistered
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+
+            return group;
         }
 
         //CREATE GROUP
-        public async Task CreateGroupAsync(Group group)
+        public async Task<OperationalResult> CreateGroupAsync(GroupCreateViewModel vm)
         {
-            _context.Groups.Add(group);
+            var newGroup = new Group
+            {
+                GroupName = vm.GroupName,
+                Description = vm.Description,
+                Status = vm.Status,
+                LeaderId = vm.LeaderId,
+            };
+            _context.Groups.Add(newGroup);
             await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = $"{newGroup.GroupName} created" };
+
         }
 
         //UPDATE GROUP
-        public async Task UpdateGroupAsync(Group group)
+        public async Task<OperationalResult?> UpdateGroupAsync(GroupEditViewModel vm)
         {
-            _context.Groups.Update(group);
+            var ExistingGroup = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == vm.GroupId);
+            if (ExistingGroup == null)
+            {
+                return new OperationalResult { Success = false, Message = "Group not existed" };
+            }
+            ExistingGroup.GroupName = vm.GroupName;
+            ExistingGroup.Description = vm.Description;
+            ExistingGroup.Status = vm.Status;
+            ExistingGroup.LeaderId = vm.LeaderId;
+
             await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = $"{ExistingGroup.GroupName} Updated" };
+
         }
 
         //DELETE GROUP
-        public async Task DeleteGroupAsync(int id)
+        public async Task<OperationalResult> DeleteGroupAsync(int id)
         {
             var getGroup = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == id);
-            if (getGroup == null) return;
+            if (getGroup == null) return new OperationalResult { Success = false, Message = "Group not found" };
 
-            //remove connection in GroupDetails
             var groupMembers = await _context.GroupDetails.Where(gd => gd.GroupId == id).ToListAsync();
-            //removed entities before group is deleted
             _context.GroupDetails.RemoveRange(groupMembers);
-            //delete group
             _context.Groups.Remove(getGroup);
-
             await _context.SaveChangesAsync();
 
+            return new OperationalResult { Success = true, Message = $"{getGroup.GroupName} deleted" };
         }
 
         //CHECK IF GROUP ALREADY EXIST
@@ -90,7 +141,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<List<Member>> GetAllMembersAsync()
         {
-            return await _context.Members.Where(m => m.Status == "Active").Include(g => g.GroupDetails).ToListAsync();
+            return await _context.Members.AsNoTracking().Where(m => m.Status == "Active").Include(g => g.GroupDetails).ToListAsync();
         }
 
         public async Task<List<Member>> GetAvailableMemberAsync(int groupId)
@@ -103,16 +154,24 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             // Return Active members NOT yet in the group
             return await _context.Members
+                .AsNoTracking()
                 .Where(m => m.Status == "Active" && !existingIds.Contains(m.MemberId))
                 .ToListAsync();
         }
-        public async Task AddMemberToGroupAsync(int groupId, int memberId)
+        public async Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId)
         {
             var AlreadyExist = await _context.GroupDetails.AnyAsync(m => m.MemberId == memberId);
-            
-            if (!AlreadyExist)
+            if (AlreadyExist)
             {
-                var group = new GroupDetails
+                return new OperationalResult { Success = false, Message = $"Member already exist" };
+            }
+
+            var targetGroup = await _context.Groups.FindAsync(groupId);
+            if(targetGroup == null)
+            {
+                return new OperationalResult { Success = false, Message = "Group not found" };
+            }
+            var group = new GroupDetails
                 {
                     GroupId = groupId,
                     MemberId = memberId
@@ -120,7 +179,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 _context.GroupDetails.Add(group);
                 await _context.SaveChangesAsync();
-            }
+                return new OperationalResult { Success = true, Message = $"Member added to this {targetGroup.GroupName}" };
+            
         }
         //EXLUDE Id = skip this current ID edited and check all facility id except the current ONE 
         public async Task<bool> GroupNameExists(string name, int? excludeId = null)
@@ -128,44 +188,56 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return await _context.Groups.AnyAsync(e => e.GroupName == name && e.IsArchived == false && (excludeId == null || e.GroupId != excludeId.Value));
         }
 
-        public async Task ArchiveGroupAsync(int? id)
+        public async Task<OperationalResult> ArchiveGroupAsync(int? id)
         {
-            if (id == null) return;
             var group = await _context.Groups.FindAsync(id);
-            if (group == null) return;
+            if (group == null) return new OperationalResult { Success = false, Message = "Group not existed" };
             group.Status = "Inactive";
             group.IsArchived = true;
             group.ArchivedDate = DateTime.Now;
             await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "Group saved to archived" };
         }
 
 
-        public async Task RemoveMemberFromGroupAsync(int groupId, int memberId)
+        public async Task<OperationalResult> RemoveMemberFromGroupAsync(int groupId, int memberId)
         {
+            
             var groupDetail = await _context.GroupDetails
                             .FirstOrDefaultAsync(g => g.GroupId == groupId && g.MemberId == memberId);
-            if (groupDetail == null) return;
+            if (groupDetail == null) return new OperationalResult { Success = false, Message = "Group not found" }; ;
+
+            var targetMember = await _context.Members.FindAsync(memberId);
+            if (targetMember == null)
+            {
+             return new OperationalResult { Success = false, Message = "Member not found" }; ;
+            }
 
             _context.GroupDetails.Remove(groupDetail);
             await _context.SaveChangesAsync();
-            
+            return new OperationalResult { Success = true, Message = $"{targetMember.FullName} has been removed from this group" };
+
         }
 
         //transfer A Member to existing group 
-        public async Task TransferAMemberAsync(int memberId, int groupId)
+        public async Task<OperationalResult> TransferAMemberAsync(int memberId, int groupId)
         {
             var member = await _context.GroupDetails
-                          .Include(gd => gd.Group)
-                                .FirstOrDefaultAsync(m => m.MemberId == memberId);
+                .Include(m => m.Member)
+                     .FirstOrDefaultAsync(m => m.MemberId == memberId);
+            if(member == null) return new OperationalResult { Success = false, Message = $"Member not found" };
 
             var Group =  await _context.Groups.FindAsync(groupId);
-            if (member == null || Group == null)
-            {
-                throw new Exception("Member or Group not found.");
-            }
-            //update from old group to a new  group
-                member.GroupId = groupId; 
+
+            if (Group == null) return new OperationalResult { Success = false, Message = "Group not found" };
+
+            if (member.GroupId == groupId)
+                return new OperationalResult { Success = false, Message = $"{member.Member.FullName} is already in this group" };
+            member.GroupId = groupId; 
             await _context.SaveChangesAsync();
+
+            return new OperationalResult { Success = true, Message = $"{member.Member.FullName} has been removed from this group" };
+
         }
 
     }

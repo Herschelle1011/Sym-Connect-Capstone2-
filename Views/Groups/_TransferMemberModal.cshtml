@@ -12,7 +12,7 @@
     </p>
 </div>
 
-<form id="transferMemberForm">
+<form id="transferMemberForm" asp-action="ConfirmedTranferMember" asp-controller="Groups" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" name="memberId" value="@Model.memberId" />
     <input type="hidden" name="CurrentGroupId" value="@Model.currentGroupId" />

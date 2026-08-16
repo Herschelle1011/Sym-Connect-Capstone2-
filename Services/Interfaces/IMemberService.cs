@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Member;
 namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
@@ -7,14 +8,16 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
     {
         Task<List<MemberListViewModel>> GetAllMembersAsync();
          Task<Member?> GetMemberByIdAsync(int id);
-        Task<bool> CreateMember(MembersCreateViewModel vm, IFormFile? photo);
+        Task<OperationalResult> CreateMember(MembersCreateViewModel vm, IFormFile? photo);
         Task UpdateMemberAsync(MembersEditViewModel vm, IFormFile? photo);
          Task DeleteMemberAsync(int id);
         Task<bool> MemberExists(int id);
 
+        Task<MemberDetailsViewModel?> GetMemberDetailsByIdAsync(int id);
+
         Task<string> GetOrCreateQrTokenAsync(int memberId);
 
-        //LOAD ALL Members dropDown
-        Task<List<Member>> GetMemberOptionsAsync(int groupId);
+        ////LOAD ALL Members dropDown
+        //Task<List<Member>> GetMemberOptionsAsync(int groupId);
     }
 }

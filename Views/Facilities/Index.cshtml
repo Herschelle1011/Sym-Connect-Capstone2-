@@ -22,9 +22,7 @@
 
         @foreach (var item in Model)
         {
-            <!-- Prepare photo list -->
-            var photos = item.Photos;
-
+            var photos = item.Photos.Select(p => p.PhotoUrl).ToList();
             <!-- Parse types -->
             var types = item.FacilityTypes;
 

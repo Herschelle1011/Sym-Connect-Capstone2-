@@ -15,9 +15,9 @@
     @* ---------UPLOAD PHOTO *@
     <div class="mb-3 text-center">
         <div id="photoPreviewWrapper" class="rounded-circle mb-2 d-flex align-items-center justify-content-center" style="width:100px;height:100px;background:#e0e0e0;margin:0 auto;overflow:hidden;">
-            @if (!string.IsNullOrEmpty(Model.photoUrl))
+            @if (!string.IsNullOrEmpty(Model.PhotoUrl))
             {
-                <img id="photoPreview" src="@Model.photoUrl" style="width:100%;height:100%;object-fit:cover;" />
+                <img id="photoPreview" src="@Model.PhotoUrl" style="width:100%;height:100%;object-fit:cover;" />
                 <i class="bi bi-person-fill" id="placeholderIcon" style="font-size:40px;color:#999;display:none;"></i>
             }
             else
@@ -41,8 +41,8 @@
         </div>
 
         <div id="urlInputWrapper" style="display:none;">
-            <input type="url" asp-for="photoUrl" id="photoUrlInput" class="form-control" placeholder="https://example.com/photo.jpg" oninput="previewFromUrl(this.value)" />
-            <span asp-validation-for="photoUrl" class="text-danger small"></span>
+            <input type="url" asp-for="PhotoUrl" id="photoUrlInput" class="form-control" placeholder="https://example.com/photo.jpg" oninput="previewFromUrl(this.value)" />
+            <span asp-validation-for="PhotoUrl" class="text-danger small"></span>
         </div>
     </div>
 
@@ -88,10 +88,37 @@
     </div>
 
     <div class="mb-3">
-        <div class="form-floating">
-            <input asp-for="Address" class="form-control" placeholder="Address" />
-            <label asp-for="Address">Address</label>
+        <label class="form-label">Country</label>
+        <input type="text" class="form-control" value="Philippines" readonly />
+        <input type="hidden" asp-for="Country" value="Philippines" />
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-6">
+            <label class="form-label">Province</label>
+            <select asp-for="Province" id="provinceSelect" class="form-select">
+                <option value="">-- Select Province --</option>
+            </select>
+            <span asp-validation-for="Province" class="text-danger small"></span>
         </div>
+        <div class="col-6">
+            <label class="form-label">City / Municipality</label>
+            <select asp-for="City" id="citySelect" class="form-select" disabled>
+                <option value="">-- Select Province First --</option>
+            </select>
+            <span asp-validation-for="City" class="text-danger small"></span>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-6">
+            <label class="form-label">Barangay</label>
+            <select asp-for="Barangay" id="barangaySelect" class="form-select" disabled>
+                <option value="">-- Select City First --</option>
+            </select>
+            <span asp-validation-for="Barangay" class="text-danger small"></span>
+        </div>
+       
     </div>
 
     <div class="row mb-3">

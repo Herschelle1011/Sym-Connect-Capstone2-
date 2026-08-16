@@ -24,8 +24,8 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         [Range(1, 100)]
         public int Points { get; set; } = 3;
 
-        public int? FacilityId { get; set; }
-        public Facility? Facility { get; set; } = null!;
+        //public int? FacilityId { get; set; }
+        //public Facility? Facility { get; set; } = null!;
 
         public EventStatus Status { get; set; } = EventStatus.Upcoming;
 
@@ -37,6 +37,11 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         public bool IsArchived { get; set; }
         public DateTime? ArchiveDate { get; set; }
 
+        //TIME SCANNER OPEN/OUT MODIFY
+        public TimeSpan? TimeInScannerOpensOffset { get; set; }   // how many minutes before StartTime
+        public TimeSpan? TimeOutScannerOpensOffset { get; set; }
+
+        public ICollection<EventFacility> ExpectedFacilities { get; set; } = new List<EventFacility>();
         public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
         public ICollection<EventGroup> ExpectedGroups { get; set; } = new List<EventGroup>();
 

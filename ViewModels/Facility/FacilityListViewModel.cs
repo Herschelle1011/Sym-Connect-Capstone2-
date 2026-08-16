@@ -16,6 +16,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Facility
 
         public List<string> FacilityTypes { get; set; } = new();
 
-        public List<string> Photos { get; set; } = new();
+        public List<ExistingPhotoViewModel> Photos { get; set; } = new();
     }
 }

@@ -9,6 +9,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         [Required(ErrorMessage = "Title is required")]
         public string EventTitle { get; set; } = string.Empty;
 
+
         [Required(ErrorMessage = "Description is required")]
         public string EventDescription { get; set; } = string.Empty;
         public bool IsAllDay { get; set; }
@@ -25,10 +26,16 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public TimeSpan? StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
         [Required(ErrorMessage = "Select facility for this event")]
-        public int? FacilityId { get; set; }
 
         public List<int> SelectedGroupIds { get; set; } = new List<int>();
 
+        public List<int> SelectedFacilityIds { get; set; } = new List<int>();
+        
+        [Required(ErrorMessage = "Open Time is required")]
+        public TimeSpan? TimeInScannerOpenTime { get; set; }
+
+        [Required(ErrorMessage = "Close Time is required")]
+        public TimeSpan? TimeOutScannerOpenTime { get; set; }
     }
 
 

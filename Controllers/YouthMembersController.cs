@@ -53,7 +53,10 @@ namespace Sym_Connect__Capstone2_.Controllers
                 MiddleName = member.MiddleName,
                 LastName = member.LastName,
                 Status = member.Status,
-                Address = member.Address,
+                Country = member.Country,
+                Province = member.Province,
+                City = member.City,
+                Barangay = member.Barangay,
                 BirthDate = member.BirthDate,
                 ContactNumber = member.ContactNumber,
                 Gender = member.Gender,
@@ -78,17 +81,24 @@ namespace Sym_Connect__Capstone2_.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View("_CreateMemberForm", vm);
+                return PartialView("_CreateMemberForm", vm);
             }
 
-            bool success = await _memberService.CreateMember(vm, Photo);
+            var result = await _memberService.CreateMember(vm, Photo);
 
-            if (!success)
+            if (!result.Success)
             {
-                ModelState.AddModelError("", "Failed to create member.");
-                return View(vm);
+                return Json(new
+                {
+                    success = false,
+                    message = result.Message
+                });
             }
-            return RedirectToAction("Index");
+            return Json(new
+            {
+                success = true,
+                message = result.Message
+            });
         }
 
         //GET QR GENERATOR
@@ -122,11 +132,14 @@ namespace Sym_Connect__Capstone2_.Controllers
                 MiddleName = member.MiddleName,
                 LastName = member.LastName,
                 ContactNumber = member.ContactNumber,
-                Address = member.Address,
+                Barangay = member.Barangay,
+                City = member.City,
+                Province = member.Province,
+                Country = member.Country,
                 BirthDate = member.BirthDate,
                 Gender = member.Gender,
                 Status = member.Status,
-                photoUrl = member.ProfilePictureUrl,
+                PhotoUrl = member.ProfilePictureUrl,
             };
 
             return PartialView("_EditMemberForm", vm);
@@ -211,6 +224,14 @@ namespace Sym_Connect__Capstone2_.Controllers
         private async Task<bool> MemberExists(int id)
         {
             return await _memberService.MemberExists(id);
+        }
+
+
+        //========= PROFILE PART ===========
+        public async Task<IActionResult> Profile(int id)
+        {
+            var member = await _memberService.GetMemberDetailsByIdAsync(id);
+            return PartialView("_ProfileModal", member);
         }
     }
 }

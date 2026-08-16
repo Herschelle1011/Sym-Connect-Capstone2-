@@ -10,12 +10,12 @@ namespace Sym_Connect__Capstone2_.ViewModels.Facility
 
         public string FacilityDescription { get; set; } = string.Empty;
 
-        public string FacilityType { get; set; } = string.Empty;
+        public List<string> FacilityType { get; set; } = new List<string>();
 
         public int Capacity { get; set; }
 
         public FacilityStatus Status { get; set; }
 
-        public List<string> Photos { get; set; } = new();
+        public List<ExistingPhotoViewModel> Photos { get; set; } = new();
     }
 }

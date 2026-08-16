@@ -1,20 +1,20 @@
 ﻿// ── Modal opener (global function for inline onclick calls) ──
-function openModal(title, url) {
-    document.getElementById("appModalLabel").innerText = title;
+// function openModal(title, url) {
+//     document.getElementById("appModalLabel").innerText = title;
 
-    fetch(url)
-        .then(response => response.text())
-        .then(html => {
-            document.getElementById("appModalBody").innerHTML = html;
+//     fetch(url)
+//         .then(response => response.text())
+//         .then(html => {
+//             document.getElementById("appModalBody").innerHTML = html;
 
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"));
-            modal.show();
+//             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"));
+//             modal.show();
 
-            if (window.jQuery && $.validator) {
-                $.validator.unobtrusive.parse("#appModalBody");
-            }
-        });
-}
+//             if (window.jQuery && $.validator) {
+//                 $.validator.unobtrusive.parse("#appModalBody");
+//             }
+//         });
+// }
 
 // ── Modal opener (data-attribute buttons, e.g. "Create Partylist") ──
 document.querySelectorAll(".open-modal").forEach(button => {
@@ -143,6 +143,8 @@ function openModal(title, url, size) {
             if (window.jQuery && $.validator) {
                 $.validator.unobtrusive.parse("#appModalBody");
             }
+
+            initPsgcAddress(); 
         });
 }
 
@@ -182,3 +184,110 @@ document.addEventListener("click", function (e) {
             console.error(err);
         });
 });
+
+
+
+document.addEventListener("submit", async function (e) {
+    const modalFormIds = ["createGroupForm", "removeMemberForm", "transferMemberForm", "editGroupForm", "createMemberForm"];
+    if (!modalFormIds.includes(e.target.id)) return;
+
+    e.preventDefault();
+    const form = e.target;
+
+    const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form)
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (contentType && contentType.includes("application/json")) {
+        const result = await response.json();
+
+        if (result.success) {
+            var modalEl = document.getElementById('appModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            showToast(result.message, true);
+            setTimeout(() => location.reload(), 900);
+        } else {
+            showToast(result.message, false);
+        }
+    } else {
+        document.getElementById("appModalBody").innerHTML = await response.text();
+    }
+});
+
+
+function initPsgcAddress() {
+    const provinceSelect = document.getElementById('provinceSelect');
+    const citySelect = document.getElementById('citySelect');
+    const barangaySelect = document.getElementById('barangaySelect');
+
+    if (!provinceSelect) return; // form not in DOM yet / not this modal
+
+    // Avoid re-fetching if already populated (e.g. modal reopened)
+    if (provinceSelect.dataset.loaded === "true") return;
+
+    fetch('https://psgc.gitlab.io/api/provinces/')
+        .then(res => res.json()) 
+        .then(provinces => {
+            provinces
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.code;
+                    opt.textContent = p.name;
+                    provinceSelect.appendChild(opt);
+                });
+            provinceSelect.dataset.loaded = "true";
+        })
+        .catch(err => console.error('Failed to load provinces:', err));
+
+    provinceSelect.addEventListener('change', function () {
+        citySelect.innerHTML = '<option value="">-- Select City/Municipality --</option>';
+        barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
+        citySelect.disabled = true;
+        barangaySelect.disabled = true;
+
+        if (!this.value) return;
+
+        fetch(`https://psgc.gitlab.io/api/provinces/${this.value}/cities-municipalities/`)
+            .then(res => res.json())
+            .then(cities => {
+                cities
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.code;
+                        opt.textContent = c.name;
+                        citySelect.appendChild(opt);
+                    });
+                citySelect.disabled = false;
+            })
+            .catch(err => console.error('Failed to load cities:', err));
+    });
+
+    citySelect.addEventListener('change', function () {
+        barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
+        barangaySelect.disabled = true;
+
+        if (!this.value) return;
+
+        fetch(`https://psgc.gitlab.io/api/cities-municipalities/${this.value}/barangays/`)
+            .then(res => res.json())
+            .then(barangays => {
+                barangays
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach(b => {
+                        const opt = document.createElement('option');
+                        opt.value = b.name;
+                        opt.textContent = b.name;
+                        barangaySelect.appendChild(opt);
+                    });
+                barangaySelect.disabled = false;
+            })
+            .catch(err => console.error('Failed to load barangays:', err));
+    });
+}

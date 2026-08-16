@@ -1,0 +1,107 @@
+﻿
+.profile-modal {
+    padding: 8px 4px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding-bottom: 24px;
+    position: relative;
+}
+
+.profile-avatar {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #f3f4f6;
+    flex-shrink: 0;
+}
+
+.profile-header-text {
+    flex: 1;
+    padding-top: 4px;
+}
+
+.profile-name {
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.profile-subtext {
+    margin: 0;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.profile-status-badge {
+    position: absolute;
+    top: 4px;
+    right: 0;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 999px;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.profile-body {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+.profile-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+.profile-membership {
+    margin-top: 28px;
+}
+
+.profile-section-title {
+    margin: 0 0 14px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.profile-field {
+    margin-bottom: 12px;
+}
+
+.field-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: #b0b5bd;
+    margin-bottom: 2px;
+}
+
+.field-value {
+    display: block;
+    font-size: 14px;
+    color: #374151;
+}
+
+.field-value-lg {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+}

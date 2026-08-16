@@ -18,7 +18,7 @@
     </p>
 </div>
 
-<form id="removeMemberForm">
+<form id="removeMemberForm" asp-action="RemoveMemberFromGroupAsync" asp-controller="Groups" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" name="groupId" value="@Model.groupId" />
     <input type="hidden" name="memberId" value="@Model.memberId" />

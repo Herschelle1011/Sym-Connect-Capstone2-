@@ -1,6 +1,6 @@
 ﻿@model GroupEditViewModel
 
-<form asp-action="Edit" asp-controller="Groups" method="post">
+<form id="editGroupForm" asp-action="Edit" asp-controller="Groups" method="post">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="GroupId" />

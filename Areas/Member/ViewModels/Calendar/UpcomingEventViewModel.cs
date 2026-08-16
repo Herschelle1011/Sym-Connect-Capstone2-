@@ -4,6 +4,6 @@
     {
         public int EventId { get; set; }
         public string EventTitle { get; set; } = string.Empty;
-        public string? FacilityName { get; set; } 
+        public List<string>? FacilityName { get; set; } = new List<string>();
     }
 }

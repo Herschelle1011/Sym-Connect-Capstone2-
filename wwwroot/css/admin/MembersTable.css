@@ -353,3 +353,39 @@
             white-space: nowrap;
         }
 }
+
+
+.member-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.member-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color, #EEE);
+    background: #f3f4f6;
+}
+
+.member-name-cell .member-fullname {
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--text-primary, #1a1a1a);
+}
+
+.member-name-cell .member-email {
+    font-size: 12px;
+    color: var(--text-muted, #9ca3af);
+}
+
+.member-cell.open-modal {
+    cursor: pointer;
+}
+
+    .member-cell.open-modal:hover .member-fullname {
+        text-decoration: underline;
+    }

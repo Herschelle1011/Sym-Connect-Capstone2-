@@ -517,7 +517,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("EndDate")
+                    b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<TimeSpan?>("EndTime")
@@ -529,9 +529,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("EventTitle")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("FacilityId")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsAllDay")
                         .HasColumnType("bit");
@@ -551,13 +548,40 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<TimeSpan?>("TimeInScannerOpensOffset")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("TimeOutScannerOpensOffset")
+                        .HasColumnType("time");
+
                     b.HasKey("EventId");
 
                     b.HasIndex("CreatedByUserId");
 
+                    b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EventModels.EventFacility", b =>
+                {
+                    b.Property<int>("EventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventId"));
+
+                    b.Property<int>("EventId1")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FacilityId")
+                        .HasColumnType("int");
+
+                    b.HasKey("EventId");
+
+                    b.HasIndex("EventId1");
+
                     b.HasIndex("FacilityId");
 
-                    b.ToTable("Events");
+                    b.ToTable("EventFacility");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EventModels.EventGroup", b =>
@@ -722,12 +746,25 @@ namespace Sym_Connect__Capstone2_.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MemberId"));
 
                     b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Barangay")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("BirthDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ContactNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Country")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -759,6 +796,10 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Province")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("QRToken")
                         .HasColumnType("nvarchar(max)");
 
@@ -785,10 +826,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PositionId"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
@@ -1114,13 +1151,24 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
 
+                    b.Navigation("CreatedByUser");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EventModels.EventFacility", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EventModels.Event", "Event")
+                        .WithMany("ExpectedFacilities")
+                        .HasForeignKey("EventId1")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Sym_Connect__Capstone2_.Models.FacilityModels.Facility", "Facility")
                         .WithMany()
                         .HasForeignKey("FacilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CreatedByUser");
+                    b.Navigation("Event");
 
                     b.Navigation("Facility");
                 });
@@ -1221,6 +1269,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("Attendances");
 
                     b.Navigation("Evaluations");
+
+                    b.Navigation("ExpectedFacilities");
 
                     b.Navigation("ExpectedGroups");
                 });

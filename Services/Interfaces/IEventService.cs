@@ -1,6 +1,7 @@
 ﻿using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.EventModels;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 
@@ -10,7 +11,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
     {
         Task<List<EventCalendarViewModel>>GetAllEventAsync(int year, int month);
         //Task<Event?>GetEventByIdAsync(int id);
-        Task<ScanResult> RecordTimeInAsync(string qrToken, int eventId);
+        Task<OperationalResult> RecordTimeInAsync(string qrToken, int eventId);
 
         Task<ScannerViewModel> GetScannerStateAsync(int eventId);
         Task<DetailsEventViewModel?> GetDetailsByAsync(int id);
@@ -27,15 +28,20 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<List<ViewAvailableFacilitiesViewModel>> GetAvailableFacilitiesAsync();
 
-        Task<ScanResult> RecordTimeOutAsync(string qrToken, int eventId);
+        Task<OperationalResult> RecordTimeOutAsync(string qrToken, int eventId);
 
         Task<List<EventSearchResultViewModel>> SearchPanelAsync(string search);
 
         Task<List<AttendanceRowViewModel>> ViewAttendanceForEventAsync(int eventId);
 
         Task<EditEventViewModel?> GetEventForEditAsync(int? id);
-        Task<Event?> HasFacilityConflictAsync(int? facilityId, bool isAllDay, DateTime startDate,
-                                        DateTime? endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null);
+
+        Task<List<ExpectedFacilityCardVM>> GetFacilitiesForModalAsync(int? id);
+        Task<List<ExpectedGroupCardVM>> GetGroupsForModalAsync(int? id);
+
+
+        Task<Event?> HasFacilityConflictAsync(List<int>? facilityId, bool isAllDay, DateTime startDate,
+                                             DateTime? endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null);
 
     }
 }

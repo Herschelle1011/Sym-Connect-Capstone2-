@@ -1,0 +1,30 @@
+﻿<!-- Views/Events/_ScannerTimeModal.cshtml -->
+<div class="text-center px-2 py-2 mb-3">
+    <p style="font-size:14px; margin-bottom:4px;">
+        Set when the QR scanner opens for this event
+    </p>
+    <p class="text-muted" style="font-size:12px;">
+        Defaults to 30 minutes before start/end — adjust if needed.
+    </p>
+</div>
+
+<div class="mb-3">
+    <label class="form-label fw-medium" style="font-size:13px;">Time-In scanner opens at</label>
+    <input type="time" id="scannerTimeInInput" class="form-control" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label fw-medium" style="font-size:13px;">Time-Out scanner opens at</label>
+    <input type="time" id="scannerTimeOutInput" class="form-control" />
+</div>
+
+<div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary w-50" id="backToEventFormBtn">
+        Back
+    </button>
+    <button type="button" class="btn btn-primary w-50" id="confirmScannerTimesBtn">
+        Confirm &amp; Create
+    </button>
+</div>
+
+ 

@@ -10,6 +10,10 @@ namespace Sym_Connect__Capstone2_.ViewModels.Group
         public string Status { get; set; } = string.Empty;
         public string LeaderName { get; set; } = string.Empty;
         public string LeaderContact { get; set; } = string.Empty;
+        public int? LeaderId { get; set; }
+
+        public DateTime? DateJoined { get; set; }
+
 
         [EmailAddress]
         public string LeaderEmail { get; set; } = string.Empty;

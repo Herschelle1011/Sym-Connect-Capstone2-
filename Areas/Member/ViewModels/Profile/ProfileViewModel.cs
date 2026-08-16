@@ -1,4 +1,6 @@
-﻿namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile
+﻿using System.Diagnostics.Contracts;
+
+namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile
 {
     public class ProfileViewModel
     {
@@ -16,8 +18,14 @@
         public string Email { get; set; } = string.Empty;
         public string ContactNumber { get; set; } = string.Empty;
         public DateTime? Birthdate { get; set; }
-        public string Address { get; set; } = string.Empty;
+        public string Country { get; set; } = "Philippines";
+        public string Province { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Barangay { get; set; } = string.Empty;
 
+        public string Address =>
+            string.Join(", ", new[] { Barangay, City, Province, Country }
+                .Where(p => !string.IsNullOrWhiteSpace(p) && p != "N/A"));
         // QR
         public string MyQrToken { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;

@@ -11,7 +11,7 @@
         public TimeSpan? EndTime { get; set; }
         public bool IsAllDay { get; set; }
 
-        public string FacilityName { get; set; } = string.Empty;
+        public List<string> Facilities { get; set; } = new List<string>();
 
     }
 }

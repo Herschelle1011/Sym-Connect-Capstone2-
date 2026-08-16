@@ -4,6 +4,8 @@ using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Group;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Member;
 using System.Collections.Immutable;
 
@@ -21,8 +23,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
         //---- QR TOKEN PART ==== 
-
-
         public async Task<string> GetOrCreateQrTokenAsync(int memberId)
         {
             var member = await _context.Members.FindAsync(memberId);
@@ -40,19 +40,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return member.QRToken;
         }
 
+        //========= GET ALL MEMBERS PART ==== 
 
         public async Task<List<MemberListViewModel>> GetAllMembersAsync()
         {
-            return await _context.Members.Select(m => new MemberListViewModel
+            return await _context.Members
+                .AsNoTracking()
+                .Select(m => new MemberListViewModel
             {
                 MemberId = m.MemberId,
                 FirstName = m.FirstName,
                 MiddleName = m.MiddleName ?? "",
                 LastName = m.LastName,
                 Email = m.Email,
-                ContactNumber = m.ContactNumber,
-                Address = m.Address,
-                BirthDate = m.BirthDate,
+                    PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
+                      ? "/images/default-avatar.png"
+                      : m.ProfilePictureUrl,
+                    ContactNumber = m.ContactNumber,
+                    Address = BuildAddress( m.Barangay, m.City, m.Province, m.Country),
+                    BirthDate = m.BirthDate,
                 Gender = m.Gender,
                 Status = m.Status,
                 DateRegistered = m.DateRegistered,
@@ -71,10 +77,42 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.Members.Include(gd => gd.GroupDetails)
                               .ThenInclude(g => g.Group)
-                                     .FirstOrDefaultAsync(m => m.MemberId == id);
+              .FirstOrDefaultAsync(m => m.MemberId == id);
         }
 
-        public async Task<bool> CreateMember(MembersCreateViewModel vm, IFormFile? photo)
+        public async Task<MemberDetailsViewModel?> GetMemberDetailsByIdAsync(int id)
+        {
+            var attendanceCheck = await _context.Attendances
+                .CountAsync(m => m.MemberId == id && m.Status == "Present");   
+
+            var member = await _context.Members
+                .AsNoTracking()
+                .Where(m => m.MemberId == id)
+                .Select(m => new MemberDetailsViewModel
+                {
+                    FullName = m.FullName,
+                    BirthDate = m.BirthDate,
+                    Gender = m.Gender,
+                    Status = m.Status,
+                    MemberSince = m.DateRegistered,
+                    Email = m.Email,
+                    ContactNumber = m.ContactNumber,
+                    Address = m.Address,
+                    PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
+                      ? "/images/default-avatar.png"
+                      : m.ProfilePictureUrl,              
+                     EventAttendedCount = attendanceCheck,
+                    groupDetails = m.GroupDetails.Select(g => new GroupDetailsViewModel
+                    {
+                        GroupName = g.Group.GroupName,
+                        DateJoined = g.DateJoined
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+            return member;
+        }
+
+
+        public async Task<OperationalResult> CreateMember(MembersCreateViewModel vm, IFormFile? photo)
         {
             var member = new Member
             {
@@ -83,7 +121,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 MiddleName = vm.MiddleName,
                 Email = vm.Email,
                 ContactNumber = vm.ContactNumber,
-                Address = vm.Address,
+                Address = BuildAddress( vm.Barangay, vm.City, vm.Province, vm.Country),
+                DateRegistered = DateTime.Now,
                 BirthDate = vm.BirthDate,
                 Gender = vm.Gender,
                 Status = vm.Status
@@ -94,21 +133,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             if (photo != null)
             {
-
                 var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
                 if (url != null)
                 {
                     member.ProfilePictureUrl = url;
-                    await _context.SaveChangesAsync(); // second save just for the URL
-                }
-                else if (!string.IsNullOrWhiteSpace(url))
-                {
-                    member.ProfilePictureUrl = url.Trim();
                     await _context.SaveChangesAsync();
                 }
             }
-
-            return true;
+            else if (!string.IsNullOrWhiteSpace(vm.PhotoUrl))
+            {
+                member.ProfilePictureUrl = vm.PhotoUrl.Trim();
+                await _context.SaveChangesAsync();
+            }
+            return new OperationalResult { Success = true, Message = "Member added successfully!" };
         }
 
         public async Task UpdateMemberAsync(MembersEditViewModel vm, IFormFile? photo)
@@ -121,12 +158,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             member.MiddleName = vm.MiddleName;
             member.Email = vm.Email;
             member.ContactNumber = vm.ContactNumber;
-            member.Address = vm.Address;
+            member.Address = BuildAddress( vm.Barangay, vm.City, vm.Province, vm.Country);
             member.BirthDate = vm.BirthDate;
             member.Gender = vm.Gender;
             member.Status = vm.Status;
 
-            _context.Members.Update(member);
             await _context.SaveChangesAsync();
 
             if (photo != null)
@@ -135,12 +171,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 if (url != null)
                 {
                     member.ProfilePictureUrl = url;
-                    await _context.SaveChangesAsync(); // second save just for the URL
+                    await _context.SaveChangesAsync(); 
                 }
             }
-            else if (!string.IsNullOrWhiteSpace(vm.photoUrl))
+            else if (!string.IsNullOrWhiteSpace(vm.PhotoUrl))
             {
-                member.ProfilePictureUrl = vm.photoUrl.Trim();
+                member.ProfilePictureUrl = vm.PhotoUrl.Trim();
                 await _context.SaveChangesAsync();
             }
         }
@@ -171,10 +207,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<List<Member>> GetMemberOptionsAsync(int groupId)
         {
-            var alreadyInGroup = await _context.GroupDetails.Where(gd => gd.GroupId == groupId).Select(gd => gd.MemberId).ToListAsync();
-
-            return await _context.Members.Where(e => e.Status == "Active" && !alreadyInGroup.Contains(e.MemberId)).ToListAsync();
-                                            
+            return await _context.Members
+                .Where(e => e.Status == "Active" &&
+                            !_context.GroupDetails.Any(gd => gd.GroupId == groupId && gd.MemberId == e.MemberId))
+                .ToListAsync();
         }
+
+        private static string BuildAddress( string barangay, string city, string province, string country)
+        {
+            var parts = new[] { barangay, city, province, country }
+                .Where(p => !string.IsNullOrWhiteSpace(p));
+
+            return string.Join(", ", parts);
+        }
+
     }
 }

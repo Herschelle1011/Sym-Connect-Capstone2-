@@ -53,6 +53,13 @@ namespace Sym_Connect__Capstone2_.Data
                 .HasForeignKey(gd => gd.GroupId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Facility>()
+              .Property(f => f.FacilityTypes)
+              .HasConversion(
+                  v => string.Join(',', v),
+                  v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
+              );
+
             // MEMBER → GROUPDETAILS
             // One Member can have many GroupDetails rows
             modelBuilder.Entity<GroupDetails>()

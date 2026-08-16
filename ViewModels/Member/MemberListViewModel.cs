@@ -12,8 +12,15 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         public string Email { get; set; } = string.Empty;
 
         public string ContactNumber { get; set; } = string.Empty;
-        public string? Address { get; set; } = string.Empty;
         public DateTime? BirthDate { get; set; }
+
+        public string Country { get; set; } = "Philippines";
+        public string Province { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string Barangay { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+
+        public string PhotoUrl { get; set; } = string.Empty;
 
         public string Gender { get; set; } = string.Empty;
         public string Status { get; set; } = "Active";

@@ -357,9 +357,9 @@
                     {
                         <div class="upcoming-item">
                             <div class="upcoming-title">@up.EventTitle</div>
-                            @if (!string.IsNullOrEmpty(up.FacilityName))
+                            @if (up.FacilityName != null && up.FacilityName.Any())
                             {
-                                <div class="upcoming-room">@up.FacilityName</div>
+                                <div class="upcoming-room">@string.Join(", ", up.FacilityName)</div>
                             }
                         </div>
                     }

@@ -56,8 +56,7 @@
             <thead>
                 <tr>
                     <th>Id</th>
-                    <th>Full Name</th>
-                    <th>Email</th>
+                    <th>Member</th>
                     <th>Contact no.</th>
                     <th>Address</th>
                     <th>Birth Date</th>
@@ -72,17 +71,29 @@
                 @if (!Model.Any())
                 {
                     <tr class="empty-row">
-                        <td colspan="10">No members found.</td>
+                        <td colspan="9">No members found.</td>
                     </tr>
                 }
                 else
                 {
+                    
+                        int rowNumber = 1;
+                    
                     foreach (var item in Model)
                     {
                         <tr data-status="@item.Status.ToLower()">
-                            <td>@item.MemberId</td>
-                            <td>@item.FullName</td>
-                            <td>@item.Email</td>
+                            <td>@rowNumber</td>
+                            <td>
+                                <div class="member-cell open-modal"
+                                     data-url="@Url.Action("Profile", "YouthMembers", new { id = item.MemberId })"
+                                     data-title="Member Profile">
+                                    <img src="@item.PhotoUrl" alt="@item.FullName" class="member-avatar" />
+                                    <div class="member-name-cell">
+                                        <div class="member-fullname">@item.FullName</div>
+                                        <div class="member-email">@item.Email</div>
+                                    </div>
+                                </div>
+                            </td>
                             <td>@item.ContactNumber</td>
                             <td>@item.Address</td>
                             <td>@(item.BirthDate.HasValue ? @item.BirthDate.Value.ToString("MM/dd/yyyy") : "")</td>
@@ -100,6 +111,14 @@
                             <td>@item.DateRegistered.ToString("MM/dd/yyyy")</td>
                             <td>
                                 <div class="action-cell">
+
+                                    <button type="button"
+                                            class="btn-icon btn-view open-modal"
+                                            data-url="@Url.Action("Profile", "YouthMembers", new { id = item.MemberId })"
+                                            data-title="Member Profile">
+                                        <i class="bi bi-person-lines-fill"></i>
+                                    </button>
+
                                     <button type="button"
                                             class="btn-icon btn-edit open-modal"
                                             data-url="@Url.Action("Edit", "YouthMembers", new { id = item.MemberId })"
@@ -116,6 +135,7 @@
                                 </div>
                             </td>
                         </tr>
+                        rowNumber++;
                     }
                 }
             </tbody>

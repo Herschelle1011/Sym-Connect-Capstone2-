@@ -430,7 +430,7 @@
 
                     @* FacilityType is stored as a single comma-separated string, split into tag pills *@
                     <div class="fac-tags">
-                        @foreach (var tag in facility.FacilityType.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                        @foreach (var tag in facility.FacilityType)
                         {
                             <span class="fac-tag">@tag.Trim()</span>
                         }
