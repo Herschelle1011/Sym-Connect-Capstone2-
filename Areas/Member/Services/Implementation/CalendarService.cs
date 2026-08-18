@@ -35,7 +35,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             var myGroupEvents = await _context.Events
                .AsNoTracking()
                .Where(e => !e.IsArchived
-                   && e.StartDate.Date <= gridEnd && e.EndDate.Value.Date >= gridStart
+                   && e.StartDate.Date <= gridEnd && e.EndDate.Date >= gridStart
                    && e.ExpectedGroups.Any(eg => myGroupId.Contains(eg.GroupId)))
                .Select(e => new
                {
@@ -59,7 +59,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             var attendedEvents = await _context.Attendances
                .AsNoTracking()
                .Where(a => a.MemberId == memberId
-                   && a.Event.StartDate.Date <= gridEnd && a.Event.EndDate.Value.Date >= gridStart)
+                   && a.Event.StartDate.Date <= gridEnd && a.Event.EndDate.Date >= gridStart)
                .Select(a => new
                {
                    a.Event.EventId,
@@ -82,9 +82,9 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     GroupName = null,
                     isAllDay = e.IsAllDay,
                     StartTime = e.StartDate.Date + (e.StartTime ?? TimeSpan.Zero),
-                    EndTime = e.EndDate.Value.Date + (e.EndTime ?? TimeSpan.Zero),
+                    EndTime = e.EndDate.Date + (e.EndTime ?? TimeSpan.Zero),
                     IsMyGroupEvent = false,
-                    Status = ComputeMemberEventStatus(e.StartDate, e.EndDate.Value, e.StartTime, e.EndTime, now)
+                    Status = ComputeMemberEventStatus(e.StartDate, e.EndDate, e.StartTime, e.EndTime, now)
                 }).ToList()
                 : myGroupEvents.Select(e => new CalendarEventsViewModel
                 {
@@ -93,9 +93,9 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     GroupName = e.GroupName,
                     isAllDay = e.IsAllDay,
                     StartTime = e.StartDate.Date + (e.StartTime ?? TimeSpan.Zero),
-                    EndTime = e.EndDate.Value.Date + (e.EndTime ?? TimeSpan.Zero),
+                    EndTime = e.EndDate.Date + (e.EndTime ?? TimeSpan.Zero),
                     IsMyGroupEvent = true,
-                    Status = ComputeMemberEventStatus(e.StartDate, e.EndDate.Value, e.StartTime, e.EndTime, now)
+                    Status = ComputeMemberEventStatus(e.StartDate, e.EndDate, e.StartTime, e.EndTime, now)
                 }).ToList();
 
             var days = new List<CalendarDayViewModel>();
@@ -111,7 +111,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             }
 
             var todayEvent = myGroupEvents
-               .Where(e => e.StartDate.Date <= DateTime.Today && e.EndDate.Value.Date >= DateTime.Today)
+               .Where(e => e.StartDate.Date <= DateTime.Today && e.EndDate.Date >= DateTime.Today)
                .OrderBy(e => e.StartDate.Date + (e.StartTime ?? TimeSpan.Zero))
                .FirstOrDefault();
 
@@ -119,7 +119,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             if (todayEvent != null)
             {
                 var eventStart = todayEvent.StartDate.Date + (todayEvent.StartTime ?? TimeSpan.Zero);
-                var eventEnd = todayEvent.EndDate.Value.Date + (todayEvent.EndTime ?? new TimeSpan(23, 59, 59));
+                var eventEnd = todayEvent.EndDate.Date + (todayEvent.EndTime ?? new TimeSpan(23, 59, 59));
 
                 todayPanel = new TodayEventPanelViewModel
                 {

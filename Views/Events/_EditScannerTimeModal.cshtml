@@ -1,0 +1,73 @@
+﻿<!-- Views/Events/_ScannerTimeModal.cshtml -->
+<div class="px-1 py-2 mb-3">
+    <h6 class="mb-1" style="font-size:15px; font-weight:600;">
+        <i class="ti ti-clock-hour-4 text-primary me-1"></i>
+        Configure Scanner Windows
+    </h6>
+    <p class="text-muted mb-0" id="scannerDefaultsHint" style="font-size:12.5px;">
+        Defaults to 30 minutes before/after event start and end.
+        <a href="#" id="resetScannerDefaultsBtn" class="text-decoration-none ms-1">Reset to default</a>
+    </p>
+</div>
+
+<!-- All-day notice — shown instead of the time inputs when IsAllDay is true -->
+<div id="allDayScannerNotice" class="alert alert-light border d-none align-items-start mb-3" style="font-size:13px;">
+    <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+    <div>
+        <strong>All-Day Event</strong><br />
+        The scanner will stay open for the entire day — no specific open/close times needed.
+    </div>
+</div>
+
+<div id="scannerTimeFields">
+
+    <!-- Time-In group -->
+    <div class="border rounded-3 p-3 mb-3" style="background:#f8f9fa;">
+        <div class="d-flex align-items-center mb-2">
+            <i class="ti ti-login text-success me-2" style="font-size:16px;"></i>
+            <span class="fw-medium" style="font-size:13.5px;">Time-In Scanner</span>
+        </div>
+        <div class="row g-2">
+            <div class="col-6">
+                <label for="scannerTimeInOpenInput" class="form-label text-muted mb-1" style="font-size:12px;">Opens at</label>
+                <input type="time" id="scannerTimeInOpenInput" class="form-control form-control-sm" />
+                <span class="text-danger d-block" style="font-size:11px;" data-valmsg-for="TimeInScannerOpenTime"></span>
+            </div>
+            <div class="col-6">
+                <label for="scannerTimeInCloseInput" class="form-label text-muted mb-1" style="font-size:12px;">Closes at</label>
+                <input type="time" id="scannerTimeInCloseInput" class="form-control form-control-sm" />
+                <span class="text-danger d-block" style="font-size:11px;" data-valmsg-for="TimeInScannerClosesTime"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time-Out group -->
+    <div class="border rounded-3 p-3 mb-3" style="background:#f8f9fa;">
+        <div class="d-flex align-items-center mb-2">
+            <i class="ti ti-logout text-danger me-2" style="font-size:16px;"></i>
+            <span class="fw-medium" style="font-size:13.5px;">Time-Out Scanner</span>
+        </div>
+        <div class="row g-2">
+            <div class="col-6">
+                <label for="scannerTimeOutOpenInput" class="form-label text-muted mb-1" style="font-size:12px;">Opens at</label>
+                <input type="time" id="scannerTimeOutOpenInput" class="form-control form-control-sm" />
+                <span class="text-danger d-block" style="font-size:11px;" data-valmsg-for="TimeOutScannerOpenTime"></span>
+            </div>
+            <div class="col-6">
+                <label for="scannerTimeOutCloseInput" class="form-label text-muted mb-1" style="font-size:12px;">Closes at</label>
+                <input type="time" id="scannerTimeOutCloseInput" class="form-control form-control-sm" />
+                <span class="text-danger d-block" style="font-size:11px;" data-valmsg-for="TimeOutScannerClosesTime"></span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button type="button" class="btn btn-outline-secondary w-50" id="backToEventFormBtn">
+        <i class="ti ti-arrow-left me-1"></i>Back
+    </button>
+    <button type="button" class="btn btn-primary w-50" id="confirmScannerTimesBtn">
+        Confirm &amp; Update
+    </button>
+</div>

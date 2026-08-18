@@ -197,9 +197,43 @@
 }
 
 @section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script src="~/js/admin/Eventsearchpanel.js"></script>
     <script src="~/js/admin/OpenScannerTime.js"></script>
+
+
+    <script>
+        function handleEventFormSubmit(formSelector, offcanvasId) {
+        $(document).on("submit", formSelector, function (e) {
+        e.preventDefault();
+
+        const form = $(this);
+        const formData = new FormData(this);
+
+        fetch(form.attr("action"), {
+        method: "POST",
+        body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+        if (data.success) {
+        bootstrap.Offcanvas.getInstance(document.getElementById(offcanvasId))?.hide();
+        location.reload();
+        } else {
+        alert(data.message);
+        }
+        })
+        .catch(err => console.error(`${formSelector} submit failed:`, err));
+        });
+        }
+
+        // handleEventFormSubmit("#createEventForm", "eventPanel");
+        handleEventFormSubmit("#editEventForm", "editEventPanel");
+    </script>
 
 }
 @await Html.PartialAsync("_CreateEventPanel", createVm)
 @await Html.PartialAsync("_SearchEventPanel")
+

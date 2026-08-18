@@ -19,7 +19,7 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         public TimeSpan? EndTime { get; set; }
 
         public DateTime StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         [Range(1, 100)]
         public int Points { get; set; } = 3;
@@ -38,8 +38,12 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         public DateTime? ArchiveDate { get; set; }
 
         //TIME SCANNER OPEN/OUT MODIFY
-        public TimeSpan? TimeInScannerOpensOffset { get; set; }   // how many minutes before StartTime
+        public TimeSpan? TimeInScannerOpensOffset { get; set; }  
+        public TimeSpan? TimeInScannerClosesOffset { get; set; }
+
         public TimeSpan? TimeOutScannerOpensOffset { get; set; }
+        public TimeSpan? TimeOutScannerClosesOffset { get; set; }
+
 
         public ICollection<EventFacility> ExpectedFacilities { get; set; } = new List<EventFacility>();
         public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();

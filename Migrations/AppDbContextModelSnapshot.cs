@@ -517,7 +517,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("EndDate")
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<TimeSpan?>("EndTime")
@@ -548,7 +548,13 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<TimeSpan?>("TimeInScannerClosesOffset")
+                        .HasColumnType("time");
+
                     b.Property<TimeSpan?>("TimeInScannerOpensOffset")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan?>("TimeOutScannerClosesOffset")
                         .HasColumnType("time");
 
                     b.Property<TimeSpan?>("TimeOutScannerOpensOffset")

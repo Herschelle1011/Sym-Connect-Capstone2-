@@ -8,7 +8,9 @@
     </div>
 
     <div class="offcanvas-body">
-        <form asp-action="Edit" asp-controller="Events" asp-route-eventid="@Model.EventId" method="post" id="editEventForm">
+        <form asp-action="Edit" asp-controller="Events" asp-route-eventid="@Model.EventId" method="post" id="editEventForm"
+              data-time-in="@Model.TimeInScannerOpenTime?.ToString(@"hh\:mm")"
+              data-time-out="@Model.TimeOutScannerOpenTime?.ToString(@"hh\:mm")">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="EventId" />
 
@@ -72,7 +74,7 @@
                 </div>
 
                 <div style="max-height:140px; overflow-y:auto; border:1px solid #e5e7eb; border-radius:8px; padding:10px;">
-                    @foreach (var f in (List<Sym_Connect__Capstone2_.Models.FacilityModels.Facility>)ViewBag.Facilities)
+                    @foreach (var f in (List<Sym_Connect__Capstone2_.ViewModels.Facility.FacilityListViewModel>)ViewBag.Facilities)
                     {
                         var isChecked = Model.SelectedFacilityIds != null && Model.SelectedFacilityIds.Contains(f.FacilityId);
                         <div class="form-check">

@@ -620,17 +620,37 @@
                         }
                         else
                         {
-                            var eventStart = Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
-                            var eventEnd = Model.EndDate.Value.Date + (Model.EndTime ?? TimeSpan.Zero);
+                            //check changes here 8/18/2026 ----------
+                            var eventStart =
+                                  Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
 
-                            var timeInOpens = eventStart.AddMinutes(-30);
+                            var eventEnd =
+                                Model.EndDate.Value.Date + (Model.EndTime ?? TimeSpan.Zero);
 
-                            isEventLive = DateTime.Now >= timeInOpens && DateTime.Now <= eventEnd;
-                            ifNotStarted = DateTime.Now < timeInOpens;
-                            ifEventEnd = DateTime.Now > eventEnd;
+                            var timeInOpens =
+                              Model.StartDate.Date + (Model.TimeInScannerOpenTime ?? eventStart.TimeOfDay);
+                            var timeInCloses = Model.TimeInScannerClosesTime.HasValue ?
+                            Model.StartDate.Date + Model.TimeInScannerClosesTime.Value : eventStart;
 
-                            var timeOutOpens = eventEnd.AddMinutes(-30);
-                            var timeOutCloses = eventEnd.AddMinutes(30);
+
+
+                            isEventLive =
+                               DateTime.Now >= timeInOpens &&
+                               DateTime.Now <= timeInCloses;
+
+                            ifNotStarted =
+                                DateTime.Now < timeInOpens;
+
+                            ifEventEnd =
+                                DateTime.Now > timeInCloses;
+
+                            var timeOutOpens = Model.StartDate.Date + 
+                            (Model.TimeOutScannerOpenTime ?? eventEnd.AddMinutes(-30).TimeOfDay);
+
+
+                            var timeOutCloses = Model.TimeOutScannerClosesTime.HasValue ? 
+                                        Model.EndDate.Value.Date + Model.TimeOutScannerClosesTime.Value 
+                                    : eventEnd.AddMinutes(30);
 
                             timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now <= timeOutCloses;
                             timeOutNotYetOpen = DateTime.Now < timeOutOpens;
@@ -664,9 +684,9 @@
                         }
                         else if (ifAllDay)
                         {
-                            <button type="button" class="btn btn-secondary w-100 mb-2">
-                                <i class="ti ti-qrcode"></i> Open All-Day Scanner
-                            </button>
+                            <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open QR Scanner
+                            </a>
                         }
                         else if (ifEventEnd)
                         {
@@ -734,9 +754,9 @@
                         }
                         else if (ifAllDay)
                         {
-                            <button type="button" class="btn btn-secondary w-100 mb-2">
-                                <i class="ti ti-qrcode"></i> Open All-Day Scanner
-                            </button>
+                            <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open QR Scanner
+                            </a>
                         }
                         else if (timeOutClosed)
                         {
@@ -820,32 +840,59 @@
 
 
 @section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script src="~/js/admin/EditScannerTime.js"></script>
+
     <script>
-               document.addEventListener('DOMContentLoaded', function () {
-            const editBtn = document.querySelector('.edit-event-btn');
-            if (editBtn) {
-                editBtn.addEventListener('click', async function () {
-                    const eventId = editBtn.getAttribute('data-eventid');
+        document.addEventListener('DOMContentLoaded', function () {
 
-                    const response = await fetch(`/Events/GetEditForm?eventid=${eventId}`);
-                    const html = await response.text();
+        const editBtn = document.querySelector('.edit-event-btn');
 
-                    // Properly dispose of any existing Offcanvas instance FIRST
-                    const existingPanelEl = document.getElementById('editEventPanel');
-                    if (existingPanelEl) {
-                        const existingInstance = bootstrap.Offcanvas.getInstance(existingPanelEl);
-                        if (existingInstance) {
-                            existingInstance.dispose();
-                        }
-                        existingPanelEl.remove();
-                    }
+        if (editBtn) {
+        editBtn.addEventListener('click', async function () {
 
-                    document.body.insertAdjacentHTML('beforeend', html);
+        const eventId = editBtn.getAttribute('data-eventid');
 
-                    const panel = new bootstrap.Offcanvas(document.getElementById('editEventPanel'));
-                    panel.show();
-                });
-            }
+        const response =
+        await fetch(`/Events/GetEditForm?eventid=${eventId}`);
+
+        const html = await response.text();
+
+        const existingPanelEl =
+        document.getElementById('editEventPanel');
+
+        if (existingPanelEl) {
+
+        const existingInstance =
+        bootstrap.Offcanvas.getInstance(existingPanelEl);
+
+        if (existingInstance) {
+        existingInstance.dispose();
+        }
+
+        existingPanelEl.remove();
+        }
+
+        document.body.insertAdjacentHTML(
+        'beforeend',
+        html
+        );
+
+        const editForm =
+        document.getElementById("editEventForm");
+
+        $.validator.unobtrusive.parse(editForm);
+
+        const panel =
+        new bootstrap.Offcanvas(
+        document.getElementById('editEventPanel')
+        );
+
+        panel.show();
+        });
+        }
         });
     </script>
 }

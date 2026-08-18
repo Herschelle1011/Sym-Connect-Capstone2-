@@ -10,6 +10,7 @@ using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Intrinsics.X86;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -62,6 +63,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     EndDate = e.EndDate,
                     Points = e.Points,
                     StartTime = e.StartTime,
+                    TimeInScannerClosesTime = e.TimeInScannerClosesOffset,
+                    TimeOutScannerClosesTime = e.TimeOutScannerClosesOffset,
                     TimeOutScannerOpenTime = e.TimeOutScannerOpensOffset,
                     TimeInScannerOpenTime = e.TimeInScannerOpensOffset,
                     EndTime = e.EndTime,
@@ -86,39 +89,52 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 }).FirstOrDefaultAsync();
             if (existingEvent == null) return null;
+            await MarkAsAbsentAsync(existingEvent.EventId);
+
 
             existingEvent.AttendanceRecords = await ViewAttendanceForEventAsync(id);
 
-
             if (existingEvent.StartTime.HasValue && existingEvent.EndTime.HasValue)
             {
-                var qrOpenTime = existingEvent.TimeInScannerOpenTime ??
-                                existingEvent.StartTime.Value.Add(TimeSpan.FromMinutes(-30));
+                var eventStart = existingEvent.StartTime.Value;
+                var eventEnd = existingEvent.EndTime.Value;
 
+                var timeInOpens = existingEvent.TimeInScannerOpenTime
+                    ?? eventStart.Add(TimeSpan.FromMinutes(-30));
 
-                existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
+                var timeInCloses = existingEvent.TimeInScannerClosesTime
+                    ?? eventStart;
+
+                var timeOutOpens = existingEvent.TimeOutScannerOpenTime
+                    ?? eventEnd.Add(TimeSpan.FromMinutes(-30));
+
+                var timeOutCloses = existingEvent.TimeOutScannerClosesTime
+                    ?? eventEnd.Add(TimeSpan.FromMinutes(30));
+
+                var timelineEntries = new List<(TimeSpan Time, string Description)>
+                 {
+                    (timeInOpens, "Time-In Scanner Opens"),
+                    (timeInCloses, "Time-In Scanner Closes"),
+                    (eventStart, "Event Starts"),
+                    (timeOutOpens, "Time-Out Scanner Opens"),
+                    (eventEnd, "Event Ends"),
+                    (timeOutCloses, "Time-Out Scanner Closes"),
+                   };
+
+                foreach (var entry in timelineEntries.OrderBy(e => e.Time))
                 {
-                    Time = DateTime.Today.Add(qrOpenTime).ToString("h:mm tt"),
-                    Description = "QR Scanner Opens"
-                });
-
-                existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
-                {
-                    Time = DateTime.Today.Add(existingEvent.StartTime.Value).ToString("h:mm tt"),
-                    Description = "Event Starts"
-                });
-
-                existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
-                {
-                    Time = DateTime.Today.Add(existingEvent.EndTime.Value).ToString("h:mm tt"),
-                    Description = "Event Ends"
-                });
+                    existingEvent.ScheduleTimeline.Add(new ScheduleTimelineVM
+                    {
+                        Time = DateTime.Today.Add(entry.Time).ToString("h:mm tt"),
+                        Description = entry.Description
+                    });
+                }
             }
 
             var startDate = existingEvent.StartDate.Date + (existingEvent.StartTime ?? TimeSpan.Zero);
             var endDate = existingEvent.EndDate?.Date + (existingEvent.EndTime ?? TimeSpan.Zero);
 
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             EventStatus status;
 
             if (now < startDate)
@@ -140,22 +156,39 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
         public async Task<EventResult> CreateEventAsync(CreateEventViewModel vm)
         {
+            var maxLeadTime = TimeSpan.FromHours(5);
+                if(vm.StartTime.HasValue && vm.TimeInScannerOpenTime.HasValue)
+                 {
+                    // Event starts: 10:00 AM
+                    //Scanner opens: 8:00 AM
+                    //              ----------
+                    //Difference:   2 hours
+
+                     var lead = vm.StartTime.Value - vm.TimeInScannerOpenTime.Value;
+                    if(lead > maxLeadTime)
+                    {
+                    return EventResult.Fail("Scanner cannot open more than 5 hours before the event start time.");
+                    }
+                  }
+
+
+
             //VALIDATION FOR START DATE AND END DATE
             if (vm.StartDate == default(DateTime) || vm.EndDate == default(DateTime))
             {
                 return EventResult.Fail("Please provide valid start and end dates.");
             }
-            if (vm.EndDate < vm.StartDate.Date)
+            if (vm.EndDate < vm.StartDate)
             {
                 return EventResult.Fail("End date must be higher than start date.");
             }
 
-            if (vm.StartDate.Date < DateTime.Today)
+            if (vm.StartDate < DateTime.Today)
             {
                 return EventResult.Fail("You cannot create an event in the past.");
             }
 
-       
+          
 
 
             var hasConflict = await HasFacilityConflictAsync(vm.SelectedFacilityIds, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
@@ -169,7 +202,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     ConflictingEventTitle = hasConflict.EventTitle
                 };
             }
-            if (!vm.IsAllDay && (vm.StartDate.Date == null || vm.EndDate == null))
+            if (!vm.IsAllDay && (vm.StartDate == null || vm.EndDate == null))
             {
                 return EventResult.Fail("Start time and end time is required.");
             }
@@ -179,7 +212,27 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 vm.StartTime = null;
                 vm.EndTime = null;
+                vm.TimeInScannerOpenTime = null;
+                vm.TimeInScannerClosesTime = null;
+                vm.TimeOutScannerOpenTime = null;
+                vm.TimeOutScannerClosesTime = null;
             }
+
+
+
+            //facility validation
+            var selectedFacility = await _context.Facilities
+                .Where(f => vm.SelectedFacilityIds.Contains(f.FacilityId)).ToListAsync();
+
+            foreach(var facility in selectedFacility)
+            {          
+                if (facility.Status == FacilityStatus.UnderMaintenance 
+                    || facility.Status == FacilityStatus.Inactive)
+                {
+                    return EventResult.Fail($"Selected {facility.FacilityName} is Undermaintenance");
+                }
+            }
+
 
             if (!vm.IsAllDay)
             {
@@ -203,6 +256,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }
             }
 
+
+
+
             var newEvent = new Event
             {
                 EventTitle = vm.EventTitle,
@@ -210,19 +266,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 EventDescription = vm.EventDescription,
                 IsAllDay = vm.IsAllDay,
                 DateCreated = DateTime.UtcNow,
-                StartDate = vm.StartDate.Date,
+                StartDate = vm.StartDate,
                 TimeInScannerOpensOffset = vm.TimeInScannerOpenTime,
+                TimeInScannerClosesOffset = vm.TimeInScannerClosesTime,
+
                 TimeOutScannerOpensOffset = vm.TimeOutScannerOpenTime,
-                EndDate  = vm.EndDate?.Date,
+                TimeOutScannerClosesOffset = vm.TimeOutScannerClosesTime,
+
+                EndDate  = vm.EndDate.Date,
                 StartTime = vm.StartTime ,
                 EndTime = vm.EndTime ,
                 IsArchived = false
             };
             foreach(var facilityId in vm.SelectedFacilityIds)
             {
+                
                 newEvent.ExpectedFacilities.Add(new EventFacility
                 {
                     FacilityId = facilityId
+                                
                 });
             }
             foreach(var groupId in vm.SelectedGroupIds)
@@ -239,9 +301,42 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<EventResult> UpdateEventAsync(int? gId, EditEventViewModel vm)
         {
+            var maxLeadTime = TimeSpan.FromHours(5);
+                if (vm.StartTime.HasValue && vm.TimeInScannerOpenTime.HasValue)
+                {
+                    // Event starts: 10:00 AM
+                    //Scanner opens: 8:00 AM
+                    //              ----------
+                    //Difference:   2 hours
+
+                    var lead = vm.StartTime.Value - vm.TimeInScannerOpenTime.Value;
+                    if (lead > maxLeadTime)
+                    {
+                        return EventResult.Fail("Scanner cannot open more than 5 hours before the event start time.");
+                    }
+                }
+
+
+            var selectedFacility = await _context.Facilities
+                       .Where(f => vm.SelectedFacilityIds.Contains(f.FacilityId)).ToListAsync();
+
+            foreach (var facility in selectedFacility)
+            {
+                if (facility.Status == FacilityStatus.UnderMaintenance
+                    || facility.Status == FacilityStatus.Inactive)
+                {
+                    return EventResult.Fail($"Selected {facility.FacilityName} is Undermaintenance");
+                }
+            }
+
+
+
+
+
             //find the ID first from the EVENT
             var existingEvent = await _context.Events.
                             Include(eg => eg.ExpectedGroups)
+                              .Include(e => e.ExpectedFacilities)
                             .FirstOrDefaultAsync(e => e.EventId == gId);
 
             if (existingEvent == null) return EventResult.Fail("Event doesn't exist");
@@ -251,10 +346,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 return EventResult.Fail($"This facility is already booked for \"{hasConflict.EventTitle}\" during that time.");
             }
-            if (vm.IsAllDay)
+            if (vm.IsAllDay && (vm.StartTime == null || vm.EndTime ==null))
             {
                 vm.StartTime = null;
                 vm.EndTime = null;
+                vm.TimeInScannerOpenTime = null;
+                vm.TimeInScannerClosesTime = null;
+                vm.TimeOutScannerOpenTime = null;
+                vm.TimeOutScannerClosesTime = null;
             }
 
             if (!vm.IsAllDay)
@@ -285,6 +384,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             existingEvent.EndDate = vm.EndDate;
             existingEvent.Points = vm.Points;
             existingEvent.StartTime = vm.StartTime;
+            existingEvent.TimeOutScannerClosesOffset = vm.TimeOutScannerClosesTime;
+            existingEvent.TimeInScannerClosesOffset = vm.TimeInScannerClosesTime;
             existingEvent.IsAllDay = vm.IsAllDay;
             existingEvent.EndTime = vm.EndTime;
             existingEvent.TimeInScannerOpensOffset = vm.TimeInScannerOpenTime;
@@ -358,6 +459,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 StartDate = existingEvent.StartDate,
                 EndDate = existingEvent.EndDate,
                 Points = existingEvent.Points,
+                TimeInScannerClosesTime = existingEvent.TimeInScannerClosesOffset,
+                TimeOutScannerClosesTime = existingEvent.TimeOutScannerClosesOffset,
                 TimeInScannerOpenTime = existingEvent.TimeInScannerOpensOffset,
                 TimeOutScannerOpenTime = existingEvent.TimeOutScannerOpensOffset,
                 StartTime = existingEvent.StartTime,
@@ -451,7 +554,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var possibleEventConflicts = await _context.Events.Where(e =>
                                         e.ExpectedFacilities.Any(ef => facilityId.Contains(ef.FacilityId))
                                         && e.StartDate.Date <= endDate.Value.Date
-                                        && e.EndDate.Value.Date >= startDate.Date
+                                        && e.EndDate.Date >= startDate.Date
                                         && (excludeEventId == null || e.EventId != excludeEventId)).ToListAsync();
             //checks the list 
             foreach (var existing in possibleEventConflicts)
@@ -574,7 +677,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 MemberId = member.MemberId,
                 EventId = eventId,
-                Points = eventEntity.Points,
                 TimeIn = DateTime.Now,
                 TimeOut = null,
                 Status = "Pending"
@@ -586,40 +688,36 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task<bool> NoTimeOut(string qrToken, int eventId)
+        public async Task MarkAsAbsentAsync(int eventId)
         {
-            var memberTask = _context.Members.FirstOrDefaultAsync(m => m.QRToken == qrToken);
-            var eventTask = _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
-
-            await Task.WhenAll(memberTask, eventTask);
-
-            var member = await memberTask;
-            var existingEvent = await eventTask;
-
-            if (member == null || existingEvent == null)
+            var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            if (existingEvent == null) return;
+            if (!existingEvent.EndTime.HasValue)
             {
-                return false;
+                return;
             }
 
-            var currentDateTime = DateTime.Now;
-            bool isEventExpired = existingEvent.EndDate < currentDateTime.Date ||
-                                 (existingEvent.EndDate == currentDateTime.Date && existingEvent.EndTime < currentDateTime.TimeOfDay);
+            var timeOutCloses = existingEvent.TimeOutScannerClosesOffset ??
+                existingEvent.EndTime.Value.Add(TimeSpan.FromMinutes(30));
 
-            if (isEventExpired)
+            var scannerCloseDateTime = existingEvent.EndDate.Date + timeOutCloses;
+            var now = DateTime.Now;
+
+            if(now > scannerCloseDateTime)
             {
-                var attendance = await _context.Attendances
-                    .FirstOrDefaultAsync(a => a.MemberId == member.MemberId && a.EventId == eventId);
+                var pendingAttendances = await _context.Attendances
+                    .Where(a => a.EventId == eventId && a.Status == "Pending").ToListAsync();
 
-                if (attendance != null && attendance.Status == "Pending")
+                foreach(var attendance in pendingAttendances)
                 {
                     attendance.Status = "Absent";
-                    await _context.SaveChangesAsync();
                 }
+
             }
 
-            return true;
-        }
+            await _context.SaveChangesAsync();
 
+        }
 
 
         public async Task<OperationalResult> RecordTimeOutAsync(string qrToken, int eventId)
@@ -631,8 +729,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 return new OperationalResult { Success = false, Message = "QR code not recognized." };
             }
 
-            var eventExists = await _context.Events.AnyAsync(e => e.EventId == eventId);
-            if (!eventExists)
+            var eventExists = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            if (eventExists == null)
                 return new OperationalResult { Success = false, Message = "Event not found." };
 
 
@@ -646,9 +744,26 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (MemberhasTimeIn.TimeOut.HasValue)
                 return new OperationalResult { Success = false, Message = $"{member.FirstName} already timed out." };
 
+            var latePeriod = TimeSpan.FromMinutes(15);
+
+            if(eventExists.StartTime.HasValue && MemberhasTimeIn.TimeIn.HasValue)
+            {
+                var EventStartDateTime = eventExists.StartDate.Date + eventExists.StartTime.Value;
+                var late = EventStartDateTime + latePeriod;
+
+                if(MemberhasTimeIn.TimeIn.Value > late)
+                {
+                    MemberhasTimeIn.Points = -2;
+                    MemberhasTimeIn.Status = "Late";
+                }
+                else 
+                {
+                    MemberhasTimeIn.Points = eventExists.Points;
+                    MemberhasTimeIn.Status = "Present";
+                }
+            }
 
             MemberhasTimeIn.TimeOut = DateTime.Now;
-            MemberhasTimeIn.Status = "Present";
             await _context.SaveChangesAsync();
 
             return new OperationalResult { Success = true, Message = $"{member.FirstName} Timed Out Successfully." };

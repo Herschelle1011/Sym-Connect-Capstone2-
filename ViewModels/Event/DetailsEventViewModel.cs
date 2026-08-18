@@ -33,7 +33,12 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
 
         public TimeSpan? TimeInScannerOpenTime { get; set; }
+        public TimeSpan? TimeInScannerClosesTime { get; set; }
+
+
         public TimeSpan? TimeOutScannerOpenTime { get; set; }
+        public TimeSpan? TimeOutScannerClosesTime { get; set; }
+
         public List<FacilityPhotoVM> FacilityPhotos { get; set; } = new();
 
         // Statistics

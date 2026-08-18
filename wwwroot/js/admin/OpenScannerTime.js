@@ -1,84 +1,385 @@
 ﻿document.addEventListener("submit", async function (e) {
-    if (e.target.id !== "createEventForm") return;
+
+    if (e.target.id !== "createEventForm")
+        return;
+
     e.preventDefault();
 
     const form = e.target;
 
-    const startTime = form.querySelector('[name="StartTime"]').value;
-    const endTime = form.querySelector('[name="EndTime"]').value;
-   
+    // ==============================
+    // 1. NORMAL ASP.NET VALIDATION
+    // ==============================
+
+    if (!$(form).valid()) {
+        return;
+    }
 
 
+    // ==============================
+    // 2. CUSTOM VALIDATION
+    // ==============================
 
-    function subtractMinutes(timeStr, minutes) {
-        if (!timeStr) return "";
-        const [h, m] = timeStr.split(":").map(Number);
-        const date = new Date(2000, 0, 1, h, m - minutes);
+    let hasError = false;
+
+    const isAllDay =
+        document.getElementById("isAllDayToggle").checked;
+
+    const startTimeInput =
+        form.querySelector('[name="StartTime"]');
+
+    const endTimeInput =
+        form.querySelector('[name="EndTime"]');
+
+
+    // ------------------------------
+    // TIME VALIDATION
+    // ------------------------------
+
+    const startSpan =
+        form.querySelector('[data-valmsg-for="StartTime"]');
+
+    const endSpan =
+        form.querySelector('[data-valmsg-for="EndTime"]');
+
+
+    if (!isAllDay) {
+
+        if (!startTimeInput.value) {
+            startSpan.textContent = "Start Time is required.";
+            hasError = true;
+        }
+        else {
+            startSpan.textContent = "";
+        }
+
+
+        if (!endTimeInput.value) {
+            endSpan.textContent = "End Time is required.";
+            hasError = true;
+        }
+        else {
+            endSpan.textContent = "";
+        }
+    }
+    else {
+        // Clear old errors when All Day is checked
+        startSpan.textContent = "";
+        endSpan.textContent = "";
+    }
+
+
+    // ------------------------------
+    // FACILITY VALIDATION
+    // ------------------------------
+
+    const selectedFacilities =
+        form.querySelectorAll(".facility-checkbox:checked");
+
+    const facilitySpan =
+        form.querySelector(
+            '[data-valmsg-for="SelectedFacilityIds"]'
+        );
+
+
+    if (selectedFacilities.length === 0) {
+
+        facilitySpan.textContent =
+            "Select at least one facility.";
+
+        hasError = true;
+    }
+    else {
+        facilitySpan.textContent = "";
+    }
+
+
+    // ==============================
+    // 3. STOP IF CUSTOM ERRORS EXIST
+    // ==============================
+
+    if (hasError) {
+        return;
+    }
+
+
+    // ==============================
+    // 4. EVERYTHING IS VALID
+    // ==============================
+
+    const startTime = startTimeInput.value;
+    const endTime = endTimeInput.value;
+
+
+    function addMinutes(timeStr, minutes) {
+
+        if (!timeStr)
+            return "";
+
+        const [h, m] =
+            timeStr.split(":").map(Number);
+
+        const date =
+            new Date(2000, 0, 1, h, m + minutes);
+
         return date.toTimeString().slice(0, 5);
     }
 
-    const defaultTimeIn = subtractMinutes(startTime, 30);
-    const defaultTimeOut = subtractMinutes(endTime, 30);
+    function subtractMinutes(timeStr, minutes) {
+        return addMinutes(timeStr, -minutes);
+    }
 
-    const html = await fetch('/Events/GetScannerTimeModal').then(r => r.text());
-    document.getElementById('appModalBody').innerHTML = html;
-    document.getElementById('appModalLabel').innerText = "Scanner Times";
 
-    document.getElementById('scannerTimeInInput').value = defaultTimeIn;
-    document.getElementById('scannerTimeOutInput').value = defaultTimeOut;
+    // Opens: same as before
+    const defaultTimeInOpen =
+        subtractMinutes(startTime, 30);
 
-    // hide the offcanvas before showing the modal
-    const offcanvasEl = document.getElementById('eventPanel');
-    const offcanvasInstance = bootstrap.Offcanvas.getInstance(offcanvasEl);
-    if (offcanvasInstance) offcanvasInstance.hide();
+    const defaultTimeOutOpen =
+        endTime;
 
-    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal'));
+    // Closes: new defaults
+    // Time-In closes once the event actually starts —
+    // no point letting people "time in" after it's begun.
+    const defaultTimeInClose =
+        startTime;
+
+    // Time-Out closes 30 min after the event ends —
+    // grace window for people leaving late.
+    const defaultTimeOutClose =
+        addMinutes(endTime, 30);
+
+
+    // ==============================
+    // 5. LOAD SCANNER TIME MODAL
+    // ==============================
+
+    const html =
+        await fetch('/Events/GetScannerTimeModal')
+            .then(r => r.text());
+
+
+    document.getElementById('appModalBody').innerHTML =
+        html;
+
+    document.getElementById('appModalLabel').innerText =
+        "Scanner Times";
+
+
+
+    const allDayNotice = document.getElementById('allDayScannerNotice');
+    const scannerFields = document.getElementById('scannerTimeFields');
+    const defaultsHint = document.getElementById('scannerDefaultsHint');
+
+    if (isAllDay) {
+        // All-day: hide the time inputs, show the notice, skip defaults entirely
+        allDayNotice.classList.remove('d-none');
+        allDayNotice.classList.add('d-flex');
+        scannerFields.classList.add('d-none');
+        defaultsHint.classList.add('d-none');
+    }
+    else {
+        allDayNotice.classList.add('d-none');
+        allDayNotice.classList.remove('d-flex');
+        scannerFields.classList.remove('d-none');
+        defaultsHint.classList.remove('d-none');
+
+        document.getElementById('scannerTimeInOpenInput').value = defaultTimeInOpen;
+        document.getElementById('scannerTimeInCloseInput').value = defaultTimeInClose;
+        document.getElementById('scannerTimeOutOpenInput').value = defaultTimeOutOpen;
+        document.getElementById('scannerTimeOutCloseInput').value = defaultTimeOutClose;
+    }
+
+
+
+    // ==============================
+    // 6. CLOSE CREATE EVENT PANEL
+    // ==============================
+
+    const offcanvasEl =
+        document.getElementById('eventPanel');
+
+    const offcanvasInstance =
+        bootstrap.Offcanvas.getInstance(offcanvasEl);
+
+    if (offcanvasInstance) {
+        offcanvasInstance.hide();
+    }
+
+
+    // ==============================
+    // 7. OPEN SCANNER MODAL
+    // ==============================
+
+    const modal =
+        bootstrap.Modal.getOrCreateInstance(
+            document.getElementById('appModal')
+        );
+
     modal.show();
 
-    document.getElementById('confirmScannerTimesBtn').onclick = async function () {
-        const timeIn = document.getElementById('scannerTimeInInput').value;
-        const timeOut = document.getElementById('scannerTimeOutInput').value;
-        const isAllDay = document.getElementById('isAllDayToggle').checked;
+
+    // ==============================
+    // 8. CONFIRM SCANNER TIMES
+    // ==============================
+
+    document.getElementById(
+        'confirmScannerTimesBtn'
+    ).onclick = async function () {
+
+        const timeInOpen =
+            document.getElementById('scannerTimeInOpenInput').value;
+
+        const timeInClose =
+            document.getElementById('scannerTimeInCloseInput').value;
+
+        const timeOutOpen =
+            document.getElementById('scannerTimeOutOpenInput').value;
+
+        const timeOutClose =
+            document.getElementById('scannerTimeOutCloseInput').value;
+
 
         if (!isAllDay) {
-            if (timeIn > startTime) {
-                showToast("Time-In scanner cannot open after the event starts.", false);
+
+            if (timeInOpen >= timeInClose) {
+                showToast(
+                    "Time-In scanner closing time must be after its opening time.",
+                    false
+                );
                 return;
             }
-            if (timeOut > endTime) {
-                showToast("Time-Out scanner cannot open after the event ends.", false);
+
+            if (timeInClose > timeOutOpen) {
+                showToast(
+                    "Time-In scanner must close before the Time-Out scanner opens.",
+                    false
+                );
                 return;
             }
-            if (timeOut < startTime) {
-                showToast("Time-Out scanner cannot open before the event starts.", false);
+
+            if (timeOutOpen >= timeOutClose) {
+                showToast(
+                    "Time-Out scanner closing time must be after its opening time.",
+                    false
+                );
+                return;
+            }
+
+            // Only enforce open < close if a close time was actually set
+            if (timeInClose && timeInOpen > timeInClose) {
+                showToast(
+                    "Time-In scanner cannot close before it opens.",
+                    false
+                );
+                return;
+            }
+
+            // if (timeOutOpen < endTime) {
+            //     showToast("Time-Out scanner cannot open before the event ends.", false);            
+            //     return;
+            // }
+
+
+            if (timeOutOpen > endTime) {
+                showToast(
+                    "Time-Out scanner cannot open after the event ends.",
+                    false
+                );
+                return;
+            }
+
+            if (timeOutOpen < startTime) {
+                showToast(
+                    "Time-Out scanner cannot open before the event starts.",
+                    false
+                );
+                return;
+            }
+
+            if (timeOutClose && timeOutOpen > timeOutClose) {
+                showToast(
+                    "Time-Out scanner cannot close before it opens.",
+                    false
+                );
                 return;
             }
         }
 
-        const formData = new FormData(form);
-        formData.append("TimeInScannerOpenTime", document.getElementById('scannerTimeInInput').value);
-        formData.append("TimeOutScannerOpenTime", document.getElementById('scannerTimeOutInput').value);
 
-        const response = await fetch(form.action, {
-            method: "POST",
-            body: formData
-        });
+        // Build final form
+        const formData =
+            new FormData(form);
 
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            const result = await response.json();
-            modal.hide();
-            showToast(result.message, result.success);
-            if (result.success) setTimeout(() => location.reload(), 900);
-        } else {
-            document.getElementById("appModalBody").innerHTML = await response.text();
+
+        formData.append("TimeInScannerOpenTime", timeInOpen);
+        formData.append("TimeInScannerClosesTime", timeInClose);
+        formData.append("TimeOutScannerOpenTime", timeOutOpen);
+        formData.append("TimeOutScannerClosesTime", timeOutClose);
+
+
+        const response =
+            await fetch(form.action, {
+                method: "POST",
+                body: formData
+            });
+
+
+        const contentType =
+            response.headers.get("content-type");
+
+
+        if (
+            contentType &&
+            contentType.includes("application/json")
+        ) {
+
+            const result =
+                await response.json();
+
+
+            if (result.success) {
+                modal.hide();
+                setTimeout(() => location.reload(), 900);
+            }
+
+            showToast(
+                result.message,
+                result.success
+            );
+
+            if (result.success) {
+                setTimeout(
+                    () => location.reload(),
+                    900
+                );
+            }
+        }
+        else {
+
+            document.getElementById(
+                "appModalBody"
+            ).innerHTML =
+                await response.text();
         }
     };
 
-    // Back button re-opens the existing offcanvas instead of fetching a blank form
-    document.getElementById('backToEventFormBtn').onclick = function () {
+
+    // ==============================
+    // 9. BACK BUTTON
+    // ==============================
+
+    document.getElementById(
+        'backToEventFormBtn'
+    ).onclick = function () {
+
         modal.hide();
-        const panel = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+
+        const panel =
+            bootstrap.Offcanvas.getOrCreateInstance(
+                offcanvasEl
+            );
+
         panel.show();
     };
+
 });

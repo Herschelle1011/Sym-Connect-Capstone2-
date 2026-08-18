@@ -37,7 +37,7 @@ public class EventsController : Controller
         if (eventEntity == null) return NotFound();
 
         var eventStart = eventEntity.StartDate.Date + (eventEntity.StartTime ?? TimeSpan.Zero);
-        var eventEnd = eventEntity.EndDate.Value.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
+        var eventEnd = eventEntity.EndDate.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
 
         bool isLive = DateTime.Now >= eventStart.AddMinutes(-30) && DateTime.Now <= eventEnd;
         if (!isLive)
@@ -75,18 +75,6 @@ public class EventsController : Controller
         return Json(new { success = result.Success, message = result.Message });
     }
 
-    [HttpPost]
-    public async Task<IActionResult> NoTimeOut(string qrToken, int eventId)
-    {
-        bool success = await _eventService.NoTimeOut(qrToken, eventId);
-
-        if (!success)
-        {
-            return Json(new { success = false, message = "Member or event not found." });
-        }
-
-        return Json(new { success = true, message = "Attendance reconciled." });
-    }
 
 
 
@@ -186,6 +174,7 @@ public class EventsController : Controller
         ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
         ViewBag.Groups = await _groupService.GetAllGroupsAsync();
 
+
         var existingEvent = await _eventService.GetEventForEditAsync(eventid);
         if (existingEvent == null) return NotFound();
 
@@ -274,6 +263,14 @@ public class EventsController : Controller
     public IActionResult GetScannerTimeModal()
     {
         return PartialView("_ScannerTimeModal");
+    }
+
+
+    //OPEN SCANNER TIME MODIFY MODAL
+    [HttpGet]
+    public IActionResult GetScannerEditTimeModal()
+    {
+        return PartialView("_EditScannerTimeModal");
     }
 
     public async Task<IActionResult> AvailableFacilities()
