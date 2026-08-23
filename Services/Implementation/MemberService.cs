@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
-using Sym_Connect__Capstone2_.ViewModels.Group;
 using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Group;
 using Sym_Connect__Capstone2_.ViewModels.Member;
 using System.Collections.Immutable;
+using System.Diagnostics.Metrics;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -15,13 +17,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     {
         private readonly AppDbContext _context;
         private readonly CloudinaryService _cloudinary;
+        private readonly UserManager<User> _userManager;
 
-        public MemberService(AppDbContext context, CloudinaryService cloudinary)
+
+        public MemberService(AppDbContext context, CloudinaryService cloudinary, UserManager<User> userManager)
         {
             _context = context;
             _cloudinary = cloudinary;
+            _userManager = userManager;
         }
 
+        
         //---- QR TOKEN PART ==== 
         public async Task<string> GetOrCreateQrTokenAsync(int memberId)
         {
@@ -40,6 +46,83 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return member.QRToken;
         }
 
+
+        //======== CONFIRM EMAIL =========
+
+        public async Task<OperationalResult> ConfirmEmailAsync(string userId, string Token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if(user == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "User account was not found"
+                };
+            }
+
+            //email confirmed = true
+            var result = await _userManager.ConfirmEmailAsync(user, Token);
+            if (!result.Succeeded)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Email confirmation failed."
+                };
+            }
+
+            var passwordToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Email verified successfully.",
+                UserId = user.Id,
+                PasswordToken = passwordToken
+            };
+
+
+        }
+
+        // ===== SET PASSWORD ==== 
+        public async Task<OperationalResult> SetPasswordAsync(string userId, string token, string password)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if(user == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "User account was not found."
+                };
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user, token, password);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(
+                       " ",
+                       result.Errors.Select(e => e.Description)
+                   );
+
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = errors
+                };
+            }
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Password created successfully."
+            };
+
+        }
+
+
+
         //========= GET ALL MEMBERS PART ==== 
 
         public async Task<List<MemberListViewModel>> GetAllMembersAsync()
@@ -52,17 +135,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 FirstName = m.FirstName,
                 MiddleName = m.MiddleName ?? "",
                 LastName = m.LastName,
-                Email = m.Email,
+                Email = m.User.Email,
                     PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
                       ? "/images/default-avatar.png"
                       : m.ProfilePictureUrl,
                     ContactNumber = m.ContactNumber,
-                    Address = BuildAddress( m.Barangay, m.City, m.Province, m.Country),
+                    Address = m.Address,
                     BirthDate = m.BirthDate,
                 Gender = m.Gender,
                 Status = m.Status,
                 DateRegistered = m.DateRegistered,
-                GroupDetails = m.GroupDetails.Select(gd => new MemberGroupDetailsViewModel
+                GroupDetailsVM = m.GroupDetails.Select(gd => new MemberGroupDetailsViewModel
                 {
                     GroupDetailsId = gd.GroupDetailsId,
                     GroupId = gd.GroupId,
@@ -95,7 +178,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Gender = m.Gender,
                     Status = m.Status,
                     MemberSince = m.DateRegistered,
-                    Email = m.Email,
+                    Email = m.User.Email,
                     ContactNumber = m.ContactNumber,
                     Address = m.Address,
                     PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
@@ -114,39 +197,88 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<OperationalResult> CreateMember(MembersCreateViewModel vm, IFormFile? photo)
         {
-            var member = new Member
+            var existingUser = await _userManager.FindByEmailAsync(vm.Email);
+            if (existingUser != null)
             {
-                FirstName = vm.FirstName,
-                LastName = vm.LastName,
-                MiddleName = vm.MiddleName,
-                Email = vm.Email,
-                ContactNumber = vm.ContactNumber,
-                Address = BuildAddress( vm.Barangay, vm.City, vm.Province, vm.Country),
-                DateRegistered = DateTime.Now,
-                BirthDate = vm.BirthDate,
-                Gender = vm.Gender,
-                Status = vm.Status
-            };
-
-            _context.Members.Add(member);
-            await _context.SaveChangesAsync();
-
-            if (photo != null)
-            {
-                var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
-                if (url != null)
+                return new OperationalResult
                 {
-                    member.ProfilePictureUrl = url;
+                    Success = false,
+                    Message = "This email is already registered"
+                };
+            }
+
+      
+                var member = new Member
+                {
+
+                    FirstName = vm.FirstName,
+                    LastName = vm.LastName,
+                    MiddleName = vm.MiddleName,
+                    ContactNumber = vm.ContactNumber,
+                    Province = vm.Province,
+                    Barangay = vm.Barangay,
+                    City = vm.City,
+                    Country = vm.Country,
+                    Address = BuildAddress(vm.Barangay, vm.City, vm.Province, vm.Country),
+                    DateRegistered = DateTime.Now,
+                    BirthDate = vm.BirthDate,
+                    Gender = vm.Gender,
+                    Status = vm.Status
+                };
+                _context.Members.Add(member);
+                await _context.SaveChangesAsync();
+
+
+                //add user account fk to user table
+                var user = new User
+                {
+                    UserName = vm.Email,
+                    Email = vm.Email,
+                    EmailConfirmed = false,
+                    MemberId = member.MemberId
+                };
+
+
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join(" ", createResult.Errors.Select(e => e.Description));
+                    return new OperationalResult { Success = false, Message = $"Could not create account: {errors}" };
+                }
+
+                member.UserId = user.Id;
+                await _context.SaveChangesAsync();
+
+                if (photo != null)
+                {
+                    var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
+                    if (url != null)
+                    {
+                        member.ProfilePictureUrl = url;
+                        await _context.SaveChangesAsync();
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(vm.PhotoUrl))
+                {
+                    member.ProfilePictureUrl = vm.PhotoUrl.Trim();
                     await _context.SaveChangesAsync();
                 }
+
+                //generate email token waiting for member to confirm the email = pending email 0
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                return new OperationalResult
+                {
+                    Success = true,
+                    Message = "Member added successfully!",
+                    UserId = user.Id,
+                    EmailConfirmationToken = token
+
+                };
+
             }
-            else if (!string.IsNullOrWhiteSpace(vm.PhotoUrl))
-            {
-                member.ProfilePictureUrl = vm.PhotoUrl.Trim();
-                await _context.SaveChangesAsync();
-            }
-            return new OperationalResult { Success = true, Message = "Member added successfully!" };
-        }
+           
+        
 
         public async Task UpdateMemberAsync(MembersEditViewModel vm, IFormFile? photo)
         {
@@ -156,8 +288,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             member.FirstName = vm.FirstName;
             member.LastName = vm.LastName;
             member.MiddleName = vm.MiddleName;
-            member.Email = vm.Email;
+            member.User?.Email = vm.Email;
             member.ContactNumber = vm.ContactNumber;
+            member.Province = vm.Province;
+            member.Barangay = vm.Barangay;
+            member.City = vm.City;
+            member.Country = vm.Country;
             member.Address = BuildAddress( vm.Barangay, vm.City, vm.Province, vm.Country);
             member.BirthDate = vm.BirthDate;
             member.Gender = vm.Gender;

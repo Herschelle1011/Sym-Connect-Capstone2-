@@ -1,0 +1,241 @@
+﻿@model List<EventListItemViewModel>
+@using Sym_Connect__Capstone2_.Models.Enums
+
+@{
+    ViewData["Title"] = "Event";
+    Layout = "_LeaderLayout";
+    var approvedCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Approved);
+    var pendingCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Pending);
+    var rejectedCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Rejected);
+}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h2 class="fw-bold mb-1">Event</h2>
+        <p class="text-muted mb-0">Requests you've submitted are reviewed by an admin.</p>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <!-- Pill tabs -->
+    <div class="d-flex gap-2" id="eventTabs">
+        <button class="btn btn-pill btn-primary active" data-filter="All">All (@Model.Count)</button>
+        <button class="btn btn-pill btn-outline-secondary" data-filter="Approved">Approved (@approvedCount)</button>
+        <button class="btn btn-pill btn-outline-secondary" data-filter="Pending">Pending (@pendingCount)</button>
+        <button class="btn btn-pill btn-outline-secondary" data-filter="Rejected">Rejected (@rejectedCount)</button>
+    </div>
+
+    <!-- Search + actions -->
+    <div class="d-flex gap-2 align-items-center">
+        <div class="input-group" style="width: 220px;">
+            <input type="text" id="eventSearch" class="form-control rounded-pill-start"
+                   placeholder="Search" />
+            <span class="input-group-text bg-white rounded-pill-end">
+                <i class="bi bi-search"></i>
+            </span>
+        </div>
+        <a asp-action="Calendar" class="btn btn-outline-secondary btn-pill">View Calendar</a>
+        <button type="button" class="btn btn-primary btn-pill" data-bs-toggle="offcanvas" data-bs-target="#eventPanel">
+            Request Event
+        </button>
+    </div>
+</div>
+
+<!-- Event Cards -->
+<div id="eventList" class="d-flex flex-column gap-2">
+    @if (!Model.Any())
+    {
+        <p class="text-muted">You haven't submitted any event requests yet.</p>
+    }
+
+    @foreach (var ev in Model)
+    {
+        <div class="card border-0 shadow-sm event-card"
+             data-event-id="@ev.EventId"
+             data-status="@ev.ApprovalStatus"
+             data-title="@ev.EventTitle.ToLower()"
+             style="cursor:pointer;">
+            <div class="card-body d-flex align-items-center gap-3 py-3">
+
+                <div class="text-center bg-primary-subtle text-primary rounded-3 p-2" style="width: 60px;">
+                    <div class="small fw-semibold">@ev.StartDate.ToString("MMM")</div>
+                    <div class="fw-bold fs-5">@ev.StartDate.ToString("dd")</div>
+                </div>
+
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-dark event-title">
+                        @ev.EventTitle
+                    </div>
+                    <div class="small text-muted">
+                        @if (ev.ApprovalStatus == ApprovalStatus.Pending)
+                        {
+                            <span>Submitted @TimeAgo(ev.DateCreated)</span>
+                        }
+                        else if (ev.ApprovalStatus == ApprovalStatus.Approved)
+                        {
+                            <span>Approve by Admin, @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)</span>
+                        }
+                        else
+                        {
+                            <span>Decline by Admin, @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)</span>
+                        }
+                    </div>
+                    <div class="mt-1">
+                        @foreach (var facility in ev.FacilityNames)
+                        {
+                            <span class="badge bg-light text-dark border rounded-pill me-1">@facility</span>
+                        }
+                        @foreach (var group in ev.GroupNames)
+                        {
+                            <span class="badge bg-light text-dark border rounded-pill me-1">@group</span>
+                        }
+                    </div>
+                </div>
+
+                <div>
+                    @if (ev.ApprovalStatus == ApprovalStatus.Approved)
+                    {
+                        <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">Approved</span>
+                    }
+                    else if (ev.ApprovalStatus == ApprovalStatus.Pending)
+                    {
+                        <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2">Pending</span>
+                    }
+                    else
+                    {
+                        <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">Rejected</span>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@functions {
+    string TimeAgo(DateTime date)
+    {
+        var span = DateTime.Now - date;
+        if (span.TotalMinutes < 60) return $"{Math.Max(1, (int)span.TotalMinutes)}m ago";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours}hrs ago";
+        if (span.TotalDays < 30) return $"{(int)span.TotalDays} day(s) ago";
+        return $"{(int)(span.TotalDays / 30)} month(s) ago";
+    }
+}
+
+<style>
+    .btn-pill {
+        border-radius: 50px;
+        padding: 0.5rem 1.1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .rounded-pill-start {
+        border-radius: 50px 0 0 50px !important;
+    }
+
+    .rounded-pill-end {
+        border-radius: 0 50px 50px 0 !important;
+    }
+</style>
+
+<div class="modal fade" id="eventDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none;">
+
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="eventDetailsModalLabel" style="font-size: 16px; font-weight: 500;"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body" id="eventDetailsModalContent">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+
+
+
+        ViewBag.FormController = "Events";
+        ViewBag.FormArea = "Leader";
+        var createVm = ViewBag.FailedCreateVm as CreateEventViewModel ?? new CreateEventViewModel();
+    }
+    <script src="~/js/admin/OpenScannerTime.js"></script>
+    <script src="~/js/admin/EditScannerTime.js"></script>
+    @await Html.PartialAsync("~/Views/Events/_CreateEventPanel.cshtml", createVm)
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('#eventTabs .btn');
+        const cards = document.querySelectorAll('.event-card');
+        const searchInput = document.getElementById('eventSearch');
+
+        let activeFilter = 'All';
+
+        function applyFilters() {
+        const searchTerm = searchInput.value.trim().toLowerCase();
+
+        cards.forEach(card => {
+        const matchesStatus =
+        activeFilter === 'All' ||
+        card.dataset.status === activeFilter;
+
+        const matchesSearch =
+        card.dataset.title.includes(searchTerm);
+
+        card.style.display =
+        (matchesStatus && matchesSearch) ? '' : 'none';
+        });
+        }
+
+        // FILTER TABS
+        tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+        tabs.forEach(t => {
+        t.classList.remove('btn-primary', 'active');
+        t.classList.add('btn-outline-secondary');
+        });
+
+        this.classList.remove('btn-outline-secondary');
+        this.classList.add('btn-primary', 'active');
+
+        activeFilter = this.dataset.filter;
+        applyFilters();
+        });
+        });
+
+        // SEARCH
+        searchInput.addEventListener('input', applyFilters);
+
+        // CLICK EVENT CARD — opens details modal
+        cards.forEach(card => {
+        card.addEventListener('click', async function () {
+        const eventId = this.dataset.eventId;
+
+        const response = await fetch(
+        '@Url.Action("Details", "Events", new { area = "Leader" })' + '?id=' + eventId
+        );
+
+        if (!response.ok) {
+        alert('Unable to load event details.');
+        return;
+        }
+
+        const html = await response.text();
+        document.getElementById('eventDetailsModalContent').innerHTML = html;
+        document.getElementById('eventDetailsModalLabel').innerText =
+        this.querySelector('.event-title').textContent.trim();
+
+        const modalElement = document.getElementById('eventDetailsModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+        });
+        });
+        });
+    </script>
+}

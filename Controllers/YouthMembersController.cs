@@ -1,16 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QRCoder;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Account;
+using Sym_Connect__Capstone2_.ViewModels.Emails;
 using Sym_Connect__Capstone2_.ViewModels.Member;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
-using QRCoder;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
@@ -18,10 +20,14 @@ namespace Sym_Connect__Capstone2_.Controllers
     public class YouthMembersController : Controller
     {
         private readonly IMemberService _memberService;
+        private readonly IEmailService _emailService;
+        private readonly IRazorViewRenderer _razorViewRenderer;
 
-        public YouthMembersController(IMemberService memberService)
+        public YouthMembersController(IMemberService memberService, IEmailService emailService, IRazorViewRenderer razorViewRenderer)
         {
             _memberService = memberService;
+            _emailService = emailService;
+            _razorViewRenderer = razorViewRenderer;
         }
 
         // GET: YouthMembers
@@ -48,7 +54,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             var getMemberDetails = new MemberListViewModel
             {
                 MemberId = member.MemberId,
-                Email = member.Email,
+                Email = member.User.Email ?? "Unverified",
                 FirstName = member.FirstName,
                 MiddleName = member.MiddleName,
                 LastName = member.LastName,
@@ -56,6 +62,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 Country = member.Country,
                 Province = member.Province,
                 City = member.City,
+                Address = member.Address,
                 Barangay = member.Barangay,
                 BirthDate = member.BirthDate,
                 ContactNumber = member.ContactNumber,
@@ -64,6 +71,8 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             return View(getMemberDetails);
         }
+
+      
 
         // GET: YouthMembers/Create
         public IActionResult Create()
@@ -81,7 +90,16 @@ namespace Sym_Connect__Capstone2_.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return PartialView("_CreateMemberForm", vm);
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return Json(new
+                {
+                    success = false,
+                    message = string.Join(" ", errors)
+                });
             }
 
             var result = await _memberService.CreateMember(vm, Photo);
@@ -94,15 +112,152 @@ namespace Sym_Connect__Capstone2_.Controllers
                     message = result.Message
                 });
             }
+
+            //confirmation LINK
+            var confirmationLink = Url.Action(
+                "ConfirmEmail",
+                "YouthMembers",
+                new
+                {
+                    userId = result.UserId,
+                    token = result.EmailConfirmationToken
+                },
+                  "https",
+                    "excuse-fastball-crunchy.ngrok-free.dev");
+
+            if (confirmationLink != null)
+            {
+                var emailModel = new MemberVerificationEmailViewModel
+                {
+                    FirstName = vm.FirstName,
+                    ConfirmationLink = confirmationLink
+                };
+
+                var emailBody =
+                     await _razorViewRenderer.RenderViewToStringAsync(
+                          "EmailTemplates/MemberVerification",
+                           emailModel
+                    );
+                try
+                {
+
+
+                    await _emailService.SendEmailAsync(
+                        vm.Email,
+                        "Verify your SYM-Connect email",
+                        emailBody
+                    );
+                }
+                catch
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Member was created, but the verification email could not be sent."
+                    });
+                }
+            }
+
+
             return Json(new
             {
                 success = true,
-                message = result.Message
+                message = result.Message,                
             });
         }
 
-        //GET QR GENERATOR
+        //===  CONFIRM EMAIL PART === 
 
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(
+            string userId,
+            string token)
+        {
+            if (string.IsNullOrWhiteSpace(userId) ||
+                string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest("Invalid confirmation link.");
+            }
+
+            var result =
+                await _memberService.ConfirmEmailAsync(userId, token);
+
+            if (!result.Success)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return RedirectToAction("SetPassword", new
+            {
+                userId = result.UserId,
+                token = result.PasswordToken,
+            });
+        }
+
+        [HttpGet]
+        public IActionResult SetPassword(
+                    string userId,
+                    string token)
+        {
+            if (string.IsNullOrWhiteSpace(userId) ||
+                string.IsNullOrWhiteSpace(token))
+            {
+                return BadRequest("Invalid password setup link.");
+            }
+
+            var vm = new SetPasswordViewModel
+            {
+                UserId = userId,
+                Token = token
+            };
+
+            return View(vm);
+        }
+
+
+        public async Task<IActionResult> PasswordCreated()
+        {
+            return View();
+        }
+
+        //ADD PASSWORD ==== 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPassword(
+                  SetPasswordViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            var result = await _memberService.SetPasswordAsync(
+                vm.UserId,
+                vm.Token,
+                vm.Password
+            );
+
+            if (!result.Success)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    result.Message
+                );
+
+                return View(vm);
+            }
+
+            return RedirectToAction(nameof(PasswordCreated));
+        }
+
+
+  
+
+
+
+
+
+        //GET QR GENERATOR
         public async Task<IActionResult> ViewQrCode(int memberId)
         {
             var token = await _memberService.GetOrCreateQrTokenAsync(memberId);
@@ -127,7 +282,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             var vm = new MembersEditViewModel
             {
                 memberId = member.MemberId,
-                Email = member.Email,
+                Email = member.User?.Email ?? "Unverified",
                 FirstName = member.FirstName,
                 MiddleName = member.MiddleName,
                 LastName = member.LastName,
@@ -136,6 +291,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 City = member.City,
                 Province = member.Province,
                 Country = member.Country,
+                
                 BirthDate = member.BirthDate,
                 Gender = member.Gender,
                 Status = member.Status,
@@ -144,6 +300,9 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             return PartialView("_EditMemberForm", vm);
         }
+
+
+
 
         // POST: YouthMembers/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -194,7 +353,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             var viewModel = new MemberDeleteViewModel
             {
                 memberId = member.MemberId,
-                Email = member.Email,
+                Email = member.User?.Email != null ? member.User.Email : "Unverified",
                 FullName = member.FullName,
                 groupName = string.Join(", ",
                 member.GroupDetails

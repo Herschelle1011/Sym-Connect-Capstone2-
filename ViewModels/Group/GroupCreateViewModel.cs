@@ -5,10 +5,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Group
 {
     public class GroupCreateViewModel
     {
-        // bug polish members and groups 
-        // proceed for members page after
-
-        public int GroupId { get; set; }
 
         [Required(ErrorMessage = "Group Name is Required")]
         [Display(Name = "Group Name")]
@@ -22,12 +18,13 @@ namespace Sym_Connect__Capstone2_.ViewModels.Group
         [Display(Name = "Status")]
         public string Status { get; set; } = string.Empty;
 
-
         [Required]
         [Display(Name = "Leader")]
         public int? LeaderId { get; set; }
 
-        // the dropdown list of members
-        public SelectList? LeaderOptions { get; set; }
+        public string? SelectedLeaderName { get; set; }
+        public string? SelectedLeaderEmail { get; set; }
+        public int? SelectedLeaderPoints { get; set; }
+
     }
 }

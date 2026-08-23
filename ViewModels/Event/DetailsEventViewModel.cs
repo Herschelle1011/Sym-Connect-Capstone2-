@@ -1,4 +1,5 @@
 ﻿using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.ViewModels.Attendance;
 using System.ComponentModel.DataAnnotations;
 
 namespace Sym_Connect__Capstone2_.ViewModels.Event
@@ -41,6 +42,17 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
         public List<FacilityPhotoVM> FacilityPhotos { get; set; } = new();
 
+        //Created by Who?
+        public ApprovalStatus ApprovalStatus { get; set; }
+
+        public string? RejectionReason { get; set; }
+        public string? ApprovedBy { get; set; }
+        public DateTime? ApprovedDate { get; set; }
+
+
+        public string? RequestedByGroupName { get; set; }
+
+
         // Statistics
         public int ExpectedGroupCount { get; set; }
         public int AttendanceCount { get; set; }
@@ -58,7 +70,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public bool HasAttendance => AttendanceCount > 0;
 
 
-        public List<AttendanceRowViewModel> AttendanceRecords { get; set; } = new();
+        public AttendanceTabViewModel AttendanceRecords { get; set; }
     }
 
 

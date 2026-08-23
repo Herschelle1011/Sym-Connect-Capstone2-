@@ -93,32 +93,59 @@
         <input type="hidden" asp-for="Country" value="Philippines" />
     </div>
 
+    <!-- Keep the saved address values so JavaScript can restore them -->
+    <input type="hidden" id="savedProvince" value="@Model.Province" />
+    <input type="hidden" id="savedCity" value="@Model.City" />
+    <input type="hidden" id="savedBarangay" value="@Model.Barangay" />
+
     <div class="row mb-3">
         <div class="col-6">
             <label class="form-label">Province</label>
-            <select asp-for="Province" id="provinceSelect" class="form-select">
+
+            <select id="provinceSelect" class="form-select">
                 <option value="">-- Select Province --</option>
             </select>
-            <span asp-validation-for="Province" class="text-danger small"></span>
+
+            <input type="hidden"
+                   asp-for="Province"
+                   id="provinceName" />
+
+            <span asp-validation-for="Province"
+                  class="text-danger small"></span>
         </div>
+
         <div class="col-6">
             <label class="form-label">City / Municipality</label>
-            <select asp-for="City" id="citySelect" class="form-select" disabled>
+
+            <select id="citySelect"
+                    class="form-select"
+                    disabled>
                 <option value="">-- Select Province First --</option>
             </select>
-            <span asp-validation-for="City" class="text-danger small"></span>
+
+            <input type="hidden"
+                   asp-for="City"
+                   id="cityName" />
+
+            <span asp-validation-for="City"
+                  class="text-danger small"></span>
         </div>
     </div>
 
     <div class="row mb-3">
         <div class="col-6">
             <label class="form-label">Barangay</label>
-            <select asp-for="Barangay" id="barangaySelect" class="form-select" disabled>
+
+            <select asp-for="Barangay"
+                    id="barangaySelect"
+                    class="form-select"
+                    disabled>
                 <option value="">-- Select City First --</option>
             </select>
-            <span asp-validation-for="Barangay" class="text-danger small"></span>
+
+            <span asp-validation-for="Barangay"
+                  class="text-danger small"></span>
         </div>
-       
     </div>
 
     <div class="row mb-3">

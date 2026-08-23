@@ -594,69 +594,68 @@
                 <div class="col-lg-4">
 
                     @{
-                        bool ifAllDay = Model.StartTime == null && Model.EndTime == null;
+                            bool ifAllDay = Model.StartTime == null && Model.EndTime == null;
 
-                        bool isEventLive;
-                        bool ifEventEnd;
-                        bool ifNotStarted;
+                            bool isEventLive;
+                            bool ifEventEnd;
+                            bool ifNotStarted;
 
-                        bool timeOutIsLive;
-                        bool timeOutNotYetOpen;
-                        bool timeOutClosed;
+                            bool timeOutIsLive;
+                            bool timeOutNotYetOpen;
+                            bool timeOutClosed;
 
-                        if (ifAllDay)
-                        {
-                            var eventStart = Model.StartDate.Date;
-                            var eventEnd = Model.EndDate.Value.Date.AddDays(1);
+                            if (ifAllDay)
+                            {
+                                var eventStart = Model.StartDate.Date;
+                                var eventEnd = Model.EndDate.Value.Date.AddDays(1);
 
-                            isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
-                            ifNotStarted = DateTime.Now < eventStart;
-                            ifEventEnd = DateTime.Now >= eventEnd;
+                                isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
+                                ifNotStarted = DateTime.Now < eventStart;
+                                ifEventEnd = DateTime.Now >= eventEnd;
 
-                            var timeOutOpens = eventEnd.AddMinutes(-30);
-                            timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now < eventEnd;
-                            timeOutNotYetOpen = DateTime.Now < timeOutOpens;
-                            timeOutClosed = DateTime.Now >= eventEnd;
-                        }
-                        else
-                        {
-                            //check changes here 8/18/2026 ----------
-                            var eventStart =
-                                  Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
+                                var timeOutOpens = eventEnd.AddMinutes(-30);
+                                timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now < eventEnd;
+                                timeOutNotYetOpen = DateTime.Now < timeOutOpens;
+                                timeOutClosed = DateTime.Now >= eventEnd;
+                            }
+                            else
+                            {
+                                var eventStart =
+                                    Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
 
-                            var eventEnd =
-                                Model.EndDate.Value.Date + (Model.EndTime ?? TimeSpan.Zero);
+                                var eventEnd =
+                                    Model.EndDate.Value.Date + (Model.EndTime ?? TimeSpan.Zero);
 
-                            var timeInOpens =
-                              Model.StartDate.Date + (Model.TimeInScannerOpenTime ?? eventStart.TimeOfDay);
-                            var timeInCloses = Model.TimeInScannerClosesTime.HasValue ?
-                            Model.StartDate.Date + Model.TimeInScannerClosesTime.Value : eventStart;
+                                var timeInOpens =
+                                    Model.StartDate.Date + (Model.TimeInScannerOpenTime ?? eventStart.TimeOfDay);
 
+                                var timeInCloses = Model.TimeInScannerClosesTime.HasValue
+                                    ? Model.StartDate.Date + Model.TimeInScannerClosesTime.Value
+                                    : eventStart;
 
+                                isEventLive =
+                                    DateTime.Now >= timeInOpens &&
+                                    (DateTime.Now <= timeInCloses || Model.Status == EventStatus.Ongoing);
 
-                            isEventLive =
-                               DateTime.Now >= timeInOpens &&
-                               DateTime.Now <= timeInCloses;
+                                ifNotStarted =
+                                    DateTime.Now < timeInOpens;
 
-                            ifNotStarted =
-                                DateTime.Now < timeInOpens;
+                                ifEventEnd =
+                                    DateTime.Now > eventEnd;
 
-                            ifEventEnd =
-                                DateTime.Now > timeInCloses;
+                                var timeOutOpens = Model.StartDate.Date +
+                                    (Model.TimeOutScannerOpenTime ?? eventEnd.AddMinutes(-30).TimeOfDay);
 
-                            var timeOutOpens = Model.StartDate.Date + 
-                            (Model.TimeOutScannerOpenTime ?? eventEnd.AddMinutes(-30).TimeOfDay);
-
-
-                            var timeOutCloses = Model.TimeOutScannerClosesTime.HasValue ? 
-                                        Model.EndDate.Value.Date + Model.TimeOutScannerClosesTime.Value 
+                                var timeOutCloses = Model.TimeOutScannerClosesTime.HasValue
+                                    ? Model.EndDate.Value.Date + Model.TimeOutScannerClosesTime.Value
                                     : eventEnd.AddMinutes(30);
 
-                            timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now <= timeOutCloses;
-                            timeOutNotYetOpen = DateTime.Now < timeOutOpens;
-                            timeOutClosed = DateTime.Now > timeOutCloses;
+                                timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now <= timeOutCloses;
+                                timeOutNotYetOpen = DateTime.Now < timeOutOpens;
+                                timeOutClosed = DateTime.Now > timeOutCloses;
+                            }
                         }
-                    }
+                    
 
                     <!-- TIME IN CARD -->
                     <div class="details-card mb-3">
@@ -678,13 +677,13 @@
 
                         @if (isEventLive)
                         {
-                            <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                            <a asp-action="ScannerForTimeIn" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
                                 <i class="ti ti-qrcode"></i> Open QR Scanner
                             </a>
                         }
                         else if (ifAllDay)
                         {
-                            <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                            <a asp-action="ScannerForTimeIn" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
                                 <i class="ti ti-qrcode"></i> Open QR Scanner
                             </a>
                         }
@@ -754,7 +753,7 @@
                         }
                         else if (ifAllDay)
                         {
-                            <a asp-action="Scanner" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                            <a asp-action="ScannerForTimeIn" asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
                                 <i class="ti ti-qrcode"></i> Open QR Scanner
                             </a>
                         }

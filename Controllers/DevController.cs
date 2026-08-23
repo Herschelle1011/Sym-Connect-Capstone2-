@@ -27,7 +27,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         public async Task<IActionResult> DevSetSessionLeader(int memberId)
         {
             bool isLeader = await _context.Groups
-                .AnyAsync(g => g.LeaderId == memberId && !g.IsArchived);
+                .AnyAsync(g => g.LeaderId == memberId && !g.Status.Contains("Inactive"));
 
             if (!isLeader)
             {
@@ -36,7 +36,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             HttpContext.Session.SetInt32("CurrentMemberId", memberId);
 
-            return RedirectToAction("Index", "Profile", new { area = "Member" });
+            return RedirectToAction("Dashboard", "Leader", new { area = "Leader" });
         }
     }
 #endif

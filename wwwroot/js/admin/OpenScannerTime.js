@@ -242,64 +242,41 @@
         if (!isAllDay) {
 
             if (timeInOpen >= timeInClose) {
-                showToast(
+                showAlertDialog(
                     "Time-In scanner closing time must be after its opening time.",
-                    false
+                    "Invalid Scanner Time"
                 );
                 return;
             }
 
             if (timeInClose > timeOutOpen) {
-                showToast(
+                showAlertDialog(
                     "Time-In scanner must close before the Time-Out scanner opens.",
-                    false
+                    "Invalid Scanner Time"
                 );
                 return;
             }
 
             if (timeOutOpen >= timeOutClose) {
-                showToast(
+                showAlertDialog(
                     "Time-Out scanner closing time must be after its opening time.",
-                    false
+                    "Invalid Scanner Time"
                 );
                 return;
             }
-
-            // Only enforce open < close if a close time was actually set
-            if (timeInClose && timeInOpen > timeInClose) {
-                showToast(
-                    "Time-In scanner cannot close before it opens.",
-                    false
-                );
-                return;
-            }
-
-            // if (timeOutOpen < endTime) {
-            //     showToast("Time-Out scanner cannot open before the event ends.", false);            
-            //     return;
-            // }
-
 
             if (timeOutOpen > endTime) {
-                showToast(
+                showAlertDialog(
                     "Time-Out scanner cannot open after the event ends.",
-                    false
+                    "Invalid Scanner Time"
                 );
                 return;
             }
 
             if (timeOutOpen < startTime) {
-                showToast(
+                showAlertDialog(
                     "Time-Out scanner cannot open before the event starts.",
-                    false
-                );
-                return;
-            }
-
-            if (timeOutClose && timeOutOpen > timeOutClose) {
-                showToast(
-                    "Time-Out scanner cannot close before it opens.",
-                    false
+                    "Invalid Scanner Time"
                 );
                 return;
             }
@@ -327,41 +304,40 @@
         const contentType =
             response.headers.get("content-type");
 
+            if (
+                contentType &&
+                contentType.includes("application/json")
+            ) {
+                const result = await response.json();
 
-        if (
-            contentType &&
-            contentType.includes("application/json")
-        ) {
+                if (result.success) {
 
-            const result =
-                await response.json();
+                    modal.hide();
 
+                    showAlertDialog(
+                        result.message,
+                        "Event Created"
+                    );
 
-            if (result.success) {
-                modal.hide();
-                setTimeout(() => location.reload(), 900);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1200);
+
+                } else {
+
+                    showAlertDialog(
+                        result.message,
+                        "Unable to Create Event"
+                    );
+                }
+            }
+            else {
+                document.getElementById(
+                    "appModalBody"
+                ).innerHTML = await response.text();
             }
 
-            showToast(
-                result.message,
-                result.success
-            );
-
-            if (result.success) {
-                setTimeout(
-                    () => location.reload(),
-                    900
-                );
-            }
-        }
-        else {
-
-            document.getElementById(
-                "appModalBody"
-            ).innerHTML =
-                await response.text();
-        }
-    };
+        }; 
 
 
     // ==============================

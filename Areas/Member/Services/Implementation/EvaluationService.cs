@@ -2,6 +2,7 @@
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Data;
+using MemberModel = Sym_Connect__Capstone2_.Models.Member;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 
@@ -16,10 +17,10 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
         }
 
 
-        public async Task<User?> FindMemberForEvaluationAsync(string firstname, string email)
+        public async Task<MemberModel?> FindMemberForEvaluationAsync(string firstname, string email)
         {
-            return await _context.Users.FirstOrDefaultAsync
-                                (m => m.Email!.ToLower() == email.ToLower() 
+            return await _context.Members.FirstOrDefaultAsync
+                                (m => m.User.Email!.ToLower() == email.ToLower() 
                                 && m.FirstName!.ToLower() == firstname.ToLower());
         }
 

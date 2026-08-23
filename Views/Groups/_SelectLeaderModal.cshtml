@@ -1,0 +1,63 @@
+﻿@model List<MemberListViewModel>
+
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-bold">Select Group Leader</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <input type="text"
+           id="leaderSearchInput"
+           class="form-control mb-3"
+           placeholder="Search by name or email..."
+           value="@Context.Request.Query["search"]" />
+
+    <div class="leader-picker-list" style="max-height: 400px; overflow-y: auto;">
+        @if (!Model.Any())
+        {
+            <div class="text-center text-muted py-4">No active members found.</div>
+        }
+        @foreach (var m in Model)
+        {
+            <div class="leader-candidate-row d-flex align-items-center gap-3 p-2 rounded"
+                 data-member-id="@m.MemberId"
+                 data-member-name="@m.FirstName @m.LastName"
+                 role="button">
+
+                <img src="@(string.IsNullOrEmpty(m.PhotoUrl) ? $"https://ui-avatars.com/api/?name={m.FirstName}+{m.LastName}&background=4a6cf7&color=fff&size=40" : m.PhotoUrl)"
+                     class="rounded-circle"
+                     width="40" height="40"
+                     alt="@m.FirstName" />
+
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold text-truncate">@m.FirstName @m.LastName</div>
+                    <div class="text-muted small text-truncate">@m.Email</div>
+                </div>
+
+                <span class="badge points-badge">
+                    <i class="bi bi-star-fill me-1"></i>@m.Points pts
+                </span>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .leader-candidate-row {
+        cursor: pointer;
+        transition: background-color 0.12s ease;
+    }
+
+        .leader-candidate-row:hover {
+            background-color: #f1f5f9;
+        }
+
+    .points-badge {
+        background: #eef1ff;
+        color: #4a6cf7;
+        font-weight: 600;
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 20px;
+    }
+</style>

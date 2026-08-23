@@ -138,3 +138,57 @@ function previewFromUrl(url) {
         placeholder.style.display = 'block';
     }
 }
+
+
+
+//LOADING INDICATOR
+
+
+document.addEventListener("submit", async function (e) {
+    if (e.target.id !== "createMemberForm")
+        return;
+
+    e.preventDefault();
+
+
+const createMemberForm = e.target;
+const submitBtn = createMemberForm.querySelector("#submitBtn");
+
+
+    submitBtn.disabled = true;
+
+    submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>
+            Sending verification email...`;
+
+    const formData = new FormData(createMemberForm);
+    try {
+        const response = await fetch(createMemberForm.action, {
+            method: "POST",
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            submitBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i>
+                    Email Sent`;
+
+            alert(result.message);
+        }
+        else {
+            alert(result.message);
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "Create";
+
+        }
+    }
+    catch (error) {
+        console.error(error);
+
+        alert("Something went wrong while creating the member.");
+
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "Create";
+    }
+});

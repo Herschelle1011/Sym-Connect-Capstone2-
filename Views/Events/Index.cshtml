@@ -61,6 +61,16 @@
                 <i class="ti ti-building"></i> View Facilities
             </a>
 
+            <a asp-action="ViewEventsRequests" class="btn btn-outline-secondary ms-2 position-relative">
+                <i class="ti ti-clipboard-check"></i> Event Requests
+                @if (ViewBag.PendingRequestCount != null && (int)ViewBag.PendingRequestCount > 0)
+                {
+                    <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle">
+                        @ViewBag.PendingRequestCount
+                    </span>
+                }
+            </a>
+
             <button type="button" class="btn btn-primary ms-2" data-bs-toggle="offcanvas" data-bs-target="#eventPanel">
                 <i class="ti ti-plus"></i> Add Event
             </button>

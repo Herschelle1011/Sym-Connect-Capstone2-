@@ -508,11 +508,20 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventId"));
 
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ApprovedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("ArchiveDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CreatedByUserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int?>("CreatedByUserId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
@@ -539,6 +548,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("Points")
                         .HasColumnType("int");
 
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -561,6 +573,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("time");
 
                     b.HasKey("EventId");
+
+                    b.HasIndex("ApprovedByUserId");
 
                     b.HasIndex("CreatedByUserId");
 
@@ -780,10 +794,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("EarnedPoints")
                         .HasColumnType("int");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -874,20 +884,14 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<string>("FirstName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("MiddleName")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("MemberId")
+                        .HasColumnType("int");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -910,10 +914,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
@@ -1153,9 +1153,15 @@ namespace Sym_Connect__Capstone2_.Migrations
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EventModels.Event", b =>
                 {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "CreatedByUser")
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Member", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId");
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Member", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedByUserId");
+
+                    b.Navigation("ApprovedByUser");
 
                     b.Navigation("CreatedByUser");
                 });

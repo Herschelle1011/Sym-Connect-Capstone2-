@@ -5,13 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Implementation;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Configuration;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Seed;
 using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
-
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using System.IO;
 
 
 
@@ -92,7 +95,7 @@ builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfa
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IProfileService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ProfileService>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 
 // Program.cs
@@ -112,6 +115,14 @@ builder.Services.AddSession(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//register EmailSettings
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+//for email
+builder.Services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
 
 var app = builder.Build();
 

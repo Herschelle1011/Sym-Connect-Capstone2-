@@ -16,16 +16,25 @@
     let selectedMembers = [];
 // was: const groupId = @Model.GroupId;
 const groupId = document.querySelector('.container-fluid').dataset.groupId;
+
+//OPEN ADD MEMBER MODAL
 function openAddMemberModal() {
     selectedMembers = [];
+
     document.getElementById('memberSearchInput').value = '';
+
     document.getElementById('searchResults').innerHTML =
-        '<div id="searchPlaceholder" style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">Start typing to search members...</div>';
+        '<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">Loading members...</div>';
+
     renderTags();
     updateConfirmBtn();
+
     document.getElementById('addMemberModal').style.display = 'flex';
+
+    fetchMembers('');
 }
 
+//CLOSE MEMBER MODAL
 function closeAddMemberModal() {
     document.getElementById('addMemberModal').style.display = 'none';
 }
@@ -33,13 +42,10 @@ function closeAddMemberModal() {
 // Debounce — waits 300ms after user stops typing before calling server
 // Think of it like waiting for someone to finish their sentence before replying
 let searchTimer;
+
 function searchMembers(query) {
     clearTimeout(searchTimer);
-    if (query.length < 1) {
-        document.getElementById('searchResults').innerHTML =
-            '<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">Start typing to search members...</div>';
-        return;
-    }
+
     searchTimer = setTimeout(() => fetchMembers(query), 300);
 }
 
@@ -54,35 +60,103 @@ function renderResults(members) {
     const container = document.getElementById('searchResults');
 
     if (members.length === 0) {
-        container.innerHTML = '<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">No members found.</div>';
+        container.innerHTML =
+            '<div style="padding:16px;text-align:center;color:#9ca3af;font-size:13px;">No members found.</div>';
         return;
     }
 
     container.innerHTML = members.map(m => {
-        const initials = m.fullName.substring(0, 2).toUpperCase();
+
+        const initials = m.fullName
+            .split(' ')
+            .filter(x => x.length > 0)
+            .slice(0, 2)
+            .map(x => x[0])
+            .join('')
+            .toUpperCase();
         const isSelected = selectedMembers.some(s => s.id === m.memberId);
+
         const checkIcon = isSelected
             ? '<i class="ti ti-circle-check" style="color:#16a34a;font-size:18px;"></i>'
             : '<i class="ti ti-circle" style="color:#d1d5db;font-size:18px;"></i>';
 
         return `
-                    <div onclick="toggleMember(${m.memberId}, '${m.fullName.replace(/'/g, "\\'")}')"
-                         style="display:flex;align-items:center;gap:10px;
-                                padding:10px 14px;cursor:pointer;
-                                border-bottom:1px solid #f3f4f6;
-                                background:${isSelected ? '#f0fdf4' : '#fff'}">
-                        <div style="width:36px;height:36px;border-radius:50%;
-                                    background:#dbeafe;color:#1e40af;
-                                    display:flex;align-items:center;justify-content:center;
-                                    font-size:12px;font-weight:500;flex-shrink:0;">
-                            ${initials}
-                        </div>
-                        <div style="flex:1;">
-                            <div style="font-size:13px;font-weight:500;">${m.fullName}</div>
-                            <div style="font-size:11px;color:#6b7280;">${m.email}</div>
-                        </div>
-                        ${checkIcon}
-                    </div>`;
+            <div onclick="toggleMember(
+                    ${m.memberId},
+                    '${m.fullName.replace(/'/g, "\\'")}'
+                 )"
+                 style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    padding:10px 14px;
+                    cursor:pointer;
+                    border-bottom:1px solid #f3f4f6;
+                    background:${isSelected ? '#f0fdf4' : '#fff'};
+                 ">
+
+                <div style="
+                    width:36px;
+                    height:36px;
+                    border-radius:50%;
+                    background:#dbeafe;
+                    color:#1e40af;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:12px;
+                    font-weight:500;
+                    flex-shrink:0;
+                ">
+                    ${initials}
+                </div>
+
+                <div style="flex:1; min-width:0;">
+
+                    <div style="
+                        font-size:13px;
+                        font-weight:500;
+                        color:#111827;
+                    ">
+                        ${m.fullName}
+                    </div>
+
+                    <div style="
+                        font-size:11px;
+                        color:#6b7280;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                        white-space:nowrap;
+                    ">
+                        ${m.email}
+                    </div>
+
+                </div>
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:10px;
+                    flex-shrink:0;
+                ">
+
+                    <span style="
+                        background:#f0fdf4;
+                        color:#15803d;
+                        padding:4px 8px;
+                        border-radius:999px;
+                        font-size:11px;
+                        font-weight:600;
+                        white-space:nowrap;
+                    ">
+                        ${m.points} pts
+                    </span>
+
+                    ${checkIcon}
+
+                </div>
+            </div>
+        `;
     }).join('');
 }
 

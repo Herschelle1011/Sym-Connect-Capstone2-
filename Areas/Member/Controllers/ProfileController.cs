@@ -21,12 +21,18 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         public async Task<IActionResult> Index()
         {
             var memberId = HttpContext.Session.GetInt32("CurrentMemberId");
+            if (memberId == null)
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+
             var profile = await _profileService.GetProfileAsync(memberId);
+            if (profile == null)
+                return NotFound(); // or a friendly "profile not found" view
+
             return View(profile);
         }
 
         //GET PROFILE
-      
+
 
 
         public async Task<IActionResult> MyQrCode()

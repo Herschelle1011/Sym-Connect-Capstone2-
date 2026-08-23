@@ -97,10 +97,19 @@
     const fallbackTimeOutOpen = endTime;
     const fallbackTimeOutClose = addMinutes(endTime, 30);
 
-    const timeInOpenValue = savedTimeInOpen || fallbackTimeInOpen;
-    const timeInCloseValue = savedTimeInClose || fallbackTimeInClose;
-    const timeOutOpenValue = savedTimeOutOpen || fallbackTimeOutOpen;
-    const timeOutCloseValue = savedTimeOutClose || fallbackTimeOutClose;
+    // Detect whether the user actually changed Start/End Time in this edit session.
+    // If they did, the saved scanner offsets were computed for the OLD schedule
+    // and are no longer trustworthy — force recompute from the NEW times instead.
+    const originalStartTime = form.dataset.originalStartTime;
+    const originalEndTime = form.dataset.originalEndTime;
+
+    const startTimeChanged = startTime !== originalStartTime;
+    const endTimeChanged = endTime !== originalEndTime;
+
+    const timeInOpenValue = (savedTimeInOpen && !startTimeChanged) ? savedTimeInOpen : fallbackTimeInOpen;
+    const timeInCloseValue = (savedTimeInClose && !startTimeChanged) ? savedTimeInClose : fallbackTimeInClose;
+    const timeOutOpenValue = (savedTimeOutOpen && !endTimeChanged) ? savedTimeOutOpen : fallbackTimeOutOpen;
+    const timeOutCloseValue = (savedTimeOutClose && !endTimeChanged) ? savedTimeOutClose : fallbackTimeOutClose;
 
     // ==============================
     // 4. LOAD SCANNER TIME MODAL
@@ -160,6 +169,14 @@
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal'));
     modal.show();
 
+
+
+    document.getElementById('backToEventFormBtn').onclick = function () {
+        modal.hide();
+        const panel = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+        panel.show();
+    };
+
     // ==============================
     // 7. CONFIRM SCANNER TIMES
     // ==============================
@@ -176,27 +193,43 @@
             timeOutClose = document.getElementById('scannerTimeOutCloseInput').value;
 
             if (timeInOpen > startTime) {
-                showToast("Time-In scanner cannot open after the event starts.", false);
+                showAlertDialog(
+                    "Time-In scanner cannot open after the event starts.",
+                    "Invalid Scanner Time"
+                );
                 return;
             }
+      
 
             if (timeInClose && timeInOpen > timeInClose) {
-                showToast("Time-In scanner cannot close before it opens.", false);
+                showAlertDialog(
+                    "Time-In scanner cannot close before it opens.",
+                    "Invalid Scanner Time"
+                );
                 return;
             }
 
-            if (timeOutOpen > endTime) {
-                showToast("Time-Out scanner cannot open after the event ends.", false);
+            if (timeOutOpen < endTime) {
+                showAlertDialog(
+                    "Time-Out scanner cannot open after the event ends.",
+                    "Invalid Scanner Time"
+                );
                 return;
             }
 
             if (timeOutOpen < startTime) {
-                showToast("Time-Out scanner cannot open before the event starts.", false);
+                showAlertDialog(
+                    "Time-Out scanner cannot open before the event starts.",
+                    "Invalid Scanner Time"
+                );
                 return;
             }
 
             if (timeOutClose && timeOutOpen > timeOutClose) {
-                showToast("Time-Out scanner cannot close before it opens.", false);
+                showAlertDialog(
+                    "Time-Out scanner cannot close before it opens.",
+                    "Invalid Scanner Time"
+                );
                 return;
             }
         }
@@ -214,29 +247,33 @@
 
         const contentType = response.headers.get("content-type");
 
+
         if (contentType && contentType.includes("application/json")) {
+
             const result = await response.json();
 
-            showToast(result.message, result.success);
-
             if (result.success) {
+
                 modal.hide();
-                setTimeout(() => location.reload(), 900);
+
+                showAlertDialog(
+                    result.message,
+                    "Event Updated"
+                );
+
+                setTimeout(() => {
+                    location.reload();
+                }, 1200);
+
+            } else {
+
+                showAlertDialog(
+                    result.message,
+                    "Unable to Update Event"
+                );
             }
-            // else: modal stays open so the admin can fix the scanner times
-        } else {
-            document.getElementById("appModalBody").innerHTML = await response.text();
         }
-    };
 
-    // ==============================
-    // 8. BACK BUTTON
-    // ==============================
+    }
+ });
 
-    document.getElementById('backToEventFormBtn').onclick = function () {
-        modal.hide();
-        const panel = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
-        panel.show();
-    };
-
-});

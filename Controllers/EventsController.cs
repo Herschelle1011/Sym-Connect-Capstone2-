@@ -31,7 +31,7 @@ public class EventsController : Controller
         return Json(new { success = result.Success, message = result.Message });
     }
 
-    public async Task<IActionResult> Scanner(int eventId)
+    public async Task<IActionResult> ScannerForTimeIn(int eventId)
     {
         var eventEntity = await _eventService.GetEventByIdAsync(eventId);
         if (eventEntity == null) return NotFound();
@@ -82,11 +82,13 @@ public class EventsController : Controller
     // --------GET: EVENTS--------------
     public async Task<IActionResult> Index(int? year, int? month)    
     {
+        ViewBag.PendingRequestCount = await _eventService.GetPendingRequestCountAsync(); 
         ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
         ViewBag.Groups = await _groupService.GetAllGroupsAsync();
         //set default values 
         var targetYear = year ?? DateTime.Now.Year;
         var targetMonth = month ?? DateTime.Now.Month;
+
 
         var vm = new EventListViewModel
         {
@@ -105,6 +107,9 @@ public class EventsController : Controller
 
         var eventDetails = await _eventService.GetDetailsByAsync(id.Value);
         if (eventDetails == null) return NotFound();
+
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            return PartialView("_ViewDetailsEventRequests", eventDetails);
 
         return View(eventDetails);
     }
@@ -136,7 +141,14 @@ public class EventsController : Controller
             return Json(new { success = false, message = string.Join(" ", errors) });
         }
 
-        var result = await _eventService.CreateEventAsync(vm);
+        int? memberId = HttpContext.Session.GetInt32("CurrentMemberId");
+           if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            return Json(new { success = false, message = "You must be logged in as Admin." });
+        }
+
+
+        var result = await _eventService.CreateEventAsync(vm, isAdminCreated: true, createByUserId: null);
 
         if (!result.Success)
         {
@@ -290,4 +302,59 @@ public class EventsController : Controller
 
         return PartialView("_FacilityScheduleModal", vm);
     }
+
+
+    public async Task<IActionResult> ViewEventsRequests()
+    {
+        var events = await _eventService.GetEventsSummaryForAdminAsync();
+        return View(events);
+    }
+
+
+
+
+
+
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ApproveEvent(int eventId)
+    {
+        if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            return Json(new { success = false, message = "You must be logged in as Admin." });
+        }
+
+        // TODO: [AUTH MIGRATION] approveByUserId is null — Admin has no Members
+        // row to reference. See CreatedByUserId note in EventController.Create.
+        var result = await _eventService.ApproveEventAsync(eventId, approveByUserId: null);
+
+
+        if (!result.Success)
+            return Json(new { success = false, message = result.ErrorMessage });
+
+        return Json(new { success = true, message = "Event approved successfully." });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectAnEvent(int eventId, string reason)
+    {
+        if (!(User.Identity?.IsAuthenticated ?? false))
+        {
+            return Json(new { success = false, message = "You must be logged in as Admin." });
+        }
+
+        // TODO: [AUTH MIGRATION] approveByUserId is null — Admin has no Members
+        // row to reference. See CreatedByUserId note in EventController.Create.
+        var result = await _eventService.RejectEventAsync(eventId, reason: reason);
+
+
+        if (!result.Success)
+            return Json(new { success = false, message = result.ErrorMessage });
+
+        return Json(new { success = true, message = "Event rejected." });
+    }
+
+
 }

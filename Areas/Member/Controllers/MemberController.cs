@@ -7,11 +7,11 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
-    public class DashboardController : Controller
+    public class MemberController : Controller
     {
         private readonly IMemberService _memberService;
 
-        public DashboardController(IMemberService memberService)
+        public MemberController(IMemberService memberService)
         {
             _memberService = memberService;
         }
@@ -29,8 +29,6 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             HttpContext.Session.SetInt32("CurrentMemberId", memberId);
             return RedirectToAction("Index", "Profile");
         }
-
-
 
     }
 }

@@ -47,9 +47,9 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 return View();
             }
 
-            HttpContext.Session.SetString("CurrentMemberId", member.Id);
+            HttpContext.Session.SetInt32("CurrentMemberId", member.MemberId);
             HttpContext.Session.SetString("CurrentMemberName", $"{member.FirstName} {member.LastName}");
-            HttpContext.Session.SetString("CurrentMemberEmail", member.Email ?? "");
+            HttpContext.Session.SetString("CurrentMemberEmail", member.User.Email ?? "");
 
             return RedirectToAction("Index"); // 
         }

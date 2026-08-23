@@ -1,6 +1,7 @@
 ﻿using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sym_Connect__Capstone2_.Models.EventModels
 {
@@ -29,13 +30,13 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
 
         public EventStatus Status { get; set; } = EventStatus.Upcoming;
 
-        public string? CreatedByUserId { get; set; }
-        public User? CreatedByUser { get; set; }
 
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
 
         public bool IsArchived { get; set; }
         public DateTime? ArchiveDate { get; set; }
+
+
 
         //TIME SCANNER OPEN/OUT MODIFY
         public TimeSpan? TimeInScannerOpensOffset { get; set; }  
@@ -43,6 +44,25 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
 
         public TimeSpan? TimeOutScannerOpensOffset { get; set; }
         public TimeSpan? TimeOutScannerClosesOffset { get; set; }
+
+
+
+        [ForeignKey(nameof(CreatedByUser))]
+        public int? CreatedByUserId { get; set; }
+        public Member? CreatedByUser { get; set; }
+
+
+        //APPROVAL PART --- LEADERS PART
+        public string? RejectionReason { get; set; }
+
+        public ApprovalStatus ApprovalStatus { get; set; } = ApprovalStatus.Pending;
+        public DateTime? ApprovedDate { get; set; }
+
+        [ForeignKey(nameof(ApprovedByUser))]
+        public int? ApprovedByUserId { get; set; }
+        public Member? ApprovedByUser { get; set; }
+
+
 
 
         public ICollection<EventFacility> ExpectedFacilities { get; set; } = new List<EventFacility>();

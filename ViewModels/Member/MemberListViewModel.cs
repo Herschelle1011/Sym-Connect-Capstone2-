@@ -20,6 +20,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         public string Barangay { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
 
+        public int Points { get; set; }
+
         public string PhotoUrl { get; set; } = string.Empty;
 
         public string Gender { get; set; } = string.Empty;
@@ -27,7 +29,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
 
         public DateTime DateRegistered { get; set; } = DateTime.Now;
 
-        public ICollection<MemberGroupDetailsViewModel> GroupDetails { get; set; } = new List<MemberGroupDetailsViewModel>();
+        public ICollection<MemberGroupDetailsViewModel> GroupDetailsVM { get; set; } = new List<MemberGroupDetailsViewModel>();
         public string FullName =>
                 $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
     }

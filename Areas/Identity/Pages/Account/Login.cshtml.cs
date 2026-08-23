@@ -2,19 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Logging;
-using Sym_Connect__Capstone2_.Models;
 
 namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 {
@@ -23,15 +26,24 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
         private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly AppDbContext _context;              
+        private readonly IGroupService _groupService;     
 
         public LoginModel(
             SignInManager<User> signInManager,
             UserManager<User> userManager,
-            ILogger<LoginModel> logger)
+            ILogger<LoginModel> logger,
+            AppDbContext context,                           
+          IGroupService groupService)
+            
+     
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _logger = logger;
+            _context = context;                            
+            _groupService = groupService;
+
         }
 
         /// <summary>
@@ -129,23 +141,32 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 
                         if (await _userManager.IsInRoleAsync(user, "Admin"))
                         {
-                            return RedirectToAction("Dashboard", "Admin");
+                            return RedirectToAction(
+                                "Dashboard",
+                                "Admin",
+                                new { area = "" }
+                            );
                         }
-                        else if (await _userManager.IsInRoleAsync(user, "Leader"))
+                        else 
                         {
-                            return RedirectToAction("Dashboard", "Leader");
+                            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == user.Id);
+                            if(member != null)
+                            {
+                                HttpContext.Session.SetInt32("CurrentMemberId", member.MemberId);
+                                bool isLeader = await _groupService.IsMemberALeaderAsync(member.MemberId);
+                                if (isLeader)
+                                    return RedirectToAction("Index", "Dashboard", new { area = "Leader" });
+                            }
+                            return RedirectToAction("Index", "Member", new { area = "Member" });
+
                         }
-                        else if (await _userManager.IsInRoleAsync(user, "Member"))
-                        {
-                            return RedirectToAction("Dashboard", "Member");
-                        }
-                    
+
+
                     }
 
                     return LocalRedirect(returnUrl);
 
                 }
-
 
 
 

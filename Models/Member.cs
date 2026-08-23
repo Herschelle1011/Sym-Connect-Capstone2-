@@ -29,9 +29,6 @@ namespace Sym_Connect__Capstone2_.Models
             }
         }
 
-        [EmailAddress]
-        [Required]
-        public string Email { get; set; } = string.Empty;
 
         [Required]
         public string ContactNumber { get; set; } = string.Empty;
@@ -56,6 +53,8 @@ namespace Sym_Connect__Capstone2_.Models
         public string? ProfilePictureUrl { get; set; }
 
         public int EarnedPoints { get; set; }
+
+
 
 
     }

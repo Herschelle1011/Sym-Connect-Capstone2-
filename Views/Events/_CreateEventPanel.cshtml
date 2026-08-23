@@ -8,7 +8,10 @@
     </div>
 
     <div class="offcanvas-body">
-        <form asp-action="Create" asp-controller="Events" method="post" id="createEventForm">
+        <form asp-action="Create"
+              asp-controller="@(ViewBag.FormController ?? "Events")"
+              asp-area="@(ViewBag.FormArea ?? "")"
+              method="post" id="createEventForm">
             @Html.AntiForgeryToken()
 
 
@@ -96,7 +99,15 @@
 
             <div class="mb-3">
                 <label class="form-label">Expected Groups</label>
-
+                    @if(ViewBag.FormArea as string == "Leader")
+                    {
+                    <!-- Leader: locked to their own group, no choice needed -->
+                    <div class="form-control-plaintext fw-medium">
+                        @ViewBag.LeaderGroupName
+                    </div>
+                    <input type="hidden" name="SelectedGroupIds" value="@ViewBag.LeaderGroupId" />
+                    }
+                    else{
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="selectAllGroups" />
                     <label class="form-check-label fw-medium" style="font-size:14px;" for="selectAllGroups">
@@ -117,6 +128,7 @@
                         </div>
                     }
                 </div>
+                }
             </div>
             <div class="mb-3">
                 <label class="form-label">Event Description</label>

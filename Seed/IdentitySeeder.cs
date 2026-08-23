@@ -83,15 +83,23 @@ namespace Sym_Connect__Capstone2_.Seed
         {
             var existingUser = await userManager.FindByEmailAsync(email);
 
+
             if (existingUser == null)
             {
+                var member = new Sym_Connect__Capstone2_.Models.Member
+                {
+                    FirstName = firstName,
+                    LastName = lastName
+                };
+
+
                 var user = new User
                 {
                     UserName = email,
                     Email = email,
                     EmailConfirmed = true,
-                    FirstName = firstName,
-                    LastName = lastName
+                    
+                    MemberId = member.MemberId
                 };
 
                 var result = await userManager.CreateAsync(user, password);

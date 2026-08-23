@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Group;
+using Sym_Connect__Capstone2_.ViewModels.Member;
 namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
     public interface IGroupService
@@ -20,10 +22,13 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<OperationalResult> TransferAMemberAsync(int memberId, int groupId);
 
         //LOAD ALL LEADERS
-        Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null);
-        
-        Task<List<Member>> GetAvailableMemberAsync(int groupId);
-        Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId);
+        Task<List<MemberListViewModel>> GetAvailableLeadersAsync(string? search = null, int? currentGroupId = null, int? excludeId = null);
+       Task<List<MemberListViewModel>> GetAvailableMemberAsync(int groupId);
+       Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId);
 
+        //IDENTIFY if a member handles a GROUP
+        Task<bool> IsMemberALeaderAsync(int? memberId);
+
+        Task<Group?> GetGroupLedByMemberAsync(int? memberId);
     }
 }

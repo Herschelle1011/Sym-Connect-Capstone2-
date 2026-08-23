@@ -6,7 +6,6 @@ using System.Diagnostics;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-    //[Authorize]
     [AllowAnonymous] //TEMPORARY - REMOVE THIS LATER
     public class HomeController : Controller
     {

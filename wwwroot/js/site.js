@@ -132,7 +132,7 @@ function openModal(title, url, size) {
     dialog.classList.remove("modal-lg", "modal-xl");
     if (size) dialog.classList.add(`modal-${size}`);
 
-    fetch(url)
+    fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
         .then(response => response.text())
         .then(html => {
             document.getElementById("appModalBody").innerHTML = html;
@@ -144,7 +144,7 @@ function openModal(title, url, size) {
                 $.validator.unobtrusive.parse("#appModalBody");
             }
 
-            initPsgcAddress(); 
+            initPsgcAddress();
         });
 }
 
@@ -182,13 +182,15 @@ document.addEventListener("click", function (e) {
         })
         .catch(err => {
             console.error(err);
+            showAlertDialog('Unable to load the facility schedule. Please try again.', 'error');
         });
 });
 
 
 
 document.addEventListener("submit", async function (e) {
-    const modalFormIds = ["createGroupForm", "removeMemberForm", "transferMemberForm", "editGroupForm", "createMemberForm"];
+    //EXISTING GLOBAL MODAL SUBMIT FORMS
+    const modalFormIds = ["createGroupForm", "removeMemberForm", "transferMemberForm", "editGroupForm"];
     if (!modalFormIds.includes(e.target.id)) return;
 
     e.preventDefault();
@@ -231,7 +233,7 @@ function initPsgcAddress() {
     if (provinceSelect.dataset.loaded === "true") return;
 
     fetch('https://psgc.gitlab.io/api/provinces/')
-        .then(res => res.json()) 
+        .then(res => res.json())
         .then(provinces => {
             provinces
                 .sort((a, b) => a.name.localeCompare(b.name))
@@ -291,3 +293,496 @@ function initPsgcAddress() {
             .catch(err => console.error('Failed to load barangays:', err));
     });
 }
+
+
+// document.addEventListener('submit', function (e) {
+//     if (e.target && e.target.id === 'editEventForm') {
+//         e.preventDefault();
+//         submitEditEventForm(e.target);
+//     }
+// });
+
+
+
+// ═══════════════ EVENT REQUESTS: FILTER TABS ═══════════════
+document.addEventListener('click', function (e) {
+    const filterBtn = e.target.closest('.filter-tabs [data-filter]');
+    if (!filterBtn) return;
+
+    document.querySelectorAll('.filter-tabs button').forEach(btn => {
+        btn.classList.remove('active', 'btn-dark');
+        btn.classList.add('btn-outline-secondary');
+    });
+    filterBtn.classList.add('active', 'btn-dark');
+    filterBtn.classList.remove('btn-outline-secondary');
+
+    applyEventRequestFilters();
+});
+
+// ═══════════════ EVENT REQUESTS: SEARCH ═══════════════
+document.addEventListener('input', function (e) {
+    if (e.target.id !== 'eventRequestSearch') return;
+    applyEventRequestFilters();
+});
+
+
+// ======== ADMIN SIDE event request OPENER ============
+
+document.addEventListener('click', function (e) {
+    const row = e.target.closest('.event-request-row');
+    if (!row) return;
+    if (e.target.closest('.btn-approve-event') || e.target.closest('.btn-reject-event')) return;
+
+    const url = row.dataset.url;
+    const title = row.querySelector('.fw-semibold').textContent;
+    openModal(title, url);
+});
+
+// ═══════════════ LEADER: EDIT REQUEST FROM DETAILS MODAL ═══════════════
+document.addEventListener('click', async function (e) {
+    const btn = e.target.closest('.edit-event-from-modal-btn');
+    if (!btn) return;
+
+    const eventId = btn.dataset.eventId;
+
+    const response = await fetch(`/Leader/Events/GetEditForm?eventid=${eventId}`);
+    if (!response.ok) {
+        showAlertDialog('Unable to load event details.', 'error');
+        return;
+    }
+
+    const html = await response.text();
+
+    const existingPanelEl = document.getElementById('editEventPanel');
+    if (existingPanelEl) {
+        const existingInstance = bootstrap.Offcanvas.getInstance(existingPanelEl);
+        if (existingInstance) existingInstance.dispose();
+        existingPanelEl.remove();
+    }
+
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    const editForm = document.getElementById("editEventForm");
+    $.validator.unobtrusive.parse(editForm);
+
+    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('eventDetailsModal'));
+    if (detailsModal) detailsModal.hide();
+
+    const panel = new bootstrap.Offcanvas(document.getElementById('editEventPanel'));
+    panel.show();
+});
+
+
+function applyEventRequestFilters() {
+    const activeFilter = document.querySelector('.filter-tabs .active')?.dataset.filter || 'all';
+    const searchTerm = (document.getElementById('eventRequestSearch')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.event-request-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const matchesFilter = activeFilter === 'all' || row.dataset.status === activeFilter;
+        const matchesSearch = !searchTerm || row.dataset.title.includes(searchTerm);
+        const show = matchesFilter && matchesSearch;
+
+        row.classList.toggle('d-none', !show);
+        if (show) visibleCount++;
+    });
+
+    document.getElementById('noResultsMessage')?.classList.toggle('d-none', visibleCount > 0);
+}
+
+// ═══════════════ EVENT REQUESTS: APPROVE ═══════════════
+document.addEventListener('click', async function (e) {
+    const approveBtn = e.target.closest('.btn-approve-event');
+    if (!approveBtn) return;
+
+    const eventId = approveBtn.dataset.eventId;
+    approveBtn.disabled = true;
+
+    try {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        const response = await fetch('/Events/ApproveEvent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                eventId,
+                __RequestVerificationToken: token
+            })
+        });
+
+        const result = await response.json();
+        showToast(result.message, result.success);
+
+        if (result.success) {
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            approveBtn.disabled = false;
+        }
+    } catch (err) {
+        showToast('Something went wrong. Please try again.', false);
+        approveBtn.disabled = false;
+    }
+});
+
+// ═══════════════ EVENT REQUESTS: REJECT (opens modal) ═══════════════
+let pendingRejectEventId = null;
+
+document.addEventListener('click', function (e) {
+    const rejectBtn = e.target.closest('.btn-reject-event');
+    if (!rejectBtn) return;
+
+    pendingRejectEventId = rejectBtn.dataset.eventId;
+    document.getElementById('rejectEventTitle').textContent = rejectBtn.dataset.eventTitle;
+    document.getElementById('rejectReasonInput').value = '';
+    document.getElementById('rejectReasonError').classList.add('d-none');
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectReasonModal')).show();
+});
+
+document.addEventListener('click', async function (e) {
+    if (e.target.id !== 'confirmRejectBtn') return;
+
+    const reasonInput = document.getElementById('rejectReasonInput');
+    const reason = reasonInput.value.trim();
+
+    if (!reason) {
+        document.getElementById('rejectReasonError').classList.remove('d-none');
+        return;
+    }
+
+    const confirmBtn = e.target;
+    confirmBtn.disabled = true;
+
+    try {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+        const response = await fetch('/Events/RejectAnEvent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                eventId: pendingRejectEventId,
+                reason,
+                __RequestVerificationToken: token
+            })
+        });
+
+        const result = await response.json();
+        showToast(result.message, result.success);
+
+        if (result.success) {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectReasonModal')).hide();
+            setTimeout(() => window.location.reload(), 800);
+        }
+    } catch (err) {
+        showToast('Something went wrong. Please try again.', false);
+    } finally {
+        confirmBtn.disabled = false;
+    }
+});
+
+
+/// ============= SELECT GROUP LEADER CODE ===========
+
+// ═══════════════ OPEN LEADER PICKER ═══════════════
+document.addEventListener('click', function (e) {
+    const trigger = e.target.closest('#leaderPickerTrigger');
+    if (!trigger) return;
+
+    const excludeGroupId = trigger.dataset.excludeGroupId || '';
+    const url = excludeGroupId
+        ? `/Groups/SelectLeaderModal?excludeGroupId=${excludeGroupId}`
+        : '/Groups/SelectLeaderModal';
+
+    fetch(url)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('leaderPickerModalBody').innerHTML = html;
+
+            //hides modal form
+            document.getElementById('appModal').style.visibility = 'hidden';
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('leaderPickerModal')).show();
+        });
+
+
+    // Restore the Create/Edit Group modal's visibility once the leader picker closes
+    document.getElementById('leaderPickerModal')?.addEventListener('hidden.bs.modal', function () {
+        const appModal = document.getElementById('appModal');
+        if (appModal) appModal.style.visibility = 'visible';
+    });
+});
+
+
+// ═══════════════ SEARCH INSIDE LEADER PICKER ═══════════════
+let leaderSearchTimeout;
+document.addEventListener('input', function (e) {
+    if (e.target.id !== 'leaderSearchInput') return;
+
+    clearTimeout(leaderSearchTimeout);
+    leaderSearchTimeout = setTimeout(async () => {
+        const search = e.target.value;
+        const excludeGroupId = document.getElementById('leaderPickerTrigger')?.dataset.excludeGroupId || '';
+        const url = `/Groups/SelectLeaderModal?search=${encodeURIComponent(search)}` +
+            (excludeGroupId ? `&excludeGroupId=${excludeGroupId}` : '');
+
+        const response = await fetch(url);
+        const html = await response.text();
+        document.getElementById('leaderPickerModalBody').innerHTML = html;
+
+        setTimeout(() => {
+            const input = document.getElementById('leaderSearchInput');
+            input?.focus();
+            input?.setSelectionRange(input.value.length, input.value.length);
+        }, 0);
+    }, 300);
+});
+
+// ═══════════════ SELECT A LEADER — updates the form UNDERNEATH, closes only the picker ═══════════════
+document.addEventListener('click', function (e) {
+    const row = e.target.closest('.leader-candidate-row');
+    if (!row) return;
+
+    const memberId = row.dataset.memberId;
+    const memberName = row.dataset.memberName;
+    const email = row.querySelector('.text-muted.small')?.textContent ?? '';
+    const avatarSrc = row.querySelector('img')?.src ?? '';
+
+    // These elements live in #appModalBody (the Create/Edit Group form),
+    // which was never touched — so this just fills it in, no re-fetch needed.
+    document.getElementById('selectedLeaderId').value = memberId;
+    document.getElementById('selectedLeaderName').textContent = memberName;
+    document.getElementById('selectedLeaderName').classList.remove('text-muted');
+    document.getElementById('selectedLeaderEmail').textContent = email;
+
+    const avatarPlaceholder = document.getElementById('leaderAvatarPlaceholder');
+    if (avatarPlaceholder) {
+        avatarPlaceholder.innerHTML = `<img src="${avatarSrc}" class="rounded-circle" width="40" height="40" />`;
+        avatarPlaceholder.style.background = 'transparent';
+    } else {
+        // Edit form case: avatar is a plain <img id="leaderAvatarImg">, not a placeholder div
+        const existingImg = document.getElementById('leaderAvatarImg');
+        if (existingImg) existingImg.src = avatarSrc;
+    }
+
+    // Close ONLY the picker modal — #appModal and the form inside it are untouched
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('leaderPickerModal')).hide();
+});
+
+
+
+
+
+
+
+
+
+
+
+// ============== APPROVE AND REJECTED IN _ViewDetailsModal.cshtml
+
+// ═══════════════ ADMIN EVENT DETAILS: APPROVE ═══════════════
+document.addEventListener("click", async function (e) {
+
+    const approveBtn = e.target.closest(".admin-approve-btn");
+
+    if (!approveBtn)
+        return;
+
+    const eventId = approveBtn.dataset.eventId;
+
+    const modalContent = approveBtn.closest(".event-request-modal");
+
+    const token =
+        modalContent.querySelector(
+            'input[name="__RequestVerificationToken"]'
+        )?.value;
+
+    approveBtn.disabled = true;
+    approveBtn.innerHTML = "Approving...";
+
+    try {
+
+        const response = await fetch("/Events/ApproveEvent", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+
+            body: new URLSearchParams({
+                eventId: eventId,
+                __RequestVerificationToken: token
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            const modalElement =
+                document.getElementById("appModal");
+
+            const modal =
+                bootstrap.Modal.getInstance(modalElement);
+
+            if (modal)
+                modal.hide();
+
+            showAlertDialog(
+                result.message,
+                "success"
+            );
+
+            setTimeout(() => {
+                location.reload();
+            }, 1200);
+        }
+        else {
+
+            showAlertDialog(
+                result.message,
+                "error"
+            );
+
+            approveBtn.disabled = false;
+            approveBtn.innerHTML = "Approve";
+        }
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        showAlertDialog(
+            "Something went wrong while approving the event.",
+            "error"
+        );
+
+        approveBtn.disabled = false;
+        approveBtn.innerHTML = "Approve";
+    }
+});
+
+
+
+
+// ═══════════════ ADMIN EVENT DETAILS: REJECT ═══════════════
+document.addEventListener("click", async function (e) {
+
+    const rejectBtn = e.target.closest(".admin-reject-btn");
+
+    if (!rejectBtn)
+        return;
+
+    const eventId = rejectBtn.dataset.eventId;
+
+    const modalContent =
+        rejectBtn.closest(".event-request-modal");
+
+    const noteInput =
+        modalContent.querySelector("#adminDecisionNote");
+
+    const errorElement =
+        modalContent.querySelector("#rejectNoteError");
+
+    const reason = noteInput.value.trim();
+
+
+    // Rejection requires a reason
+    if (!reason) {
+
+        errorElement.classList.remove("d-none");
+
+        noteInput.focus();
+
+        return;
+    }
+
+    errorElement.classList.add("d-none");
+
+
+    const token =
+        modalContent.querySelector(
+            'input[name="__RequestVerificationToken"]'
+        )?.value;
+
+
+    rejectBtn.disabled = true;
+    rejectBtn.innerHTML = "Rejecting...";
+
+
+    try {
+
+        const response =
+            await fetch("/Events/RejectAnEvent", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/x-www-form-urlencoded"
+                },
+
+                body: new URLSearchParams({
+                    eventId: eventId,
+                    reason: reason,
+                    __RequestVerificationToken: token
+                })
+            });
+
+
+        const result = await response.json();
+
+
+        if (result.success) {
+
+            const modalElement =
+                document.getElementById("appModal");
+
+            const modal =
+                bootstrap.Modal.getInstance(modalElement);
+
+            if (modal)
+                modal.hide();
+
+
+            showAlertDialog(
+                result.message,
+                "success"
+            );
+
+
+            setTimeout(() => {
+                location.reload();
+            }, 1200);
+        }
+        else {
+
+            showAlertDialog(
+                result.message,
+                "error"
+            );
+
+            rejectBtn.disabled = false;
+            rejectBtn.innerHTML = "Reject";
+        }
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        showAlertDialog(
+            "Something went wrong while rejecting the event.",
+            "error"
+        );
+
+        rejectBtn.disabled = false;
+        rejectBtn.innerHTML = "Reject";
+    }
+});

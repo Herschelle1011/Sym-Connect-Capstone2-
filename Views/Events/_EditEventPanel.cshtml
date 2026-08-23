@@ -8,9 +8,18 @@
     </div>
 
     <div class="offcanvas-body">
-        <form asp-action="Edit" asp-controller="Events" asp-route-eventid="@Model.EventId" method="post" id="editEventForm"
-              data-time-in="@Model.TimeInScannerOpenTime?.ToString(@"hh\:mm")"
-              data-time-out="@Model.TimeOutScannerOpenTime?.ToString(@"hh\:mm")">
+        <form asp-action="Edit"
+              asp-controller="@(ViewBag.FormController ?? "Events")"
+              asp-area="@(ViewBag.FormArea ?? "")"
+              method="post" id="editEventForm"
+              data-time-in-open="@Model.TimeInScannerOpenTime?.ToString(@"hh\:mm")"
+              data-time-in-close="@Model.TimeInScannerClosesTime?.ToString(@"hh\:mm")"
+              data-time-out-open="@Model.TimeOutScannerOpenTime?.ToString(@"hh\:mm")"
+              data-time-out-close="@Model.TimeOutScannerClosesTime?.ToString(@"hh\:mm")"
+              data-original-start-time="@Model.StartTime?.ToString(@"hh\:mm")"
+              data-original-end-time="@Model.EndTime?.ToString(@"hh\:mm")">
+
+
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="EventId" />
 
@@ -136,9 +145,7 @@
     </div>
 </div>
 
-                      <script>
-
-                          
+<script>                        
         const selectAllGroups = document.getElementById("selectAllGroups");
     const groupCheckboxes = document.querySelectorAll(".group-checkbox");
 
@@ -152,9 +159,7 @@
         });
     });
 
-
-
-                            const selectAllFacilities = document.getElementById("selectAllFacilities");
+   const selectAllFacilities = document.getElementById("selectAllFacilities");
     const facilityCheckboxes = document.querySelectorAll(".facility-checkbox");
 
     selectAllFacilities.addEventListener("change", function () {
@@ -166,7 +171,4 @@
             selectAllFacilities.checked = [...facilityCheckboxes].every(c => c.checked);
         });
     });
-
-
-
-                      </script>
+  </script>

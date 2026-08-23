@@ -1,15 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Humanizer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Attendance;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection.Metadata;
 using System.Runtime.Intrinsics.X86;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -23,6 +27,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _context = context;
         }
 
+        public async Task<int> GetPendingRequestCountAsync()
+        {
+            var pendingCount = await _context.Events
+                .CountAsync(e => e.ApprovalStatus == ApprovalStatus.Pending);
+
+            return pendingCount;
+        }
 
         public async Task<Event?> GetEventByIdAsync(int eventId)
         {
@@ -30,13 +41,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-
-
         public async Task<List<EventCalendarViewModel>> GetAllEventAsync(int year, int month)
         {
             return await _context.Events
                                 .Where(e => !e.IsArchived &&
-                                e.StartDate.Year == year && e.StartDate.Month == month)
+                                e.StartDate.Year == year && e.StartDate.Month == month && e.ApprovalStatus == ApprovalStatus.Approved)
                                 .Select(e => new EventCalendarViewModel
                                 {
                                     EventId = e.EventId,
@@ -47,6 +56,69 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                     Status = e.Status,
                                 }).ToListAsync();
         }
+
+        //FOR LEADERS VIEW (THE EVENTS THEY CREATED FOR THEIR GROUP ONLY)
+        public async Task<List<EventListItemViewModel>> GetAllEventForLeaderAsync(int memberId)
+        {
+            return await _context.Events
+                .Where(e => e.CreatedByUserId == memberId && !e.IsArchived)
+                .OrderByDescending(e => e.DateCreated)
+                .Select(e => new EventListItemViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    StartDate = e.StartDate,
+                    ApprovalStatus = e.ApprovalStatus,
+                    DateCreated = e.DateCreated,
+                    ApprovedDate = e.ApprovedDate,
+                    RejectionReason = e.RejectionReason,
+                    ApproveByName = e.ApprovedByUser != null ? e.ApprovedByUser.FirstName + " " + e.ApprovedByUser.LastName : null,
+                    SubmittedByName = e.CreatedByUser != null ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName : null,
+                    FacilityNames = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
+                    GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList()
+                }).ToListAsync();
+
+
+
+        }
+
+        //FOR ADMINS VIEW === > Get all pending, approve, rejected events < ==== 
+        public async Task <SummaryEventsViewModel> GetEventsSummaryForAdminAsync()
+        {
+            var events = await _context.Events
+                 .AsNoTracking()
+                 .Where(e => e.CreatedByUserId != null && !e.IsArchived)
+                 .OrderByDescending(e => e.DateCreated)
+                 .Select(e => new EventListItemViewModel
+                 {
+                     EventId = e.EventId,
+                     EventTitle = e.EventTitle,
+                     StartDate = e.StartDate,
+                     EndDate = e.EndDate,
+                     ApprovalStatus = e.ApprovalStatus,
+                     DateCreated = e.DateCreated,
+                     ApprovedDate = e.ApprovedDate,
+                     RejectionReason = e.RejectionReason,
+                     ApproveByName = e.ApprovedByUser != null ? 
+                     e.ApprovedByUser.FirstName + " " + e.ApprovedByUser.LastName
+                        : null,
+                     SubmittedByName = e.CreatedByUser != null
+                ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName
+                : "Admin",
+                     FacilityNames = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
+                     GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList()
+                 }).ToListAsync();
+
+            return new SummaryEventsViewModel
+            {
+                TotalRequests = events.Count(),
+                PendingCount = events.Count(e => e.ApprovalStatus == ApprovalStatus.Pending),
+                ApprovedCount = events.Count(e => e.ApprovalStatus == ApprovalStatus.Approved),
+                RejectedCount = events.Count(e => e.ApprovalStatus == ApprovalStatus.Rejected),
+                Events = events
+            };
+        }
+
 
         public async Task<DetailsEventViewModel?> GetDetailsByAsync(int id)
         {
@@ -63,36 +135,47 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     EndDate = e.EndDate,
                     Points = e.Points,
                     StartTime = e.StartTime,
+                    //Scanner open time
                     TimeInScannerClosesTime = e.TimeInScannerClosesOffset,
                     TimeOutScannerClosesTime = e.TimeOutScannerClosesOffset,
                     TimeOutScannerOpenTime = e.TimeOutScannerOpensOffset,
                     TimeInScannerOpenTime = e.TimeInScannerOpensOffset,
+
                     EndTime = e.EndTime,
                     DateCreated = e.DateCreated,
-                    CreatedBy = e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName,
+                    CreatedBy = e.CreatedByUser != null
+                ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName
+                : "Admin",
+                    //LIST OF FACILITIES
                     Facilities = e.ExpectedFacilities.Select(f => new ExpectedFacilityCardVM
                     {
                         FacilityId = f.FacilityId,
                         FacilityCapacity = f.Facility.Capacity,
                         FacilityName = f.Facility.FacilityName
                     }).ToList(),
+                    //LIST OF GROUPS 
                     ExpectedGroups = e.ExpectedGroups.Select(g => new ExpectedGroupCardVM
                     {
                         GroupId = g.GroupId,
                         GroupName = g.Group.GroupName,
                         MemberCount = g.Group.GroupDetails.Count()
                     }).ToList(),
-
                     ExpectedGroupCount = e.ExpectedGroups.Count(),
+                    ScheduleTimeline = new List<ScheduleTimelineVM>(),
 
-                    ScheduleTimeline = new List<ScheduleTimelineVM>()
+                    //Additional for isAdmin or a Leader
+                    ApprovalStatus = e.ApprovalStatus,
+                    RejectionReason = e.RejectionReason,
+                    ApprovedBy = e.ApprovedByUser != null ? e.ApprovedByUser.FirstName + " " + e.ApprovedByUser.LastName : null,
+                    ApprovedDate = e.ApprovedDate,
+                    RequestedByGroupName = e.CreatedByUser != null ? e.CreatedByUser.GroupDetails.Select(g => g.Group.GroupName).FirstOrDefault() : null,
 
                 }).FirstOrDefaultAsync();
             if (existingEvent == null) return null;
             await MarkAsAbsentAsync(existingEvent.EventId);
 
 
-            existingEvent.AttendanceRecords = await ViewAttendanceForEventAsync(id);
+            existingEvent.AttendanceRecords = await GetGroupAttendanceOverviewAsync(id);
 
             if (existingEvent.StartTime.HasValue && existingEvent.EndTime.HasValue)
             {
@@ -154,7 +237,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return existingEvent;
         }
-        public async Task<EventResult> CreateEventAsync(CreateEventViewModel vm)
+
+
+        // TODO: [AUTH MIGRATION] createdByUserId currently comes from =========== ALERT ! ====
+        // Session.GetInt32("CurrentMemberId") — an int, Members.MemberId.
+
+        // Once Identity is implemented, this parameter should likely become a Guid
+        // (AspNetUsers.Id) and the CreatedByUserId model type needs to change too.
+
+        
+        public async Task<EventResult> CreateEventAsync(CreateEventViewModel vm, bool isAdminCreated, int? createByUserId)
         {
             var maxLeadTime = TimeSpan.FromHours(5);
                 if(vm.StartTime.HasValue && vm.TimeInScannerOpenTime.HasValue)
@@ -170,8 +262,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     return EventResult.Fail("Scanner cannot open more than 5 hours before the event start time.");
                     }
                   }
-
-
 
             //VALIDATION FOR START DATE AND END DATE
             if (vm.StartDate == default(DateTime) || vm.EndDate == default(DateTime))
@@ -191,7 +281,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
           
 
 
-            var hasConflict = await HasFacilityConflictAsync(vm.SelectedFacilityIds, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime);
+            var hasConflict = await HasFacilityConflictAsync(vm.SelectedFacilityIds, vm.IsAllDay, vm.StartDate.Value, vm.EndDate, vm.StartTime, vm.EndTime);
             if (hasConflict != null)
             {
                 return new EventResult
@@ -236,27 +326,33 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             if (!vm.IsAllDay)
             {
-                //VALIDATION FOR OPENTIME SCANNER 
-                if (vm.TimeInScannerOpenTime.HasValue && vm.StartTime.HasValue
-                  && vm.TimeInScannerOpenTime.Value > vm.StartTime.Value)
+                // TIME-IN OPEN cannot be after event starts
+                if (vm.TimeInScannerOpenTime.HasValue &&
+                    vm.StartTime.HasValue &&
+                    vm.TimeInScannerOpenTime.Value > vm.StartTime.Value)
                 {
-                    return EventResult.Fail("Time-In scanner cannot open after the event has already started.");
+                    return EventResult.Fail(
+                        "Time-In scanner cannot open after the event starts.");
                 }
 
-                if (vm.TimeOutScannerOpenTime.HasValue && vm.EndTime.HasValue
-                    && vm.TimeOutScannerOpenTime.Value > vm.EndTime.Value)
+                // TIME-IN CLOSE cannot be after event starts
+                if (vm.TimeInScannerClosesTime.HasValue &&
+                    vm.StartTime.HasValue &&
+                    vm.TimeInScannerClosesTime.Value > vm.StartTime.Value)
                 {
-                    return EventResult.Fail("Time-Out scanner cannot open after the event has already ended.");
+                    return EventResult.Fail(
+                        "Time-In scanner cannot close after the event starts.");
                 }
 
-                if (vm.TimeOutScannerOpenTime.HasValue && vm.StartTime.HasValue
-                    && vm.TimeOutScannerOpenTime.Value < vm.StartTime.Value)
+                // TIME-IN CLOSE must be after TIME-IN OPEN
+                if (vm.TimeInScannerOpenTime.HasValue &&
+                    vm.TimeInScannerClosesTime.HasValue &&
+                    vm.TimeInScannerOpenTime.Value >= vm.TimeInScannerClosesTime.Value)
                 {
-                    return EventResult.Fail("Time-Out scanner cannot open before the event starts.");
+                    return EventResult.Fail(
+                        "Time-In scanner closing time must be after its opening time.");
                 }
             }
-
-
 
 
             var newEvent = new Event
@@ -266,28 +362,39 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 EventDescription = vm.EventDescription,
                 IsAllDay = vm.IsAllDay,
                 DateCreated = DateTime.UtcNow,
-                StartDate = vm.StartDate,
+                StartDate = vm.StartDate.Value,
+
+                //TimeInOpen and TimeOutClose
                 TimeInScannerOpensOffset = vm.TimeInScannerOpenTime,
                 TimeInScannerClosesOffset = vm.TimeInScannerClosesTime,
 
                 TimeOutScannerOpensOffset = vm.TimeOutScannerOpenTime,
                 TimeOutScannerClosesOffset = vm.TimeOutScannerClosesTime,
 
-                EndDate  = vm.EndDate.Date,
+                EndDate  = vm.EndDate.Value,
                 StartTime = vm.StartTime ,
                 EndTime = vm.EndTime ,
-                IsArchived = false
+                IsArchived = false,
+
+                //Leaders Part
+                CreatedByUserId = createByUserId,
+                ApprovalStatus = isAdminCreated ? ApprovalStatus.Approved : ApprovalStatus.Pending,
+                ApprovedByUserId = isAdminCreated ? createByUserId : null,
+                ApprovedDate = isAdminCreated ? DateTime.Now : null,
+
             };
+
+            //foreach the list selectedIds, and add
             foreach(var facilityId in vm.SelectedFacilityIds)
-            {
-                
+            {          
                 newEvent.ExpectedFacilities.Add(new EventFacility
                 {
                     FacilityId = facilityId
                                 
                 });
             }
-            foreach(var groupId in vm.SelectedGroupIds)
+            //foreach the list selectedGroupIds, and add
+            foreach (var groupId in vm.SelectedGroupIds)
             {
                 newEvent.ExpectedGroups.Add(new EventGroup
                 {
@@ -341,7 +448,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             if (existingEvent == null) return EventResult.Fail("Event doesn't exist");
 
-            var hasConflict = await HasFacilityConflictAsync(vm.SelectedFacilityIds, vm.IsAllDay, vm.StartDate, vm.EndDate, vm.StartTime, vm.EndTime, excludeEventId: gId);
+            var hasConflict = await HasFacilityConflictAsync(vm.SelectedFacilityIds, vm.IsAllDay, vm.StartDate.Value, vm.EndDate, vm.StartTime, vm.EndTime, excludeEventId: gId);
             if (hasConflict != null)
             {
                 return EventResult.Fail($"This facility is already booked for \"{hasConflict.EventTitle}\" during that time.");
@@ -358,30 +465,38 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             if (!vm.IsAllDay)
             {
-                //VALIDATION FOR OPENTIME SCANNER 
-                if (vm.TimeInScannerOpenTime.HasValue && vm.StartTime.HasValue
-              && vm.TimeInScannerOpenTime.Value > vm.StartTime.Value)
+                // TIME-IN OPEN cannot be after event starts
+                if (vm.TimeInScannerOpenTime.HasValue &&
+                    vm.StartTime.HasValue &&
+                    vm.TimeInScannerOpenTime.Value > vm.StartTime.Value)
                 {
-                    return EventResult.Fail("Time-In scanner cannot open after the event has already started.");
+                    return EventResult.Fail(
+                        "Time-In scanner cannot open after the event starts.");
                 }
 
-                if (vm.TimeOutScannerOpenTime.HasValue && vm.EndTime.HasValue
-                    && vm.TimeOutScannerOpenTime.Value > vm.EndTime.Value)
+                // TIME-IN CLOSE cannot be after event starts
+                if (vm.TimeInScannerClosesTime.HasValue &&
+                    vm.StartTime.HasValue &&
+                    vm.TimeInScannerClosesTime.Value > vm.StartTime.Value)
                 {
-                    return EventResult.Fail("Time-Out scanner cannot open after the event has already ended.");
+                    return EventResult.Fail(
+                        "Time-In scanner cannot close after the event starts.");
                 }
 
-                if (vm.TimeOutScannerOpenTime.HasValue && vm.StartTime.HasValue
-                    && vm.TimeOutScannerOpenTime.Value < vm.StartTime.Value)
+                // TIME-IN CLOSE must be after TIME-IN OPEN
+                if (vm.TimeInScannerOpenTime.HasValue &&
+                    vm.TimeInScannerClosesTime.HasValue &&
+                    vm.TimeInScannerOpenTime.Value >= vm.TimeInScannerClosesTime.Value)
                 {
-                    return EventResult.Fail("Time-Out scanner cannot open before the event starts.");
+                    return EventResult.Fail(
+                        "Time-In scanner closing time must be after its opening time.");
                 }
             }
 
             existingEvent.EventTitle = vm.EventTitle;
             existingEvent.EventDescription = vm.EventDescription;
-            existingEvent.StartDate = vm.StartDate;
-            existingEvent.EndDate = vm.EndDate;
+            existingEvent.StartDate = vm.StartDate.Value;
+            existingEvent.EndDate = vm.EndDate.Value;
             existingEvent.Points = vm.Points;
             existingEvent.StartTime = vm.StartTime;
             existingEvent.TimeOutScannerClosesOffset = vm.TimeOutScannerClosesTime;
@@ -463,6 +578,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 TimeOutScannerClosesTime = existingEvent.TimeOutScannerClosesOffset,
                 TimeInScannerOpenTime = existingEvent.TimeInScannerOpensOffset,
                 TimeOutScannerOpenTime = existingEvent.TimeOutScannerOpensOffset,
+
+
+
                 StartTime = existingEvent.StartTime,
                 EndTime = existingEvent.EndTime,
                 SelectedFacilityIds = existingEvent.ExpectedFacilities.Select(f => f.FacilityId).ToList(),
@@ -568,6 +686,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
+
+        //============ QR SCANNER PART CODE ==============
+
+
         public async Task<ScannerViewModel> GetScannerStateAsync(int eventId)
         {
             
@@ -621,7 +743,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
 
-        //-------- QR SCANNER PART CODE ------
+
+
 
         public async Task<OperationalResult> RecordTimeInAsync(string qrToken, int eventId)
         {
@@ -751,14 +874,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 var EventStartDateTime = eventExists.StartDate.Date + eventExists.StartTime.Value;
                 var late = EventStartDateTime + latePeriod;
 
-                if(MemberhasTimeIn.TimeIn.Value > late)
+                if (MemberhasTimeIn.TimeIn.Value > late)
                 {
-                    MemberhasTimeIn.Points = -2;
+                    MemberhasTimeIn.Points = (eventExists.Points) -2;
+                    member.EarnedPoints += MemberhasTimeIn.Points;
                     MemberhasTimeIn.Status = "Late";
                 }
                 else 
                 {
+
                     MemberhasTimeIn.Points = eventExists.Points;
+                    member.EarnedPoints += MemberhasTimeIn.Points;
                     MemberhasTimeIn.Status = "Present";
                 }
             }
@@ -770,29 +896,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
-
-        //private string ComputeStatus(
-        //      DateTime? timeIn,
-        //      DateTime? timeOut,
-        //      DateTime startDate,
-        //      TimeSpan startTime)
-        //{
-        //    if (!timeIn.HasValue)
-        //        return "Pending";
-
-        //    var eventStart = startDate.Date.Add(startTime);
-
-        //    // 10-minute grace period
-        //    var lateThreshold = eventStart.AddMinutes(10);
-
-        //    if (timeIn.Value <= lateThreshold)
-        //        return "Present";
-
-        //    return "Late";
-        //}
-
-
-        //------------ATTENDANCE PART --------
+        //===================== ATTENDANCE PART ================== 
 
         public async Task<List<AttendanceRowViewModel>> ViewAttendanceForEventAsync(int eventId)
         {
@@ -877,8 +981,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                    .ToListAsync();
 
                 var upcomingList = upcoming
-         .Select(e => (Date: e.StartDate, Title: e.EventTitle))
-         .ToList();
+                 .Select(e => (Date: e.StartDate, Title: e.EventTitle))
+                 .ToList();
 
                 bool hasEventToday = await _context.Events
                     .AsNoTracking()
@@ -911,7 +1015,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         .ToList()
                 });
             }
-
             return result;
         }
 
@@ -955,6 +1058,125 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     EndTime = e.EndTime
                 }).ToList()
             };
+        }
+
+
+
+
+
+        // ======================================================= LEADERS BELOW CODES =======================================//
+
+
+        // ============ LEADERS METHOD APPROVE AND REJECT =========
+
+        // TODO: [AUTH MIGRATION] approvedByUserId is Members.MemberId (int) for now.
+
+
+        public async Task<EventResult> ApproveEventAsync(int eventId, int? approveByUserId)
+       {
+            var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            if (existingEvent == null) return new EventResult { Success = false, ErrorMessage = "Event doesn't exist" };
+
+            existingEvent.ApprovalStatus = ApprovalStatus.Approved;
+            existingEvent.ApprovedDate = DateTime.Now;
+            existingEvent.ApprovedByUserId = approveByUserId;
+
+            await _context.SaveChangesAsync();
+            return EventResult.Ok();
+        }
+
+        // TODO: [AUTH MIGRATION] approvedByUserId is Members.MemberId (int) for now.
+
+        public async Task<EventResult> RejectEventAsync(int eventId, string reason)
+        {
+            var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            if (existingEvent == null) return new EventResult { Success = false, ErrorMessage = "Event doesn't exist" };
+
+            existingEvent.ApprovalStatus = ApprovalStatus.Rejected;
+
+            existingEvent.RejectionReason = reason;
+
+            await _context.SaveChangesAsync();
+            return EventResult.Ok();
+        }
+
+
+
+        public async Task<AttendanceTabViewModel> GetGroupAttendanceOverviewAsync(int eventId)
+        {
+            //for header
+            var eventInfo = await _context.Events
+                .AsNoTracking()
+                .Where(e => e.EventId == eventId)
+                .Select(e => new { e.EventId, e.StartDate, e.StartTime, e.EndTime, e.EventTitle})
+                .FirstOrDefaultAsync();
+            if (eventInfo == null) return null;
+
+            //get expectedGroups
+            var expectedGroupIds = await _context.Events
+                .Where(e => e.EventId == eventId)
+                .SelectMany(g => g.ExpectedGroups)
+                .Select(g => g.GroupId)
+                .ToListAsync();
+
+            //get groups along with its Members convert into a list
+            var groups = await _context.Groups
+                          .Where(e => expectedGroupIds.Contains(e.GroupId))
+                          .Select(g => new
+                          {
+                              g.GroupId,
+                              g.GroupName,
+                              MemberIds = g.GroupDetails.Select(g => g.MemberId).ToList()
+                          }).ToListAsync();
+
+
+            var presentMemberIds = await _context.Attendances
+                .Where(t => t.EventId == eventId && (t.Status == "Present" || t.Status == "Late"))
+                .Select(m => m.MemberId)
+                .ToListAsync();
+
+            var presentSet = presentMemberIds.ToHashSet();
+
+            var summaries = groups.Select(g =>
+            {
+                var total = g.MemberIds.Count;
+                var present = g.MemberIds.Count(id => presentSet.Contains(id.Value));
+                var absent = total - present;
+                var rate = total == 0 ? 0 : (int)Math.Round((double)present / total * 100);
+
+                var status = total == 0 || present == 0 ? GroupAttendanceStatus.Absent : present == total
+                                    ? GroupAttendanceStatus.FullyPresent : GroupAttendanceStatus.PartiallyPresent;
+
+
+                return new GroupAttendanceRowViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+                    TotalMembers = total,
+                    PresentCount = present,
+                    AbsentCount = absent,
+                    AttendanceRate = rate,
+                    Status = status
+                };
+            }).ToList();
+
+            return new AttendanceTabViewModel
+            {
+                EventId = eventId,
+                EventTitle = eventInfo.EventTitle,
+                EventDate = eventInfo.StartDate,
+                StartTime = eventInfo.StartTime,
+                EndTime = eventInfo.EndTime,
+                GroupAttendance = summaries,
+                TotalGroups = summaries.Count,
+                FullyPresentCount = summaries.Count(s => s.Status == GroupAttendanceStatus.FullyPresent),
+                PartiallyPresentCount = summaries.Count(s => s.Status == GroupAttendanceStatus.PartiallyPresent),
+                AbsentCount = summaries.Count(s => s.Status == GroupAttendanceStatus.Absent)
+            };
+
+
+
+
         }
 
 

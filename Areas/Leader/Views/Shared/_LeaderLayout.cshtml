@@ -1,0 +1,224 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Sym_Connect__Capstone2_.Models
+@using Sym_Connect__Capstone2_.Data
+@using Microsoft.EntityFrameworkCore;
+@inject AppDbContext DbContext
+@inject UserManager<User> UserManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SYM-Connect</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Sym_Connect__Capstone2_.styles.css" asp-append-version="true" />
+</head>
+<body>
+
+    @{
+        var userId = UserManager.GetUserId(User);
+
+        var currentUser = await DbContext.Users
+                            .AsNoTracking()
+                            .Include(m => m.Member)
+                            .FirstOrDefaultAsync();
+        var profilePicture = currentUser?.Member?.ProfilePictureUrl;
+        var userName = currentUser?.Member != null
+            ? $"{currentUser.Member.FirstName} {currentUser.Member.LastName}"
+            : "User";
+            var fallbackAvatar = $"https://ui-avatars.com/api/?name={userName}&background=4a6cf7&color=fff&size=34";
+    }
+
+    <!-- ═══════════════════════════════ TOP BAR ═══════════════════════════════ -->
+    <div id="topbar">
+        <button id="sidebar-toggle" title="Open menu">
+            <i class="bi bi-list"></i>
+        </button>
+        <span class="topbar-brand">SYM-Connect</span>
+        <div class="topbar-actions">
+            <a asp-controller="Notifications" asp-action="Index" class="topbar-icon-btn" title="Notifications">
+                <i class="bi bi-bell"></i>
+                <span class="notif-dot"></span>
+            </a>
+            <img class="topbar-avatar"
+                 src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
+                 alt="User Avatar" />
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════ OVERLAY ═══════════════════════════════ -->
+    <div id="sidebar-overlay"></div>
+
+    <!-- ═══════════════════════════════ SIDEBAR ═══════════════════════════════ -->
+    <nav id="sidebar">
+
+        <div class="sidebar-brand">
+            <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/q_auto/f_auto/v1778759822/profiles/8f97c2e0-2fc4-46d0-a8ad-499b0f30e2c1.png"
+                 alt="SYM-Connect Logo"
+                 onerror="this.src='https://ui-avatars.com/api/?name=SYM&background=4a6cf7&color=fff&size=36'" />
+            <span class="sidebar-brand-name">SYM-Connect</span>
+            <button id="sidebar-close" title="Close menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-nav">
+
+            <a asp-controller="Notifications" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
+                <i class="bi bi-bell"></i>
+                <span class="nav-label">Notifications</span>
+            </a>
+
+            <a asp-controller="Announcements" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Announcements" ? "active" : "")">
+                <i class="bi bi-bell"></i>
+                <span class="nav-label">Announcements</span>
+            </a>
+
+            <a asp-controller="Dashboard" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="bi bi-grid"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
+
+            <a asp-controller="Evaluation" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluation" ? "active" : "")">
+                <i class="bi bi-star-half"></i>
+                <span class="nav-label">Evaluations</span>
+            </a>
+
+            <a asp-area="Leader"
+               asp-controller="Events"
+               asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")">
+                <i class="bi bi-calendar-event"></i>
+                <span class="nav-label">Events</span>
+            </a>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-bottom">
+
+            <a asp-controller="Profile" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Profile" ? "active" : "")">
+                <i class="bi bi-person-circle"></i>
+                <span class="nav-label">Profile</span>
+            </a>
+
+
+            <a asp-controller="Help" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Help" ? "active" : "")">
+                <i class="bi bi-question-circle"></i>
+                <span class="nav-label">Help</span>
+            </a>
+
+            <a asp-controller="Account" asp-action="Login" asp-area="Identity"
+               asp-route-returnUrl="@Url.Action("Account", "Login")"
+               class="nav-item"
+               onclick="return confirm('Are you sure you want to logout?')">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="nav-label">Logout</span>
+            </a>
+
+        </div>
+
+        <div class="sidebar-user">
+            <img src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
+                 alt="User Avatar" />
+            <div class="sidebar-user-info">
+                <div>
+                    <div class="sidebar-user-name">@(User.Identity?.Name ?? "Guest")</div>
+                    <div class="sidebar-user-role">Leader</div>
+                </div>
+                <i class="bi bi-chevron-down sidebar-user-chevron"></i>
+            </div>
+        </div>
+
+    </nav>
+    <!-- ══════════════════════════════════════════════════════════════════════ -->
+
+    <div id="main-content">
+        <div class="content-wrapper">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/alertDialog.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        const openBtn = document.getElementById('sidebar-toggle');
+        const closeBtn = document.getElementById('sidebar-close');
+
+        function openSidebar() {
+        sidebar.classList.add('show');
+        overlay.classList.add('show');
+        document.body.classList.add('sidebar-open');
+        }
+
+        function closeSidebar() {
+        sidebar.classList.remove('show');
+        overlay.classList.remove('show');
+        document.body.classList.remove('sidebar-open');
+        }
+
+        openBtn.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('show')) closeSidebar();
+        });
+
+
+        function showToast(message, success) {
+        const container = document.querySelector('.toast-container');
+        const delay = 9000;
+
+        const toastEl = document.createElement('div');
+        toastEl.className = `toast app-toast align-items-center border-0 ${success ? 'toast-success' : 'toast-danger'}`;
+        toastEl.setAttribute('role', 'alert');
+        toastEl.setAttribute('aria-live', 'assertive');
+        toastEl.setAttribute('aria-atomic', 'true');
+        toastEl.setAttribute('data-bs-delay', delay);
+
+        const icon = success ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+
+        toastEl.innerHTML = `
+        <div class="toast-body-wrapper">
+        <i class="bi ${icon} toast-icon"></i>
+        <div class="toast-text">${message}</div>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-progress" style="animation-duration: ${delay}ms;"></div>
+        `;
+
+        container.appendChild(toastEl);
+
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+    </script>
+
+    <partial name="_Modal" />
+    <partial name="_AlertDialog" />
+
+</body>
+</html>

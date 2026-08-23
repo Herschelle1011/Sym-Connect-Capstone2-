@@ -1,0 +1,94 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Emails.MembershipStatusEmailViewModel
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Membership Approved</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f1f5f9; font-family: 'Segoe UI', Arial, sans-serif;">
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9; padding: 40px 0;">
+        <tr>
+            <td align="center">
+
+                <table role="presentation" width="480" cellpadding="0" cellspacing="0"
+                       style="background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+
+                    <!-- HEADER -->
+                    <tr>
+                        <td align="center" style="background-color:#4a6cf7; padding:32px 24px;">
+                            <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/q_auto/f_auto/v1778759822/profiles/8f97c2e0-2fc4-46d0-a8ad-499b0f30e2c1.png"
+                                 alt="SYM-Connect"
+                                 width="48" height="48"
+                                 style="border-radius:8px; display:block; margin-bottom:12px;" />
+                            <span style="color:#ffffff; font-size:20px; font-weight:600;">SYM-Connect</span>
+                        </td>
+                    </tr>
+
+                    <!-- STATUS BADGE -->
+                    <tr>
+                        <td align="center" style="padding:32px 32px 0;">
+                            <table role="presentation" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td style="background-color:#d1e7dd; color:#0f5132; font-size:13px; font-weight:600;
+                                        padding:6px 16px; border-radius:20px;">
+                                        ✓ Membership Approved
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- BODY -->
+                    <tr>
+                        <td style="padding:20px 32px 40px;">
+                            <h2 style="margin:0 0 12px; font-size:22px; font-weight:700; color:#111827; text-align:center;">
+                                Welcome aboard, @Model.FirstName!
+                            </h2>
+                            <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#4b5563; text-align:center;">
+                                Great news — your SYM-Connect membership has been approved. You now have full access to your account, events, and everything the organization has to offer.
+                            </p>
+
+                            <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                                <tr>
+                                    <td align="center" style="border-radius:8px; background-color:#4a6cf7;">
+                                        <a href="#"
+                                           style="display:inline-block; padding:14px 32px; font-size:15px; font-weight:600;
+                                            color:#ffffff; text-decoration:none; border-radius:8px;">
+                                            Go to My Account
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- DIVIDER -->
+                    <tr>
+                        <td style="padding:0 32px;">
+                            <div style="border-top:1px solid #e5e7eb;"></div>
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER -->
+                    <tr>
+                        <td style="padding:24px 32px 32px; text-align:center;">
+                            <p style="margin:0 0 4px; font-size:13px; color:#4b5563;">
+                                Thank you,<br />
+                                <strong>SYM-Connect</strong>
+                            </p>
+                            <p style="margin:16px 0 0; font-size:12px; color:#c1c7d0;">
+                                &copy; @DateTime.Now.Year SYM-Connect. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

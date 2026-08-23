@@ -7,6 +7,8 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Group;
+using Sym_Connect__Capstone2_.ViewModels.Member;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -30,7 +32,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     GroupId = g.GroupId,
                     GroupName = g.GroupName,
                     LeaderName = g.Leader!.FullName ?? "N/A",
-                    LeaderEmail = g.Leader!.Email ?? "N/A",
+                    LeaderEmail = g.Leader!.User.Email ?? "Unverified",
                     Status = g.Status,
                     Members = g.GroupDetails.Select(e => new GroupMemberViewModel
                     {
@@ -41,6 +43,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return groups;
       }
 
+      
 
 
 
@@ -58,16 +61,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Description = g.Description,
                     Status = g.Status,
                     LeaderId = g.LeaderId,
-                    LeaderEmail = g.Leader.Email,
-                    LeaderName = g.Leader.FirstName,
-                    LeaderContact = g.Leader.ContactNumber,
+                    LeaderEmail = g.Leader != null ? g.Leader.User.Email : "Unverified",
+                    LeaderName = g.Leader != null ? g.Leader.FirstName + " " + g.Leader.LastName : "No Leader Assigned",
+                    LeaderContact = g.Leader != null ? g.Leader.ContactNumber : "N/A",
 
                     Members = g.GroupDetails.Where(m => m.MemberId != null)
                     .Select(gd => new GroupMemberViewModel
                     {
                         MemberId = gd.MemberId ?? 0,
                         FullName = gd.Member!.FullName,
-                        Email = gd.Member.Email,
+                        Email = gd.Member.User.Email,
                         ContactNumber = gd.Member.ContactNumber,
                         Status = gd.Member.Status,
                         DateRegistered = gd.Member.DateRegistered
@@ -132,35 +135,108 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 AnyAsync(g => g.GroupId == id);
         }
 
-        public async Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null)
+        //public async Task<SelectList> GetLeaderOptionsAsync(int? selectedId = null)
+        //{
+        //    var members = await _context.Members
+        //                        .Where(e => e.Status == "Active").ToListAsync();
+        //    return new SelectList(members, "MemberId", "FirstName", selectedId);
+        //}
+
+
+        // ======== CHOOSE LEADERS ========= 
+        public async Task<List<MemberListViewModel>> GetAvailableLeadersAsync(string? search = null, int? currentGroupId = null ,int? excludeId = null)
         {
-            var members = await _context.Members
-                                .Where(e => e.Status == "Active").ToListAsync();
-            return new SelectList(members, "MemberId", "FirstName", selectedId);
+            var members = _context.Members.AsNoTracking()
+                .Where(m => m.Status == "Active");
+
+            var alreadyLeadingIds = await _context.Groups
+                .Where(g => !g.IsArchived && (currentGroupId == null || g.GroupId != currentGroupId))
+                .Select(g => g.LeaderId)
+                .Where(id => id != null)
+                .ToListAsync();    
+
+            var membersInOtherGroups = await _context.GroupDetails
+                .Where(gd => currentGroupId == null || gd.GroupId != currentGroupId)
+                .Where(gd => gd.MemberId != null)
+                .Select(gd => gd.MemberId!.Value)
+                .ToListAsync();
+
+
+            members = members.Where(m =>
+              !alreadyLeadingIds.Contains(m.MemberId) &&
+              !membersInOtherGroups.Contains(m.MemberId));
+
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                members = members
+                    .Where(m => m.FirstName.Contains(search) ||
+                    m.LastName.Contains(search) || m.User.Email.Contains(search));
+            }
+
+            return await members.OrderByDescending(m => m.EarnedPoints)
+                .Select(m => new MemberListViewModel
+                {
+                    MemberId = m.MemberId,
+                    FirstName = m.FirstName,
+                    LastName = m.LastName,
+                    Email = m.User != null ? (m.User.Email ?? "Unverified") : "Unverified",
+                    Points = m.EarnedPoints,
+                    PhotoUrl = m.ProfilePictureUrl
+                }).ToListAsync();
+
         }
 
-        public async Task<List<Member>> GetAllMembersAsync()
-        {
-            return await _context.Members.AsNoTracking().Where(m => m.Status == "Active").Include(g => g.GroupDetails).ToListAsync();
-        }
 
-        public async Task<List<Member>> GetAvailableMemberAsync(int groupId)
+
+
+
+        //SELECTS A MEMBER NOT A LEADER OR EXISTING MEMBER IDS ========
+        public async Task<List<MemberListViewModel>> GetAvailableMemberAsync(int groupId)
         {
             // Get IDs already in the group
             var existingIds = await _context.GroupDetails
                 .Select(gd => gd.MemberId)
                 .ToListAsync();
 
+            var leaderId = await _context.Groups
+                 .Where(g => g.GroupId == groupId)
+                 .Select(g => g.LeaderId)
+                 .FirstOrDefaultAsync();
 
             // Return Active members NOT yet in the group
             return await _context.Members
                 .AsNoTracking()
-                .Where(m => m.Status == "Active" && !existingIds.Contains(m.MemberId))
-                .ToListAsync();
+                .Where(m => m.Status == "Active" &&
+                !existingIds.Contains(m.MemberId) &&
+                m.MemberId != leaderId)
+              .OrderByDescending(m => m.EarnedPoints)
+                .Select(m => new MemberListViewModel
+                {
+                    MemberId = m.MemberId,
+                    FirstName = m.FirstName,
+                    LastName = m.LastName,
+                    Email = m.User.Email ?? "Unverified",
+                    Points = m.EarnedPoints,
+                }).ToListAsync();         
         }
+
+
+
+
+
+
+
+
+
+
+
+            // ADD MEMBER TO GROUP =======
         public async Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId)
         {
-            var AlreadyExist = await _context.GroupDetails.AnyAsync(m => m.MemberId == memberId);
+            var AlreadyExist = await _context.GroupDetails
+                
+                .AnyAsync(m => m.MemberId == memberId);
             if (AlreadyExist)
             {
                 return new OperationalResult { Success = false, Message = $"Member already exist" };
@@ -172,10 +248,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 return new OperationalResult { Success = false, Message = "Group not found" };
             }
             var group = new GroupDetails
-                {
-                    GroupId = groupId,
-                    MemberId = memberId
-                };
+            {
+            GroupId = groupId,
+            MemberId = memberId
+            };
 
                 _context.GroupDetails.Add(group);
                 await _context.SaveChangesAsync();
@@ -240,5 +316,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
+        public async Task<bool> IsMemberALeaderAsync(int? memberId)
+        {
+            return await _context.Groups
+                .AnyAsync(g => g.LeaderId == memberId && !g.IsArchived);
+        }
+
+        public async Task<Group?> GetGroupLedByMemberAsync(int? memberId)
+        {
+            return await _context.Groups
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g => g.LeaderId == memberId && !g.IsArchived);
+        }
     }
 }

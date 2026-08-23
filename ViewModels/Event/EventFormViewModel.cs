@@ -16,12 +16,14 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
             public bool IsAllDay { get; set; }
 
 
-            public DateTime StartDate { get; set; }
+              [Required(ErrorMessage = "Please select a start date.")]
+              public DateTime? StartDate { get; set; }
 
-            public DateTime EndDate { get; set; }
+              [Required(ErrorMessage = "Please select an end date.")]
+               public DateTime? EndDate { get; set; }
 
 
-            [Range(1, 100, ErrorMessage = "Points must be between 1 and 100")]
+        [Range(1, 100, ErrorMessage = "Points must be between 1 and 100")]
             public int Points { get; set; } = 10;
 
 

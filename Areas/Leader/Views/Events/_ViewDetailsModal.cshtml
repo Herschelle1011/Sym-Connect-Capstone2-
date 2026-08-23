@@ -1,0 +1,205 @@
+﻿@model DetailsEventViewModel
+
+
+<div class="event-request-modal">
+    @Html.AntiForgeryToken()
+
+    <div class="stepper mb-4">
+        @{
+            var isRejected = Model.ApprovalStatus == ApprovalStatus.Rejected;
+            var isApproved = Model.ApprovalStatus == ApprovalStatus.Approved;
+            var isPending = Model.ApprovalStatus == ApprovalStatus.Pending;
+            var decisionColor = isRejected ? "#dc2626" : (isApproved ? "#16a34a" : "#d1d5db");
+            var decisionLabel = isRejected ? "Rejected" : (isApproved ? "Approved" : "Decision");
+        }
+        <div class="stepper-row">
+            <div class="step-dot active"></div>
+            <div class="step-line active"></div>
+            <div class="step-dot active"></div>
+            <div class="step-line @((isApproved || isRejected) ? "active" : "")"
+                 style="@((isApproved || isRejected) ? $"background:{decisionColor};" : "")"></div>
+            <div class="step-dot @((isApproved || isRejected) ? "active" : "")"
+                 style="@((isApproved || isRejected) ? $"background:{decisionColor};" : "")"></div>
+        </div>
+        <div class="stepper-labels">
+            <span class="active">Submitted</span>
+            <span class="active">Under Review</span>
+            <span style="@((isApproved || isRejected) ? $"color:{decisionColor}; font-weight:600;" : "")">
+                @decisionLabel
+            </span>
+        </div>
+    </div>
+
+    <div class="event-info-box">
+        <div class="info-block">
+            <div class="info-label">EVENT</div>
+            <div class="info-value">@Model.EventTitle</div>
+        </div>
+
+        <div class="info-block">
+            <div class="info-label">WHEN</div>
+            <div class="info-value">
+                @Model.StartDate.ToString("MMM d, yyyy")
+                @if (Model.StartTime.HasValue)
+                {
+                    @:· @DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt")
+                }
+                @if (Model.EndDate.HasValue)
+                {
+                    @:&nbsp;–&nbsp;@Model.EndDate.Value.ToString("MMM d, yyyy")
+                }
+                @if (Model.EndTime.HasValue)
+                {
+                    @:· @DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt")
+                }
+            </div>
+        </div>
+
+        <div class="info-block">
+            <div class="info-label">FACILITY &amp; GROUPS</div>
+            <div class="info-value">
+                @string.Join(", ", Model.Facilities.Select(f => f.FacilityName))
+                @if (Model.Facilities.Any() && Model.ExpectedGroups.Any())
+                {
+                    @:&nbsp;·&nbsp;
+                }
+                @string.Join(", ", Model.ExpectedGroups.Select(g => g.GroupName))
+            </div>
+        </div>
+
+        <div class="info-block mb-0">
+            <div class="info-label">REQUESTED BY</div>
+            <div class="info-value">
+                @Model.CreatedBy
+                @if (!string.IsNullOrEmpty(Model.RequestedByGroupName))
+                {
+                    <span class="text-muted">(@Model.RequestedByGroupName Leader)</span>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (isRejected && !string.IsNullOrEmpty(Model.RejectionReason))
+    {
+        <div class="rejection-note">
+            <i class="ti ti-info-circle"></i>
+            <div>
+                <strong>Reason for rejection</strong>
+                <p class="mb-0">@Model.RejectionReason</p>
+            </div>
+        </div>
+    }
+    else if (isApproved && !string.IsNullOrEmpty(Model.ApprovedBy))
+    {
+        <div class="approval-note">
+            <i class="ti ti-circle-check"></i>
+            <span>Approved by @Model.ApprovedBy@(Model.ApprovedDate.HasValue ? $" · {Model.ApprovedDate.Value:MMM d, yyyy}" : "")</span>
+        </div>
+    }
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+
+        @if (isPending)
+        {
+            <button type="button" class="btn btn-primary edit-event-from-modal-btn" data-event-id="@Model.EventId">
+                <i class="ti ti-pencil"></i> Edit Request
+            </button>
+        }
+    </div>
+</div>
+
+
+<style>
+    .event-request-modal {
+        font-size: 14px;
+        padding: 24px;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .stepper-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .step-dot {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #d1d5db;
+        flex-shrink: 0;
+    }
+
+        .step-dot.active {
+            background: #2563eb;
+        }
+
+    .step-line {
+        flex: 1;
+        height: 2px;
+        background: #e5e7eb;
+    }
+
+        .step-line.active {
+            background: #2563eb;
+        }
+
+    .stepper-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+        .stepper-labels .active {
+            color: #2563eb;
+            font-weight: 500;
+        }
+
+    .event-info-box {
+        background: #f9fafb;
+        border: 1px solid #f3f4f6;
+        border-radius: 10px;
+        padding: 16px;
+    }
+
+    .info-block {
+        margin-bottom: 14px;
+    }
+
+    .info-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .03em;
+        color: #9ca3af;
+        margin-bottom: 3px;
+    }
+
+    .info-value {
+        font-size: 13.5px;
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .rejection-note, .approval-note {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-top: 14px;
+        font-size: 13px;
+    }
+
+    .rejection-note {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+
+    .approval-note {
+        background: #f0fdf4;
+        color: #15803d;
+        align-items: center;
+    }
+</style>

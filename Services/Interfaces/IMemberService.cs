@@ -17,6 +17,11 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<string> GetOrCreateQrTokenAsync(int memberId);
 
+        Task<OperationalResult> ConfirmEmailAsync(string userId, string Token);
+
+
+        Task<OperationalResult> SetPasswordAsync(string userId, string token, string password);
+
         ////LOAD ALL Members dropDown
         //Task<List<Member>> GetMemberOptionsAsync(int groupId);
     }

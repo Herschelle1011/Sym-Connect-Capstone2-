@@ -40,12 +40,16 @@ namespace Sym_Connect__Capstone2_.Controllers
         // GET: Groups/Create
         public async Task<IActionResult> GetCreateForm()
         {
-            var vm = new GroupCreateViewModel
-            {
-                LeaderOptions = await _groupService.GetLeaderOptionsAsync()
-            };
+            var vm = new GroupCreateViewModel(); 
 
             return PartialView("_CreateGroupForm", vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SelectLeaderModal(string? search = null, int? excludeGroupId = null)
+        {
+            var leaders = await _groupService.GetAvailableLeadersAsync(search, excludeGroupId); // renamed
+            return PartialView("_SelectLeaderModal", leaders);
         }
 
         // POST: Groups/Create
@@ -60,7 +64,6 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (!ModelState.IsValid)
             {
-                vm.LeaderOptions = await _groupService.GetLeaderOptionsAsync(vm.LeaderId);
                 return PartialView("_CreateGroupForm", vm);
             }
 
@@ -74,10 +77,8 @@ namespace Sym_Connect__Capstone2_.Controllers
         {
             if (id == null) return NotFound();
 
-            var vm = new GroupEditViewModel
-            {
-                LeaderOptions = await _groupService.GetLeaderOptionsAsync()
-            };
+            var vm = new GroupEditViewModel();
+            
             return View(vm);
         }
 
@@ -93,9 +94,8 @@ namespace Sym_Connect__Capstone2_.Controllers
                 GroupName = group.GroupName,
                 Description = group.Description,
                 Status = group.Status,
-                LeaderId = group.LeaderId,
-                LeaderOptions = await _groupService.GetLeaderOptionsAsync()
-            
+                LeaderId = group.LeaderId
+           
             };
 
             return PartialView("_EditGroupForm", vm);
@@ -110,7 +110,6 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (!ModelState.IsValid)
             {
-                vm.LeaderOptions = await _groupService.GetLeaderOptionsAsync(vm.LeaderId);
                 return View(vm);
             }
 
@@ -123,7 +122,6 @@ namespace Sym_Connect__Capstone2_.Controllers
                     return NotFound();
                 }
                 ModelState.AddModelError(string.Empty, result?.Message ?? "Update failed.");
-                vm.LeaderOptions = await _groupService.GetLeaderOptionsAsync(vm.LeaderId);
                 return Json(result);
             }
 
@@ -195,6 +193,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 Email = m.Email,
                 ContactNumber = m.ContactNumber,
                 Status = m.Status,
+                
                 DateRegistered = m.DateRegistered
             }).ToList();
 
@@ -226,13 +225,15 @@ namespace Sym_Connect__Capstone2_.Controllers
             var results = available
                 .Where(m =>
                     m.FullName.Contains(query ?? "", StringComparison.OrdinalIgnoreCase) ||
-                    m.Email.Contains(query ?? "", StringComparison.OrdinalIgnoreCase))
+                    (m.Email.Contains(query ?? "", StringComparison.OrdinalIgnoreCase)))
+                .OrderByDescending(m => m.Points)
                 .Take(10)
                 .Select(m => new
                 {
                     m.MemberId,
                     m.FullName,
-                    m.Email
+                    m.Email,
+                    m.Points
                 });
 
             return Json(results);

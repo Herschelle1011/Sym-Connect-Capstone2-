@@ -39,7 +39,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     Barangay = m.Barangay,
                     ContactNumber = m.ContactNumber,
                     PhotoUrl = m.ProfilePictureUrl,
-                    Email = m.Email,
+                    Email = m.User.Email,
                     Birthdate = m.BirthDate,
                     GroupName = m.GroupDetails.Select(
                         gd=> gd.Group.GroupName).FirstOrDefault() ?? "N/A",
