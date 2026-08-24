@@ -1,0 +1,176 @@
+﻿/* Sidebar info cards */
+.attendance-sidebar .info-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.attendance-sidebar .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+    .attendance-sidebar .info-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .attendance-sidebar .info-row i {
+        margin-top: 3px;
+    }
+
+/* Group icon circle (header) */
+.group-icon-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #0d6efd;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+/* Status badge (header + status card) */
+.status-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+    .status-badge.status-fullypresent {
+        background: #e7f7ec;
+        color: #1a7f3c;
+    }
+
+    .status-badge.status-partiallypresent {
+        background: #fff4e0;
+        color: #b8860b;
+    }
+
+    .status-badge.status-absent {
+        background: #fdecea;
+        color: #c0392b;
+    }
+
+/* Summary dots */
+.summary-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot-present {
+    background: #28a745;
+}
+
+.dot-pending {
+    background: #ffc107;
+}
+
+.dot-absent {
+    background: #dc3545;
+}
+
+/* Member avatar circle */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #198754;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Status pill (table rows) */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+    .status-pill .dot {
+        width: 6px;
+        height: 6px;
+    }
+
+.status-pill-present {
+    background: #e7f7ec;
+    color: #1a7f3c;
+}
+
+    .status-pill-present .dot {
+        background: #28a745;
+    }
+
+.status-pill-pending {
+    background: #fff4e0;
+    color: #b8860b;
+}
+
+    .status-pill-pending .dot {
+        background: #ffc107;
+    }
+
+.status-pill-absent {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+    .status-pill-absent .dot {
+        background: #dc3545;
+    }
+
+/* Table */
+.attendance-table thead th {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #6c757d;
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+
+.attendance-table td {
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+
+/* Search box */
+.search-box {
+    position: relative;
+    flex: 1;
+}
+
+    .search-box i {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #adb5bd;
+    }
+
+    .search-box input {
+        padding-left: 32px;
+    }

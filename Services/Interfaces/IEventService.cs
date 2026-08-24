@@ -58,5 +58,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<int> GetPendingRequestCountAsync();
 
         Task<AttendanceTabViewModel> GetGroupAttendanceOverviewAsync(int eventId);
-    }
+
+        Task<GroupAttendanceDetailsViewModel> GroupAttendanceDetailsView(int groupId, int eventId);
+       }
 }

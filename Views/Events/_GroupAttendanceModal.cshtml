@@ -1,0 +1,176 @@
+﻿@model GroupAttendanceDetailsViewModel
+
+<div class="attendance-header d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <div class="group-icon-circle">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+            <div class="d-flex align-items-center gap-2">
+                <h5 class="mb-0">@Model.GroupName</h5>
+                <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
+                    @(Model.GroupAttendanceStatus switch
+                    {
+                        GroupAttendanceStatus.FullyPresent => "Fully Present",
+                        GroupAttendanceStatus.PartiallyPresent => "Partially Present",
+                        GroupAttendanceStatus.Absent => "Absent"
+                    })
+                </span>
+            </div>
+            <small class="text-muted">
+                @Model.attendanceRowViewModels.Count(r => r.Status == "Present") of @Model.TotalMembers members attended
+                (@(Model.TotalMembers > 0 ? (Model.attendanceRowViewModels.Count(r => r.Status == "Present") * 100 / Model.TotalMembers) : 0)%)
+            </small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-0">
+
+    <!-- Left panel -->
+    <div class="col-md-4 attendance-sidebar">
+        <div class="info-card">
+            <div class="info-row">
+                <i class="bi bi-calendar-event text-primary"></i>
+                <div>
+                    <small class="text-muted d-block">Event</small>
+                    <span>@Model.eventTitle</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <i class="bi bi-calendar3 text-primary"></i>
+                <div>
+                    <small class="text-muted d-block">Date</small>
+                    <span>@Model.EventDate.ToString("MMMM d, yyyy") @(Model.EventDate.Date == DateTime.Today ? "(Today)" : "")</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <i class="bi bi-clock text-primary"></i>
+                <div>
+                    <small class="text-muted d-block">Time</small>
+                    <span>
+                        @(Model.StartTime.HasValue ? Model.StartTime.Value.ToString("hh\\:mm") : "—")
+                        –
+                        @(Model.EndTime.HasValue ? Model.EndTime.Value.ToString("hh\\:mm") : "—")
+                    </span>
+                </div>
+            </div>
+            <div class="info-row">
+                <i class="bi bi-person text-primary"></i>
+                <div>
+                    <small class="text-muted d-block">Group Leader</small>
+                    <span>@Model.GroupLeader</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <i class="bi bi-people text-primary"></i>
+                <div>
+                    <small class="text-muted d-block">Total Members</small>
+                    <span>@Model.TotalMembers</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h6>Status</h6>
+            <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
+                @Model.GroupAttendanceStatus
+            </span>
+            <p class="text-muted small mt-2 mb-0">
+                @(Model.GroupAttendanceStatus == GroupAttendanceStatus.FullyPresent
+                    ? "All members of this group have attended the event."
+                    : Model.GroupAttendanceStatus == GroupAttendanceStatus.PartiallyPresent
+                        ? "Some members of this group have not attended yet."
+                        : "No members of this group have attended.")
+            </p>
+        </div>
+
+        <div class="info-card">
+            <h6>Summary</h6>
+            <div class="summary-row">
+                <span class="dot dot-present"></span> Present
+                <span class="ms-auto fw-semibold">@Model.attendanceRowViewModels.Count(r => r.Status == "Present")</span>
+            </div>
+            <div class="summary-row">
+                <span class="dot dot-pending"></span> Pending
+                <span class="ms-auto fw-semibold">@Model.attendanceRowViewModels.Count(r => r.Status == "Pending")</span>
+            </div>
+            <div class="summary-row">
+                <span class="dot dot-absent"></span> Absent
+                <span class="ms-auto fw-semibold">@Model.attendanceRowViewModels.Count(r => r.Status == "Absent")</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="col-md-8 attendance-main">
+        <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="memberSearch" class="form-control" placeholder="Search member...">
+            </div>
+            <select id="statusFilter" class="form-select w-auto">
+                <option value="all">All Status</option>
+                <option value="Present">Present</option>
+                <option value="Pending">Pending</option>
+                <option value="Absent">Absent</option>
+            </select>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table attendance-table" id="attendanceTable">
+                <thead>
+                    <tr>
+                        <th>Member</th>
+                        <th>Status</th>
+                        <th>Time In</th>
+                        <th>Time Out</th>
+                        <th>Remarks</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.attendanceRowViewModels)
+                    {
+                        <tr data-status="@row.Status" data-name="@row.FullName.ToLower()">
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar-circle">@GetInitials(row.FullName)</div>
+                                    <div>
+                                        <div>@row.FullName</div>
+                                        @if (row.FullName == Model.GroupLeader)
+                                        {
+                                            <small class="text-primary">Group Leader</small>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="status-pill status-pill-@row.Status.ToLower()">
+                                    <span class="dot"></span> @row.Status
+                                </span>
+                            </td>
+                            <td>@(row.TimeIn.HasValue ? row.TimeIn.Value.ToString(@"hh\:mm") : "—")</td>
+                            <td>@(row.TimeOut.HasValue ? row.TimeOut.Value.ToString(@"hh\:mm") : "—")</td>
+                            <td class="text-muted">@row.Remarks</td>
+                            <td><i class="bi bi-chevron-down text-muted"></i></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="d-flex justify-content-end mt-3">
+    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
+</div>
+
+@functions {
+    string GetInitials(string fullName)
+    {
+        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}".ToUpper() : fullName.Substring(0, Math.Min(2, fullName.Length)).ToUpper();
+    }
+}

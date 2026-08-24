@@ -304,6 +304,7 @@ public class EventsController : Controller
     }
 
 
+    //EVENT REQUEST CLICK CARD ==============
     public async Task<IActionResult> ViewEventsRequests()
     {
         var events = await _eventService.GetEventsSummaryForAdminAsync();
@@ -356,5 +357,20 @@ public class EventsController : Controller
         return Json(new { success = true, message = "Event rejected." });
     }
 
+
+
+    //ATTENDANCE TAB VIEW DETAILS VIEW MEMBERS 
+    public async Task<IActionResult> GroupAttendanceDetailsView(int? groupId, int? eventId)
+    {
+        if (groupId == null) return NotFound();
+        if (eventId == null) return NotFound();
+
+
+        var groupAttendanceDetails = await _eventService.GroupAttendanceDetailsView(groupId.Value, eventId.Value);
+
+        if (groupAttendanceDetails == null) return NotFound();
+        
+        return PartialView("_GroupAttendanceModal", groupAttendanceDetails);
+    }
 
 }

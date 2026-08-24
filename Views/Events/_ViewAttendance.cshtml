@@ -304,12 +304,13 @@
                             <span class="small fw-medium">@statusLabel</span>
                         </td>
                         <td>
-                            <a asp-action="GroupAttendanceDetails"
-                               asp-route-eventId="@Model.EventId"
-                               asp-route-groupId="@g.GroupId"
-                               class="btn btn-sm btn-outline-primary">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary open-modal"
+                                    data-url="/Events/GroupAttendanceDetailsView?groupId=@g.GroupId&eventId=@Model.EventId"
+                                    data-title="@g.GroupName"
+                                    data-modal-size="xl">
                                 View Details
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 }

@@ -35,6 +35,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return pendingCount;
         }
 
+
+
+
         public async Task<Event?> GetEventByIdAsync(int eventId)
         {
             return await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
@@ -93,6 +96,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                  {
                      EventId = e.EventId,
                      EventTitle = e.EventTitle,
+                     Description = e.EventDescription ?? "No description",
                      StartDate = e.StartDate,
                      EndDate = e.EndDate,
                      ApprovalStatus = e.ApprovalStatus,
@@ -1174,11 +1178,76 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 AbsentCount = summaries.Count(s => s.Status == GroupAttendanceStatus.Absent)
             };
 
-
-
-
         }
 
 
+        public async Task <GroupAttendanceDetailsViewModel> GroupAttendanceDetailsView(int groupId, int eventId)
+        {
+            var groups = await _context.EventGroups
+                .AsNoTracking()
+                  .Where(e => e.GroupId == groupId && e.EventId == eventId && !e.Group.IsArchived)
+                .Select(g => new GroupAttendanceDetailsViewModel
+                {
+                    groupId = g.GroupId,
+                    GroupName = g.Group.GroupName,
+                    eventTitle = g.Event.EventTitle,
+                    EventDate = g.Event.StartDate,
+                    StartTime = g.Event.StartTime,
+                    EndTime = g.Event.EndTime,
+                    GroupLeader = g.Group.LeaderId != null ? g.Group.Leader.FirstName + " " + g.Group.Leader.LastName : "No Leader",
+                    TotalMembers = g.Group.GroupDetails.Count(),
+                    GroupAttendanceStatus = !g.Group.GroupDetails.Any() ? GroupAttendanceStatus.Absent :
+                    g.Group.GroupDetails.All(gd => _context.Attendances.Any(a => a.MemberId == gd.MemberId && a.EventId == g.EventId
+                                                                                  && a.Status == "Present"))
+                                                    ? GroupAttendanceStatus.FullyPresent : g.Group.GroupDetails
+                                                    .Any(gd => _context.Attendances.Any(a => a.MemberId == gd.MemberId
+                                                          && a.EventId == g.EventId
+                                                          && a.Status == "Present")) ? GroupAttendanceStatus.PartiallyPresent : GroupAttendanceStatus.Absent,
+                    attendanceRowViewModels = g.Group.GroupDetails.Select(m => new AttendanceRowViewModel
+                    {
+                        MemberId = m.MemberId,
+                        FullName = m.Member.FirstName + " " + m.Member.LastName,
+                        PhotoUrl = m.Member.ProfilePictureUrl,
+                        GroupName = g.Group.GroupName,
+
+                        TimeIn = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
+                                .Select(a => a.TimeIn)
+                                .FirstOrDefault(),
+
+                        TimeOut = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
+                                .Select(a => a.TimeOut)
+                                .FirstOrDefault(),
+
+                        Points = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
+                                .Select(a => a.Points)
+                                .FirstOrDefault(),
+
+                        Status = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
+                                .Select(a => a.Status)
+                                .FirstOrDefault() ?? "Pending",
+
+                    }).ToList()
+                }).FirstOrDefaultAsync();
+
+            if (groups == null) return null;
+
+            const int graceMinutes = 15;
+            foreach (var row in groups.attendanceRowViewModels)
+            {
+                if (row.TimeIn.HasValue && groups.StartTime.HasValue)
+                {
+                    var lateBy = row.TimeIn.Value.TimeOfDay - groups.StartTime.Value;
+                    row.Remarks = lateBy.TotalMinutes > graceMinutes
+                        ? $"Late by {(int)lateBy.TotalMinutes} mins"
+                        : "—";
+                }
+                else
+                {
+                    row.Remarks = "—";
+                }
+            }
+
+            return groups;
+        }
     }
 }
