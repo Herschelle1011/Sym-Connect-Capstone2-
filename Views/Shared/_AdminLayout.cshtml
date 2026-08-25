@@ -130,6 +130,13 @@
                 <span class="nav-label">Evaluation</span>
             </a>
 
+            
+            <a asp-controller="ParticipationTracking" asp-action="Index"
+               class="nav-item @(controller == "Participation" ? "active" : "")">
+                <i class="bi bi-clipboard-check"></i> 
+                <span class="nav-label">Participation</span>
+            </a>
+
             <div class="nav-dropdown @(electionOpen ? "open" : "")">
 
                 <a href="#" class="nav-item nav-dropdown-toggle @(electionOpen ? "active" : "")">

@@ -4,6 +4,7 @@
     {
         FullyPresent,
         PartiallyPresent,
-        Absent
+        Absent,
+        Pending
     }
 }

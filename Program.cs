@@ -85,6 +85,11 @@ builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IEvaluati
 builder.Services.AddScoped<IPartyListService, PartyListService>(); // for Elections
 
 
+
+builder.Services.AddScoped<
+    IParticipationTrackingService,
+    ParticipationTrackingService>();
+
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
                             Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
 //member
@@ -118,6 +123,7 @@ builder.Services.AddSwaggerGen();
 //register EmailSettings
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+
 
 //for email
 builder.Services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();

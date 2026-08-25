@@ -13,7 +13,7 @@ namespace Sym_Connect__Capstone2_.Models
         public Event Event { get; set; } = null!;
 
         //fk members
-        public int MemberId { get; set; }
+        public int? MemberId { get; set; }
         public Member Member { get; set; } = null!;
 
         public DateTime? TimeIn { get; set; }

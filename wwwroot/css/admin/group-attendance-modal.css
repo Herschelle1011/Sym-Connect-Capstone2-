@@ -1,10 +1,21 @@
 ﻿/* Sidebar info cards */
 .attendance-sidebar .info-card {
     background: #f8f9fa;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    border: 1px solid #eef0f2;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
+
+    .attendance-sidebar .info-card h6 {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #6c757d;
+        margin-bottom: 12px;
+    }
 
 .attendance-sidebar .info-row {
     display: flex;
@@ -19,27 +30,54 @@
 
     .attendance-sidebar .info-row i {
         margin-top: 3px;
+        font-size: 15px;
+        width: 16px;
+        text-align: center;
+        flex-shrink: 0;
     }
+
+    .attendance-sidebar .info-row span {
+        font-size: 14px;
+        font-weight: 500;
+        color: #212529;
+        word-break: break-word;
+    }
+
+/* On md+ screens, add a divider between sidebar and table */
+@media (min-width: 768px) {
+    .attendance-sidebar {
+        padding-right: 18px;
+        border-right: 1px solid #eef0f2;
+    }
+
+    .attendance-main {
+        padding-left: 18px;
+    }
+}
 
 /* Group icon circle (header) */
 .group-icon-circle {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: #0d6efd;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 17px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(13, 110, 253, 0.35);
 }
 
 /* Status badge (header + status card) */
 .status-badge {
     font-size: 12px;
-    font-weight: 500;
-    padding: 4px 10px;
+    font-weight: 600;
+    padding: 5px 12px;
     border-radius: 20px;
+    display: inline-block;
+    white-space: nowrap;
 }
 
     .status-badge.status-fullypresent {
@@ -62,15 +100,21 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     font-size: 14px;
+    color: #495057;
 }
+
+    .summary-row:last-child {
+        margin-bottom: 0;
+    }
 
 .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     display: inline-block;
+    flex-shrink: 0;
 }
 
 .dot-present {
@@ -87,8 +131,8 @@
 
 /* Member avatar circle */
 .avatar-circle {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: #198754;
     color: #fff;
@@ -98,7 +142,16 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
 }
+
+.member-name-wrap {
+    min-width: 0;
+}
+
+    .member-name-wrap .text-truncate {
+        max-width: 160px;
+    }
 
 /* Status pill (table rows) */
 .status-pill {
@@ -106,9 +159,10 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    font-weight: 500;
-    padding: 3px 10px;
+    font-weight: 600;
+    padding: 4px 12px;
     border-radius: 20px;
+    white-space: nowrap;
 }
 
     .status-pill .dot {
@@ -144,33 +198,124 @@
     }
 
 /* Table */
-.attendance-table thead th {
-    font-size: 11px;
-    text-transform: uppercase;
-    color: #6c757d;
-    border-bottom: 1px solid #e9ecef;
-    font-weight: 600;
+.attendance-table-wrap {
+    border: 1px solid #eef0f2;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-.attendance-table td {
-    vertical-align: middle;
-    padding: 12px 8px;
+.attendance-table {
+    margin-bottom: 0;
 }
+
+    .attendance-table thead th {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #6c757d;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: 700;
+        padding: 10px 12px;
+        white-space: nowrap;
+    }
+
+    .attendance-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+        .attendance-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .attendance-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+    .attendance-table td {
+        vertical-align: middle;
+        padding: 12px;
+        border-bottom: 1px solid #f1f3f5;
+        font-size: 14px;
+    }
+
+    .attendance-table .bi-chevron-down {
+        cursor: pointer;
+        transition: transform 0.15s ease;
+    }
 
 /* Search box */
 .search-box {
     position: relative;
     flex: 1;
+    min-width: 0;
 }
 
     .search-box i {
         position: absolute;
-        left: 10px;
+        left: 12px;
         top: 50%;
         transform: translateY(-50%);
         color: #adb5bd;
+        font-size: 13px;
     }
 
     .search-box input {
-        padding-left: 32px;
+        padding-left: 34px;
+        border-radius: 8px;
+        font-size: 14px;
+        width: 100%;
     }
+
+#statusFilter {
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* ---------- Responsive breakpoints ---------- */
+
+/* Tablet: tighten paddings, shrink remarks column */
+@media (max-width: 991.98px) {
+    .attendance-table td,
+    .attendance-table th {
+        padding: 10px 8px;
+    }
+
+    .member-name-wrap .text-truncate {
+        max-width: 120px;
+    }
+}
+
+/* Mobile: stack header, drop low-priority columns, let table scroll */
+@media (max-width: 575.98px) {
+    .attendance-header h5 {
+        font-size: 16px;
+    }
+
+    .group-icon-circle {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+    }
+
+    .attendance-sidebar .info-card {
+        padding: 14px;
+    }
+
+    /* Hide Remarks and trailing chevron column on very small screens to reduce horizontal scroll */
+    .attendance-table th:nth-child(5),
+    .attendance-table td:nth-child(5),
+    .attendance-table th:nth-child(6),
+    .attendance-table td:nth-child(6) {
+        display: none;
+    }
+
+    .member-name-wrap .text-truncate {
+        max-width: 100px;
+    }
+
+    .search-box input,
+    #statusFilter {
+        font-size: 13px;
+    }
+}

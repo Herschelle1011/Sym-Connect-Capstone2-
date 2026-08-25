@@ -1,12 +1,12 @@
 ﻿@model GroupAttendanceDetailsViewModel
 
-<div class="attendance-header d-flex justify-content-between align-items-center mb-3">
+<div class="attendance-header d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div class="d-flex align-items-center gap-2">
         <div class="group-icon-circle">
             <i class="bi bi-people-fill"></i>
         </div>
         <div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
                 <h5 class="mb-0">@Model.GroupName</h5>
                 <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
                     @(Model.GroupAttendanceStatus switch
@@ -25,10 +25,10 @@
     </div>
 </div>
 
-<div class="row g-0">
+<div class="row g-3 g-md-0">
 
     <!-- Left panel -->
-    <div class="col-md-4 attendance-sidebar">
+    <div class="col-12 col-md-4 attendance-sidebar">
         <div class="info-card">
             <div class="info-row">
                 <i class="bi bi-calendar-event text-primary"></i>
@@ -85,7 +85,7 @@
             </p>
         </div>
 
-        <div class="info-card">
+        <div class="info-card mb-0">
             <h6>Summary</h6>
             <div class="summary-row">
                 <span class="dot dot-present"></span> Present
@@ -103,13 +103,13 @@
     </div>
 
     <!-- Right panel -->
-    <div class="col-md-8 attendance-main">
-        <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
+    <div class="col-12 col-md-8 attendance-main">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center mb-3 gap-2">
             <div class="search-box">
                 <i class="bi bi-search"></i>
                 <input type="text" id="memberSearch" class="form-control" placeholder="Search member...">
             </div>
-            <select id="statusFilter" class="form-select w-auto">
+            <select id="statusFilter" class="form-select w-100 w-sm-auto">
                 <option value="all">All Status</option>
                 <option value="Present">Present</option>
                 <option value="Pending">Pending</option>
@@ -117,8 +117,8 @@
             </select>
         </div>
 
-        <div class="table-responsive">
-            <table class="table attendance-table" id="attendanceTable">
+        <div class="table-responsive attendance-table-wrap">
+            <table class="table attendance-table mb-0" id="attendanceTable">
                 <thead>
                     <tr>
                         <th>Member</th>
@@ -135,9 +135,18 @@
                         <tr data-status="@row.Status" data-name="@row.FullName.ToLower()">
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-circle">@GetInitials(row.FullName)</div>
-                                    <div>
-                                        <div>@row.FullName</div>
+                                    <div class="avatar-circle">
+                                        @if (!string.IsNullOrEmpty(row.PhotoUrl))
+                                        {
+                                            <img src="@row.PhotoUrl" alt="@row.FullName" style="width:100%; height:100%; object-fit:cover;" />
+                                        }
+                                        else
+                                        {
+                                            <span>@row.FullName.Substring(0, 1).ToUpper()</span>
+                                        }
+                                    </div>
+                                    <div class="member-name-wrap">
+                                        <div class="text-truncate">@row.FullName</div>
                                         @if (row.FullName == Model.GroupLeader)
                                         {
                                             <small class="text-primary">Group Leader</small>
@@ -152,7 +161,7 @@
                             </td>
                             <td>@(row.TimeIn.HasValue ? row.TimeIn.Value.ToString(@"hh\:mm") : "—")</td>
                             <td>@(row.TimeOut.HasValue ? row.TimeOut.Value.ToString(@"hh\:mm") : "—")</td>
-                            <td class="text-muted">@row.Remarks</td>
+                            <td class="text-muted text-truncate" style="max-width:160px;">@row.Remarks</td>
                             <td><i class="bi bi-chevron-down text-muted"></i></td>
                         </tr>
                     }
@@ -166,11 +175,3 @@
 <div class="d-flex justify-content-end mt-3">
     <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
 </div>
-
-@functions {
-    string GetInitials(string fullName)
-    {
-        var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length >= 2 ? $"{parts[0][0]}{parts[^1][0]}".ToUpper() : fullName.Substring(0, Math.Min(2, fullName.Length)).ToUpper();
-    }
-}

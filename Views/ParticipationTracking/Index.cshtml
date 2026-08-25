@@ -1,0 +1,591 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Participation.ParticipationTrackingViewModel
+
+@{
+    ViewData["Title"] = "Participation Tracking";
+    Layout = "_AdminLayout";
+}
+
+<style>
+    .participation-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .top-action-btn {
+        height: 40px;
+        border-radius: 8px;
+        font-size: 13px;
+        padding: 0 14px;
+    }
+
+    /* SUMMARY */
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .summary-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px;
+        min-height: 110px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        flex-shrink: 0;
+    }
+
+    .summary-number {
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+
+    .summary-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .summary-sub {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 3px;
+    }
+
+    .bg-purple-subtle {
+        background: #f3e8ff;
+    }
+
+    .text-purple {
+        color: #9333ea;
+    }
+
+    /* MAIN PANEL */
+    .participation-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0;
+    }
+
+    .participation-panel-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0 18px;
+    }
+
+    #participationTab {
+        border: none;
+        margin: 0;
+    }
+
+        #participationTab .nav-link {
+            border: 0;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 16px 10px 13px;
+            margin-right: 18px;
+        }
+
+            #participationTab .nav-link.active {
+                color: #2563eb;
+                border-bottom-color: #2563eb;
+            }
+
+    .participation-panel-body {
+        padding: 18px;
+    }
+
+    .participation-description {
+        font-size: 12.5px;
+        color: #64748b;
+        margin-bottom: 14px;
+    }
+
+    .panel-actions .btn {
+        height: 38px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+
+    /* LEGEND */
+    .participation-legend {
+        margin-top: 16px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 13px 16px;
+    }
+
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .legend-text {
+        font-size: 11.5px;
+        color: #475569;
+    }
+
+    .legend-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .rate-formula {
+        font-size: 11.5px;
+        color: #475569;
+        white-space: nowrap;
+    }
+
+    /* STATUS */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-fully-present {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-partially-present {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .status-absent {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    /* RATE BAR */
+    .participation-rate-bar {
+        width: 100%;
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .participation-rate-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+    }
+
+    @@media (max-width: 1200px) {
+        .summary-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .summary-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 500px) {
+        .summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="participation-page">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+        <div>
+            <h1 class="page-title mb-1">Participation Tracking</h1>
+            <p class="page-subtitle mb-0">
+                Track attendance and participation of groups and members across all events.
+            </p>
+        </div>
+
+        <div class="d-flex gap-2">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary top-action-btn d-flex align-items-center gap-2"
+                        type="button"
+                        id="dateRangeBtn"
+                        data-bs-toggle="dropdown">
+                    <i class="bi bi-calendar3"></i>
+                    <span id="dateRangeLabel">Jun 1, 2026 - Aug 23, 2026</span>
+                    <i class="bi bi-chevron-down small"></i>
+                </button>
+
+                <div class="dropdown-menu dropdown-menu-end p-3"
+                     style="min-width:280px;">
+
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">From</label>
+                        <input type="date"
+                               id="ptFromDate"
+                               class="form-control form-control-sm" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small text-muted">To</label>
+                        <input type="date"
+                               id="ptToDate"
+                               class="form-control form-control-sm" />
+                    </div>
+
+                    <button type="button"
+                            id="ptApplyDateRange"
+                            class="btn btn-sm btn-primary w-100">
+                        Apply
+                    </button>
+                </div>
+            </div>
+
+            <button class="btn btn-outline-secondary top-action-btn d-flex align-items-center gap-2"
+                    type="button"
+                    data-bs-toggle="offcanvas"
+                    data-bs-target="#participationFilterPanel">
+                <i class="bi bi-funnel"></i>
+                Filter
+            </button>
+        </div>
+    </div>
+
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+
+        <div class="summary-card">
+            <div class="summary-icon bg-primary-subtle text-primary">
+                <i class="bi bi-people-fill"></i>
+            </div>
+
+            <div>
+                <div class="summary-number text-primary">
+                    @Model.Summary.TotalGroups
+                </div>
+
+                <div class="summary-label">
+                    Total Groups
+                </div>
+
+                <div class="summary-sub">
+                    Assigned to events
+                </div>
+            </div>
+        </div>
+
+
+        <div class="summary-card">
+            <div class="summary-icon bg-success-subtle text-success">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+
+            <div>
+                <div class="summary-number text-success">
+                    @Model.Summary.FullyPresentGroups
+                </div>
+
+                <div class="summary-label text-success">
+                    Fully Present
+                </div>
+
+                <div class="summary-sub">
+                    Groups
+                    &nbsp;
+                    @(Model.Summary.TotalGroups == 0
+                        ? "0.00"
+                        : Math.Round(
+                            (double)Model.Summary.FullyPresentGroups /
+                            Model.Summary.TotalGroups * 100,
+                            2
+                        ).ToString("0.00"))%
+                </div>
+            </div>
+        </div>
+
+
+        <div class="summary-card">
+            <div class="summary-icon bg-warning-subtle text-warning">
+                <i class="bi bi-dash-circle-fill"></i>
+            </div>
+
+            <div>
+                <div class="summary-number text-warning">
+                    @Model.Summary.PartiallyPresentGroups
+                </div>
+
+                <div class="summary-label text-warning">
+                    Partially Present
+                </div>
+
+                <div class="summary-sub">
+                    Groups
+                    &nbsp;
+                    @(Model.Summary.TotalGroups == 0
+                        ? "0.00"
+                        : Math.Round(
+                            (double)Model.Summary.PartiallyPresentGroups /
+                            Model.Summary.TotalGroups * 100,
+                            2
+                        ).ToString("0.00"))%
+                </div>
+            </div>
+        </div>
+
+
+        <div class="summary-card">
+            <div class="summary-icon bg-danger-subtle text-danger">
+                <i class="bi bi-x-circle-fill"></i>
+            </div>
+
+            <div>
+                <div class="summary-number text-danger">
+                    @Model.Summary.AbsentGroups
+                </div>
+
+                <div class="summary-label text-danger">
+                    Absent Groups
+                </div>
+
+                <div class="summary-sub">
+                    @(Model.Summary.TotalGroups == 0
+                        ? "0.00"
+                        : Math.Round(
+                            (double)Model.Summary.AbsentGroups /
+                            Model.Summary.TotalGroups * 100,
+                            2
+                        ).ToString("0.00"))%
+                </div>
+            </div>
+        </div>
+
+
+        <div class="summary-card">
+            <div class="summary-icon bg-purple-subtle text-purple">
+                <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div>
+                <div class="summary-number text-purple">
+                    @Model.Summary.TotalMembers
+                </div>
+
+                <div class="summary-label">
+                    Total Members
+                </div>
+
+                <div class="summary-sub">
+                    Across all groups
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MAIN PARTICIPATION PANEL -->
+    <div class="participation-panel">
+
+        <div class="participation-panel-top">
+
+            <ul class="nav nav-tabs" id="participationTab">
+
+                <li class="nav-item">
+                    <button class="nav-link active"
+                            id="groups-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#groups-pane"
+                            type="button">
+                        Groups
+                    </button>
+                </li>
+
+                <li class="nav-item">
+                    <button class="nav-link"
+                            id="members-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#members-pane"
+                            type="button">
+                        Members
+                    </button>
+                </li>
+
+            </ul>
+
+
+            <div class="panel-actions d-flex gap-2">
+
+                <button type="button"
+                        class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                    <i class="bi bi-download"></i>
+                    Export
+                </button>
+
+                <a asp-controller="Events"
+                   asp-action="Index"
+                   class="btn btn-primary d-flex align-items-center gap-2">
+
+                    <i class="bi bi-calendar-event"></i>
+                    View Event Calendar
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <div class="participation-panel-body">
+
+            <p class="participation-description"
+               id="participationTabDescription">
+                Track participation of groups across all events.
+            </p>
+
+            <div class="tab-content">
+
+                <div class="tab-pane fade show active"
+                     id="groups-pane">
+
+                    @await Html.PartialAsync(
+                        "_ViewGetGroupTab",
+                        Model.Groups
+                    )
+
+                </div>
+
+                <div class="tab-pane fade"
+                     id="members-pane">
+
+                    @await Html.PartialAsync(
+                        "_ViewGetMemberTab",
+                        Model.Members
+                    )
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- LEGEND -->
+    <div class="participation-legend">
+
+        <div class="d-flex flex-wrap align-items-center gap-4">
+
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-info-circle-fill text-primary"></i>
+                <span class="legend-title">Legend</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="legend-dot bg-success"></span>
+
+                <span class="legend-text">
+                    <strong class="text-success">
+                        Fully Present:
+                    </strong>
+
+                    Attended all assigned events.
+                </span>
+            </div>
+
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="legend-dot bg-warning"></span>
+
+                <span class="legend-text">
+                    <strong class="text-warning">
+                        Partially Present:
+                    </strong>
+
+                    Attended some of the assigned events.
+                </span>
+            </div>
+
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="legend-dot bg-danger"></span>
+
+                <span class="legend-text">
+                    <strong class="text-danger">
+                        Absent:
+                    </strong>
+
+                    Did not attend any assigned events.
+                </span>
+            </div>
+
+
+            <div class="ms-auto rate-formula">
+                Rate = (Present / Events Assigned) × 100%
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <script>
+        // Switch the description text under the tabs based on which tab is active.
+        document.addEventListener('DOMContentLoaded', function () {
+            var groupsTab = document.getElementById('groups-tab');
+            var membersTab = document.getElementById('members-tab');
+            var description = document.getElementById('participationTabDescription');
+
+            if (groupsTab && membersTab && description) {
+                groupsTab.addEventListener('shown.bs.tab', function () {
+                    description.textContent = 'Track participation of groups across all events.';
+                });
+                membersTab.addEventListener('shown.bs.tab', function () {
+                    description.textContent = 'Track participation of individual members across all events.';
+                });
+            }
+        });
+    </script>
+}

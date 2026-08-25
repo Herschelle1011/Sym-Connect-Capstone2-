@@ -150,13 +150,10 @@ document.addEventListener("submit", async function (e) {
 
     e.preventDefault();
 
-
-const createMemberForm = e.target;
-const submitBtn = createMemberForm.querySelector("#submitBtn");
-
+    const createMemberForm = e.target;
+    const submitBtn = createMemberForm.querySelector("#submitBtn");
 
     submitBtn.disabled = true;
-
     submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>
             Sending verification email...`;
 
@@ -173,22 +170,131 @@ const submitBtn = createMemberForm.querySelector("#submitBtn");
             submitBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i>
                     Email Sent`;
 
-            alert(result.message);
+            showAlertDialog(result.message, "success", "Member Created");
+
+            // Hide the form, then reload once the user dismisses the dialog
+            document.addEventListener("submit", async function (e) {
+                if (e.target.id !== "createMemberForm")
+                    return;
+
+                e.preventDefault();
+
+                const createMemberForm = e.target;
+                const submitBtn = createMemberForm.querySelector("#submitBtn");
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>
+            Sending verification email...`;
+
+                const formData = new FormData(createMemberForm);
+                try {
+                    const response = await fetch(createMemberForm.action, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        submitBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i>
+                    Email Sent`;
+
+                        showAlertDialog(result.message, "success", "Member Created");
+
+                        // Hide the form, then reload once the user dismisses the dialog
+                        createMemberForm.style.visibility = "hidden";
+                        document.getElementById("appAlertModal").addEventListener(
+                            "hidden.bs.modal",
+                            () => window.location.reload(),
+                            { once: true }
+                        );
+                    }
+                    else {
+                        showAlertDialog(result.message, "error", "Creation Failed");
+
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = "Create";
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+
+                    showAlertDialog("Something went wrong while creating the member.", "error", "Error");
+
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = "Create";
+                }
+            }); document.addEventListener("submit", async function (e) {
+                if (e.target.id !== "createMemberForm")
+                    return;
+
+                e.preventDefault();
+
+                const createMemberForm = e.target;
+                const submitBtn = createMemberForm.querySelector("#submitBtn");
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>
+            Sending verification email...`;
+
+                const formData = new FormData(createMemberForm);
+                try {
+                    const response = await fetch(createMemberForm.action, {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        submitBtn.innerHTML = `<i class="bi bi-check-circle me-1"></i>
+                    Email Sent`;
+
+                        showAlertDialog(result.message, "success", "Member Created");
+
+                        // Hide the form, then reload once the user dismisses the dialog
+                        createMemberForm.style.display = "none";
+                        document.getElementById("appAlertModal").addEventListener(
+                            "hidden.bs.modal",
+                            () => window.location.reload(),
+                            { once: true }
+                        );
+                    }
+                    else {
+                        showAlertDialog(result.message, "error", "Creation Failed");
+
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = "Create";
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+
+                    showAlertDialog("Something went wrong while creating the member.", "error", "Error");
+
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = "Create";
+                }
+            }); document.getElementById("appAlertModal").addEventListener(
+                "hidden.bs.modal",
+                () => window.location.reload(),
+                { once: true }
+            );
         }
         else {
-            alert(result.message);
+            showAlertDialog(result.message, "error", "Creation Failed");
 
             submitBtn.disabled = false;
             submitBtn.innerHTML = "Create";
-
         }
     }
     catch (error) {
         console.error(error);
 
-        alert("Something went wrong while creating the member.");
+        showAlertDialog("Something went wrong while creating the member.", "error", "Error");
 
         submitBtn.disabled = false;
         submitBtn.innerHTML = "Create";
     }
 });
+

@@ -6,6 +6,7 @@ using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
+using Sym_Connect__Capstone2_.Services.Implementation;
 namespace Sym_Connect__Capstone2_.Data
 {
     public class AppDbContext : IdentityDbContext<User>
@@ -38,6 +39,7 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<Candidates> Candidates { get; set; }
         public DbSet<Position> positions { get; set; }
 
+
         public DbSet<Vote> Votes { get; set; }
 
 
@@ -68,6 +70,15 @@ namespace Sym_Connect__Capstone2_.Data
                 .HasForeignKey(gd => gd.MemberId)
 
                 .OnDelete(DeleteBehavior.ClientSetNull);
+
+
+
+
+            modelBuilder.Entity<Attendance>()
+           .HasIndex(a => new { a.MemberId, a.EventId })
+               .IsUnique();
+
+
 
             modelBuilder.Entity<GroupDetails>()
             .HasIndex(gd => new { gd.MemberId })

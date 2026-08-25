@@ -170,7 +170,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("EventId")
                         .HasColumnType("int");
 
-                    b.Property<int>("MemberId")
+                    b.Property<int?>("MemberId")
                         .HasColumnType("int");
 
                     b.Property<int>("Points")
@@ -193,9 +193,11 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.HasIndex("MemberId");
-
                     b.HasIndex("ScannedByUserId");
+
+                    b.HasIndex("MemberId", "EventId")
+                        .IsUnique()
+                        .HasFilter("[MemberId] IS NOT NULL");
 
                     b.ToTable("Attendances");
                 });
@@ -997,9 +999,7 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.Member", "Member")
                         .WithMany()
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MemberId");
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.User", "ScannedByUser")
                         .WithMany()

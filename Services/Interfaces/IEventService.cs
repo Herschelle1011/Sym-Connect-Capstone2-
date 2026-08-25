@@ -17,7 +17,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<ScannerViewModel> GetScannerStateAsync(int eventId);
         Task<DetailsEventViewModel?> GetDetailsByAsync(int id);
 
-        Task MarkAsAbsentAsync(int eventId);
+        Task MarkAsAbsentAsync(int eventId, int groupId);
         Task<Event?> GetEventByIdAsync(int eventId);
         Task<EventResult> CreateEventAsync(CreateEventViewModel vm, bool isAdminCreated, int? createByUserId);
         Task<EventResult> UpdateEventAsync(int? gId, EditEventViewModel vm);

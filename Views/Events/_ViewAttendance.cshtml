@@ -1,56 +1,93 @@
 ﻿@model AttendanceTabViewModel
 
 <style>
+    .aov-filter-group {
+        display: flex;
+        gap: 6px;
+        background: #f4f5f7;
+        border-radius: 10px;
+        padding: 4px;
+    }
+
     .aov-filter-chip {
         border-radius: 8px;
         padding: 8px 18px;
         font-weight: 600;
         font-size: 13px;
-        border: 1px solid #e5e7eb;
+        border: 1px solid transparent;
         color: #6b7280;
-        background: #ffffff;
+        background: transparent;
+        transition: all 0.15s ease;
     }
+
+        .aov-filter-chip:hover {
+            color: #4a6cf7;
+        }
 
         .aov-filter-chip.active {
             background: #4a6cf7;
             color: #ffffff;
             border-color: #4a6cf7;
+            box-shadow: 0 2px 6px rgba(74, 108, 247, 0.35);
+        }
+
+    .aov-group-select-wrap {
+        position: relative;
+    }
+
+        .aov-group-select-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .aov-group-select-wrap select {
+            padding-left: 32px;
+            border-radius: 8px;
         }
 
     .aov-stat-card {
-        border-radius: 14px;
-        padding: 18px 20px;
+        border-radius: 16px;
+        padding: 20px 22px;
         display: flex;
         align-items: center;
-        gap: 14px;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.02);
     }
 
         .aov-stat-card .aov-icon {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
-            font-size: 18px;
+            font-size: 20px;
             flex-shrink: 0;
         }
 
         .aov-stat-card .aov-number {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 700;
-            line-height: 1;
+            line-height: 1.1;
         }
 
         .aov-stat-card .aov-label {
             font-weight: 600;
             font-size: 14px;
+            margin-top: 2px;
         }
 
         .aov-stat-card .aov-sub {
             font-size: 12px;
             color: #6b7280;
+            margin-top: 1px;
         }
 
     .aov-card-total {
@@ -109,21 +146,30 @@
         .aov-table thead th {
             font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: .03em;
+            letter-spacing: .04em;
             font-weight: 600;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border: none;
+        }
+
+    .aov-table tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+        .aov-table tbody tr:hover {
+            background-color: #f8f9fc;
         }
 
     .aov-table tbody td {
         padding: 14px 16px;
         vertical-align: middle;
         border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
     }
 
     .aov-group-icon {
-        width: 36px;
-        height: 36px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -136,13 +182,14 @@
         width: 100px;
         height: 6px;
         background: #e5e7eb;
-        border-radius: 4px;
+        border-radius: 999px;
         overflow: hidden;
     }
 
     .aov-progress-fill {
         height: 100%;
-        border-radius: 4px;
+        border-radius: 999px;
+        transition: width 0.3s ease;
     }
 
     .aov-status-dot {
@@ -153,12 +200,128 @@
         margin-right: 6px;
     }
 
+    .aov-details-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .aov-details-cell .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .aov-details-cell .bi-chevron-down {
+            color: #9ca3af;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
     .aov-guide-box {
         background: #f8fafc;
         border: 1px solid #eef1f5;
         border-radius: 12px;
         padding: 16px 20px;
     }
+
+    .aov-table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .aov-table thead tr th {
+            background-color: #4a6cf7 !important;
+            color: #ffffff !important;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-weight: 600;
+            padding: 14px 16px;
+            border: none !important;
+            vertical-align: middle;
+        }
+
+            .aov-table thead tr th:first-child {
+                border-top-left-radius: 12px;
+            }
+
+            .aov-table thead tr th:last-child {
+                border-top-right-radius: 12px;
+            }
+
+        .aov-table tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.15s ease;
+        }
+
+            .aov-table tbody tr:hover {
+                background-color: #f8f9fc;
+            }
+
+            .aov-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+        .aov-table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            background-color: transparent !important;
+        }
+
+    .aov-group-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .aov-progress-track {
+        width: 100px;
+        height: 6px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .aov-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.3s ease;
+    }
+
+    .aov-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .aov-details-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .aov-details-cell .btn {
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .aov-details-cell .bi-chevron-down {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
 </style>
 
 <div class="container-fluid py-4">
@@ -247,7 +410,7 @@
     </div>
 
     <!-- Table -->
-    <div class="table-responsive" style="border-radius:14px; overflow:hidden; border:1px solid #eef1f5;">
+    <div class="table-responsive" style="border-radius:12px; overflow:hidden; border:1px solid #eef1f5;">
         <table class="table aov-table mb-0" id="attendanceTable">
             <thead>
                 <tr>
@@ -271,11 +434,14 @@
 
                     var (statusColor, statusLabel, barColor) = g.Status switch
                     {
-                        GroupAttendanceStatus.FullyPresent => ("#22c55e", "Fully Present", "#22c55e"),
-                        GroupAttendanceStatus.PartiallyPresent => ("#f59e0b", "Partially Present", "#f59e0b"),
-                        _ => ("#ef4444", "Absent", "#e5e7eb")
+                        GroupAttendanceStatus.FullyPresent => ("#22c55e", "Fully Present", "#22c55e"), // Vibrant Green
+                        GroupAttendanceStatus.PartiallyPresent => ("#f59e0b", "Partially Present", "#f59e0b"), // Alert Orange/Amber
+                        GroupAttendanceStatus.Pending => ("#64748b", "Pending", "#cbd5e1"),           // Slate Gray (Neutral)
+
+                        _ => ("#ef4444", "Absent", "#ef4444")             // Crimson Red
                     };
 
+                    
                     <tr data-status="@g.Status" data-group-id="@g.GroupId">
                         <td>
                             <div class="d-flex align-items-center gap-2">
@@ -304,13 +470,16 @@
                             <span class="small fw-medium">@statusLabel</span>
                         </td>
                         <td>
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-primary open-modal"
-                                    data-url="/Events/GroupAttendanceDetailsView?groupId=@g.GroupId&eventId=@Model.EventId"
-                                    data-title="@g.GroupName"
-                                    data-modal-size="xl">
-                                View Details
-                            </button>
+                            <div class="aov-details-cell">
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary open-modal"
+                                        data-url="/Events/GroupAttendanceDetailsView?groupId=@g.GroupId&eventId=@Model.EventId"
+                                        data-title="@g.GroupName"
+                                        data-modal-size="xl">
+                                    View Details
+                                </button>
+                                <i class="bi bi-chevron-down"></i>
+                            </div>
                         </td>
                     </tr>
                 }

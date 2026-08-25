@@ -15,6 +15,7 @@ using Sym_Connect__Capstone2_.ViewModels.Group;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.Intrinsics.X86;
+using System.Text.RegularExpressions;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -176,7 +177,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 }).FirstOrDefaultAsync();
             if (existingEvent == null) return null;
-            await MarkAsAbsentAsync(existingEvent.EventId);
+
+            var selectedGroup =
+                await _context.EventGroups.Where(e => e.EventId == id).Select(e => e.GroupId).ToListAsync();
+            foreach(var groupIds in selectedGroup)
+            {
+                await MarkAsAbsentAsync(existingEvent.EventId, groupIds);
+            }
+
+
+
 
 
             existingEvent.AttendanceRecords = await GetGroupAttendanceOverviewAsync(id);
@@ -718,11 +728,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .OrderByDescending(a => a.TimeIn)
                 .Select(a => new ParticipantCheckInViewModel
                 {
-                    MemberId = a.MemberId,
+                    MemberId = a.MemberId.Value,
                     FullName = a.Member.FullName,
                     PhotoUrl = a.Member.ProfilePictureUrl,
                     GroupName = a.Member.GroupDetails
-                        .Where(gd => _context.Events
+                         .Where(gd => _context.Events
                             .Where(e => e.EventId == eventId)
                             .SelectMany(e => e.ExpectedGroups)
                             .Any(eg => eg.GroupId == gd.GroupId))
@@ -800,6 +810,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (!isExpected)
                 return new OperationalResult { Success = false, Message = $"{member.FirstName} is not part of the expected groups for this event." };
 
+
             _context.Attendances.Add(new Models.Attendance
             {
                 MemberId = member.MemberId,
@@ -815,7 +826,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task MarkAsAbsentAsync(int eventId)
+        public async Task MarkAsAbsentAsync(int eventId, int groupId)
         {
             var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
             if (existingEvent == null) return;
@@ -826,22 +837,53 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var timeOutCloses = existingEvent.TimeOutScannerClosesOffset ??
                 existingEvent.EndTime.Value.Add(TimeSpan.FromMinutes(30));
-
             var scannerCloseDateTime = existingEvent.EndDate.Date + timeOutCloses;
-            var now = DateTime.Now;
 
-            if(now > scannerCloseDateTime)
+            if (DateTime.Now <= scannerCloseDateTime) return;
+
+
+            var groupsBelongstoEvent = await _context.Events.AnyAsync(e => e.EventId == eventId && 
+            e.ExpectedGroups.Any(g => g.GroupId == groupId));
+
+            if(!groupsBelongstoEvent)
             {
-                var pendingAttendances = await _context.Attendances
-                    .Where(a => a.EventId == eventId && a.Status == "Pending").ToListAsync();
-
-                foreach(var attendance in pendingAttendances)
-                {
-                    attendance.Status = "Absent";
-                }
-
+                return;
             }
 
+            //fetch all members belong to this specific group
+            var groupMembers = await _context.Groups
+                .Where(g => g.GroupId == groupId)
+                .SelectMany(g => g.GroupDetails)
+                .Select(m => m.MemberId).ToListAsync();
+
+
+            //fetch attendance records for these members assigned from this event
+            var existingAttendance = await
+              _context.Attendances.Where(a => a.EventId == eventId && groupMembers.Contains(a.MemberId))
+              .ToListAsync();
+
+            var now = DateTime.Now;
+
+            foreach(var memberId in groupMembers)
+            {
+                var attendance = existingAttendance.FirstOrDefault(a => a.MemberId == memberId);
+                if(attendance != null)
+                {
+                    if(attendance.Status == "Pending" && !attendance.TimeIn.HasValue)
+                    attendance.Status = "Absent";
+                   
+                }
+                else
+                {
+                    _context.Attendances.Add(new Attendance
+                    {
+                        EventId = eventId,
+                        MemberId = memberId,
+                        Status = "Absent"
+                    });
+                }
+            }
+  
             await _context.SaveChangesAsync();
 
         }
@@ -1141,16 +1183,31 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var presentSet = presentMemberIds.ToHashSet();
 
+            var attendanceStatuses = await _context.Attendances
+    .Where(a => a.EventId == eventId)
+    .Select(a => new { a.MemberId, a.Status })
+    .ToListAsync();
+
+            var statusByMember = attendanceStatuses
+                .Where(a => a.MemberId.HasValue)
+                .ToDictionary(a => a.MemberId!.Value, a => a.Status);
+
             var summaries = groups.Select(g =>
             {
                 var total = g.MemberIds.Count;
-                var present = g.MemberIds.Count(id => presentSet.Contains(id.Value));
-                var absent = total - present;
+                var present = g.MemberIds.Count(id => id.HasValue && statusByMember.TryGetValue(id.Value, out var s) && (s == "Present" || s == "Late"));
+
+
+                var Confirmedabsent = g.MemberIds.Count(id => id.HasValue && statusByMember.TryGetValue(id.Value, out var s) && s == "Absent");
                 var rate = total == 0 ? 0 : (int)Math.Round((double)present / total * 100);
 
-                var status = total == 0 || present == 0 ? GroupAttendanceStatus.Absent : present == total
-                                    ? GroupAttendanceStatus.FullyPresent : GroupAttendanceStatus.PartiallyPresent;
-
+                var pending = present - Confirmedabsent;
+                GroupAttendanceStatus Status;
+                if (total == 0) Status = GroupAttendanceStatus.Absent;
+                else if (present == total) Status = GroupAttendanceStatus.FullyPresent;
+                else if (present > 0) Status = GroupAttendanceStatus.PartiallyPresent;
+                else if (Confirmedabsent == total) Status = GroupAttendanceStatus.Absent; 
+                else Status = GroupAttendanceStatus.Pending;
 
                 return new GroupAttendanceRowViewModel
                 {
@@ -1158,9 +1215,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     GroupName = g.GroupName,
                     TotalMembers = total,
                     PresentCount = present,
-                    AbsentCount = absent,
+                    AbsentCount = Confirmedabsent,
                     AttendanceRate = rate,
-                    Status = status
+                    Status = Status
                 };
             }).ToList();
 
@@ -1181,11 +1238,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task <GroupAttendanceDetailsViewModel> GroupAttendanceDetailsView(int groupId, int eventId)
+        public async Task<GroupAttendanceDetailsViewModel> GroupAttendanceDetailsView(int groupId, int eventId)
         {
             var groups = await _context.EventGroups
                 .AsNoTracking()
-                  .Where(e => e.GroupId == groupId && e.EventId == eventId && !e.Group.IsArchived)
+                .Where(e => e.GroupId == groupId && e.EventId == eventId && !e.Group.IsArchived)
                 .Select(g => new GroupAttendanceDetailsViewModel
                 {
                     groupId = g.GroupId,
@@ -1203,50 +1260,62 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                                     .Any(gd => _context.Attendances.Any(a => a.MemberId == gd.MemberId
                                                           && a.EventId == g.EventId
                                                           && a.Status == "Present")) ? GroupAttendanceStatus.PartiallyPresent : GroupAttendanceStatus.Absent,
-                    attendanceRowViewModels = g.Group.GroupDetails.Select(m => new AttendanceRowViewModel
-                    {
-                        MemberId = m.MemberId,
-                        FullName = m.Member.FirstName + " " + m.Member.LastName,
-                        PhotoUrl = m.Member.ProfilePictureUrl,
-                        GroupName = g.Group.GroupName,
 
-                        TimeIn = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
-                                .Select(a => a.TimeIn)
-                                .FirstOrDefault(),
-
-                        TimeOut = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
-                                .Select(a => a.TimeOut)
-                                .FirstOrDefault(),
-
-                        Points = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
-                                .Select(a => a.Points)
-                                .FirstOrDefault(),
-
-                        Status = _context.Attendances.Where(a => a.MemberId == m.MemberId && a.EventId == g.EventId)
-                                .Select(a => a.Status)
-                                .FirstOrDefault() ?? "Pending",
-
-                    }).ToList()
                 }).FirstOrDefaultAsync();
 
             if (groups == null) return null;
 
+            // Need the raw group members separately since they're not on the view model
+            var groupMembers = await _context.GroupDetails
+                .Where(gd => gd.GroupId == groupId)
+                .Select(gd => new
+                {
+                    gd.MemberId,
+                    FullName = gd.Member.FirstName + " " + gd.Member.LastName,
+                    gd.Member.ProfilePictureUrl
+                })
+                .ToListAsync();
+
+            var attendanceLookup = await _context.Attendances
+                 .Where(a => a.EventId == eventId)
+          .ToDictionaryAsync(a => a.MemberId, a => a);
+
+
+            groups.attendanceRowViewModels = groupMembers.Select(m =>
+            {
+                attendanceLookup.TryGetValue(m.MemberId, out var att);
+                return new AttendanceRowViewModel
+                {
+                    MemberId = m.MemberId,
+                    FullName = m.FullName,
+                    PhotoUrl = m.ProfilePictureUrl,
+                    GroupName = groups.GroupName,
+                    TimeIn = att?.TimeIn,
+                    TimeOut = att?.TimeOut,
+                    Points = att?.Points ?? 0,
+                    Status = att?.Status ?? "Pending",
+                };
+            }).ToList();
+
             const int graceMinutes = 15;
             foreach (var row in groups.attendanceRowViewModels)
             {
-                if (row.TimeIn.HasValue && groups.StartTime.HasValue)
+                if (row.Status == "Absent")
+                {
+                    row.Remarks = "Absent";
+                }
+                else if (row.TimeIn.HasValue && groups.StartTime.HasValue)
                 {
                     var lateBy = row.TimeIn.Value.TimeOfDay - groups.StartTime.Value;
                     row.Remarks = lateBy.TotalMinutes > graceMinutes
                         ? $"Late by {(int)lateBy.TotalMinutes} mins"
-                        : "—";
+                        : "On time";
                 }
                 else
                 {
-                    row.Remarks = "—";
+                    row.Remarks = "Never attended";
                 }
             }
-
             return groups;
         }
     }
