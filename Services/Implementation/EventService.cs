@@ -349,13 +349,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         "Time-In scanner cannot open after the event starts.");
                 }
 
-                // TIME-IN CLOSE cannot be after event starts
+                // TIME-IN CLOSE cannot be after Time-Out scanner opens
                 if (vm.TimeInScannerClosesTime.HasValue &&
-                    vm.StartTime.HasValue &&
-                    vm.TimeInScannerClosesTime.Value > vm.StartTime.Value)
+                    vm.TimeOutScannerOpenTime.HasValue &&
+                    vm.TimeInScannerClosesTime.Value > vm.TimeOutScannerOpenTime.Value)
                 {
                     return EventResult.Fail(
-                        "Time-In scanner cannot close after the event starts.");
+                        "Time-In scanner must close before the Time-Out scanner opens.");
                 }
 
                 // TIME-IN CLOSE must be after TIME-IN OPEN
@@ -490,11 +490,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 // TIME-IN CLOSE cannot be after event starts
                 if (vm.TimeInScannerClosesTime.HasValue &&
-                    vm.StartTime.HasValue &&
-                    vm.TimeInScannerClosesTime.Value > vm.StartTime.Value)
+            vm.TimeOutScannerOpenTime.HasValue &&
+            vm.TimeInScannerClosesTime.Value > vm.TimeOutScannerOpenTime.Value)
                 {
                     return EventResult.Fail(
-                        "Time-In scanner cannot close after the event starts.");
+                        "Time-In scanner must close before the Time-Out scanner opens.");
                 }
 
                 // TIME-IN CLOSE must be after TIME-IN OPEN
