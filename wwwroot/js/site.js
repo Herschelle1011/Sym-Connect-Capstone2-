@@ -786,3 +786,55 @@ document.addEventListener("click", async function (e) {
         rejectBtn.innerHTML = "Reject";
     }
 });
+
+
+// ═══════════════ GROUP PARTICIPATION: OPEN MEMBER DETAILS MODAL ═══════════════
+// ═══════════════ GROUP PARTICIPATION: OPEN MEMBER DETAILS MODAL ═══════════════
+function openGroupParticipationModal(title, url) {
+
+    document.getElementById("groupParticipationModalLabel").innerText = title;
+
+    fetch(url, {
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+        .then(response => response.text())
+        .then(html => {
+
+            // Put the returned partial view inside the modal
+            document.getElementById("groupParticipationModalBody").innerHTML = html;
+
+
+            // NOW initialize search, sorting, and pagination
+            initializeMemberParticipation();
+
+
+            // Open the modal
+            const modal = bootstrap.Modal.getOrCreateInstance(
+                document.getElementById("groupParticipationModal")
+            );
+
+            modal.show();
+        })
+        .catch(error => {
+            console.error("Error loading group participation:", error);
+        });
+}
+
+
+// ═══════════════ CLICK GROUP ROW ═══════════════
+document.addEventListener("click", function (e) {
+
+    const btn = e.target.closest(".open-group-participation-modal");
+
+    if (!btn) return;
+
+
+    const url = btn.getAttribute("data-url");
+
+    const title = btn.getAttribute("data-title");
+
+
+    openGroupParticipationModal(title, url);
+});

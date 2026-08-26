@@ -24,6 +24,13 @@ namespace Sym_Connect__Capstone2_.ViewModels.Participation
 
         public int TotalPoints { get; set; }
 
+
+        public int TotalPossiblePoints { get; set; }
+        public int EarnedEventPoints { get; set; }
+
+        public bool IsTopPerformer { get; set; } = false;
+
+
         public MemberParticipationStatus Status { get; set; }
     }
 }

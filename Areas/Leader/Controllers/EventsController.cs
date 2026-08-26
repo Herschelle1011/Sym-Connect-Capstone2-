@@ -56,6 +56,33 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             ViewBag.FormArea = "Leader";
             return View(events);
         }
+        private int? CurrentLeaderId => HttpContext.Session.GetInt32("CurrentMemberId");
+         public async Task<IActionResult> Details(int id)
+          {
+            var leaderId = CurrentLeaderId;
+            if (leaderId == null) return Unauthorized();
+
+            if (!await _eventService.LeaderOwnsEventsAsync(id, leaderId.Value))
+                return Forbid();
+
+
+            var details = await _eventService.GetDetailsByAsync(id);
+            if (details == null) return NotFound();
+
+            return View(details);
+
+          }
+
+
+
+
+
+
+
+
+
+
+
 
         // GET: /Leader/LeaderEvent/Create
         [HttpGet]

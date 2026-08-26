@@ -15,15 +15,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _context = context;
         }
 
-        public async Task<ParticipationTrackingViewModel> GetParticipationTrackingAsync()
+        public async Task<ParticipationTrackingViewModel> GetParticipationTrackingAsync(DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var groupParticipation = await GetGroupAsync();
+            var groupParticipation = await GetGroupAsync(fromDate, toDate);
 
-            var memberParticipation = await GetMembersAsync();
             var vm = new ParticipationTrackingViewModel
             {
                 Groups = groupParticipation,
-                Members = memberParticipation
             };
 
             vm.Summary = new ParticipationSummaryViewModel
@@ -45,15 +43,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         g.Status ==
                         GroupAttendanceStatus.Absent),
 
-                TotalMembers =
-                    memberParticipation.Count
+                TotalMembers = await _context.Members.CountAsync(m => m.Status == "Active")
             };
 
             return vm;
         }
 
-        
-        private async Task <List<GroupParticipationViewModel>> GetGroupAsync()
+
+        private async Task<List<GroupParticipationViewModel>> GetGroupAsync(DateTime? fromDate, DateTime? toDate)
         {
             //update this later
             var ExistingGroup = await _context.Groups.AsNoTracking()
@@ -62,8 +59,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         .ToListAsync();
 
 
-            var result =
-       new List<GroupParticipationViewModel>();
+            var result = new List<GroupParticipationViewModel>();
 
 
             foreach (var group in ExistingGroup)
@@ -78,13 +74,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     .Where(e =>
                         !e.IsArchived &&
                         e.ExpectedGroups.Any(eg =>
-                            eg.GroupId == group.GroupId))
+                            eg.GroupId == group.GroupId) &&
+                        (!fromDate.HasValue || e.StartDate.Date >= fromDate.Value.Date) &&
+                        (!toDate.HasValue || e.StartDate.Date <= toDate.Value.Date))
                     .ToListAsync();
 
 
                 int fullyPresent = 0;
                 int partiallyPresent = 0;
                 int absent = 0;
+
+                // NEW — points tracking
+                int totalPossiblePoints = 0;
+                int earnedPoints = 0;
 
 
                 foreach (var eventItem in assignedEvents)
@@ -104,6 +106,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             .ToListAsync();
 
 
+                    totalPossiblePoints += eventItem.Points;
+
                     if (presentMemberIds.Count == 0)
                     {
                         absent++;
@@ -113,10 +117,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         memberIds.Count)
                     {
                         fullyPresent++;
+                        earnedPoints += eventItem.Points;
                     }
                     else
                     {
                         partiallyPresent++;
+            
+                        earnedPoints += eventItem.Points;
                     }
                 }
 
@@ -152,32 +159,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }
 
 
-                result.Add(
-                    new GroupParticipationViewModel
-                    {
-                        GroupId = group.GroupId,
+                result.Add(new GroupParticipationViewModel
+                {
+                    GroupId = group.GroupId,
 
-                        GroupName = group.GroupName,
+                    GroupName = group.GroupName,
 
-                        TotalMembers = memberIds.Count,
+                    TotalMembers = memberIds.Count,
 
-                        EventsAssigned =
+                    EventsAssigned =
                             assignedEvents.Count,
 
-                        FullyPresentEvents =
+                    FullyPresentEvents =
                             fullyPresent,
 
-                        PartiallyPresentEvents =
+                    PartiallyPresentEvents =
                             partiallyPresent,
 
-                        AbsentEvents =
+                    AbsentEvents =
                             absent,
 
-                        ParticipationRate =
+                    ParticipationRate =
                             Math.Round(rate, 1),
 
-                        Status = status
-                    });
+                    Status = status,
+
+                    // NEW
+                    TotalPossiblePoints = totalPossiblePoints,
+                    EarnedPoints = earnedPoints
+                });
             }
 
 
@@ -185,138 +195,117 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        private async Task<List<MemberParticipationViewModel>>
-    GetMembersAsync()
+        public async Task<List<MemberParticipationViewModel>> GetMembersAsync(DateTime? fromDate, DateTime? toDate, int groupId)
         {
             var members = await _context.Members
                 .AsNoTracking()
-                .Include(m => m.GroupDetails)
-                    .ThenInclude(gd => gd.Group)
-                .Where(m => m.Status == "Active")
+                .Where(m => m.Status == "Active" && m.GroupDetails.Any(gd => gd.GroupId == groupId))
+                .Select(m => new
+                {
+                    m.MemberId,
+                    m.FirstName,
+                    m.LastName,
+                    m.ProfilePictureUrl,
+                    m.EarnedPoints,
+                    GroupId = groupId,
+
+
+                    GroupName = m.GroupDetails.Where(gd => gd.GroupId == groupId).Select(gd => gd.Group.GroupName).FirstOrDefault()
+                })
                 .ToListAsync();
 
+            if (!members.Any())
+                return new List<MemberParticipationViewModel>();
 
-            var result =
-                new List<MemberParticipationViewModel>();
+            var assignedEvents = await _context.Events
+                .AsNoTracking()
+                .Where(e =>
+                    !e.IsArchived &&
+                    e.ExpectedGroups.Any(eg => eg.GroupId == groupId) &&
+                    (!fromDate.HasValue || e.StartDate.Date >= fromDate.Value.Date) &&
+                    (!toDate.HasValue || e.StartDate.Date <= toDate.Value.Date))
+                .Select(e => new { e.EventId, e.Points })
+                .ToListAsync();
 
+            var assignedEventIds = assignedEvents.Select(e => e.EventId).ToList();
+            int totalAssignedCount = assignedEvents.Count;
+            int totalPossiblePoints = assignedEvents.Sum(e => e.Points);
+
+            // 3. Fetch all attendance records for these members and events in one single go
+            var memberIds = members.Select(m => m.MemberId).ToList();
+            var attendanceLookup = (await _context.Attendances
+                .AsNoTracking()
+                .Where(a => a.MemberId.HasValue &&
+                    memberIds.Contains(a.MemberId.Value) &&
+                    assignedEventIds.Contains(a.EventId) &&
+                    (a.Status == "Present" || a.Status == "Late"))
+                .Select(a => new { a.MemberId, a.EventId })
+                .ToListAsync())
+                .GroupBy(a => a.MemberId)
+                .ToDictionary(g => g.Key, g => g.Select(a => a.EventId).ToHashSet());
+
+            var result = new List<MemberParticipationViewModel>();
 
             foreach (var member in members)
             {
-                var group =
-                    member.GroupDetails
-                        .Select(gd => gd.Group)
-                        .FirstOrDefault();
+                attendanceLookup.TryGetValue(member.MemberId, out var attendedSet);
+                attendedSet ??= new HashSet<int>();
 
+                int present = attendedSet.Count;
+                int absent = totalAssignedCount - present;
 
-                if (group == null)
-                    continue;
+                double rate = totalAssignedCount == 0
+                    ? 0
+                    : (double)present / totalAssignedCount * 100;
 
+                int earnedEventPoints = assignedEvents
+                    .Where(e => attendedSet.Contains(e.EventId))
+                    .Sum(e => e.Points);
 
-                var assignedEventIds =
-                    await _context.Events
-                        .AsNoTracking()
-                        .Where(e =>
-                            !e.IsArchived &&
-                            e.ExpectedGroups.Any(eg =>
-                                eg.GroupId == group.GroupId))
-                        .Select(e => e.EventId)
-                        .ToListAsync();
-
-
-                var attendedEventIds =
-                    await _context.Attendances
-                        .AsNoTracking()
-                        .Where(a =>
-                            a.MemberId == member.MemberId &&
-                            assignedEventIds.Contains(a.EventId) &&
-                            (
-                                a.Status == "Present" ||
-                                a.Status == "Late"
-                            ))
-                        .Select(a => a.EventId)
-                        .Distinct()
-                        .ToListAsync();
-
-
-                int assigned =
-                    assignedEventIds.Count;
-
-                int present =
-                    attendedEventIds.Count;
-
-                int absent =
-                    assigned - present;
-
-
-                double rate =
-                    assigned == 0
-                        ? 0
-                        : (double)present /
-                            assigned * 100;
-
-
-                MemberParticipationStatus status;
-
-
-                if (assigned > 0 &&
-                    present == assigned)
+                MemberParticipationStatus status = MemberParticipationStatus.Absent;
+                if (totalAssignedCount > 0 && present == totalAssignedCount)
                 {
-                    status =
-                        MemberParticipationStatus.FullyPresent;
+                    status = MemberParticipationStatus.FullyPresent;
                 }
                 else if (present > 0)
                 {
-                    status =
-                        MemberParticipationStatus.PartiallyPresent;
+                    status = MemberParticipationStatus.PartiallyPresent;
                 }
-                else
+
+                result.Add(new MemberParticipationViewModel
                 {
-                    status =
-                        MemberParticipationStatus.Absent;
-                }
+                    MemberId = member.MemberId,
+                    FullName = $"{member.FirstName} {member.LastName}",
+                    PhotoUrl = member.ProfilePictureUrl,
+                    GroupId = member.GroupId,
+                    GroupName = member.GroupName,
+                    EventsAssigned = totalAssignedCount,
+                    EventsPresent = present,
+                    EventsAbsent = absent,
+                    ParticipationRate = Math.Round(rate, 1),
+                    TotalPoints = member.EarnedPoints,
+                    TotalPossiblePoints = totalPossiblePoints,
+                    EarnedEventPoints = earnedEventPoints,
+                    Status = status
+                });
+            }
+            var sorted = result
+                .OrderByDescending(m => m.EarnedEventPoints)
+                .ToList();
 
 
-                result.Add(
-                    new MemberParticipationViewModel
-                    {
-                        MemberId =
-                            member.MemberId,
-
-                        FullName =
-                            member.FirstName + " " +
-                            member.LastName,
-
-                        PhotoUrl =
-                            member.ProfilePictureUrl,
-
-                        GroupId =
-                            group.GroupId,
-
-                        GroupName =
-                            group.GroupName,
-
-                        EventsAssigned =
-                            assigned,
-
-                        EventsPresent =
-                            present,
-
-                        EventsAbsent =
-                            absent,
-
-                        ParticipationRate =
-                            Math.Round(rate, 1),
-
-                        TotalPoints =
-                            member.EarnedPoints,
-
-                        Status =
-                            status
-                    });
+            // Mark the highest scorer as top performer
+            if (sorted.Any() && sorted[0].EarnedEventPoints > 0)
+            {
+                sorted[0].IsTopPerformer = true;
             }
 
 
-            return result;
+            // Return the sorted list
+            return sorted;
         }
+
+
+
     }
 }

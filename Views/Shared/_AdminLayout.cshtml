@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/ProfileViewMember.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/group-attendance-modal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
 
 
     <link rel="stylesheet"
@@ -87,6 +88,12 @@
         </div>
 
         <div class="sidebar-nav">
+
+            <a asp-controller="Announcements" asp-action="Index"
+               class="nav-item @(controller == "Announcements" ? "active" : "")">
+                <i class="bi bi-megaphone"></i>
+                <span class="nav-label">Announcements</span>
+            </a>
 
             <a asp-controller="Notifications" asp-action="Index"
                class="nav-item @(controller == "Notifications" ? "active" : "")">

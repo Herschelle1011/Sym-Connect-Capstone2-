@@ -142,6 +142,31 @@
         border-radius: 8px;
     }
 
+    /* DATE RANGE DROPDOWN */
+    .date-range-error {
+        font-size: 11.5px;
+        color: #dc2626;
+        margin-top: -4px;
+        margin-bottom: 10px;
+        display: none;
+    }
+
+        .date-range-error.show {
+            display: block;
+        }
+
+    .date-range-clear {
+        font-size: 11.5px;
+        color: #64748b;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 2px;
+    }
+
+        .date-range-clear:hover {
+            color: #2563eb;
+        }
+
     /* LEGEND */
     .participation-legend {
         margin-top: 16px;
@@ -250,9 +275,10 @@
                 <button class="btn btn-outline-secondary top-action-btn d-flex align-items-center gap-2"
                         type="button"
                         id="dateRangeBtn"
-                        data-bs-toggle="dropdown">
+                        data-bs-toggle="dropdown"
+                        data-bs-auto-close="outside">
                     <i class="bi bi-calendar3"></i>
-                    <span id="dateRangeLabel">Jun 1, 2026 - Aug 23, 2026</span>
+                    <span id="dateRangeLabel">All Dates</span>
                     <i class="bi bi-chevron-down small"></i>
                 </button>
 
@@ -273,21 +299,23 @@
                                class="form-control form-control-sm" />
                     </div>
 
+                    <div id="ptDateRangeError" class="date-range-error"></div>
+
                     <button type="button"
                             id="ptApplyDateRange"
                             class="btn btn-sm btn-primary w-100">
                         Apply
                     </button>
+
+                    <div class="text-center">
+                        <a href="#" id="ptClearDateRange" class="date-range-clear">
+                            Clear range
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <button class="btn btn-outline-secondary top-action-btn d-flex align-items-center gap-2"
-                    type="button"
-                    data-bs-toggle="offcanvas"
-                    data-bs-target="#participationFilterPanel">
-                <i class="bi bi-funnel"></i>
-                Filter
-            </button>
+          
         </div>
     </div>
 
@@ -440,15 +468,7 @@
                     </button>
                 </li>
 
-                <li class="nav-item">
-                    <button class="nav-link"
-                            id="members-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#members-pane"
-                            type="button">
-                        Members
-                    </button>
-                </li>
+              
 
             </ul>
 
@@ -493,15 +513,7 @@
 
                 </div>
 
-                <div class="tab-pane fade"
-                     id="members-pane">
-
-                    @await Html.PartialAsync(
-                        "_ViewGetMemberTab",
-                        Model.Members
-                    )
-
-                </div>
+                
 
             </div>
 
@@ -571,6 +583,8 @@
 
 
 @section Scripts {
+    <script src="~/js/admin/ParticipationTracking.js"/>
+
     <script>
         // Switch the description text under the tabs based on which tab is active.
         document.addEventListener('DOMContentLoaded', function () {
@@ -587,5 +601,75 @@
                 });
             }
         });
+
+        // ═══════════════ DATE RANGE PICKER ═══════════════
+        document.addEventListener('DOMContentLoaded', function () {
+            var fromInput = document.getElementById('ptFromDate');
+            var toInput = document.getElementById('ptToDate');
+            var applyBtn = document.getElementById('ptApplyDateRange');
+            var clearLink = document.getElementById('ptClearDateRange');
+            var errorEl = document.getElementById('ptDateRangeError');
+            var label = document.getElementById('dateRangeLabel');
+
+            function formatLabel(fromStr, toStr) {
+                var opts = { month: 'short', day: 'numeric', year: 'numeric' };
+                var fromDate = new Date(fromStr + 'T00:00:00');
+                var toDate = new Date(toStr + 'T00:00:00');
+                return fromDate.toLocaleDateString('en-US', opts) + ' - ' + toDate.toLocaleDateString('en-US', opts);
+            }
+
+            function showError(message) {
+                errorEl.textContent = message;
+                errorEl.classList.add('show');
+            }
+
+            function clearError() {
+                errorEl.textContent = '';
+                errorEl.classList.remove('show');
+            }
+
+      
+            var params = new URLSearchParams(window.location.search);
+            var urlFrom = params.get('fromDate');
+            var urlTo = params.get('toDate');
+
+            if (urlFrom) fromInput.value = urlFrom;
+            if (urlTo) toInput.value = urlTo;
+            if (urlFrom && urlTo) {
+                label.textContent = formatLabel(urlFrom, urlTo);
+            }
+
+            applyBtn.addEventListener('click', function () {
+                clearError();
+
+                var fromVal = fromInput.value;
+                var toVal = toInput.value;
+
+                if (!fromVal || !toVal) {
+                    showError('Please select both a From and To date.');
+                    return;
+                }
+
+                if (new Date(fromVal) > new Date(toVal)) {
+                    showError('The "From" date must be before the "To" date.');
+                    return;
+                }
+
+                var url = new URL(window.location.href);
+                url.searchParams.set('fromDate', fromVal);
+                url.searchParams.set('toDate', toVal);
+                window.location.href = url.toString();
+            });
+
+            clearLink.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                var url = new URL(window.location.href);
+                url.searchParams.delete('fromDate');
+                url.searchParams.delete('toDate');
+                window.location.href = url.toString();
+            });
+        });
     </script>
 }
+<partial name="_GroupParticipationModal" />

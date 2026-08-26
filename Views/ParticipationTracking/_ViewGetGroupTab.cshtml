@@ -53,6 +53,8 @@
                         PARTICIPATION
                     </th>
 
+                    <th class="text-center">POINTS</th>
+
                     <th>RATE</th>
                     <th>STATUS</th>
                 </tr>
@@ -74,6 +76,9 @@
                         ABSENT
                     </th>
 
+                
+
+                    <th></th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -84,7 +89,7 @@
                 @if (Model == null || !Model.Any())
                 {
                     <tr>
-                        <td colspan="8"
+                        <td colspan="9"
                             class="text-center text-muted py-5">
                             No group participation data found.
                         </td>
@@ -183,6 +188,13 @@
                             </td>
 
 
+                            <!-- POINTS -->
+                            <td class="text-center table-number">
+                                <span class="fw-semibold points-earned">@group.EarnedPoints</span>
+                                <span class="text-muted">/@group.TotalPossiblePoints pts</span>
+                            </td>
+
+
                             <!-- RATE -->
                             <td style="min-width:110px;">
 
@@ -214,8 +226,23 @@
                                 </span>
                             </td>
 
+                            <td class="text-center">
+                                <button type="button" class="btn btn-outline-primary btn-sm open-group-participation-modal"
+                                        data-url="@Url.Action("GetGroupMembers", "ParticipationTracking", new { groupId = group.GroupId })"
+                                        data-title="@group.GroupName - Members">
+                                    View Details
+                                </button>
+                            </td>
+
+
                         </tr>
                     }
+
+                    <tr id="groupNoResultsRow" style="display:none;">
+                        <td colspan="9" class="text-center text-muted py-5">
+                            No groups match your search or filter.
+                        </td>
+                    </tr>
                 }
             </tbody>
 
@@ -235,38 +262,8 @@
 
 
             <nav>
-                <ul class="pagination pagination-sm participation-pagination mb-0">
-
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#">
-                            <i class="bi bi-chevron-left"></i>
-                        </a>
-                    </li>
-
-                    <li class="page-item active">
-                        <a class="page-link" href="#">
-                            1
-                        </a>
-                    </li>
-
-                    <li class="page-item">
-                        <a class="page-link" href="#">
-                            2
-                        </a>
-                    </li>
-
-                    <li class="page-item">
-                        <a class="page-link" href="#">
-                            3
-                        </a>
-                    </li>
-
-                    <li class="page-item">
-                        <a class="page-link" href="#">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>
-
+                <ul class="pagination pagination-sm participation-pagination mb-0"
+                    id="groupPagination">
                 </ul>
             </nav>
 
@@ -416,6 +413,11 @@
     }
 
 
+    .points-earned {
+        color: #7c3aed;
+    }
+
+
     .participation-rate-bar {
         height: 4px;
         background: #e5e7eb;
@@ -524,25 +526,38 @@
         var statusFilter =
             document.getElementById('groupStatusFilter');
 
-        var rows =
-            document.querySelectorAll(
-                '#groupParticipationTable .group-row'
+        var allRows =
+            Array.from(
+                document.querySelectorAll(
+                    '#groupParticipationTable tbody .group-row'
+                )
             );
 
+        var noResultsRow =
+            document.getElementById('groupNoResultsRow');
 
-        function applyGroupFilters() {
+        var showingLabel =
+            document.getElementById('groupShowingLabel');
+
+        var paginationEl =
+            document.getElementById('groupPagination');
+
+        var rowsPerPage = 5;
+        var currentPage = 1;
+
+
+        // Returns only the rows that pass the current search + status filter
+        function getVisibleRows() {
 
             var term =
                 (searchInput?.value || '')
                     .toLowerCase()
                     .trim();
 
-
             var status =
                 statusFilter?.value || '';
 
-
-            rows.forEach(function (row) {
+            return allRows.filter(function (row) {
 
                 var matchesName =
                     row.dataset.name.includes(term);
@@ -551,27 +566,101 @@
                     !status ||
                     row.dataset.status === status;
 
-
-                row.style.display =
-                    (matchesName && matchesStatus)
-                        ? ''
-                        : 'none';
-
+                return matchesName && matchesStatus;
             });
-
         }
 
 
-        searchInput?.addEventListener(
-            'input',
-            applyGroupFilters
-        );
+        function renderPagination(totalPages) {
+            if (!paginationEl) return;
+
+            var html = '';
+
+            html += '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+                '<a class="page-link" href="#" data-action="prev"><i class="bi bi-chevron-left"></i></a></li>';
+
+            for (var p = 1; p <= totalPages; p++) {
+                html += '<li class="page-item ' + (p === currentPage ? 'active' : '') + '">' +
+                    '<a class="page-link" href="#" data-page="' + p + '">' + p + '</a></li>';
+            }
+
+            html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
+                '<a class="page-link" href="#" data-action="next"><i class="bi bi-chevron-right"></i></a></li>';
+
+            paginationEl.innerHTML = html;
+        }
 
 
-        statusFilter?.addEventListener(
-            'change',
-            applyGroupFilters
-        );
+        // ── Pagination renderer ───────────────────────────────────────
+        function renderPage() {
+
+            var visible = getVisibleRows();
+            var totalPages = Math.max(1, Math.ceil(visible.length / rowsPerPage));
+
+            if (currentPage > totalPages) currentPage = totalPages;
+
+            var start = (currentPage - 1) * rowsPerPage;
+            var end = start + rowsPerPage;
+
+            allRows.forEach(function (row) { row.style.display = 'none'; });
+            visible.forEach(function (row, i) {
+                row.style.display = (i >= start && i < end) ? '' : 'none';
+            });
+
+            if (noResultsRow) {
+                noResultsRow.style.display = visible.length === 0 ? '' : 'none';
+            }
+
+            var showing = Math.min(end, visible.length);
+            var from = visible.length === 0 ? 0 : start + 1;
+
+            if (showingLabel) {
+                showingLabel.textContent =
+                    'Showing ' + from + ' to ' + showing + ' of ' + visible.length + ' groups';
+            }
+
+            renderPagination(totalPages);
+        }
+
+
+        // ── Pagination click events (delegated) ─────────────────────────
+        paginationEl?.addEventListener('click', function (e) {
+            var link = e.target.closest('a');
+            if (!link) return;
+            e.preventDefault();
+
+            if (link.dataset.action === 'prev') {
+                if (currentPage > 1) currentPage--;
+            }
+            else if (link.dataset.action === 'next') {
+                var visible = getVisibleRows();
+                var totalPages = Math.max(1, Math.ceil(visible.length / rowsPerPage));
+                if (currentPage < totalPages) currentPage++;
+            }
+            else if (link.dataset.page) {
+                currentPage = parseInt(link.dataset.page, 10);
+            }
+
+            renderPage();
+        });
+
+
+        // ── Search / filter events ──────────────────────────────────────
+        searchInput?.addEventListener('input', function () {
+            currentPage = 1;
+            renderPage();
+        });
+
+        statusFilter?.addEventListener('change', function () {
+            currentPage = 1;
+            renderPage();
+        });
+
+
+        // ── First render ──────────────────────────────────────────────
+        if (allRows.length > 0) {
+            renderPage();
+        }
 
     })();
 

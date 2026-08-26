@@ -32,5 +32,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         public ICollection<MemberGroupDetailsViewModel> GroupDetailsVM { get; set; } = new List<MemberGroupDetailsViewModel>();
         public string FullName =>
                 $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
+
+        public bool isEmailConfirmed { get; set; }
+        
     }
 }

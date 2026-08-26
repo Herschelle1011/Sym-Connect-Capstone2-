@@ -7,5 +7,7 @@
         public string? PhotoUrl { get; set; }
         public string GroupName { get; set; } = string.Empty;
         public DateTime? CheckedInAt { get; set; }
+        public DateTime? CheckedOutAt { get; set; }
+
     }
 }

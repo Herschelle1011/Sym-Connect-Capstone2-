@@ -282,7 +282,8 @@ namespace Sym_Connect__Capstone2_.Controllers
             var vm = new MembersEditViewModel
             {
                 memberId = member.MemberId,
-                Email = member.User?.Email ?? "Unverified",
+                Email = member.User?.Email ?? "",
+                IsEmailConfirmed = member.User?.EmailConfirmed ?? false,
                 FirstName = member.FirstName,
                 MiddleName = member.MiddleName,
                 LastName = member.LastName,
@@ -291,13 +292,12 @@ namespace Sym_Connect__Capstone2_.Controllers
                 City = member.City,
                 Province = member.Province,
                 Country = member.Country,
-                
+
                 BirthDate = member.BirthDate,
                 Gender = member.Gender,
                 Status = member.Status,
                 PhotoUrl = member.ProfilePictureUrl,
             };
-
             return PartialView("_EditMemberForm", vm);
         }
 

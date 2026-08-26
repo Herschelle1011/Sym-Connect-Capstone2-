@@ -26,7 +26,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
        Task<List<MemberListViewModel>> GetAvailableMemberAsync(int groupId);
        Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId);
 
-        //IDENTIFY if a member handles a GROUP
+        //CHECK IF A MEMEBR IS A LEADER OF A GROUP? 
         Task<bool> IsMemberALeaderAsync(int? memberId);
 
         Task<Group?> GetGroupLedByMemberAsync(int? memberId);

@@ -20,6 +20,15 @@ namespace Sym_Connect__Capstone2_.ViewModels.Participation
 
         public double ParticipationRate { get; set; }
 
+        public int EventsAssignedCount { get; set; } // events assigned
+        public int EventsAttendedCount { get; set; } // how many events did this group attended? count
+
+        public int TotalPossiblePoints { get; set; }   // sum of Points across all assigned events
+        public int EarnedPoints { get; set; }          // sum of Points for events actually attended
+
+
+
+
         public GroupAttendanceStatus Status { get; set; }
 
         public int AttendedEvents => FullyPresentEvents + PartiallyPresentEvents;

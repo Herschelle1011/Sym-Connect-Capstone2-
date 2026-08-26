@@ -35,7 +35,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
 
         public string Role { get; set; } = string.Empty;
 
-        
+        public bool IsEmailConfirmed { get; set; } = false;      
 
     }
 

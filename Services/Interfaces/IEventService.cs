@@ -60,5 +60,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<AttendanceTabViewModel> GetGroupAttendanceOverviewAsync(int eventId);
 
         Task<GroupAttendanceDetailsViewModel> GroupAttendanceDetailsView(int groupId, int eventId);
+
+        Task<bool> LeaderOwnsEventsAsync(int eventId, int LeaderMemberId);
        }
 }

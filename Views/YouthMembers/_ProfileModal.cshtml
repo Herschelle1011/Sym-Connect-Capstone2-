@@ -37,6 +37,14 @@
                 <div class="profile-field">
                     <span class="field-label">Email</span>
                     <span class="field-value">@Model.Email</span>
+                    @if (Model.IsEmailConfirmed)
+                    {
+                        <span class="badge-status badge-active">Verified</span>
+                    }
+                    else
+                    {
+                        <span class="badge-status badge-inactive">Unverified</span>
+                    }
                 </div>
                 <div class="profile-field">
                     <span class="field-label">Contact</span>

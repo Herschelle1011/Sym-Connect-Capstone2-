@@ -12,37 +12,139 @@
     }
 
     .scanner-box {
+        position: relative;
         background: #1a2035;
-        border-radius: 16px;
-        padding: 1.5rem;
+        border-radius: 18px;
+        padding: 1.25rem;
         text-align: center;
         margin-bottom: 1rem;
+        overflow: hidden;
     }
 
     #qr-reader {
+        position: relative;
         border-radius: 12px;
         overflow: hidden;
+        z-index: 1;
     }
 
     .scanner-hint {
         color: #cbd5e1;
-        font-size: 13px;
-        margin-top: 10px;
+        font-size: 12.5px;
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
     }
 
+        .scanner-hint .pulse-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f76c4a;
+            animation: pulse-dot 1.4s ease-in-out infinite;
+        }
+
+    @@keyframes pulse-dot {
+        0%, 100% {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        50% {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+    }
+
+    /* ═══════ SCAN RESULT OVERLAY ═══════ */
+    .scan-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(26, 32, 53, 0.94);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.18s ease;
+        border-radius: 18px;
+    }
+
+        .scan-overlay.show {
+            opacity: 1;
+        }
+
+    .scan-overlay-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        transform: scale(0.7);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .scan-overlay.show .scan-overlay-card {
+        transform: scale(1);
+    }
+
+    .scan-overlay-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        color: #ffffff;
+    }
+
+        .scan-overlay-icon.success {
+            background: #f76c4a;
+            box-shadow: 0 0 0 8px rgba(247, 108, 74, 0.18);
+        }
+
+        .scan-overlay-icon.error {
+            background: #ef4444;
+            box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.18);
+        }
+
+    .scan-overlay-name {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 17px;
+        text-align: center;
+        padding: 0 24px;
+    }
+
+    .scan-overlay-message {
+        color: #cbd5e1;
+        font-size: 13px;
+        text-align: center;
+        padding: 0 24px;
+    }
+
+    /* ═══════ STATS ═══════ */
     .stats-row {
         display: flex;
         gap: 10px;
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
     }
 
     .stat-box {
         flex: 1;
-        background: #f8fafc;
+        background: #ffffff;
+        border: 1px solid #eef1f5;
         border-radius: 12px;
         padding: 14px;
         text-align: center;
     }
+
+        .stat-box.present .stat-number {
+            color: #f76c4a;
+        }
 
     .stat-number {
         font-size: 22px;
@@ -55,16 +157,54 @@
         color: #9ca3af;
         text-transform: uppercase;
         letter-spacing: .03em;
+        margin-top: 2px;
+    }
+
+    /* ═══════ PARTICIPANTS ═══════ */
+    .participants-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+        .participants-header h6 {
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+
+    .participants-count-badge {
+        background: #fdece7;
+        color: #f76c4a;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
     }
 
     .participant-row {
         display: flex;
         align-items: center;
-        gap: 10px;
-        background: #f8fafc;
-        border-radius: 10px;
+        gap: 12px;
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
         padding: 10px 14px;
         margin-bottom: 8px;
+        animation: row-in 0.25s ease;
+    }
+
+    @@keyframes row-in {
+        from {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .participant-avatar {
@@ -73,6 +213,7 @@
         border-radius: 50%;
         object-fit: cover;
         background: #e5e7eb;
+        flex-shrink: 0;
     }
 
     .participant-name {
@@ -84,6 +225,16 @@
     .participant-time {
         font-size: 12px;
         color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .participants-empty {
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        padding: 28px 0;
     }
 </style>
 
@@ -91,11 +242,25 @@
 
     <div class="scanner-box">
         <div id="qr-reader"></div>
-        <p class="scanner-hint">Align the QR code with the frame to record Time Out</p>
+
+        <!-- Result overlay: swaps in on every scan, hides the reader briefly -->
+        <div id="scanOverlay" class="scan-overlay">
+            <div class="scan-overlay-card">
+                <div id="scanOverlayIcon" class="scan-overlay-icon">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+                <div id="scanOverlayName" class="scan-overlay-name"></div>
+                <div id="scanOverlayMessage" class="scan-overlay-message"></div>
+            </div>
+        </div>
+
+        <p class="scanner-hint">
+            <span class="pulse-dot"></span> Align the QR code with the frame to record Time Out
+        </p>
     </div>
 
     <div class="stats-row">
-        <div class="stat-box">
+        <div class="stat-box present">
             <div class="stat-number" id="presentCount">@Model.PresentCount</div>
             <div class="stat-label">Present</div>
         </div>
@@ -104,18 +269,31 @@
             <div class="stat-label">Total Members</div>
         </div>
     </div>
-    <div id="scan-result" class="text-center mt-3 fw-bold"></div>
 
-    <h6 class="fw-bold mb-2">Participants</h6>
+    <div class="participants-header">
+        <h6>Participants</h6>
+        <span class="participants-count-badge" id="participantsCountBadge">@Model.Participants.Count(p => p.CheckedOutAt.HasValue) checked out</span>
+    </div>
+
     <div id="participantsList">
-        @foreach (var p in Model.Participants)
+        @{
+            var checkedOutParticipants = Model.Participants.Where(p => p.CheckedOutAt.HasValue).ToList();
+        }
+        @if (!checkedOutParticipants.Any())
+        {
+            <div class="participants-empty" id="participantsEmptyState">
+                No one has checked out yet.
+            </div>
+        }
+        @foreach (var p in checkedOutParticipants)
         {
             <div class="participant-row">
                 <img src="@(p.PhotoUrl ?? "/images/default-avatar.png")" class="participant-avatar" />
                 <div>
                     <div class="participant-name">@p.FullName</div>
                     <div class="participant-time">
-                        @(p.CheckedInAt.HasValue ? $"Checked in {p.CheckedInAt.Value:h:mm tt}" : "Not checked in")
+                        <i class="bi bi-clock" style="font-size:11px;"></i>
+                        @(p.CheckedOutAt.HasValue ? $"Checked out {p.CheckedOutAt.Value:h:mm tt}" : "Not checked in")
                     </div>
                 </div>
             </div>
@@ -127,8 +305,26 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script>
     const eventId = @Model.EventId;
-    const resultEl = document.getElementById('scan-result');
     let isProcessing = false;
+
+    // ═══════════════ SCAN RESULT OVERLAY ═══════════════
+    function showScanOverlay(success, name, message) {
+    const overlay = document.getElementById('scanOverlay');
+    const icon = document.getElementById('scanOverlayIcon');
+    const nameEl = document.getElementById('scanOverlayName');
+    const messageEl = document.getElementById('scanOverlayMessage');
+
+    icon.className = 'scan-overlay-icon ' + (success ? 'success' : 'error');
+    icon.innerHTML = success ? '<i class="bi bi-check-lg"></i>' : '<i class="bi bi-x-lg"></i>';
+    nameEl.textContent = name || (success ? 'Checked out' : 'Scan failed');
+    messageEl.textContent = message || '';
+
+    overlay.classList.add('show');
+
+    setTimeout(() => {
+    overlay.classList.remove('show');
+    }, success ? 1400 : 1800); // errors stay visible slightly longer to read
+    }
 
     function refreshScannerState() {
     fetch(`/Events/GetScannerState?eventId=${eventId}`)
@@ -138,12 +334,23 @@
     document.getElementById('totalCount').innerText = data.totalMembersCount;
 
     const listEl = document.getElementById('participantsList');
-    listEl.innerHTML = data.participants.map(p => `
+    const checkedOut = data.participants.filter(p => p.checkedOutAt);
+    document.getElementById('participantsCountBadge').innerText = `${checkedOut.length} checked out`;
+
+    if (!checkedOut.length) {
+    listEl.innerHTML = `<div class="participants-empty">No one has checked out yet.</div>`;
+    return;
+    }
+
+    listEl.innerHTML = checkedOut.map(p => `
     <div class="participant-row">
     <img src="${p.photoUrl || '/images/default-avatar.png'}" class="participant-avatar" />
     <div>
     <div class="participant-name">${p.fullName}</div>
-    <div class="participant-time">${p.checkedInAt ? 'Checked in ' + new Date(p.checkedInAt).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}) : 'Not checked in'}</div>
+    <div class="participant-time">
+    <i class="bi bi-clock" style="font-size:11px;"></i>
+    ${p.checkedOutAt ? 'Checked Out ' + new Date(p.checkedOutAt).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}) : 'Not checked in'}
+    </div>
     </div>
     </div>
     `).join('');
@@ -161,14 +368,16 @@
     })
     .then(res => res.json())
     .then(data => {
-    resultEl.innerText = data.message;
-    resultEl.style.color = data.success ? 'green' : 'red';
+    showScanOverlay(data.success, data.memberName, data.message);
 
     if (data.success) refreshScannerState();
 
     setTimeout(() => { isProcessing = false; }, 2000);
     })
-    .catch(() => { isProcessing = false; });
+    .catch(() => {
+    showScanOverlay(false, 'Error', 'Something went wrong. Try again.');
+    isProcessing = false;
+    });
     }
 
     function getQrBoxSize() {
@@ -184,7 +393,6 @@
     { fps: 10, qrbox: getQrBoxSize() },
     onScanSuccess
     ).catch(err => {
-    resultEl.innerText = 'Camera start failed: ' + err;
-    resultEl.style.color = 'red';
+    showScanOverlay(false, 'Camera error', String(err));
     });
 </script>

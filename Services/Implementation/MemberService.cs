@@ -158,8 +158,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task <Member?> GetMemberByIdAsync(int id)
         {
-            return await _context.Members.Include(gd => gd.GroupDetails)
-                              .ThenInclude(g => g.Group)
+            return await _context.Members
+                .Include(gd => gd.GroupDetails)
+                       .ThenInclude(g => g.Group)
+                .Include(m => m.User)
               .FirstOrDefaultAsync(m => m.MemberId == id);
         }
 
@@ -178,7 +180,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Gender = m.Gender,
                     Status = m.Status,
                     MemberSince = m.DateRegistered,
-                    Email = m.User.Email,
+                    Email = m.User.Email != null ? m.User.Email : "No Email",
+                    IsEmailConfirmed = m.User.EmailConfirmed,
                     ContactNumber = m.ContactNumber,
                     Address = m.Address,
                     PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
@@ -298,6 +301,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             member.BirthDate = vm.BirthDate;
             member.Gender = vm.Gender;
             member.Status = vm.Status;
+            member.User.EmailConfirmed = vm.IsEmailConfirmed;
 
             await _context.SaveChangesAsync();
 
