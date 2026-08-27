@@ -2,113 +2,293 @@
 @using Sym_Connect__Capstone2_.Models.Enums
 
 @{
-    ViewData["Title"] = "Event";
+    ViewData["Title"] = "My Events";
     Layout = "_LeaderLayout";
     var approvedCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Approved);
     var pendingCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Pending);
     var rejectedCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Rejected);
+
+    // Distinct facility/group names across all events, for the filter dropdown checkboxes
+    var allFacilities = Model.SelectMany(e => e.FacilityNames).Distinct().OrderBy(f => f).ToList();
+    var allGroups = Model.SelectMany(e => e.GroupNames).Distinct().OrderBy(g => g).ToList();
 }
 
-<div class="d-flex justify-content-between align-items-start mb-3">
-    <div>
-        <h2 class="fw-bold mb-1">Event</h2>
-        <p class="text-muted mb-0">Requests you've submitted are reviewed by an admin.</p>
-    </div>
-</div>
+<link rel="stylesheet" href="~/css/leader/myEvents.css" asp-append-version="true" />
 
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <!-- Pill tabs -->
-    <div class="d-flex gap-2" id="eventTabs">
-        <button class="btn btn-pill btn-primary active" data-filter="All">All (@Model.Count)</button>
-        <button class="btn btn-pill btn-outline-secondary" data-filter="Approved">Approved (@approvedCount)</button>
-        <button class="btn btn-pill btn-outline-secondary" data-filter="Pending">Pending (@pendingCount)</button>
-        <button class="btn btn-pill btn-outline-secondary" data-filter="Rejected">Rejected (@rejectedCount)</button>
-    </div>
+<div class="my-events-page">
 
-    <!-- Search + actions -->
-    <div class="d-flex gap-2 align-items-center">
-        <div class="input-group" style="width: 220px;">
-            <input type="text" id="eventSearch" class="form-control rounded-pill-start"
-                   placeholder="Search" />
-            <span class="input-group-text bg-white rounded-pill-end">
-                <i class="bi bi-search"></i>
-            </span>
-        </div>
-        <a asp-action="Calendar" class="btn btn-outline-secondary btn-pill">View Calendar</a>
-        <button type="button" class="btn btn-primary btn-pill" data-bs-toggle="offcanvas" data-bs-target="#eventPanel">
-            Request Event
-        </button>
-    </div>
-</div>
-
-<!-- Event Cards -->
-<div id="eventList" class="d-flex flex-column gap-2">
-    @if (!Model.Any())
-    {
-        <p class="text-muted">You haven't submitted any event requests yet.</p>
-    }
-
-    @foreach (var ev in Model)
-    {
-        <div class="card border-0 shadow-sm event-card"
-             data-event-id="@ev.EventId"
-             data-status="@ev.ApprovalStatus"
-             data-title="@ev.EventTitle.ToLower()"
-             style="cursor:pointer;">
-            <div class="card-body d-flex align-items-center gap-3 py-3">
-
-                <div class="text-center bg-primary-subtle text-primary rounded-3 p-2" style="width: 60px;">
-                    <div class="small fw-semibold">@ev.StartDate.ToString("MMM")</div>
-                    <div class="fw-bold fs-5">@ev.StartDate.ToString("dd")</div>
-                </div>
-
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark event-title">
-                        @ev.EventTitle
-                    </div>
-                    <div class="small text-muted">
-                        @if (ev.ApprovalStatus == ApprovalStatus.Pending)
-                        {
-                            <span>Submitted @TimeAgo(ev.DateCreated)</span>
-                        }
-                        else if (ev.ApprovalStatus == ApprovalStatus.Approved)
-                        {
-                            <span>Approve by Admin, @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)</span>
-                        }
-                        else
-                        {
-                            <span>Decline by Admin, @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)</span>
-                        }
-                    </div>
-                    <div class="mt-1">
-                        @foreach (var facility in ev.FacilityNames)
-                        {
-                            <span class="badge bg-light text-dark border rounded-pill me-1">@facility</span>
-                        }
-                        @foreach (var group in ev.GroupNames)
-                        {
-                            <span class="badge bg-light text-dark border rounded-pill me-1">@group</span>
-                        }
-                    </div>
-                </div>
-
-                <div>
-                    @if (ev.ApprovalStatus == ApprovalStatus.Approved)
-                    {
-                        <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">Approved</span>
-                    }
-                    else if (ev.ApprovalStatus == ApprovalStatus.Pending)
-                    {
-                        <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2">Pending</span>
-                    }
-                    else
-                    {
-                        <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">Rejected</span>
-                    }
-                </div>
+    <div class="page-header d-flex justify-content-between align-items-start mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <div class="page-icon">
+                <i class="bi bi-calendar-event"></i>
+            </div>
+            <div>
+                <h1 class="page-title mb-0">My Events</h1>
+                <p class="page-subtitle mb-0">View and manage the events you are leading.</p>
             </div>
         </div>
-    }
+
+        <button type="button" class="btn btn-primary btn-pill" data-bs-toggle="offcanvas" data-bs-target="#eventPanel">
+            <i class="bi bi-plus-lg"></i> Create New Event
+        </button>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <!-- Pill tabs -->
+        <div class="d-flex gap-2" id="eventTabs">
+            <button class="btn btn-pill btn-primary active" data-filter="All">All (@Model.Count)</button>
+            <button class="btn btn-pill btn-outline-secondary" data-filter="Approved">Approved (@approvedCount)</button>
+            <button class="btn btn-pill btn-outline-secondary" data-filter="Pending">Pending (@pendingCount)</button>
+            <button class="btn btn-pill btn-outline-secondary" data-filter="Rejected">Rejected (@rejectedCount)</button>
+        </div>
+
+        <!-- Search + Filter + actions -->
+        <div class="d-flex gap-2 align-items-center">
+            <div class="input-group" style="width: 220px;">
+                <input type="text" id="eventSearch" class="form-control rounded-pill-start"
+                       placeholder="Search" />
+                <span class="input-group-text bg-white rounded-pill-end">
+                    <i class="bi bi-search"></i>
+                </span>
+            </div>
+
+            <!-- Filter dropdown: facility + group, applied client-side alongside tab + search -->
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary btn-pill dropdown-toggle" type="button"
+                        id="filterDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel"></i> Filter
+                </button>
+                <div class="dropdown-menu p-3 filter-dropdown-menu" aria-labelledby="filterDropdownBtn">
+
+                    <div class="mb-3">
+                        <div class="filter-group-label">Facility</div>
+                        @if (!allFacilities.Any())
+                        {
+                            <div class="text-muted small">No facilities</div>
+                        }
+                        @foreach (var facility in allFacilities)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input filter-facility-check" type="checkbox" value="@facility" id="fac-@facility.Replace(" ", "-")">
+                                <label class="form-check-label small" for="fac-@facility.Replace(" ", "-")">@facility</label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="filter-group-label">Group</div>
+                        @if (!allGroups.Any())
+                        {
+                            <div class="text-muted small">No groups</div>
+                        }
+                        @foreach (var group in allGroups)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input filter-group-check" type="checkbox" value="@group" id="grp-@group.Replace(" ", "-")">
+                                <label class="form-check-label small" for="grp-@group.Replace(" ", "-")">@group</label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0" id="clearFiltersBtn">Clear</button>
+                        <button type="button" class="btn btn-primary btn-sm btn-pill" id="applyFiltersBtn">Apply</button>
+                    </div>
+                </div>
+            </div>
+
+            <a asp-action="Calendar" class="btn btn-outline-secondary btn-pill">View Calendar</a>
+        </div>
+    </div>
+
+    <!-- Event Cards -->
+    <div class="event-list-card">
+        <div id="eventList" class="d-flex flex-column">
+            @if (!Model.Any())
+            {
+                <p class="text-muted p-4 mb-0">You haven't submitted any event requests yet.</p>
+            }
+
+            @foreach (var ev in Model)
+            {
+                <div class="card border-0 event-card" 
+                     data-event-id="@ev.EventId"
+                     data-status="@ev.ApprovalStatus"
+                     data-title="@ev.EventTitle.ToLower()"
+                     data-facilities="@string.Join("|", ev.FacilityNames)"
+                     data-groups="@string.Join("|", ev.GroupNames)">
+                    <div class="card-body d-flex align-items-center gap-3 py-3">
+
+                        <div class="event-date-box text-center">
+                            <div class="event-date-month">@ev.StartDate.ToString("MMM").ToUpper()</div>
+                            <div class="event-date-day">@ev.StartDate.ToString("dd")</div>
+                            <div class="event-date-dow">@ev.StartDate.ToString("ddd").ToUpper()</div>
+                        </div>
+
+                        <div class="flex-grow-1">
+
+                            <!-- Event title -->
+                            <div class="fw-semibold text-dark event-title mb-1">
+                                @ev.EventTitle
+                            </div>
+
+
+                            <!-- Start Time - End Time + Facility -->
+                            <div class="event-meta-row">
+
+                                @if (ev.StartTime.HasValue && ev.EndTime.HasValue)
+                                {
+                                    <span class="event-time">
+
+                                        <i class="bi bi-clock"></i>
+
+                                        @DateTime.Today.Add(ev.StartTime.Value).ToString("h:mm tt")
+
+                                        
+
+                                        <span class="time-dash">-</span>
+
+                                        @DateTime.Today.Add(ev.EndTime.Value).ToString("h:mm tt")
+                                        
+                                     
+
+                                    </span>
+                                }
+
+
+                                @if (ev.StartTime.HasValue &&
+                                     ev.EndTime.HasValue &&
+                                     ev.FacilityNames.Any())
+                                {
+                                    <span class="event-meta-divider">
+                                        •
+                                    </span>
+                                }
+
+
+                                @if (ev.FacilityNames.Any())
+                                {
+                                    <span class="event-location">
+
+                                        <i class="bi bi-geo-alt"></i>
+
+                                        @ev.FacilityNames.First()
+
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <!-- Approval information -->
+                            <div class="small mb-2">
+
+                                @if (ev.ApprovalStatus == ApprovalStatus.Approved)
+                                {
+                                   
+
+                                    <span class="text-muted">
+                                        &nbsp;&middot;&nbsp;
+                                        Approved by Admin,
+                                        @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)
+                                    </span>
+                                }
+
+                                else if (ev.ApprovalStatus == ApprovalStatus.Pending)
+                                {
+                                    <span class="text-muted">
+                                        Submitted @TimeAgo(ev.DateCreated)
+                                    </span>
+                                }
+
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Declined by Admin,
+                                        @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <!-- Facility and Group pills -->
+                            <div>
+
+                                @foreach (var facility in ev.FacilityNames)
+                                {
+                                    <span class="badge bg-light text-dark border rounded-pill me-1">
+                                        @facility
+                                    </span>
+                                }
+
+                                @foreach (var group in ev.GroupNames)
+                                {
+                                    <span class="badge bg-light text-dark border rounded-pill me-1">
+                                        @group
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                        <div class="d-flex align-items-center gap-3">
+                            @if (ev.ApprovalStatus == ApprovalStatus.Approved)
+                            {
+                                <span class="badge rounded-pill bg-success-subtle text-success px-3 py-2">
+                                    <i class="bi bi-check-circle-fill"></i> Approved
+                                </span>
+                            }
+                            else if (ev.ApprovalStatus == ApprovalStatus.Pending)
+                            {
+                                <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2">Pending</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">Rejected</span>
+                            }
+
+                            @if (ev.ApprovalStatus == ApprovalStatus.Approved)
+                            {
+                                @* TODO: "View Scanner" needs to decide Time-In vs Time-Out, or land on a
+                                   neutral page that shows both — same live/ended logic as the Details view's
+                                   QR cards. For now this points at ScannerForTimeIn as the default entry point. *@
+                               
+                                   
+                                <a asp-area="Leader" asp-controller="Events" asp-action="EventViewScannerDetails"
+                                   asp-route-id="@ev.EventId"
+                                   class="btn btn-outline-primary btn-sm btn-pill"
+                                   onclick="event.stopPropagation();">
+                                    <i class="bi bi-qr-code-scan"></i> View Scanners
+                                </a>
+                            }
+
+                            <button type="button"
+                                    class="btn btn-primary btn-sm btn-pill"
+                                    onclick="event.stopPropagation(); openEventDetails(@ev.EventId);">
+                                <i class="bi bi-eye"></i>
+                                View Approval Details
+                            </button>
+
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination bar -->
+        <div class="pagination-bar d-flex align-items-center justify-content-between px-3 py-3 border-top">
+            <span id="pageInfo" class="small text-muted"></span>
+            <div class="d-flex align-items-center gap-2">
+                <button id="prevBtn" class="btn btn-outline-secondary btn-sm btn-pill">&larr; Prev</button>
+                <span id="pageNum" class="small text-muted" style="min-width:90px; text-align:center;"></span>
+                <button id="nextBtn" class="btn btn-outline-secondary btn-sm btn-pill">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @functions {
@@ -122,35 +302,17 @@
     }
 }
 
-<style>
-    .btn-pill {
-        border-radius: 50px;
-        padding: 0.5rem 1.1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
 
-    .rounded-pill-start {
-        border-radius: 50px 0 0 50px !important;
-    }
-
-    .rounded-pill-end {
-        border-radius: 0 50px 50px 0 !important;
-    }
-</style>
 
 <div class="modal fade" id="eventDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; border: none;">
-
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title" id="eventDetailsModalLabel" style="font-size: 16px; font-weight: 500;"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
             <div class="modal-body" id="eventDetailsModalContent">
             </div>
-
         </div>
     </div>
 </div>
@@ -158,8 +320,6 @@
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
-
-
 
         ViewBag.FormController = "Events";
         ViewBag.FormArea = "Leader";
@@ -171,29 +331,84 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+
         const tabs = document.querySelectorAll('#eventTabs .btn');
-        const cards = document.querySelectorAll('.event-card');
+        const allCards = Array.from(document.querySelectorAll('.event-card'));
         const searchInput = document.getElementById('eventSearch');
 
+        const pageSize = 5;
+        let currentPage = 1;
         let activeFilter = 'All';
+        let selectedFacilities = [];
+        let selectedGroups = [];
 
-        function applyFilters() {
+        // ============== FILTERING (tab + search + facility/group) ==============
+        function getFilteredCards() {
         const searchTerm = searchInput.value.trim().toLowerCase();
 
-        cards.forEach(card => {
+        return allCards.filter(card => {
         const matchesStatus =
-        activeFilter === 'All' ||
-        card.dataset.status === activeFilter;
+        activeFilter === 'All' || card.dataset.status === activeFilter;
 
         const matchesSearch =
         card.dataset.title.includes(searchTerm);
 
-        card.style.display =
-        (matchesStatus && matchesSearch) ? '' : 'none';
+        const cardFacilities = (card.dataset.facilities || '').split('|').filter(Boolean);
+        const cardGroups = (card.dataset.groups || '').split('|').filter(Boolean);
+
+        const matchesFacility =
+        selectedFacilities.length === 0 ||
+        selectedFacilities.some(f => cardFacilities.includes(f));
+
+        const matchesGroup =
+        selectedGroups.length === 0 ||
+        selectedGroups.some(g => cardGroups.includes(g));
+
+        return matchesStatus && matchesSearch && matchesFacility && matchesGroup;
         });
         }
 
-        // FILTER TABS
+        // ============== PAGINATION ==============
+        function renderPage() {
+        const filtered = getFilteredCards();
+        const totalItems = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        // hide every card first
+        allCards.forEach(c => c.style.display = 'none');
+
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageItems = filtered.slice(start, end);
+
+        pageItems.forEach(c => c.style.display = '');
+
+        const pageInfo = document.getElementById('pageInfo');
+        const pageNum = document.getElementById('pageNum');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        if (totalItems === 0) {
+        pageInfo.textContent = 'Showing 0 of 0 events';
+        } else {
+        pageInfo.textContent =
+        `Showing ${start + 1} to ${Math.min(end, totalItems)} of ${totalItems} events`;
+        }
+
+        pageNum.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage <= 1;
+        nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function applyFilters() {
+        currentPage = 1; // reset to first page whenever filters change
+        renderPage();
+        }
+
+        // ============== TABS ==============
         tabs.forEach(tab => {
         tab.addEventListener('click', function () {
         tabs.forEach(t => {
@@ -209,11 +424,36 @@
         });
         });
 
-        // SEARCH
+        // ============== SEARCH ==============
         searchInput.addEventListener('input', applyFilters);
 
-        // CLICK EVENT CARD — opens details modal
-        cards.forEach(card => {
+        // ============== FILTER DROPDOWN ==============
+        document.getElementById('applyFiltersBtn').addEventListener('click', function () {
+        selectedFacilities = Array.from(document.querySelectorAll('.filter-facility-check:checked')).map(cb => cb.value);
+        selectedGroups = Array.from(document.querySelectorAll('.filter-group-check:checked')).map(cb => cb.value);
+        applyFilters();
+        });
+
+        document.getElementById('clearFiltersBtn').addEventListener('click', function () {
+        document.querySelectorAll('.filter-facility-check, .filter-group-check').forEach(cb => cb.checked = false);
+        selectedFacilities = [];
+        selectedGroups = [];
+        applyFilters();
+        });
+
+        // ============== PAGINATION BUTTONS ==============
+        document.getElementById('prevBtn').addEventListener('click', function () {
+        currentPage--;
+        renderPage();
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', function () {
+        currentPage++;
+        renderPage();
+        });
+
+        // ============== CARD CLICK -> DETAILS MODAL ==============
+        allCards.forEach(card => {
         card.addEventListener('click', async function () {
         const eventId = this.dataset.eventId;
 
@@ -236,6 +476,40 @@
         modal.show();
         });
         });
+
+        // initial render
+        renderPage();
         });
+
+
+        function openEventDetails(eventId) {
+
+        fetch('@Url.Action("Details", "Events", new { area = "Leader" })' + '?id=' + eventId)
+        .then(response => {
+
+        if (!response.ok) {
+        throw new Error("Could not load event details.");
+        }
+
+        return response.text();
+        })
+        .then(html => {
+
+        document.getElementById("eventDetailsModalContent").innerHTML = html;
+
+        const modalElement =
+        document.getElementById("eventDetailsModal");
+
+        const modal =
+        bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modal.show();
+        })
+        .catch(error => {
+        console.error(error);
+        });
+        }
+
+
     </script>
 }

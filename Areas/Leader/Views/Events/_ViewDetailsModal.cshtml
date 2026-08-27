@@ -76,7 +76,40 @@
                     <span class="text-muted">(@Model.RequestedByGroupName Leader)</span>
                 }
             </div>
-        </div>
+
+            @if (isApproved)
+            {
+                <div class="info-block mb-0">
+                    <div class="info-label">APPROVED BY</div>
+
+                    <div class="info-value">
+                        @if (!string.IsNullOrEmpty(Model.ApprovedBy))
+                        {
+                            <span>
+                                @Model.ApprovedBy
+                                <span class="text-muted">(Admin)</span>
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Admin</span>
+                        }
+
+                        @if (Model.ApprovedDate.HasValue)
+                        {
+                            <div class="text-muted small mt-1">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                @Model.ApprovedDate.Value.ToString("MMM d, yyyy")
+
+                                <span class="mx-1">·</span>
+
+                                <i class="bi bi-clock me-1"></i>
+                                @Model.ApprovedDate.Value.ToString("h:mm tt")
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
     </div>
 
     @if (isRejected && !string.IsNullOrEmpty(Model.RejectionReason))

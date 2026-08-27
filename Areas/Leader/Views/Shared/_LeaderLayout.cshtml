@@ -12,6 +12,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SYM-Connect</title>
     <script type="importmap"></script>
+
+    <link rel="stylesheet" href="~/css/admin/group-attendance-modal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
@@ -24,14 +27,18 @@
         var userId = UserManager.GetUserId(User);
 
         var currentUser = await DbContext.Users
-                            .AsNoTracking()
-                            .Include(m => m.Member)
-                            .FirstOrDefaultAsync();
+            .AsNoTracking()
+            .Include(u => u.Member)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
         var profilePicture = currentUser?.Member?.ProfilePictureUrl;
+
         var userName = currentUser?.Member != null
             ? $"{currentUser.Member.FirstName} {currentUser.Member.LastName}"
             : "User";
-            var fallbackAvatar = $"https://ui-avatars.com/api/?name={userName}&background=4a6cf7&color=fff&size=34";
+
+        var fallbackAvatar =
+            $"https://ui-avatars.com/api/?name={userName}&background=4a6cf7&color=fff&size=34";
     }
 
     <!-- ═══════════════════════════════ TOP BAR ═══════════════════════════════ -->
@@ -106,7 +113,8 @@
 
         <div class="sidebar-bottom">
 
-            <a asp-controller="Profile" asp-action="Index"
+         
+            <a asp-controller="Profile" asp-action="Index" asp-area="Leader"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Profile" ? "active" : "")">
                 <i class="bi bi-person-circle"></i>
                 <span class="nav-label">Profile</span>

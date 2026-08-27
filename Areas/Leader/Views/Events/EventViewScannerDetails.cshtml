@@ -1,0 +1,720 @@
+﻿@model DetailsEventViewModel
+@using System.Linq
+@{
+    ViewData["Title"] = "Event Details";
+    Layout = "_LeaderLayout"; // TODO: confirm your actual Leader layout file name/path
+
+    // ---- status badge colors ----
+    var statusName = Model.Status.ToString();
+
+    var statusText = string.Concat(statusName.Select((c, i) => i > 0 && char.IsUpper(c) ? " " + c : c.ToString())).ToUpper();
+
+    string badgeBg, badgeColor;
+
+    if (statusName.Contains("Ongoing") && statusName.Contains("Soon"))
+    {
+        badgeBg = "#f3e8ff"; badgeColor = "#9333ea";
+    }
+    else if (statusName.Contains("Ongoing"))
+    {
+        badgeBg = "#dcfce7"; badgeColor = "#16a34a";
+    }
+    else if (statusName.Contains("Completed"))
+    {
+        badgeBg = "#f3f4f6"; badgeColor = "#6b7280";
+    }
+    else if (statusName.Contains("Cancelled"))
+    {
+        badgeBg = "#fee2e2"; badgeColor = "#dc2626";
+    }
+    else
+    {
+        badgeBg = "#dbeafe"; badgeColor = "#2563eb";
+    }
+
+    // ---- duration text ----
+    string durationText = "";
+
+    if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+    {
+        var span = Model.EndTime.Value - Model.StartTime.Value;
+        if (span.TotalMinutes > 0)
+        {
+            durationText = span.Hours > 0
+               ? $"{span.Hours} hour{(span.Hours > 1 ? "s" : "")}" + (span.Minutes > 0 ? $" {span.Minutes} min" : "") : "";
+        }
+    }
+
+    var groupColors = new[] { "#2563eb", "#16a34a", "#f59e0b", "#9333ea", "#0891b2" };
+    var timelineColors = new[] { "#16a34a", "#2563eb", "#9ca3af" };
+    var primaryGroupTag = Model.ExpectedGroups.FirstOrDefault()?.GroupName;
+    const int facilityDisplayLimit = 2;
+    const int groupDisplayLimit = 2;
+}
+
+<style>
+    :root {
+        --brand-blue: #1447E6;
+    }
+
+    .details-wrapper {
+        max-width: 1200px;
+    }
+
+    .details-breadcrumb {
+        font-size: 13px;
+        color: #9ca3af;
+    }
+
+        .details-breadcrumb a {
+            color: #9ca3af;
+            text-decoration: none;
+        }
+
+            .details-breadcrumb a:hover {
+                color: var(--brand-blue);
+            }
+
+        .details-breadcrumb .current {
+            color: #374151;
+            font-weight: 500;
+        }
+
+    .details-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    .details-card-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 14px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .02em;
+        padding: 4px 12px;
+        border-radius: 999px;
+    }
+
+    .event-title-heading {
+        font-size: 24px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .meta-row {
+        font-size: 13px;
+        color: #374151;
+    }
+
+        .meta-row i {
+            color: #9ca3af;
+            margin-right: 6px;
+        }
+
+    .tag-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #374151;
+        background: #f3f4f6;
+        border-radius: 999px;
+        padding: 3px 10px;
+    }
+
+    .details-tabs {
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .details-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: #6b7280;
+            padding: 10px 4px;
+            margin-right: 24px;
+        }
+
+            .details-tabs .nav-link.active {
+                color: var(--brand-blue);
+                border-bottom-color: var(--brand-blue);
+                background: none;
+            }
+
+    .info-list .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 0;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 13px;
+    }
+
+        .info-list .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .info-label i {
+            color: #9ca3af;
+            width: 14px;
+        }
+
+    .info-value {
+        color: #111827;
+        font-weight: 500;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 22px;
+        padding-bottom: 20px;
+    }
+
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: 3px;
+            top: 4px;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--dot-color, #9ca3af);
+        }
+
+        .timeline-item::after {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 14px;
+            bottom: 0;
+            width: 1px;
+            background: #e5e7eb;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+    .timeline-time {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .timeline-desc {
+        font-size: 12px;
+        color: #6b7280;
+    }
+
+    .facility-info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 8px 0;
+        font-size: 13px;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .facility-info-row:last-child {
+            border-bottom: none;
+        }
+
+    .qr-panel {
+        background: #f5f3ff;
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+    }
+
+        .qr-panel .qr-label {
+            font-size: 12px;
+            color: #7c3aed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .qr-panel .qr-time {
+            font-size: 24px;
+            font-weight: 700;
+            color: #7c3aed;
+            margin: 4px 0 2px;
+        }
+
+        .qr-panel .qr-sub {
+            font-size: 12px;
+            color: #a78bfa;
+        }
+
+    .group-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+    }
+
+    .group-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+
+    .group-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .group-count {
+        font-size: 12px;
+        color: #6b7280;
+    }
+</style>
+
+<div class="details-wrapper mx-auto">
+
+    @* ===== BREADCRUMB — now points at Leader area's own Index, not Admin's ===== *@
+    <div class="details-breadcrumb d-flex align-items-center gap-2 mb-3">
+        <a asp-area="Leader" asp-controller="Events" asp-action="Index">My Events</a>
+        <span>&gt;</span>
+        <span class="current">@Model.EventTitle</span>
+    </div>
+
+    @* ===== TITLE ROW — Edit + Archive dropdown removed entirely =====
+         Admin's version had:
+           - an Edit button hitting /Events/GetEditForm (admin, non-area route)
+           - an Archive dropdown hitting ConfirmationArchive/Delete
+
+         Neither has a matching action in the Leader EventsController yet.
+         GetEditForm DOES exist on the Leader controller (reused via tilde path),
+         but there's no corresponding POST "Edit" action to actually save changes,
+         and no Archive action at all. Leave both out until those are built —
+         showing a button that 404s/500s on click is worse than not showing it.
+    *@
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <i class="ti ti-calendar-event" style="color:var(--brand-blue); font-size:22px;"></i>
+            <h1 class="event-title-heading mb-0">@Model.EventTitle</h1>
+            <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-4 mb-2 meta-row">
+        <span><i class="ti ti-calendar"></i>@Model.StartDate.ToString("MMMM d, yyyy (dddd)")</span>
+        <span>
+            <i class="ti ti-clock"></i>
+            @if (Model.IsAllDay)
+            {
+                @:All Day
+            }
+            else if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+            {
+                DateTime? startDateTime = Model.StartTime.HasValue
+                ? Model.StartDate.Date + Model.StartTime.Value
+                : (DateTime?)null;
+
+                DateTime? endDateTime = Model.EndTime.HasValue
+                ? Model.EndDate.Value.Date + Model.EndTime.Value
+                : (DateTime?)null;
+
+                bool spansMultipleDays = startDateTime.HasValue && endDateTime.HasValue
+                && startDateTime.Value.Date != endDateTime.Value.Date;
+
+                @(startDateTime.Value.ToString("h:mm tt"))
+                @:&nbsp;-&nbsp;
+
+                @(endDateTime.Value.ToString(spansMultipleDays ? "h:mm tt (MMM d)" : "h:mm tt"))
+                @if (!string.IsNullOrEmpty(durationText))
+                {
+                    <span class="text-muted">(@durationText)</span>
+                }
+            }
+        </span>
+        <span><i class="ti ti-map-pin"></i>@string.Join(", ", Model.Facilities.Select(f => f.FacilityName))</span>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3 meta-row">
+        @if (!string.IsNullOrEmpty(primaryGroupTag))
+        {
+            <span class="tag-pill"><i class="ti ti-users"></i>@primaryGroupTag</span>
+        }
+        <span><i class="ti ti-user"></i>Created by @Model.CreatedBy</span>
+        <span><i class="ti ti-clock-hour-4"></i>Created on @Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
+    </div>
+
+    @* ===== TABS — "Evaluations" removed if not relevant to leaders; keep if it is ===== *@
+    <ul class="nav details-tabs mb-4">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button">Overview</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button">Attendance</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="tab-overview">
+            <div class="row g-3">
+
+                <!-- LEFT COLUMN -->
+                <div class="col-lg-4">
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">About This Event</div>
+                        <p class="meta-row mb-3">@Model.EventDescription</p>
+
+                        <div class="info-list">
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-flag"></i>Status</span>
+                                <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar"></i>Start Date</span>
+                                <span class="info-value">@Model.StartDate.ToString("MMMM d, yyyy")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar"></i>End Date</span>
+                                <span class="info-value">@Model.EndDate?.ToString("MMMM d, yyyy")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-clock"></i>Start Time</span>
+                                <span class="info-value">
+                                    @(Model.StartTime.HasValue ? DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt") : "-")
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-clock"></i>End Time</span>
+                                <span class="info-value">
+                                    @(Model.EndTime.HasValue ? DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt") : "-")
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar-event"></i>All Day Event</span>
+                                <span class="info-value">@(Model.IsAllDay ? "Yes" : "No")</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-star"></i>Points</span>
+                                <span class="info-value">@Model.Points pts</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-user"></i>Created By</span>
+                                <span class="info-value">@Model.CreatedBy</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label"><i class="ti ti-calendar-plus"></i>Date Created</span>
+                                <span class="info-value">@Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.ScheduleTimeline.Any())
+                    {
+                        <div class="details-card">
+                            <div class="details-card-title">Schedule</div>
+                            @for (int i = 0; i < Model.ScheduleTimeline.Count; i++)
+                            {
+                                var item = Model.ScheduleTimeline[i];
+                                var dotColor = timelineColors[i % timelineColors.Length];
+                                <div class="timeline-item" style="--dot-color:@dotColor;">
+                                    <div class="timeline-time">@item.Time</div>
+                                    <div class="timeline-desc">@item.Description</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- MIDDLE COLUMN -->
+                <div class="col-lg-4">
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">
+                            <i class="ti ti-building me-1"></i>Facilities (@Model.Facilities.Count)
+                        </div>
+
+                        @foreach (var facility in Model.Facilities.Take(facilityDisplayLimit))
+                        {
+                            <div class="facility-info-row">
+                                <div>
+                                    <div class="info-value">@facility.FacilityName</div>
+                                    <div class="meta-row">@facility.FacilityCapacity people capacity</div>
+                                </div>
+                                @* NOTE: Facilities/Details is an Admin-area controller in the original.
+                                   Point this at wherever leaders are allowed to view facility info,
+                                   or drop the link if leaders shouldn't drill into facility pages. *@
+                                <a asp-area="" asp-controller="Facilities" asp-action="Details" asp-route-facilityid="@facility.FacilityId"
+                                   class="btn btn-outline-primary btn-sm">
+                                    View Details
+                                </a>
+                            </div>
+                        }
+
+                        @if (Model.Facilities.Count > facilityDisplayLimit)
+                        {
+                            @* TODO: Leader EventsController has no ViewAllFacilitiesModal action yet.
+                               Either add one (mirrors Admin's, just reuse _eventService.GetFacilitiesForModalAsync),
+                               or point this at the admin route if that modal has no admin-only content. *@
+                            <button type="button" class="btn btn-outline-primary w-100 mt-2 btn-sm" id="viewAllFacilitiesBtn"
+                                    onclick="openModal('Facilities', '/Leader/Events/ViewAllFacilitiesModal?id=@Model.EventId')">
+                                View All Facilities
+                            </button>
+                        }
+                    </div>
+
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">
+                            <i class="ti ti-users me-1"></i>Expected Groups (@Model.ExpectedGroups.Count)
+                        </div>
+
+                        @for (int i = 0; i < Math.Min(Model.ExpectedGroups.Count, groupDisplayLimit); i++)
+                        {
+                            var g = Model.ExpectedGroups[i];
+                            var color = groupColors[i % groupColors.Length];
+                            <div class="group-item">
+                                <span class="group-avatar" style="background:@color;">
+                                    <i class="ti ti-users"></i>
+                                </span>
+                                <div>
+                                    <div class="group-name">@g.GroupName</div>
+                                    <div class="group-count">@g.MemberCount Members</div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.ExpectedGroups.Count > groupDisplayLimit)
+                        {
+                            @* TODO: same gap as Facilities — no ViewAllGroupsModal action on the Leader controller yet. *@
+                            <button type="button" class="btn btn-outline-primary w-100 mt-2 btn-sm" id="viewAllGroupsBtn"
+                                    onclick="openModal('Groups', '/Leader/Events/ViewAllGroupsModal?id=@Model.EventId')">
+                                View All Groups
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-lg-4">
+
+                    @{
+                        bool ifAllDay = Model.StartTime == null && Model.EndTime == null;
+
+                        bool isEventLive;
+                        bool ifEventEnd;
+                        bool ifNotStarted;
+
+                        bool timeOutIsLive;
+                        bool timeOutNotYetOpen;
+                        bool timeOutClosed;
+
+                        if (ifAllDay)
+                        {
+                            var eventStart = Model.StartDate.Date;
+                            var eventEnd = Model.EndDate.Value.Date.AddDays(1);
+
+                            isEventLive = DateTime.Now >= eventStart && DateTime.Now < eventEnd;
+                            ifNotStarted = DateTime.Now < eventStart;
+                            ifEventEnd = DateTime.Now >= eventEnd;
+
+                            var timeOutOpens = eventEnd.AddMinutes(-30);
+                            timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now < eventEnd;
+                            timeOutNotYetOpen = DateTime.Now < timeOutOpens;
+                            timeOutClosed = DateTime.Now >= eventEnd;
+                        }
+                        else
+                        {
+                            var eventStart =
+                                Model.StartDate.Date + (Model.StartTime ?? TimeSpan.Zero);
+
+                            var eventEnd =
+                                Model.EndDate.Value.Date + (Model.EndTime ?? TimeSpan.Zero);
+
+                            var timeInOpens =
+                                Model.StartDate.Date + (Model.TimeInScannerOpenTime ?? eventStart.TimeOfDay);
+
+                            var timeInCloses = Model.TimeInScannerClosesTime.HasValue
+                                ? Model.StartDate.Date + Model.TimeInScannerClosesTime.Value
+                                : eventStart;
+
+                            isEventLive =
+                                DateTime.Now >= timeInOpens &&
+                                (DateTime.Now <= timeInCloses || Model.Status == EventStatus.Ongoing);
+
+                            ifNotStarted =
+                                DateTime.Now < timeInOpens;
+
+                            ifEventEnd =
+                                DateTime.Now > eventEnd;
+
+                            var timeOutOpens = Model.StartDate.Date +
+                                (Model.TimeOutScannerOpenTime ?? eventEnd.AddMinutes(-30).TimeOfDay);
+
+                            var timeOutCloses = Model.TimeOutScannerClosesTime.HasValue
+                                ? Model.EndDate.Value.Date + Model.TimeOutScannerClosesTime.Value
+                                : eventEnd.AddMinutes(30);
+
+                            timeOutIsLive = DateTime.Now >= timeOutOpens && DateTime.Now <= timeOutCloses;
+                            timeOutNotYetOpen = DateTime.Now < timeOutOpens;
+                            timeOutClosed = DateTime.Now > timeOutCloses;
+                        }
+                    }
+
+                    <!-- TIME IN CARD -->
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">Time In</div>
+
+                        <div class="qr-panel mb-3">
+                            <div class="qr-label"><i class="ti ti-clock"></i>QR Scanner will be available in</div>
+                            <div class="qr-time">
+                                @(Model.TimeInScannerOpenTime.HasValue
+                                    ? DateTime.Today.Add(Model.TimeInScannerOpenTime.Value).ToString("h:mm tt")
+                                    : "-")
+                            </div>
+                            <div class="qr-sub">
+                                @(Model.StartTime.HasValue
+                                    ? "(" + DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt") + ")"
+                                    : "")
+                            </div>
+                        </div>
+
+                        @* asp-area explicit — this page can be reached via direct navigation,
+                           so don't rely on "current area" inference. *@
+                        @if (isEventLive || ifAllDay)
+                        {
+                            <a asp-area="Leader" asp-controller="Events" asp-action="ScannerForTimeIn"
+                               asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open QR Scanner
+                            </a>
+                        }
+                        else if (ifEventEnd)
+                        {
+                            <button type="button" class="btn btn-secondary w-100 mb-2" disabled
+                                    title="This event has already ended. Attendance can no longer be recorded.">
+                                <i class="ti ti-lock"></i> QR Scanner Unavailable
+                            </button>
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Closed</strong><br />
+                                    This event has already ended. The QR attendance scanner is no longer available.
+                                </div>
+                            </div>
+                        }
+                        else if (ifNotStarted)
+                        {
+                            <button type="button" class="btn btn-secondary w-100 mb-2" disabled
+                                    title="QR attendance will be available once the event starts.">
+                                <i class="ti ti-clock"></i> QR Scanner Unavailable
+                            </button>
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Not Yet Open</strong><br />
+                                    QR code scanning will become available when the event officially begins.
+                                </div>
+                            </div>
+                        }
+
+                        @* "Send Reminder" removed — no matching action anywhere yet; add back once one exists. *@
+                    </div>
+
+                    <!-- TIME OUT CARD -->
+                    <div class="details-card mb-3">
+                        <div class="details-card-title">Time Out</div>
+
+                        <div class="qr-panel mb-3">
+                            <div class="qr-label"><i class="ti ti-clock"></i>QR Scanner will be available in</div>
+                            <div class="qr-time">
+                                @(Model.TimeOutScannerOpenTime.HasValue
+                                    ? DateTime.Today.Add(Model.TimeOutScannerOpenTime.Value).ToString("h:mm tt")
+                                    : "-")
+                            </div>
+                            <div class="qr-sub">
+                                @(Model.EndTime.HasValue
+                                    ? "(" + DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt") + ")"
+                                    : "")
+                            </div>
+                        </div>
+
+                        @if (timeOutIsLive || ifAllDay)
+                        {
+                            <a asp-area="Leader" asp-controller="Events" asp-action="ScannerForTimeOut"
+                               asp-route-eventId="@Model.EventId" class="btn btn-primary w-100 mb-2">
+                                <i class="ti ti-qrcode"></i> Open QR Scanner
+                            </a>
+                        }
+                        else if (timeOutClosed)
+                        {
+                            <button type="button" class="btn btn-secondary w-100 mb-2" disabled
+                                    title="This event has already ended. Attendance can no longer be recorded.">
+                                <i class="ti ti-lock"></i> QR Scanner Unavailable
+                            </button>
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Closed</strong><br />
+                                    This event has already ended. The QR attendance scanner is no longer available.
+                                </div>
+                            </div>
+                        }
+                        else if (timeOutNotYetOpen)
+                        {
+                            <button type="button" class="btn btn-secondary w-100 mb-2" disabled
+                                    title="QR attendance will be available near the end of the event.">
+                                <i class="ti ti-clock"></i> QR Scanner Unavailable
+                            </button>
+                            <div class="alert alert-light border d-flex align-items-start mt-2">
+                                <i class="ti ti-info-circle text-primary me-2 mt-1"></i>
+                                <div>
+                                    <strong>Attendance Not Yet Open</strong><br />
+                                    QR code scanning will become available near the end of the event.
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-attendance">
+            @if (ViewBag.GroupAttendanceDetails != null)
+            {
+                @await Html.PartialAsync("_ViewAttendance", (GroupAttendanceDetailsViewModel)ViewBag.GroupAttendanceDetails)
+            }
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    @* Edit-button wiring removed along with the button itself.
+       Re-add once Leader has a real Edit save path (GetEditForm exists,
+       but there's no POST "Edit" action on the Leader EventsController yet). *@
+}

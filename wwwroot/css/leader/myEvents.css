@@ -1,0 +1,536 @@
+﻿
+.my-events-page {
+    padding: 24px;
+    background: #f5f7fb;
+    min-height: 100vh;
+}
+
+.page-header {
+    margin-bottom: 28px !important;
+}
+
+.page-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #eaf2ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: 14px;
+    color: #7b8495;
+    margin-top: 5px;
+}
+
+
+/* ===============================
+           BUTTONS
+        =============================== */
+
+.btn-pill {
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+    .btn-primary:hover {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+.btn-outline-primary {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #fff;
+}
+
+    .btn-outline-primary:hover {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #2563eb;
+    }
+
+.btn-outline-secondary {
+    border-color: #d7dce5;
+    color: #5f6b7a;
+    background: #fff;
+}
+
+    .btn-outline-secondary:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #334155;
+    }
+
+
+/* ===============================
+           TOP FILTER AREA
+        =============================== */
+
+#eventTabs {
+    flex-wrap: wrap;
+}
+
+    #eventTabs .btn {
+        min-height: 38px;
+    }
+
+.rounded-pill-start {
+    border-radius: 10px 0 0 10px !important;
+}
+
+.rounded-pill-end {
+    border-radius: 0 10px 10px 0 !important;
+}
+
+#eventSearch {
+    min-height: 40px;
+    border-color: #d9dee7;
+    font-size: 13px;
+    background: #fff;
+}
+
+.input-group-text {
+    border-color: #d9dee7;
+    color: #7b8495;
+}
+
+
+/* ===============================
+           EVENT LIST
+        =============================== */
+
+.event-list-card {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+}
+
+#eventList {
+    gap: 18px;
+}
+
+.event-card {
+    background: #ffffff;
+    border: 1px solid #edf0f4 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 3px 14px rgba(15, 23, 42, 0.06);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    overflow: hidden;
+}
+
+    .event-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 7px 22px rgba(15, 23, 42, 0.09);
+        border-color: #dfe5ee !important;
+    }
+
+    .event-card .card-body {
+        min-height: 150px;
+        padding: 20px 22px !important;
+        align-items: stretch !important;
+    }
+
+
+/* ===============================
+           DATE BOX
+        =============================== */
+
+.event-date-box {
+    width: 90px;
+    min-width: 90px;
+    height: 118px;
+    background: linear-gradient( 180deg, #edf4ff 0%, #f3f7ff 100% );
+    border-radius: 12px;
+    padding: 14px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    align-self: center;
+}
+
+.event-date-month {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2563eb;
+    text-transform: capitalize;
+    letter-spacing: 0;
+}
+
+.event-date-day {
+    font-size: 38px;
+    font-weight: 700;
+    color: #2563eb;
+    line-height: 1.05;
+    margin: 4px 0;
+}
+
+.event-date-dow {
+    font-size: 13px;
+    font-weight: 500;
+    color: #8290a3;
+    text-transform: capitalize;
+}
+
+
+/* ===============================
+           EVENT CONTENT
+        =============================== */
+
+.event-title {
+    font-size: 17px;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    margin-bottom: 7px !important;
+}
+
+.event-card .small.text-muted {
+    font-size: 13px;
+    color: #667085 !important;
+}
+
+.event-card .bi-clock,
+.event-card .bi-geo-alt {
+    color: #2563eb;
+    margin-right: 4px;
+}
+
+.btn-view-details-link {
+    color: #2563eb;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+    .btn-view-details-link:hover {
+        color: #1d4ed8;
+    }
+
+
+/* ===============================
+           TAGS
+        =============================== */
+
+.event-card .badge.bg-light {
+    background: #f8fafc !important;
+    color: #344054 !important;
+    border: 1px solid #e4e7ec !important;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+
+/* ===============================
+           RIGHT SIDE
+        =============================== */
+
+/* ===============================
+   RIGHT SIDE ACTIONS
+=============================== */
+
+.event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
+    position: relative; /* ← add this */
+    min-width: 350px;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end !important;
+    gap: 14px !important;
+    padding-left: 20px;
+}
+
+
+    /* status badge stays top-right */
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > .badge {
+        align-self: flex-end;
+    }
+
+
+    /* BOTH <a> and <button> get same style */
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a,
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button {
+        min-width: 165px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+
+        /* scanner button */
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary {
+            position: absolute;
+            right: 200px;
+            bottom: 20px;
+            background: #ffffff;
+            border: 1px solid #2563eb;
+            color: #2563eb;
+        }
+
+
+        /* approval details button */
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary {
+            position: absolute;
+            right: 22px;
+            bottom: 20px;
+            background: #2563eb;
+            border: 1px solid #2563eb;
+            color: #ffffff;
+        }
+
+
+        /* hover scanner */
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+
+        /* hover approval */
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+
+    /* ===============================
+           STATUS BADGES
+        =============================== */
+
+    .event-card .bg-success-subtle {
+        background: #dff3e9 !important;
+        color: #14804a !important;
+    }
+
+    .event-card .bg-warning-subtle {
+        background: #fff2cc !important;
+        color: #9a6700 !important;
+    }
+
+    .event-card .bg-danger-subtle {
+        background: #fee4e2 !important;
+        color: #b42318 !important;
+    }
+
+    .event-card .badge.rounded-pill {
+        border-radius: 999px !important;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 7px 14px !important;
+    }
+
+
+/* ===============================
+           FILTER DROPDOWN
+        =============================== */
+
+.filter-dropdown-menu {
+    min-width: 240px;
+    max-height: 340px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+}
+
+.filter-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #667085;
+    margin-bottom: 7px;
+}
+
+
+/* ===============================
+           PAGINATION
+        =============================== */
+
+.pagination-bar {
+    background: transparent;
+    border-top: none !important;
+    padding-top: 22px !important;
+}
+
+    .pagination-bar .btn {
+        min-width: 82px;
+    }
+
+
+/* ===============================
+           RESPONSIVE
+        =============================== */
+
+@media (max-width: 992px) {
+
+    .event-card .card-body {
+        flex-wrap: wrap;
+    }
+
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
+            min-width: 100%;
+            width: 100%;
+            flex-direction: row;
+            align-items: center !important;
+            justify-content: flex-end;
+            padding-left: 0;
+            margin-top: 14px;
+        }
+
+            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-primary,
+            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary {
+                position: static;
+            }
+}
+
+
+@media (max-width: 768px) {
+
+    .my-events-page {
+        padding: 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+        .page-header > button {
+            width: 100%;
+        }
+
+    .event-card .card-body {
+        align-items: flex-start !important;
+    }
+
+    .event-date-box {
+        width: 74px;
+        min-width: 74px;
+        height: 100px;
+    }
+
+    .event-date-day {
+        font-size: 30px;
+    }
+
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a {
+            flex: 1;
+            min-width: 130px;
+        }
+}
+
+
+@media (max-width: 576px) {
+
+    .event-card .card-body {
+        gap: 12px !important;
+    }
+
+    .event-date-box {
+        width: 66px;
+        min-width: 66px;
+        height: 92px;
+    }
+
+    .event-date-month {
+        font-size: 12px;
+    }
+
+    .event-date-day {
+        font-size: 27px;
+    }
+
+    .event-title {
+        font-size: 15px;
+    }
+}
+
+/* =========================
+   EVENT TIME + LOCATION
+========================= */
+
+.event-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #667085;
+}
+
+.event-time,
+.event-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .event-time i,
+    .event-location i {
+        font-size: 15px;
+        color: #64748b;
+    }
+
+.event-meta-divider {
+    color: #94a3b8;
+    font-size: 11px;
+    margin: 0 2px;
+}
+
+.time-dash {
+    margin: 0 2px;
+}
+
+.btn-view-details {
+    border: none;
+    background: transparent;
+    padding: 0;
+    color: #2563eb;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+@media (max-width: 992px) {
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-primary,
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary,
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary {
+        position: static;
+    }
+}

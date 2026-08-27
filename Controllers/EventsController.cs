@@ -186,7 +186,6 @@ public class EventsController : Controller
         ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
         ViewBag.Groups = await _groupService.GetAllGroupsAsync();
 
-
         var existingEvent = await _eventService.GetEventForEditAsync(eventid);
         if (existingEvent == null) return NotFound();
 

@@ -72,6 +72,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     EventId = e.EventId,
                     EventTitle = e.EventTitle,
                     StartDate = e.StartDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
                     ApprovalStatus = e.ApprovalStatus,
                     DateCreated = e.DateCreated,
                     ApprovedDate = e.ApprovedDate,
@@ -100,6 +102,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                      Description = e.EventDescription ?? "No description",
                      StartDate = e.StartDate,
                      EndDate = e.EndDate,
+                     StartTime = e.StartTime,
+                     EndTime = e.EndTime,
                      ApprovalStatus = e.ApprovalStatus,
                      DateCreated = e.DateCreated,
                      ApprovedDate = e.ApprovedDate,
@@ -184,9 +188,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 await MarkAsAbsentAsync(existingEvent.EventId, groupIds);
             }
-
-
-
 
 
             existingEvent.AttendanceRecords = await GetGroupAttendanceOverviewAsync(id);

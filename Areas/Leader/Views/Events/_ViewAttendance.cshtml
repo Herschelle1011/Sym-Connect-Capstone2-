@@ -1,0 +1,450 @@
+﻿@model GroupAttendanceDetailsViewModel
+
+<style>
+    .aov-filter-group {
+        display: flex;
+        gap: 6px;
+        background: #f4f5f7;
+        border-radius: 10px;
+        padding: 4px;
+    }
+
+    .aov-filter-chip {
+        border-radius: 8px;
+        padding: 8px 18px;
+        font-weight: 600;
+        font-size: 13px;
+        border: 1px solid transparent;
+        color: #6b7280;
+        background: transparent;
+        transition: all 0.15s ease;
+    }
+
+        .aov-filter-chip:hover {
+            color: #4a6cf7;
+        }
+
+        .aov-filter-chip.active {
+            background: #4a6cf7;
+            color: #ffffff;
+            border-color: #4a6cf7;
+            box-shadow: 0 2px 6px rgba(74, 108, 247, 0.35);
+        }
+
+    .aov-search-box {
+        position: relative;
+    }
+
+        .aov-search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .aov-search-box input {
+            padding-left: 32px;
+            border-radius: 8px;
+        }
+
+    .aov-stat-card {
+        border-radius: 16px;
+        padding: 20px 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+        .aov-stat-card .aov-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .aov-stat-card .aov-number {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .aov-stat-card .aov-label {
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .aov-stat-card .aov-sub {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 1px;
+        }
+
+    .aov-card-total {
+        background: #eef4ff;
+    }
+
+        .aov-card-total .aov-icon {
+            background: #4a6cf7;
+        }
+
+        .aov-card-total .aov-number, .aov-card-total .aov-label {
+            color: #1d4ed8;
+        }
+
+    .aov-card-full {
+        background: #eafbf1;
+    }
+
+        .aov-card-full .aov-icon {
+            background: #22c55e;
+        }
+
+        .aov-card-full .aov-number, .aov-card-full .aov-label {
+            color: #15803d;
+        }
+
+    .aov-card-partial {
+        background: #fef7e6;
+    }
+
+        .aov-card-partial .aov-icon {
+            background: #f59e0b;
+        }
+
+        .aov-card-partial .aov-number, .aov-card-partial .aov-label {
+            color: #b45309;
+        }
+
+    .aov-card-absent {
+        background: #fdecec;
+    }
+
+        .aov-card-absent .aov-icon {
+            background: #ef4444;
+        }
+
+        .aov-card-absent .aov-number, .aov-card-absent .aov-label {
+            color: #b91c1c;
+        }
+
+    .aov-table {
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .aov-table thead tr th {
+            background-color: #4a6cf7 !important;
+            color: #ffffff !important;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-weight: 600;
+            padding: 14px 16px;
+            border: none !important;
+            vertical-align: middle;
+        }
+
+            .aov-table thead tr th:first-child {
+                border-top-left-radius: 12px;
+            }
+
+            .aov-table thead tr th:last-child {
+                border-top-right-radius: 12px;
+            }
+
+        .aov-table tbody tr {
+            background-color: #ffffff;
+            transition: background-color 0.15s ease;
+        }
+
+            .aov-table tbody tr:hover {
+                background-color: #f8f9fc;
+            }
+
+            .aov-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+        .aov-table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            background-color: transparent !important;
+        }
+
+    .aov-status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .aov-avatar-circle {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #eef4ff;
+        color: #4a6cf7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 13px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .aov-status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .aov-status-pill-present {
+        background: #eafbf1;
+        color: #15803d;
+    }
+
+    .aov-status-pill-pending {
+        background: #fef7e6;
+        color: #b45309;
+    }
+
+    .aov-status-pill-absent {
+        background: #fdecec;
+        color: #b91c1c;
+    }
+
+    .aov-status-pill .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-right: 6px;
+        display: inline-block;
+    }
+
+    .aov-status-pill-present .dot {
+        background: #22c55e;
+    }
+
+    .aov-status-pill-pending .dot {
+        background: #f59e0b;
+    }
+
+    .aov-status-pill-absent .dot {
+        background: #ef4444;
+    }
+
+    .aov-guide-box {
+        background: #f8fafc;
+        border: 1px solid #eef1f5;
+        border-radius: 12px;
+        padding: 16px 20px;
+    }
+</style>
+
+<div class="container-fluid py-4">
+
+    <!-- Event info + group status -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center my-4 gap-3">
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:44px; height:44px; border-radius:10px; background:#eef4ff; display:flex; align-items:center; justify-content:center;">
+                <i class="bi bi-calendar-event" style="color:#4a6cf7; font-size:18px;"></i>
+            </div>
+            <div>
+                <div class="fw-bold" style="font-size:15px;">
+                    @Model.EventDate.ToString("MMMM dd, yyyy") @(Model.EventDate.Date == DateTime.Today ? "(Today)" : "")
+                </div>
+                <div class="text-muted small">Event: @Model.eventTitle</div>
+                @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+                {
+                    <div class="text-muted small">
+                        Time: @DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt") – @DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt")
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="text-end">
+            <div class="text-muted small mb-1">@Model.GroupName · Led by @Model.GroupLeader</div>
+            <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
+                @(Model.GroupAttendanceStatus switch
+                {
+                    GroupAttendanceStatus.FullyPresent => "Fully Present",
+                    GroupAttendanceStatus.PartiallyPresent => "Partially Present",
+                    GroupAttendanceStatus.Absent => "Absent"
+                })
+            </span>
+        </div>
+    </div>
+
+    <!-- Stat cards (member-level, this group only) -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="aov-stat-card aov-card-total">
+                <div class="aov-icon"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="aov-number">@Model.TotalMembers</div>
+                    <div class="aov-label">Total Members</div>
+                    <div class="aov-sub">In @Model.GroupName</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="aov-stat-card aov-card-full">
+                <div class="aov-icon"><i class="bi bi-check-lg"></i></div>
+                <div>
+                    <div class="aov-number">@Model.attendanceRowViewModels.Count(r => r.Status == "Present")</div>
+                    <div class="aov-label">Present</div>
+                    <div class="aov-sub">Checked in to this event</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="aov-stat-card aov-card-partial">
+                <div class="aov-icon"><i class="bi bi-dash-lg"></i></div>
+                <div>
+                    <div class="aov-number">@Model.attendanceRowViewModels.Count(r => r.Status == "Pending")</div>
+                    <div class="aov-label">Pending</div>
+                    <div class="aov-sub">Not yet checked in</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="aov-stat-card aov-card-absent">
+                <div class="aov-icon"><i class="bi bi-x-lg"></i></div>
+                <div>
+                    <div class="aov-number">@Model.attendanceRowViewModels.Count(r => r.Status == "Absent")</div>
+                    <div class="aov-label">Absent</div>
+                    <div class="aov-sub">Did not attend</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search + status filter -->
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center mb-3 gap-2">
+        <div class="aov-search-box" style="max-width:280px;">
+            <i class="bi bi-search"></i>
+            <input type="text" id="memberSearch" class="form-control" placeholder="Search member...">
+        </div>
+
+        <div class="aov-filter-group">
+            <button type="button" class="aov-filter-chip active" data-status-filter="all">All</button>
+            <button type="button" class="aov-filter-chip" data-status-filter="Present">Present</button>
+            <button type="button" class="aov-filter-chip" data-status-filter="Pending">Pending</button>
+            <button type="button" class="aov-filter-chip" data-status-filter="Absent">Absent</button>
+        </div>
+    </div>
+
+    <!-- Member table -->
+    <div class="table-responsive" style="border-radius:12px; overflow:hidden; border:1px solid #eef1f5;">
+        <table class="table aov-table mb-0" id="attendanceTable">
+            <thead>
+                <tr>
+                    <th>Member</th>
+                    <th>Status</th>
+                    <th>Time In</th>
+                    <th>Time Out</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.attendanceRowViewModels)
+                {
+                    <tr data-status="@row.Status" data-name="@row.FullName.ToLower()">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="aov-avatar-circle">
+                                    @if (!string.IsNullOrEmpty(row.PhotoUrl))
+                                    {
+                                        <img src="@row.PhotoUrl" alt="@row.FullName" style="width:100%; height:100%; object-fit:cover;" />
+                                    }
+                                    else
+                                    {
+                                        <span>@row.FullName.Substring(0, 1).ToUpper()</span>
+                                    }
+                                </div>
+                                <div>
+                                    <div class="text-truncate">@row.FullName</div>
+                                    @if (row.FullName == Model.GroupLeader)
+                                    {
+                                        <small class="text-primary">Group Leader</small>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="aov-status-pill aov-status-pill-@row.Status.ToLower()">
+                                <span class="dot"></span> @row.Status
+                            </span>
+                        </td>
+                        <td>@(row.TimeIn.HasValue ? row.TimeIn.Value.ToString(@"hh\:mm") : "—")</td>
+                        <td>@(row.TimeOut.HasValue ? row.TimeOut.Value.ToString(@"hh\:mm") : "—")</td>
+                        <td class="text-muted text-truncate" style="max-width:200px;">@row.Remarks</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Guide -->
+    <div class="aov-guide-box mt-4 d-flex align-items-start gap-3">
+        <i class="bi bi-info-circle-fill" style="color:#4a6cf7; font-size:18px;"></i>
+        <div>
+            <div class="fw-bold mb-1" style="color:#4a6cf7;">Attendance Guide</div>
+            <div class="d-flex flex-wrap gap-4 small text-muted">
+                <span><span class="aov-status-dot" style="background:#22c55e;"></span><strong>Present:</strong> Member has checked in to this event.</span>
+                <span><span class="aov-status-dot" style="background:#f59e0b;"></span><strong>Pending:</strong> Member has not checked in yet.</span>
+                <span><span class="aov-status-dot" style="background:#ef4444;"></span><strong>Absent:</strong> Member did not attend.</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    (function () {
+        var searchInput = document.getElementById('memberSearch');
+        var chips = document.querySelectorAll('[data-status-filter]');
+
+        function applyFilters() {
+            var query = searchInput.value.trim().toLowerCase();
+            var activeChip = document.querySelector('[data-status-filter].active');
+            var statusFilter = activeChip ? activeChip.dataset.statusFilter : 'all';
+
+            document.querySelectorAll('#attendanceTable tbody tr').forEach(function (row) {
+                var matchesStatus = statusFilter === 'all' || row.dataset.status === statusFilter;
+                var matchesSearch = !query || row.dataset.name.indexOf(query) !== -1;
+                row.style.display = (matchesStatus && matchesSearch) ? '' : 'none';
+            });
+        }
+
+        chips.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                chips.forEach(function (b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                applyFilters();
+            });
+        });
+
+        searchInput.addEventListener('input', applyFilters);
+    })();
+</script>

@@ -204,21 +204,21 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                  .Select(g => g.LeaderId)
                  .FirstOrDefaultAsync();
 
-            // Return Active members NOT yet in the group
+
             return await _context.Members
-                .AsNoTracking()
-                .Where(m => m.Status == "Active" &&
-                !existingIds.Contains(m.MemberId) &&
-                m.MemberId != leaderId)
-              .OrderByDescending(m => m.EarnedPoints)
-                .Select(m => new MemberListViewModel
-                {
-                    MemberId = m.MemberId,
-                    FirstName = m.FirstName,
-                    LastName = m.LastName,
-                    Email = m.User.Email ?? "Unverified",
-                    Points = m.EarnedPoints,
-                }).ToListAsync();         
+       .AsNoTracking()
+       .Where(m => m.Status == "Active" &&
+       !existingIds.Contains(m.MemberId) &&
+       m.MemberId != leaderId && !_context.Groups.Any(g => g.LeaderId == m.MemberId))
+     .OrderByDescending(m => m.EarnedPoints)
+       .Select(m => new MemberListViewModel
+       {
+           MemberId = m.MemberId,
+           FirstName = m.FirstName,
+           LastName = m.LastName,
+           Email = m.User.Email ?? "Unverified",
+           Points = m.EarnedPoints,
+       }).ToListAsync();
         }
 
 
@@ -231,7 +231,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
 
-            // ADD MEMBER TO GROUP =======
+        // ADD MEMBER TO GROUP =======
         public async Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId)
         {
             var AlreadyExist = await _context.GroupDetails

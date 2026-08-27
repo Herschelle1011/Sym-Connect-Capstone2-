@@ -71,10 +71,12 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
 
         public AttendanceTabViewModel AttendanceRecords { get; set; }
+
+
     }
 
 
 
- 
-    
+
+
 }
