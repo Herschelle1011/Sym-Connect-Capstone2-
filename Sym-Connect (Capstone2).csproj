@@ -8,9 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Areas\Leader\ViewModels\" />
-    <Folder Include="Areas\Leader\Services\Implementation\" />
-    <Folder Include="Areas\Leader\Services\Interfaces\" />
     <Folder Include="Migrations\" />
   </ItemGroup>
 

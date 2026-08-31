@@ -35,7 +35,8 @@ namespace Sym_Connect__Capstone2_.Models
         public string Barangay { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
         public string Province { get; set; } = string.Empty;
-        public string Country { get; set; } = "Philippines"; public DateTime? BirthDate { get; set; }
+        public string Country { get; set; } = "Philippines"; 
+        public DateTime? BirthDate { get; set; }
 
         public string Address { get; set; } = string.Empty;
 

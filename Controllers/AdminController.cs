@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol.Plugins;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services;
+using Sym_Connect__Capstone2_.Services.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
@@ -12,12 +15,14 @@ namespace Sym_Connect__Capstone2_.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly CloudinaryService _cloudinaryService;
+        private readonly IAnnouncementService _announcementService;
 
         public AdminController(UserManager<User> userManager,
-        CloudinaryService cloudinaryService)
+        CloudinaryService cloudinaryService, IAnnouncementService announcementService)
         {
             _userManager = userManager;
             _cloudinaryService = cloudinaryService;
+            _announcementService = announcementService;
         }
 
         // ── GET: /Admin/Profile ─────────────────────────────────────────────
@@ -66,6 +71,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         //[Authorize(Roles = "Admin")]
         public IActionResult Dashboard()
         {
+
             return View();
         }
     }

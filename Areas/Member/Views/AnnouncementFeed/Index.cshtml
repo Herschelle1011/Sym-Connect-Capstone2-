@@ -1,0 +1,164 @@
+﻿@model List<VisibleAnnouncementViewModel>
+@using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums
+@{
+    ViewData["Title"] = "Announcements";
+    Layout = "~/Areas/Member/Views/Shared/_MemberLayout.cshtml";
+}
+
+<div class="announcement-feed">
+    <h2 class="announcement-feed-title">Announcements</h2>
+
+    @if (Model == null || !Model.Any())
+    {
+        <p class="text-muted">No announcements right now.</p>
+    }
+    else
+    {
+        foreach (var a in Model)
+        {
+            var avatarSrc = string.IsNullOrWhiteSpace(a.PhotoUrl) ? "/images/default.png" : a.PhotoUrl;
+
+            <div class="announcement-card">
+                <div class="announcement-card-header">
+                    <img class="announcement-avatar" src="@avatarSrc" alt="@a.PostedByName" onerror="this.onerror=null;this.src='/images/default.png';" />
+                    <div class="announcement-header-text">
+                        <div class="announcement-title-row">
+                            <h3>@a.Title</h3>
+                            @if (a.TargetType == TargetAudience.SpecificGroup && a.GroupName != null)
+                            {
+                                <span class="badge badge-group">@a.GroupName</span>
+                            }
+                            else if (a.TargetType == TargetAudience.AllLeaders)
+                            {
+                                <span class="badge badge-leaders">Leaders</span>
+                            }
+                        </div>
+                        <div class="announcement-posted-by">
+                            Posted by @a.PostedByName
+                            @if (!string.IsNullOrWhiteSpace(a.GroupName))
+                            {
+                                <span> - @a.GroupName</span>
+                            }
+                        </div>
+                        <div class="announcement-meta">
+                            @(a.PublishedAt.HasValue ? a.PublishedAt.Value.ToString("MMM d, yyyy h:mm tt") : "")
+                        </div>
+                    </div>
+                </div>
+
+                <p class="announcement-content">@a.Content</p>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .announcement-feed {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 24px 16px 48px;
+    }
+
+    .announcement-feed-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 20px;
+    }
+
+    .announcement-card {
+        position: relative;
+        background: #fff;
+        border-radius: 14px;
+        padding: 20px 24px 22px;
+        margin-bottom: 22px;
+        box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+        border: 1px solid #eef0f4;
+        overflow: hidden;
+    }
+
+        .announcement-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #2f6fed, #4f8dfd);
+        }
+
+    .announcement-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .announcement-avatar {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #eef0f4;
+        border: 1px solid #eef0f4;
+    }
+
+    .announcement-header-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .announcement-title-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+        .announcement-title-row h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+    .announcement-posted-by {
+        font-size: 0.8rem;
+        color: #8a90a2;
+        margin-top: 2px;
+    }
+
+    .announcement-meta {
+        font-size: 0.72rem;
+        color: #b3b8c5;
+        margin-top: 1px;
+    }
+
+    .announcement-content {
+        margin: 12px 0 0;
+        color: #3c4257;
+        font-size: 0.95rem;
+        line-height: 1.55;
+        white-space: pre-line;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.6;
+    }
+
+    .badge-group {
+        background: #e8f0fe;
+        color: #2f6fed;
+    }
+
+    .badge-leaders {
+        background: #fff1e6;
+        color: #e8722a;
+    }
+</style>

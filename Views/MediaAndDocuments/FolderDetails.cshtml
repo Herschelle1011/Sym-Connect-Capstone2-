@@ -1,0 +1,53 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaFileViewModel>
+@{
+    ViewData["Title"] = "Folder";
+    Layout = "_AdminLayout";
+
+    int? folderId = ViewBag.FolderId;
+}
+
+<div class="media-page">
+    <div class="page-header">
+        <a href="@Url.Action("Index")" class="back-link">← All Folders</a>
+        <button type="button" class="btn btn-primary open-modal"
+                data-url="@Url.Action("UploadFiles", "MediaAndDocuments", new { folderId = folderId })"
+                data-title="Upload Files">
+            + Upload Files
+        </button>
+    </div>
+
+    <table class="announcement-table">
+        <thead>
+            <tr>
+                <th>File</th>
+                <th>Size</th>
+                <th>Uploaded</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="fileTableBody">
+            @if (Model == null || !Model.Any())
+            {
+                <tr><td colspan="4" class="text-center text-muted">No files here yet.</td></tr>
+            }
+            else
+            {
+                foreach (var f in Model)
+                {
+                    <tr data-id="@f.MediaFileId">
+                        <td><a href="@f.FileUrl" target="_blank">@f.FileName</a></td>
+                        <td>@((f.FileSizeBytes / 1024.0).ToString("N0")) KB</td>
+                        <td>@f.UploadedDate.ToString("MMM d, yyyy")</td>
+                        <td>
+                            <button type="button" class="btn-icon btn-danger btnDeleteFile" data-id="@f.MediaFileId">Delete</button>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/Media.js"></script>
+}

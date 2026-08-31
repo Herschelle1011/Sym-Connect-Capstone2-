@@ -159,6 +159,64 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.AnnouncementModels.Announcement", b =>
+                {
+                    b.Property<int>("AnnouncementId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AnnouncementId"));
+
+                    b.Property<DateTime?>("ArchiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExpirationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExpirationOption")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("PublishDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PublishOption")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetAudience")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AnnouncementId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("Announcements");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Attendance", b =>
                 {
                     b.Property<int>("AttendanceId")
@@ -759,6 +817,91 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("GroupDetails");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.MediaAndDocuments.MediaFile", b =>
+                {
+                    b.Property<int>("MediaFileId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MediaFileId"));
+
+                    b.Property<DateTime?>("DateArchived")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileExtension")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MediaFolderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PublicId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UploadedByMemberId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MediaFileId");
+
+                    b.HasIndex("MediaFolderId");
+
+                    b.ToTable("MediaFiles");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.MediaAndDocuments.MediaFolder", b =>
+                {
+                    b.Property<int>("MediaFolderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MediaFolderId"));
+
+                    b.Property<DateTime?>("ArchiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByMemberId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FolderName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsPrivate")
+                        .HasColumnType("bit");
+
+                    b.Property<bool?>("isArchived")
+                        .HasColumnType("bit");
+
+                    b.HasKey("MediaFolderId");
+
+                    b.ToTable("MediaFolders");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>
                 {
                     b.Property<int>("MemberId")
@@ -879,6 +1022,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime>("DateRegistered")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -987,6 +1133,21 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.AnnouncementModels.Announcement", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId");
+
+                    b.Navigation("Group");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Attendance", b =>
@@ -1241,6 +1402,15 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Navigation("Member");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.MediaAndDocuments.MediaFile", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.MediaAndDocuments.MediaFolder", "Folder")
+                        .WithMany("Files")
+                        .HasForeignKey("MediaFolderId");
+
+                    b.Navigation("Folder");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
@@ -1295,6 +1465,11 @@ namespace Sym_Connect__Capstone2_.Migrations
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Group", b =>
                 {
                     b.Navigation("GroupDetails");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.MediaAndDocuments.MediaFolder", b =>
+                {
+                    b.Navigation("Files");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>

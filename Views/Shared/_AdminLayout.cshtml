@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="~/css/admin/facility.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/MediaAndDocuments.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/ProfileViewMember.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/group-attendance-modal.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
@@ -144,6 +145,16 @@
                 <span class="nav-label">Participation</span>
             </a>
 
+            
+            <a asp-controller="MediaAndDocuments" asp-action="Index"
+               class="nav-item @(controller == "MediaAndDocuments" ? "active" : "")">
+
+                <i class="bi bi-folder2-open"></i>
+
+                <span class="nav-label">Media and Documents</span>
+            </a>
+
+
             <div class="nav-dropdown @(electionOpen ? "open" : "")">
 
                 <a href="#" class="nav-item nav-dropdown-toggle @(electionOpen ? "active" : "")">
@@ -165,6 +176,7 @@
                         <i class="bi bi-person-check-fill"></i>
                         <span class="nav-label">Create Voting</span>
                     </a>
+
 
                 </div>
 

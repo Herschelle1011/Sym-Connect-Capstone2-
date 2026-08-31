@@ -30,6 +30,9 @@ namespace Sym_Connect__Capstone2_.Controllers
             _razorViewRenderer = razorViewRenderer;
         }
 
+
+
+
         // GET: YouthMembers
         public async Task<IActionResult> Index()
         {

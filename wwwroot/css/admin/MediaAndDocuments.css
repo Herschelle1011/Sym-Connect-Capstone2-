@@ -1,0 +1,181 @@
+﻿.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1c2b3a;
+    margin: 0;
+}
+
+.page-subtitle {
+    color: #8a94a6;
+    font-size: 0.85rem;
+    margin-top: 2px;
+}
+
+.btn-new-folder {
+    background: #0289D8;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+    .btn-new-folder:hover {
+        background: #0273b3;
+    }
+
+.breadcrumb-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.breadcrumb {
+    color: #8a94a6;
+    font-size: 0.9rem;
+}
+
+    .breadcrumb a {
+        color: #8a94a6;
+        text-decoration: none;
+    }
+
+.folder-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.folder-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eaf3fe;
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s ease;
+}
+
+    .folder-card:hover {
+        background: #dcebfd;
+    }
+
+.folder-icon {
+    font-size: 1.1rem;
+    color: #0289D8;
+}
+
+.folder-name {
+    font-weight: 600;
+    color: #1c2b3a;
+    flex: 1;
+}
+
+.folder-count {
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.recent-files-section {
+    margin-top: 32px;
+}
+
+    .recent-files-section h4 {
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+..recent-files-table-wrapper {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.recent-files-table {
+    margin-bottom: 0;
+}
+
+    .recent-files-table thead th {
+        background-color: #0289D8 !important;
+        color: #fff !important;
+        font-weight: 500;
+        border: none;
+        padding: 14px 20px;
+    }
+
+    .recent-files-table tbody td {
+        padding: 14px 20px;
+        vertical-align: middle;
+        border-color: #eef1f5;
+        background-color: #fff;
+    }
+
+    .recent-files-table tbody tr:nth-child(even) td {
+        background-color: #f6faff;
+    }
+
+.actions-col {
+    text-align: right;
+    width: 40px;
+}
+
+.btn-kebab {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: #8a94a6;
+    line-height: 1;
+    cursor: pointer;
+}
+
+@media (max-width: 1200px) {
+    .folder-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.folder-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.folder-icon-wrapper {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.folder-icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.folder-lock {
+    position: absolute;
+    right: -3px;
+    bottom: -2px;
+    font-size: 12px;
+    color: #1c2b3a;
+}

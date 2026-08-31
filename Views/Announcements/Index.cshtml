@@ -1,0 +1,185 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Announcement.ListAnnouncementViewModel>
+@{
+    ViewData["Title"] = "Announcements";
+    Layout = "_AdminLayout";
+
+    var now = DateTime.Now;
+}
+
+<link rel="stylesheet" href="~/css/admin/announcement.css" asp-append-version="true" />
+
+
+
+<div class="announcement-page">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Communication</div>
+            <h2>Announcements</h2>
+            <p class="page-subtitle">Create and manage announcements for SYM members, leaders, and groups.</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="btnNewAnnouncement">
+            <i class="ti ti-plus"></i> New Announcement
+        </button>
+    </div>
+
+    <div class="announcement-toolbar">
+        <div class="search-box">
+            <i class="ti ti-search"></i>
+            <input type="text" id="announcementSearch" placeholder="Search announcements..." />
+        </div>
+        <select id="audienceFilter" class="filter-select">
+            <option value="">All audiences</option>
+            @foreach (var val in Enum.GetValues(typeof(Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums.TargetAudience)))
+            {
+                <option value="@val">@val</option>
+            }
+        </select>
+        <select id="statusFilter" class="filter-select">
+            <option value="">All statuses</option>
+            <option value="Published">Published</option>
+            <option value="Scheduled">Scheduled</option>
+            <option value="Expired">Expired</option>
+
+        </select>
+    </div>
+
+    <div class="table-card">
+        <table class="announcement-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Audience</th>
+                    <th>Publish</th>
+                    <th>Expires</th>
+                    <th>Created By</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="announcementTableBody">
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <i class="ti ti-speakerphone"></i>
+                            <div>No announcements yet.</div>
+                        </td>
+                    </tr>
+                }
+                else
+                {
+
+                    foreach (var a in Model)
+                    {
+                        
+                         var isExpired = a.ExpiresAt.HasValue && a.ExpiresAt.Value <= now;
+                         var isScheduled = a.PublishDate.HasValue && a.PublishDate.Value > now;
+                        var status = isExpired ? "Expired" : isScheduled ? "Scheduled" : "Published";
+
+
+
+                        <tr data-id="@a.AnnouncementId"
+                            data-audience="@a.TargetType"
+                            data-status="@status">
+                            <td>
+                                @* // PIN Announcement *@
+                                @if (a.IsPinned == true)
+                                {
+                                    <span class="badge badge-pinned">Pinned</span>
+                                }
+                                <div class="ann-title">@a.Title</div>
+                                <div class="ann-snippet">@(a.Content.Length > 60 ? a.Content.Substring(0, 60) + "..." : a.Content)</div>
+                            </td>
+                       
+                            <td>
+                                <span class="pill pill-audience">@a.TargetType</span>
+                                @if (a.TargetType == TargetAudience.SpecificGroup && a.GroupName != null)
+                                {
+                                    <div class="ann-group">@a.GroupName</div>
+                                }
+                            </td>
+                            <td>
+                                @if (isExpired)
+                                {
+                                    <span class="pill pill-expired">Expired</span>
+                                }
+                                @if (isScheduled)
+                                {
+                                    <span class="pill pill-scheduled">Scheduled</span>
+                                    <div class="ann-date">@a.PublishDate?.ToString("MMM d, yyyy h:mm tt")</div>
+                                }
+                                else
+                                {
+                                    <span class="pill pill-live">Published</span>
+                                }
+                            </td>
+                            <td>
+                                @if (a.ExpiresAt.HasValue)
+                                {
+                                    <div class="ann-date">
+                                        @a.ExpiresAt.Value.ToString("MMM d, yyyy h:mm tt")
+                                    </div>
+
+                                    @if (isExpired)
+                                    {
+                                        <div class="expired-text">
+                                            Expired
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        No expiration
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(a.CreatedBy))
+                                {
+                                    <div class="created-by">
+                                        <i class="ti ti-user"></i>
+                                        <span>@a.CreatedBy</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Unknown</span>
+                                }
+                            </td>
+
+                            <td class="ann-date">
+                                @a.CreatedAt.ToString("MMM d, yyyy")
+                            </td>
+                            <td class="ann-actions">
+                                <button type="button" class="btn-icon btnEditAnnouncement" data-id="@a.AnnouncementId" title="Edit">
+                                    <i class="ti ti-pencil"></i> Edit
+                                </button>
+                                <button type="button" class="btn-icon btn-danger btnArchiveAnnouncement" data-id="@a.AnnouncementId" title="Archive">
+                                    <i class="ti ti-trash"></i> Archive
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal shell: partial form gets injected into #announcementModalBody -->
+<div class="modal-overlay" id="announcementModalOverlay" style="display:none;">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 id="announcementModalTitle">New Announcement</h3>
+            <button type="button" class="modal-close" id="btnCloseAnnouncementModal">&times;</button>
+        </div>
+        <div class="modal-body" id="announcementModalBody">
+            <!-- _AnnouncementFormCreate or _AnnouncementFormEdit loaded here via AJAX -->
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/announcement.js"></script>
+}

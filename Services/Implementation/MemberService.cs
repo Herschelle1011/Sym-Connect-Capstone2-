@@ -180,19 +180,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Gender = m.Gender,
                     Status = m.Status,
                     MemberSince = m.DateRegistered,
-                    Email = m.User.Email != null ? m.User.Email : "No Email",
-                    IsEmailConfirmed = m.User.EmailConfirmed,
+                    Email = m.User != null && m.User.Email != null
+                    ? m.User.Email
+                        : "No Email",
+                    IsEmailConfirmed = m.User != null
+                   ? m.User.EmailConfirmed
+                   : false,
                     ContactNumber = m.ContactNumber,
                     Address = m.Address,
                     PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
                       ? "/images/default-avatar.png"
                       : m.ProfilePictureUrl,              
                      EventAttendedCount = attendanceCheck,
-                    groupDetails = m.GroupDetails.Select(g => new GroupDetailsViewModel
+                    groupDetails = m.GroupDetails
+                    .Select(g => new GroupDetailsViewModel
                     {
                         GroupName = g.Group.GroupName,
                         DateJoined = g.DateJoined
-                    }).ToList()
+                    })
+                    .ToList()
                 }).FirstOrDefaultAsync();
             return member;
         }
@@ -213,13 +219,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
       
                 var member = new Member
                 {
-
                     FirstName = vm.FirstName,
                     LastName = vm.LastName,
                     MiddleName = vm.MiddleName,
                     ContactNumber = vm.ContactNumber,
                     Province = vm.Province,
                     Barangay = vm.Barangay,
+                    
                     City = vm.City,
                     Country = vm.Country,
                     Address = BuildAddress(vm.Barangay, vm.City, vm.Province, vm.Country),
@@ -228,6 +234,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Gender = vm.Gender,
                     Status = vm.Status
                 };
+
+                
+
                 _context.Members.Add(member);
                 await _context.SaveChangesAsync();
 
@@ -237,6 +246,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     UserName = vm.Email,
                     Email = vm.Email,
+                    DisplayName = member.FirstName + " " + member.LastName,
                     EmailConfirmed = false,
                     MemberId = member.MemberId
                 };
@@ -359,6 +369,26 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Where(p => !string.IsNullOrWhiteSpace(p));
 
             return string.Join(", ", parts);
+        }
+
+
+
+
+
+
+        //====== ANNOUNCEMENTS =========
+        public async Task<(int? GroupId, bool IsLeader)> GetAnnouncementContextAsync(int memberId)
+        {
+            var context = await _context.GroupDetails
+                .AsNoTracking()
+                .Where(e => e.MemberId == memberId)
+                .Select(gd => new
+                {
+                    gd.GroupId,
+                    isLeader = gd.Group.LeaderId == gd.MemberId
+                }).FirstOrDefaultAsync();
+
+            return context == null ? (null, false) : (context.GroupId, context.isLeader);
         }
 
     }

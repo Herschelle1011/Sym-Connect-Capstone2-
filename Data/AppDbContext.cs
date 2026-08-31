@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.AnnouncementModels;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
+using Sym_Connect__Capstone2_.Models.MediaAndDocuments;
 using Sym_Connect__Capstone2_.Services.Implementation;
 namespace Sym_Connect__Capstone2_.Data
 {
@@ -39,6 +41,11 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<Candidates> Candidates { get; set; }
         public DbSet<Position> positions { get; set; }
 
+        public DbSet<MediaFolder> MediaFolders { get; set; }
+        public DbSet<MediaFile> MediaFiles { get; set; }
+
+
+        public DbSet<Announcement> Announcements { get; set; }
 
         public DbSet<Vote> Votes { get; set; }
 

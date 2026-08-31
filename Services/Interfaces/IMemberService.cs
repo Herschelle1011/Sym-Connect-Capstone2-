@@ -22,6 +22,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<OperationalResult> SetPasswordAsync(string userId, string token, string password);
 
+
+        Task<(int? GroupId, bool IsLeader)> GetAnnouncementContextAsync(int memberId);
         ////LOAD ALL Members dropDown
         //Task<List<Member>> GetMemberOptionsAsync(int groupId);
     }

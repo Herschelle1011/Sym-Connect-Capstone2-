@@ -328,5 +328,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .AsNoTracking()
                 .FirstOrDefaultAsync(g => g.LeaderId == memberId && !g.IsArchived);
         }
+
+        public async Task<Group?> GetGroupByLeaderIdAsync(int memberId)
+        {
+            return await _context.Groups
+           .AsNoTracking()
+           .FirstOrDefaultAsync(g =>
+               g.LeaderId == memberId &&
+               !g.IsArchived);
+        }
     }
 }
