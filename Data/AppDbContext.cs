@@ -8,6 +8,7 @@ using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
 using Sym_Connect__Capstone2_.Models.MediaAndDocuments;
+using Sym_Connect__Capstone2_.Models.Notification;
 using Sym_Connect__Capstone2_.Services.Implementation;
 namespace Sym_Connect__Capstone2_.Data
 {
@@ -43,6 +44,8 @@ namespace Sym_Connect__Capstone2_.Data
 
         public DbSet<MediaFolder> MediaFolders { get; set; }
         public DbSet<MediaFile> MediaFiles { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+
 
 
         public DbSet<Announcement> Announcements { get; set; }

@@ -33,21 +33,44 @@
         {
             foreach (var folder in Model.Folders)
             {
-                <a href="@Url.Action("FolderDetails", new { id = folder.MediaFolderId })"
-                   class="folder-card">
+                <div class="folder-card">
+                    <a href="@Url.Action("FolderDetails", new { id = folder.MediaFolderId })"
+                       class="folder-card-link">
 
-                    <img src="~/images/folder.png"
-                         alt="Folder"
-                         class="folder-icon" />
-                    @if (folder.IsPrivate)
-                    {
-                        <i class="bi bi-lock-fill folder-lock"></i>
-                    }
+                        <img src="~/images/folder.png"
+                             alt="Folder"
+                             class="folder-icon" />
+                        @if (folder.IsPrivate)
+                        {
+                            <i class="bi bi-lock-fill folder-lock"></i>
+                        }
 
-                    <span class="folder-name">@folder.FolderName</span>
+                        <span class="folder-name">@folder.FolderName</span>
+                        <span class="folder-count">@folder.FileCount</span>
+                    </a>
 
-                    <span class="folder-count">@folder.FileCount</span>
-                </a>
+                    <div class="dropdown folder-kebab-wrapper">
+                        <button class="btn-kebab" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            ⋮
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item open-modal" href="#"
+                                   data-url="@Url.Action("Rename", "MediaAndDocuments", new { id = folder.MediaFolderId })"
+                                   data-title="Rename Folder">
+                                    Rename
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="#"
+                                   data-folder-id="@folder.MediaFolderId"
+                                   data-action="archive">
+                                    Archive
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             }
         }
     </div>
@@ -67,6 +90,7 @@
                         <tr>
                             <th>File Name</th>
                             <th>Type</th>
+                            <th>Folder</th>
                             <th>Uploaded by</th>
                             <th>Date</th>
                             <th class="actions-col"></th>
@@ -78,6 +102,7 @@
                             <tr>
                                 <td>@file.FileName</td>
                                 <td>@file.FileExtension</td>
+                                <td>@file.folderName</td>
                                 <td>@file.fullName</td>
                                 <td>@file.UploadedDate.ToString("MMM. d, yyyy")</td>
                                 <td class="actions-col">
@@ -99,3 +124,10 @@
         }
     </div>
 </div>
+
+@section Scripts{
+    @{
+
+    }
+    <script src="~/js/admin/Media.js"></script>
+}

@@ -68,6 +68,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return new OperationalResult { Success = true, Message = "Folder created successfully!" };
         }
 
+
+
+
+
+        public async Task<MediaFolder> GetFolderByIdAsync(int id)
+        {
+            return await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == id);
+        }
+
+
+
         public async Task<OperationalResult> DeleteFolderAsync(int folderId, int requestingMemberId, bool isAdmin)
         {
             var folder = await _context
@@ -223,6 +234,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     FileName = f.FileName,
                     FileExtension = f.FileExtension,
                     UploadedByMemberId = f.UploadedByMemberId,
+                    folderName = f.Folder.FolderName,
                     fullName = f.Member.FirstName + " " + f.Member.LastName ?? "N/A",
                     UploadedDate = f.UploadDate
                 }).ToListAsync();
@@ -260,6 +272,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _cloudinary.DestroyAsync(deleteParams);
         }
 
+        public async Task<OperationalResult> RenameAsync(int id, string newname)
+        {
+            var folder = await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == id);
+            if (folder == null)
+            {
+                return new OperationalResult { Success = false, Message = "Folder not found" };
+            }
+
+            if (folder.FolderName.Trim().ToLower() == newname.Trim().ToLower())
+            {
+                return new OperationalResult { Success = false, Message = "Folder name already exists" };
+            }
+
+            folder.FolderName = newname;
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "Renamed folder successfully" };
+
+        }
+
+        //public async Task<OperationalResult> ArchieveAsync(int id)
+        //{
+        //    var folder = await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == id);
+        //    if (folder == null)
+        //    {
+        //        return new OperationalResult { Success = false, Message = "Folder not found" };
+        //    }
+        //    folder.ArchiveDate = DateTime.Now;
+        //    folder.isArchived = true;
+        //}
 
 
 

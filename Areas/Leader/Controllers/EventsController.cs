@@ -91,9 +91,6 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             return Json(state);
         }
 
-
-
-
         //============== TIME IN CODE SCANNER ===========
 
         //GET

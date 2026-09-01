@@ -867,6 +867,8 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasIndex("MediaFolderId");
 
+                    b.HasIndex("UploadedByMemberId");
+
                     b.ToTable("MediaFiles");
                 });
 
@@ -978,6 +980,39 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Members");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Notification.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("NotificationId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Position", b =>
@@ -1408,7 +1443,15 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .WithMany("Files")
                         .HasForeignKey("MediaFolderId");
 
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("UploadedByMemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Folder");
+
+                    b.Navigation("Member");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>

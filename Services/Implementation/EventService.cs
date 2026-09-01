@@ -12,6 +12,7 @@ using Sym_Connect__Capstone2_.ViewModels.Attendance;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.ViewModels.Group;
+using Sym_Connect__Capstone2_.ViewModels.Notification;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection.Metadata;
 using System.Runtime.Intrinsics.X86;
@@ -22,10 +23,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     public class EventService : IEventService
     {
         private readonly AppDbContext _context;
+        private readonly INotificationService _notificationService;
 
-        public EventService(AppDbContext context)
+
+        public EventService(AppDbContext context, INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         public async Task<int> GetPendingRequestCountAsync()
@@ -418,6 +422,21 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
+
+            //NOTIFICATION 
+            if (!isAdminCreated)
+            {
+                await _notificationService.NotifyAdminAsync(
+                  new NotificationViewModel
+                  {
+                      Title = "New Event Request",
+                      Message = $"A new event request \"{newEvent.EventTitle}\" has been submitted.",
+                      Url = $"/Events/ViewEventsRequests/{newEvent.EventId}"
+                  }
+              );
+            }
+
+
             return EventResult.Ok();
         }
 
@@ -450,10 +469,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     return EventResult.Fail($"Selected {facility.FacilityName} is Undermaintenance");
                 }
             }
-
-
-
-
 
             //find the ID first from the EVENT
             var existingEvent = await _context.Events.
@@ -704,7 +719,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         //============ QR SCANNER PART CODE ==============
 
-
         public async Task<ScannerViewModel> GetScannerStateAsync(int eventId)
         {
 
@@ -888,6 +902,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             await _context.SaveChangesAsync();
+
+
 
         }
 
@@ -1131,7 +1147,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             existingEvent.ApprovedByUserId = approveByUserId;
 
             await _context.SaveChangesAsync();
+
+            await _notificationService.NotifyUserAsync(
+                existingEvent.CreatedByUser.UserId,   
+                 "Event Approved!",
+                 $"Your Event has been approved \"{existingEvent.EventTitle}\" ",
+                $"/Leader/Events/Details/{existingEvent.EventId}"
+          );
+
             return EventResult.Ok();
+
+
         }
 
         // TODO: [AUTH MIGRATION] approvedByUserId is Members.MemberId (int) for now.
@@ -1146,6 +1172,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             existingEvent.RejectionReason = reason;
 
             await _context.SaveChangesAsync();
+
+            await _notificationService.NotifyUserAsync(
+               existingEvent.CreatedByUser.UserId,
+                "Event Rejected!",
+                $"Your Event has been rejected \"{existingEvent.EventTitle}\" ",
+               $"/Leader/Events/Details/{existingEvent.EventId}"
+         );
+
+
             return EventResult.Ok();
         }
 

@@ -17,6 +17,10 @@
 // }
 
 // ── Modal opener (data-attribute buttons, e.g. "Create Partylist") ──
+
+
+
+
 document.querySelectorAll(".open-modal").forEach(button => {
     button.addEventListener("click", function () {
         const url = this.getAttribute("data-url");
@@ -29,35 +33,116 @@ document.querySelectorAll(".open-modal").forEach(button => {
 // Add class="modal-ajax-form" to any form loaded into the modal
 // to have it auto-submit via fetch and refresh/close on success.
 document.addEventListener("submit", async function (e) {
-    if (!e.target.classList.contains("modal-ajax-form")) return;
+
+    if (!e.target.classList.contains("modal-ajax-form")) {
+        return;
+    }
 
     e.preventDefault();
+
     const form = e.target;
 
-    if (form.dataset.submitting === "true") return; // guard against double-fire
+    if (form.dataset.submitting === "true") {
+        return;
+    }
+
     form.dataset.submitting = "true";
 
+    const submitBtn =
+        form.querySelector('button[type="submit"]');
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+    }
+
     try {
+
         const response = await fetch(form.action, {
             method: "POST",
             body: new FormData(form)
         });
 
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
+        const contentType =
+            response.headers.get("content-type");
+
+        // Controller returned JSON
+        if (
+            contentType &&
+            contentType.includes("application/json")
+        ) {
+
             const result = await response.json();
+
+            console.log("Modal form result:", result);
+
             if (result.success) {
-                location.reload();
+
+                // Close normal app modal
+                const modalElement =
+                    document.getElementById("appModal");
+
+                const modal =
+                    bootstrap.Modal.getInstance(modalElement);
+
+                if (modal) {
+                    modal.hide();
+                }
+
+                // Show success alert
+                showAlertDialog(
+                    result.message || "Saved successfully.",
+                    "success",
+                    "Success"
+                );
+
+                // Give user time to see alert
+                setTimeout(() => {
+                    location.reload();
+                }, 1200);
+
+            } else {
+
+                showAlertDialog(
+                    result.message || "Unable to save.",
+                    "error",
+                    "Failed"
+                );
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                }
             }
-        } else {
-            const html = await response.text();
-            document.getElementById("appModalBody").innerHTML = html;
         }
+
+        // Controller returned another partial view
+        else {
+
+            const html = await response.text();
+
+            document.getElementById(
+                "appModalBody"
+            ).innerHTML = html;
+        }
+
+    } catch (error) {
+
+        console.error("Modal form error:", error);
+
+        showAlertDialog(
+            "Something went wrong. Please try again.",
+            "error",
+            "Error"
+        );
+
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
+
     } finally {
+
         form.dataset.submitting = "false";
     }
 });
-
 
 // ── Position status toggle (instant AJAX, no modal) ──
 document.addEventListener("change", function (e) {
@@ -838,3 +923,72 @@ document.addEventListener("click", function (e) {
 
     openGroupParticipationModal(title, url);
 });
+
+
+// document.addEventListener("submit", async function (e) {
+//     if (e.target.id !== "renameFolderForm") return;
+
+//     e.preventDefault();
+//     const form = e.target;
+
+//     if (form.dataset.submitting === "true") return;
+//     form.dataset.submitting = "true";
+
+//     const submitBtn = form.querySelector('button[type="submit"]');
+//     if (submitBtn) submitBtn.disabled = true;
+
+//     try {
+//         const response = await fetch(form.action, {
+//             method: "POST",
+//             body: new FormData(form)
+//         });
+
+//         const result = await response.json();
+
+//         if (result.success) {
+//             const modalEl = document.getElementById("appModal");
+//             const modal = bootstrap.Modal.getInstance(modalEl);
+//             if (modal) modal.hide();
+
+//             showAlertDialog(result.message, "success", "Folder Renamed");
+//             setTimeout(() => location.reload(), 900);
+//         } else {
+//             showAlertDialog(result.message, "error", "Rename Failed");
+//             if (submitBtn) submitBtn.disabled = false;
+//         }
+//     } catch (err) {
+//         console.error(err);
+//         showAlertDialog("Something went wrong while renaming the folder.", "error");
+//         if (submitBtn) submitBtn.disabled = false;
+//     } finally {
+//         form.dataset.submitting = "false";
+//     }
+// });
+
+// ── Global loading overlay helpers ──
+function showLoading() {
+    document.getElementById('globalLoadingOverlay')?.classList.add('active');
+}
+
+function hideLoading() {
+    document.getElementById('globalLoadingOverlay')?.classList.remove('active');
+}
+
+// ── Global fetch override: auto show/hide loading overlay on every fetch call ──
+(function () {
+    const originalFetch = window.fetch;
+    let activeRequests = 0;
+
+    window.fetch = function (...args) {
+        activeRequests++;
+        showLoading();
+
+        return originalFetch.apply(this, args).finally(() => {
+            activeRequests--;
+            if (activeRequests <= 0) {
+                activeRequests = 0;
+                hideLoading();
+            }
+        });
+    };
+})();

@@ -13,5 +13,7 @@
         public string fullName { get; set; }
 
         public bool? IsArchived { get; set; }
+
+        public string folderName { get; set; }
     }
 }

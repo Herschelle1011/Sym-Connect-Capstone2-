@@ -11,15 +11,16 @@
 
 <h1>Leaders Dashboard</h1>
 
-@if (Model != null)
+@if (Model?.PinnedAnnouncement != null)
 {
     <div class="pinned-announcement">
         <div class="pinned-label">📌 Pinned</div>
         <h3>@Model.PinnedAnnouncement.Title</h3>
         <p>@Model.PinnedAnnouncement.Content</p>
         <div class="pinned-meta">
-            Posted @Model.PinnedAnnouncement.PublishedAt.Value.ToString("MMM d, yyyy")
+            Posted @(Model.PinnedAnnouncement.PublishedAt.HasValue
+                            ? Model.PinnedAnnouncement.PublishedAt.Value.ToString("MMM d, yyyy")
+                        : "—")
         </div>
     </div>
 }
-

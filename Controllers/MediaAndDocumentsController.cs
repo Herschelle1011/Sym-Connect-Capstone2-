@@ -2,10 +2,12 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
@@ -66,6 +68,35 @@ namespace Sym_Connect__Capstone2_.Controllers
             ViewBag.FolderId = id;
 
             return View(files);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Rename(int id)
+        {
+            var folder = await _mediaService.GetFolderByIdAsync(id);
+            if (folder == null) return NotFound();
+
+            var vm = new MediaFolderRenameViewModel
+            {
+                MediaFolderId = id,
+                FolderName = folder.FolderName
+            };
+
+            return PartialView("_RenameFolderModal", vm);
+
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> Rename(int id, string name)
+        {
+            var result = await _mediaService.RenameAsync(id, name);
+         
+
+            return Json(new { success = result.Success, message = result.Message });
+
         }
 
 

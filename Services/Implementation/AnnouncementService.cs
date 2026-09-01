@@ -13,11 +13,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     {
         private readonly AppDbContext _context;
         private readonly IGroupService _groupService;
+        private readonly INotificationService _notificationService;
 
-        public AnnouncementService(AppDbContext context, IGroupService groupService)
+
+        public AnnouncementService(AppDbContext context, IGroupService groupService, INotificationService notificationService)
         {
             _context = context;
             _groupService = groupService;
+            _notificationService = notificationService;
         }
 
         public async Task<List<ListAnnouncementViewModel>> GetAllAnnouncementAsync()

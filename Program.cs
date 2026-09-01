@@ -1,19 +1,20 @@
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Implementation;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Configuration;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Hubs;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Seed;
 using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using System.IO;
 
 
@@ -96,6 +97,11 @@ builder.Services.AddScoped<
     IMediaService,
     MediaService>();
 
+builder.Services.AddScoped<
+    INotificationService,
+    NotificationService>();
+
+
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
                             Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
 //member
@@ -130,6 +136,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
+//for real time Notification ===== 
+builder.Services.AddSignalR();
 
 //for email
 builder.Services.AddScoped<IRazorViewRenderer, RazorViewRenderer>();
@@ -188,6 +196,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Admin}/{action=Dashboard}/{id?}")
     .WithStaticAssets();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.MapRazorPages(); 
 

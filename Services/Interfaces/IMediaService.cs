@@ -1,4 +1,5 @@
-﻿using Sym_Connect__Capstone2_.ViewModels;
+﻿using Sym_Connect__Capstone2_.Models.MediaAndDocuments;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments;
 
 namespace Sym_Connect__Capstone2_.Services.Interfaces
@@ -14,6 +15,9 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<List<MediaFileViewModel>> GetFilesInFolderAsync(int? folderId);
         Task<OperationalResult> UploadFilesAsync(int? folderId, List<IFormFile> files, int uploadByMemberId);
+
+        Task<OperationalResult> RenameAsync(int id, string newname);
+        Task<MediaFolder> GetFolderByIdAsync(int id);
 
         Task<OperationalResult> DeleteFileAsync(int mediaFileId, int requestingMemberId, bool isAdmin);
 

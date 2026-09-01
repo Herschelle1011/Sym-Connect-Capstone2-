@@ -1,0 +1,104 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Notification.NotificationViewModel>
+@{
+    ViewData["Title"] = "Notifications";
+    Layout = "_AdminLayout";
+    bool unreadOnly = ViewBag.UnreadOnly ?? false;
+}
+
+<div class="notif-page">
+    <div class="notif-page-header">
+        <h4>Notifications</h4>
+        <button id="markAllReadBtn" class="btn btn-sm btn-light">Mark all as read</button>
+    </div>
+
+    <div class="notif-tabs">
+        <a asp-action="Index" asp-route-unreadOnly="false" class="notif-tab @(!unreadOnly ? "active" : "")">All</a>
+        <a asp-action="Index" asp-route-unreadOnly="true" class="notif-tab @(unreadOnly ? "active" : "")">Unread</a>
+    </div>
+
+    <div class="notif-page-list">
+        @if (!Model.Any())
+        {
+            <div class="notif-empty">No notifications yet.</div>
+        }
+        else
+        {
+            foreach (var n in Model)
+            {
+                <div class="notif-row @(n.IsRead ? "" : "unread")" data-id="@n.NotificationId" data-url="@n.Url">
+                    <div class="notif-icon"><i class="bi bi-bell"></i></div>
+                    <div class="notif-body">
+                        <div class="notif-title">@n.Title</div>
+                        <div class="notif-message">@n.Message</div>
+                        <div class="notif-time">@n.CreatedAt.ToString("MMM d, yyyy - h:mm tt")</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(n.Url))
+                    {
+                        <a href="@n.Url" class="btn btn-sm btn-outline-primary notif-view-btn">View</a>
+                    }
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('markAllReadBtn').addEventListener('click', async function () {
+            await fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
+            });
+            location.reload();
+        });
+
+                document.querySelectorAll('.notif-row').forEach(row => {
+            row.addEventListener('click', async function () {
+
+                const notificationId = this.dataset.id;
+                const url = this.dataset.url;
+
+                const token = document.querySelector(
+                    'input[name="__RequestVerificationToken"]'
+                )?.value;
+
+                if (!token) {
+                    console.error("Anti-forgery token not found.");
+                    return;
+                }
+
+                const formData = new FormData();
+
+                formData.append(
+                    "notificationId",
+                    notificationId
+                );
+
+                formData.append(
+                    "__RequestVerificationToken",
+                    token
+                );
+
+                const response = await fetch(
+                    '/Notifications/MarkAsRead',
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+
+                if (!response.ok) {
+                    console.error(
+                        "Mark as read failed:",
+                        response.status
+                    );
+                    return;
+                }
+
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+    </script>
+}
