@@ -1,7 +1,7 @@
 ﻿@model Sym_Connect__Capstone2_.ViewModels.Announcement.AnnouncementViewModel
 @using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums
 
-<form id="announcementForm" data-mode="edit" asp-controller="Announcement" asp-action="Edit" method="post">
+<form id="announcementForm" data-mode="edit" asp-controller="Announcements" asp-action="Edit" method="post">
     <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
     <input type="hidden" asp-for="AnnouncementId" />
 
@@ -92,7 +92,17 @@
     </div>
 
     <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="btnCancelAnnouncement">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Announcement</button>
+        <button type="button"
+                class="btn w-50"
+                data-bs-dismiss="modal"
+                style="font-size:13px;
+            font-weight:500;
+            border:1px solid #e5e7eb;
+            border-radius:8px;
+            padding:9px;
+            background:#fff;
+            color:#374151;">
+            Cancel
+        </button>           <button type="submit" class="btn btn-primary">Save Announcement</button>
     </div>
 </form>

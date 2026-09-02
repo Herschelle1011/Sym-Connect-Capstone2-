@@ -88,6 +88,24 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<OperationalResult> CreateAsync(AnnouncementViewModel vm, string? createdByLeaderId)
         {
+            if (vm.IsPinned)
+            {
+                bool isTherePinnedAnnouncement =
+                    await _context.Announcements
+                        .AnyAsync(a =>
+                            a.IsPinned &&
+                            !a.IsArchived);
+
+                if (isTherePinnedAnnouncement)
+                {
+                    return new OperationalResult
+                    {
+                        Success = false,
+                        Message = "Please unpin the current pinned announcement first."
+                    };
+                }
+            }
+
             var NewAnnouncement = new Announcement
             {
                 Title = vm.Title,
@@ -103,6 +121,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 CreatedByUserId = createdByLeaderId,
                 IsArchived = false,
             };
+
+         
 
             _context.Announcements.Add(NewAnnouncement);
             await _context.SaveChangesAsync();
@@ -254,6 +274,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var existing = await _context.Announcements.FindAsync(id);
             if (existing == null) return;
             existing.IsArchived = true;
+            existing.IsPinned = false;
             existing.ArchiveDate = DateTime.Now;
             await _context.SaveChangesAsync();
         }
@@ -263,6 +284,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var existing = await _context.Announcements.FindAsync(id);
             if (existing == null) return;
             existing.IsArchived = false;
+            existing.IsPinned = false;
             existing.ArchiveDate = null;
             await _context.SaveChangesAsync();
         }

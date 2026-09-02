@@ -24,18 +24,20 @@
     <link rel="stylesheet" href="~/css/admin/group-attendance-modal.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notification-dropdown.css" asp-append-version="true" />
 
+
     <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
 
 
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
 </head>
 <body>
-    @* <div id="globalLoadingOverlay" class="global-loading-overlay">
+    <div id="globalLoadingOverlay" class="global-loading-overlay">
         <div class="global-loading-spinner"></div>
-    </div> *@
+    </div>
 
     @{
         var currentUser = await UserManager.GetUserAsync(User);

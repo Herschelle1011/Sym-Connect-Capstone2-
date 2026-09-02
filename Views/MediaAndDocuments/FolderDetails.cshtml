@@ -1,51 +1,175 @@
 ﻿@model List<Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaFileViewModel>
 @{
-    ViewData["Title"] = "Folder";
+    ViewData["Title"] = "Media & Documents";
     Layout = "_AdminLayout";
 
     int? folderId = ViewBag.FolderId;
+    string FolderName = ViewBag.FolderName;
+
+    // Small local helper: maps a file extension to an icon + color class
+    (string Icon, string ColorClass) GetFileIcon(string ext)
+    {
+        return ext?.ToLower() switch
+        {
+            ".pdf" => ("bi-file-earmark-pdf-fill", "file-icon-pdf"),
+
+            ".doc" or ".docx"
+                => ("bi-file-earmark-word-fill", "file-icon-docx"),
+
+            ".xls" or ".xlsx"
+                => ("bi-file-earmark-excel-fill", "file-icon-xlsx"),
+
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp"
+                => ("bi-file-earmark-image-fill", "file-icon-image"),
+
+            _ => ("bi-file-earmark-fill", "file-icon-default")
+        };
+    }
 }
 
 <div class="media-page">
     <div class="page-header">
-        <a href="@Url.Action("Index")" class="back-link">← All Folders</a>
-        <button type="button" class="btn btn-primary open-modal"
+        <div>
+            <h2>@FolderName</h2>
+            <p class="page-subtitle">Manage and organize SYM files and media</p>
+        </div>
+    </div>
+
+        <div class="breadcrumb-row">
+            <span class="breadcrumb">
+                <a href="@Url.Action("Index", "Dashboard")">Home</a> /
+                <a href="@Url.Action("Index", "MediaAndDocuments")">Documents &amp; Media</a> /
+                    @FolderName
+            </span>
+        </div>
+    
+
+    <div class="file-toolbar">
+        <div class="file-search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="fileSearchInput" placeholder="Search" />
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-calendar3"></i> Modified dates
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-sort="newest">Newest first</a></li>
+                <li><a class="dropdown-item" href="#" data-sort="oldest">Oldest first</a></li>
+            </ul>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                Type
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-type="all">All</a></li>
+                <li><a class="dropdown-item" href="#" data-type="pdf">PDF</a></li>
+                <li><a class="dropdown-item" href="#" data-type="docx">Docx</a></li>
+                <li><a class="dropdown-item" href="#" data-type="xlsx">Xlsx</a></li>
+                <li><a class="dropdown-item" href="#" data-type="image">Image</a></li>
+            </ul>
+        </div>
+
+        <button type="button" class="btn btn-primary open-modal ms-auto"
                 data-url="@Url.Action("UploadFiles", "MediaAndDocuments", new { folderId = folderId })"
                 data-title="Upload Files">
-            + Upload Files
+            Upload File
         </button>
     </div>
 
-    <table class="announcement-table">
-        <thead>
-            <tr>
-                <th>File</th>
-                <th>Size</th>
-                <th>Uploaded</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody id="fileTableBody">
-            @if (Model == null || !Model.Any())
-            {
-                <tr><td colspan="4" class="text-center text-muted">No files here yet.</td></tr>
-            }
-            else
-            {
-                foreach (var f in Model)
+    <div class="table-responsive">
+        <table class="table file-table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Type</th>
+                    <th>Uploaded by</th>
+                    <th>Date</th>
+                    <th class="actions-col"></th>
+                </tr>
+            </thead>
+            <tbody id="fileTableBody">
+                @if (Model == null || !Model.Any())
                 {
-                    <tr data-id="@f.MediaFileId">
-                        <td><a href="@f.FileUrl" target="_blank">@f.FileName</a></td>
-                        <td>@((f.FileSizeBytes / 1024.0).ToString("N0")) KB</td>
-                        <td>@f.UploadedDate.ToString("MMM d, yyyy")</td>
-                        <td>
-                            <button type="button" class="btn-icon btn-danger btnDeleteFile" data-id="@f.MediaFileId">Delete</button>
-                        </td>
-                    </tr>
+                    <tr><td colspan="5" class="text-center text-muted">No files here yet.</td></tr>
                 }
-            }
-        </tbody>
-    </table>
+                else
+                {
+                    foreach (var f in Model)
+                    {
+                        var (icon, colorClass) = GetFileIcon(f.FileExtension);
+
+                        <tr data-id="@f.MediaFileId">
+                            <td>
+                                <div class="file-name-cell">
+                                    <span class="file-icon-badge @colorClass">
+                                        <i class="bi @icon"></i>
+                                    </span>
+                                    <a href="@f.FileUrl" target="_blank">@f.FileName</a>
+                                </div>
+                            </td>
+                            <td>@f.FileExtension?.ToUpper()</td>
+                            <td>@f.UploadedBy</td>
+                            <td>@f.UploadedDate.ToString("MMM. d, yyyy")</td>
+                            <td class="actions-col">
+                                <div class="dropdown file-kebab-wrapper">
+                                    <button class="btn-kebab" type="button"
+                                            data-bs-toggle="dropdown"
+                                            data-bs-boundary="viewport"
+                                            data-bs-strategy="fixed"
+                                            aria-expanded="false">
+                                        ⋮
+                                    </button>
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a href="#"
+                                               class="dropdown-item open-modal"
+                                               data-url="@Url.Action(
+                                                      "RenameFile",
+                                                      "MediaAndDocuments",
+                                                      new { id = f.MediaFileId })"
+                                               data-title="Rename File">
+
+                                                <i class="bi bi-pencil me-2"></i>
+                                                Rename
+
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-file-id="@f.MediaFileId" data-action="move-file">
+                                                <i class="bi bi-box-arrow-in-right"></i> Move file
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="@Url.Action("Download", "MediaAndDocuments", new { id = f.MediaFileId })">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" data-file-id="@f.MediaFileId" data-action="file-info">
+                                                <i class="bi bi-info-circle"></i> File information
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                      
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#" data-file-id="@f.MediaFileId" data-action="trash-file">
+                                                <i class="bi bi-trash"></i> Move to trash
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>
 
 @section Scripts {

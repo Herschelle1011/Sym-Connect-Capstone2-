@@ -39,6 +39,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                 MediaFolderId = f.MediaFolderId,
                                 FolderName = f.FolderName,
                                 CreatedDate = f.CreatedDate,
+                                IsPrivate = f.IsPrivate,
                                isArchived = false,
                                 FileCount = f.Files.Count
                             }).ToListAsync();
@@ -75,6 +76,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<MediaFolder> GetFolderByIdAsync(int id)
         {
             return await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == id);
+        }
+
+        public async Task<MediaFile> GetFileByIdAsync(int id)
+        {
+            return await _context.MediaFiles.FirstOrDefaultAsync(f => f.MediaFileId == id);
         }
 
 
@@ -129,14 +135,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Where(f => f.MediaFolderId == folderId && f.IsArchived == false)
                 .OrderByDescending(f => f.UploadDate)
                 .Select(f => new MediaFileViewModel
-                {
-                    
+                {           
                     MediaFileId = f.MediaFileId,
+                    folderName = f.Folder.FolderName,
                     FileName = f.FileName,
                     FileUrl = f.FileUrl,
+                    IsFolderPrivate = f.Folder.IsPrivate,
                     FileExtension = f.FileExtension,
                     FileSizeBytes = f.FileSizeBytes,
                     UploadedDate = f.UploadDate,
+                    UploadedBy = f.Member.FirstName + " " + f.Member.LastName,
                     UploadedByMemberId = f.UploadedByMemberId
                 }).ToListAsync();
         }
@@ -216,7 +224,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task<List<MediaFileViewModel>> RecentFiles(int viewerMemberId, bool isAdmin)
+        public async Task<List<MediaFileViewModel>> RecentFiles(int viewerMemberId,bool isAdmin)
         {
             var recent = await _context.MediaFiles
                 .AsNoTracking()
@@ -231,6 +239,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Take(5)
                 .Select(f => new MediaFileViewModel
                 {
+                    MediaFileId = f.MediaFileId,
                     FileName = f.FileName,
                     FileExtension = f.FileExtension,
                     UploadedByMemberId = f.UploadedByMemberId,
@@ -291,16 +300,151 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
-        //public async Task<OperationalResult> ArchieveAsync(int id)
-        //{
-        //    var folder = await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == id);
-        //    if (folder == null)
-        //    {
-        //        return new OperationalResult { Success = false, Message = "Folder not found" };
-        //    }
-        //    folder.ArchiveDate = DateTime.Now;
-        //    folder.isArchived = true;
-        //}
+        public async Task<OperationalResult> RenameFileAsync(int id, string newname)
+        {
+            var file = await _context.MediaFiles.FirstOrDefaultAsync(f => f.MediaFileId == id);
+            if (file == null)
+            {
+                return new OperationalResult { Success = false, Message = "File not found" };
+            }
+
+            newname = newname.Trim();
+
+            if (string.IsNullOrWhiteSpace(newname))
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "File name is required."
+                };
+            }
+
+            newname = Path.GetFileNameWithoutExtension(newname);
+
+            string completeFileName = newname + file.FileExtension;
+
+
+            bool nameExists = await _context.MediaFiles
+                .AnyAsync(f =>
+             f.MediaFileId != id &&
+             f.MediaFolderId == file.MediaFolderId &&
+             f.FileName.ToLower() ==
+                 completeFileName.ToLower() &&
+             f.IsArchived == false);
+
+            if (nameExists)
+            {
+                return new OperationalResult { Success = false, Message = "File name already exists" };
+            }
+
+            file.FileName = completeFileName;
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "File renamed successfully" };
+        }
+
+
+        public async Task<MediaFileViewModel?> GetFileForDownloadAsync(int mediaFileId, int? viewerMemberId, bool isAdmin)
+        {
+            var file = await _context.MediaFiles
+                .AsNoTracking()
+                .Where(f => f.MediaFileId == mediaFileId && f.IsArchived == false)
+                .Select(f => new MediaFileViewModel
+                {
+                    MediaFileId = mediaFileId,
+                    FileName = f.FileName,
+                    FileUrl = f.FileUrl,
+                    FileExtension = f.FileExtension,
+                    IsFolderPrivate = f.MediaFolderId != null && f.Folder.IsPrivate,
+                    FolderCreatedByMemberId = f.MediaFolderId != null ? f.Folder.CreatedByMemberId : null
+                }).FirstOrDefaultAsync();
+
+            if (file == null) return null;
+
+            // ACCESS FILE > 
+
+            //if folder is not private 
+            if (!file.IsFolderPrivate)
+                return file;
+
+            //if admin
+            if (isAdmin)
+                return file;
+
+            //if owner
+            if (viewerMemberId != null && file.FolderCreatedByMemberId == viewerMemberId.Value)
+                return file;
+
+            //else null
+            return null;
+
+        }
+
+
+        //GET ARCHIVE: 
+        public async Task<MediaArchiveViewModel?> GetFolderArchive(
+          int id,
+          int requestingMemberId,
+           bool isAdmin)
+        {
+            return await _context.MediaFolders
+                .AsNoTracking()
+                .Where(f =>
+                    f.MediaFolderId == id &&
+                    f.isArchived == false &&
+                    (
+                        isAdmin ||
+                        f.CreatedByMemberId == requestingMemberId
+                    ))
+                .Select(f => new MediaArchiveViewModel
+                {
+                    MediaFolderId = f.MediaFolderId,
+                    folderName = f.FolderName,
+                    CreatedAt = f.CreatedDate,
+                    IsPrivate = f.IsPrivate,
+                    FileCount = f.Files.Count(),
+                    files = f.Files
+                        .Where(fi => fi.IsArchived == false)
+                        .Select(fi => new FilesArchiveViewModel
+                        {
+                            fileId = fi.MediaFileId,
+                            fileName = fi.FileName,
+                            Extension = fi.FileExtension
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+        public async Task<OperationalResult> ArchiveAsync(int id, int requestingMemberId, bool isAdmin)
+        {
+            var folder = await _context.MediaFolders
+                .Include(f => f.Files)
+                .FirstOrDefaultAsync(f => f.MediaFolderId == id);
+          
+            if (folder == null)
+            {
+                return new OperationalResult { Success = false, Message = "Folder not found" };
+            }
+
+            if (!isAdmin && folder.CreatedByMemberId != requestingMemberId)
+                return new OperationalResult { Success = false, Message = "You don't have permission to delete this file." };
+            //Archive folder first
+            folder.ArchiveDate = DateTime.Now;
+            folder.isArchived = true;
+
+            //then archive all its files 
+            foreach (var file in folder.Files)
+            {
+
+                file.IsArchived = true;
+                file.DateArchived = DateTime.Now;
+            }
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "Folder archived successfully!" };
+        }
+
+        
 
 
 

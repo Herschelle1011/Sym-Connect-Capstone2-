@@ -183,3 +183,55 @@ document.addEventListener("submit", async function (e) {
         }
     }
 });
+
+
+// =========================================================
+// ARCHIVE FOLDER
+// =========================================================
+document.addEventListener('submit', async function (e) {
+    if (e.target.id !== 'archiveFolderForm') return;
+
+    e.preventDefault();
+    const form = e.target;
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            const modalElement = document.getElementById('appModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) modal.hide();
+
+            showAlertDialog(
+                result.message || 'Folder archived successfully.',
+                'success',
+                'Success'
+            );
+
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlertDialog(
+                result.message || 'Unable to archive folder.',
+                'error',
+                'Failed'
+            );
+            if (submitBtn) submitBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Archive error:', error);
+        showAlertDialog(
+            'Something went wrong while archiving.',
+            'error',
+            'Error'
+        );
+        if (submitBtn) submitBtn.disabled = false;
+    }
+});

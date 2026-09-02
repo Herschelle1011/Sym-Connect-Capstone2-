@@ -8,6 +8,7 @@ using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
+using Sym_Connect__Capstone2_.Helpers;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
@@ -32,16 +33,24 @@ namespace Sym_Connect__Capstone2_.Controllers
 
         public async Task<IActionResult> Index()
         {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
 
-            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
-            if (memberId is null)
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
-            var recentFiles = await _mediaService.RecentFiles(memberId.Value, isAdmin);
-            var folders = await _mediaService.GetAllFoldersAsync(memberId.Value, isAdmin);
 
+            if (!isAdmin && memberId == null)
+            {
+                return RedirectToPage(
+                    "/Account/Login",
+                    new { area = "Identity" }
+                );
+            }
+
+
+            var recentFiles = await _mediaService.RecentFiles(memberId.Value ,isAdmin);
+            var folders = await _mediaService.GetAllFoldersAsync(memberId.Value, isAdmin);
             var vm = new MediaAndDocumentsIndexViewModel
             {
                 Folders = folders,
@@ -55,7 +64,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         public async Task<IActionResult> FolderDetails(int? id)
         {
             var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
-            if (memberId is null)
+            if (memberId == null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
 
             if (id.HasValue)
@@ -64,8 +73,11 @@ namespace Sym_Connect__Capstone2_.Controllers
                 if (!canView) return Forbid();
             }
             var files = await _mediaService.GetFilesInFolderAsync(id);
+            var folder = await _mediaService.GetFolderByIdAsync(id.Value);
+
 
             ViewBag.FolderId = id;
+            ViewBag.FolderName = folder.FolderName;
 
             return View(files);
         }
@@ -86,6 +98,31 @@ namespace Sym_Connect__Capstone2_.Controllers
 
         }
 
+        [HttpGet]
+        public async Task<IActionResult> RenameFile(int id)
+        {
+            var file = await _mediaService.GetFileByIdAsync(id);
+            if (file == null) return NotFound();
+
+            var vm = new MediaFileRenameViewModel
+            {
+                MediaFileId = id,
+                FileName = file.FileName
+            };
+
+            return PartialView("_RenameFileModal", vm);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> RenameFile(int id, string name)
+        {
+            var result = await _mediaService.RenameFileAsync(id, name);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -98,6 +135,40 @@ namespace Sym_Connect__Capstone2_.Controllers
             return Json(new { success = result.Success, message = result.Message });
 
         }
+
+        //DOWNLOAD
+        [HttpGet]
+        public async Task<IActionResult> Download(int id)
+        {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+
+            if(memberId == null)
+            {
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+            }
+            if (!isAdmin && memberId == null)
+            {
+                return RedirectToPage(
+                    "/Account/Login",
+                    new { area = "Identity" }
+                );
+            }
+
+
+            var file = await _mediaService.GetFileForDownloadAsync(id, memberId.Value, isAdmin);
+
+            if(file == null)
+            {
+                return NotFound();
+            }
+            using var httpClient = new HttpClient();
+            var fileBytes = await httpClient.GetByteArrayAsync(file.FileUrl);
+            string contentType = GetContentType(file.FileExtension);
+
+            return File(fileBytes, contentType, file.FileName);
+
+        }
+
 
 
         // GET CREATE FOLDER MODAL 
@@ -113,6 +184,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateFolder(MediaFolderCreateViewModel vm)
         {
+
             var (memberId, isAdmin, isLeader) = await ResolveCurrentUserAsync();
             if (memberId is null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
@@ -132,8 +204,6 @@ namespace Sym_Connect__Capstone2_.Controllers
                 MediaFolderId = folderId
             });
         }
-
- 
 
 
 
@@ -210,6 +280,78 @@ namespace Sym_Connect__Capstone2_.Controllers
             return await _userManager.IsInRoleAsync(user, "Admin");
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> GetArchive(int id)
+        {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+
+            if (!isAdmin && memberId == null) return Forbid();
+
+            var vm = await _mediaService.GetFolderArchive(id, memberId ?? 0, isAdmin);
+
+            if (vm == null) return NotFound();
+
+            return PartialView("_ArchiveMediaModal", vm);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ArchiveFolder(int id)
+        {
+            var (memberId, isAdmin, isLeader) =
+           await ResolveCurrentUserAsync();
+
+            if (!isAdmin && memberId == null)
+            {
+                return Forbid();
+            }
+
+            if (!isAdmin && !isLeader)
+            {
+                return Forbid();
+            }
+
+            var result = await _mediaService.ArchiveAsync(
+               id,
+               memberId ?? 0,
+               isAdmin
+           );
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
+
+
+
+        private string GetContentType(string extension)
+        {
+            return extension.ToLower() switch
+            {
+                ".jpg" => "image/jpeg",
+                ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                ".gif" => "image/gif",
+                ".webp" => "image/webp",
+
+                ".pdf" => "application/pdf",
+
+                ".doc" => "application/msword",
+                ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+
+                ".xls" => "application/vnd.ms-excel",
+                ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+
+                ".ppt" => "application/vnd.ms-powerpoint",
+                ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+                _ => "application/octet-stream"
+            };
+        }
 
     }
 }

@@ -62,11 +62,13 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item text-danger" href="#"
-                                   data-folder-id="@folder.MediaFolderId"
-                                   data-action="archive">
-                                    Archive
-                                </a>
+                                <li>
+                                    <a class="dropdown-item text-danger open-modal" href="#"
+                                       data-url="@Url.Action("GetArchive", "MediaAndDocuments", new { id = folder.MediaFolderId })"
+                                       data-title="Archive Folder">
+                                        Archive
+                                    </a>
+                                </li>
                             </li>
                         </ul>
                     </div>
@@ -100,7 +102,12 @@
                         @foreach (var file in Model.RecentFiles)
                         {
                             <tr>
-                                <td>@file.FileName</td>
+                                <td>
+                                    <a href="@Url.Action("Download", "MediaAndDocuments", new { id = file.MediaFileId })"
+                                       class="file-name-link">
+                                        @file.FileName
+                                    </a>
+                                </td>
                                 <td>@file.FileExtension</td>
                                 <td>@file.folderName</td>
                                 <td>@file.fullName</td>
@@ -111,7 +118,7 @@
                                             ⋮
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
-                                            <li><a class="dropdown-item" href="@Url.Action("Download", "MediaAndDocuments", new { id = file.UploadedByMemberId })">Download</a></li>
+                                            <li><a class="dropdown-item" href="@Url.Action("Download", "MediaAndDocuments", new { id = file.MediaFileId })">Download</a></li>
                                             <li><a class="dropdown-item text-danger" href="#" data-file-id="@file.UploadedByMemberId">Delete</a></li>
                                         </ul>
                                     </div>

@@ -29,9 +29,7 @@ document.querySelectorAll(".open-modal").forEach(button => {
     });
 });
 
-// ── Generic AJAX submit handler for any modal form ────────────
-// Add class="modal-ajax-form" to any form loaded into the modal
-// to have it auto-submit via fetch and refresh/close on success.
+
 document.addEventListener("submit", async function (e) {
 
     if (!e.target.classList.contains("modal-ajax-form")) {
@@ -925,70 +923,29 @@ document.addEventListener("click", function (e) {
 });
 
 
-// document.addEventListener("submit", async function (e) {
-//     if (e.target.id !== "renameFolderForm") return;
-
-//     e.preventDefault();
-//     const form = e.target;
-
-//     if (form.dataset.submitting === "true") return;
-//     form.dataset.submitting = "true";
-
-//     const submitBtn = form.querySelector('button[type="submit"]');
-//     if (submitBtn) submitBtn.disabled = true;
-
-//     try {
-//         const response = await fetch(form.action, {
-//             method: "POST",
-//             body: new FormData(form)
-//         });
-
-//         const result = await response.json();
-
-//         if (result.success) {
-//             const modalEl = document.getElementById("appModal");
-//             const modal = bootstrap.Modal.getInstance(modalEl);
-//             if (modal) modal.hide();
-
-//             showAlertDialog(result.message, "success", "Folder Renamed");
-//             setTimeout(() => location.reload(), 900);
-//         } else {
-//             showAlertDialog(result.message, "error", "Rename Failed");
-//             if (submitBtn) submitBtn.disabled = false;
-//         }
-//     } catch (err) {
-//         console.error(err);
-//         showAlertDialog("Something went wrong while renaming the folder.", "error");
-//         if (submitBtn) submitBtn.disabled = false;
-//     } finally {
-//         form.dataset.submitting = "false";
-//     }
-// });
-
 // ── Global loading overlay helpers ──
 function showLoading() {
-    document.getElementById('globalLoadingOverlay')?.classList.add('active');
+    const overlay = document.getElementById("globalLoadingOverlay");
+
+    if (overlay) {
+        overlay.classList.add("show");
+    }
 }
 
 function hideLoading() {
-    document.getElementById('globalLoadingOverlay')?.classList.remove('active');
+    const overlay = document.getElementById("globalLoadingOverlay");
+
+    if (overlay) {
+        overlay.classList.remove("show");
+    }
 }
 
-// ── Global fetch override: auto show/hide loading overlay on every fetch call ──
-(function () {
-    const originalFetch = window.fetch;
-    let activeRequests = 0;
+window.addEventListener("load", function () {
+    hideLoading();
+});
 
-    window.fetch = function (...args) {
-        activeRequests++;
-        showLoading();
 
-        return originalFetch.apply(this, args).finally(() => {
-            activeRequests--;
-            if (activeRequests <= 0) {
-                activeRequests = 0;
-                hideLoading();
-            }
-        });
-    };
-})();
+// Also fixes browser back/forward navigation
+window.addEventListener("pageshow", function () {
+    hideLoading();
+});

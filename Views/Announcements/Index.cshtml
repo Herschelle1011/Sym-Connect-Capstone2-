@@ -49,125 +49,308 @@
                 <tr>
                     <th>Title</th>
                     <th>Audience</th>
-                    <th>Publish</th>
+                    <th>Status</th>
                     <th>Expires</th>
                     <th>Created By</th>
-                    <th>Created</th>
+                    <th>Actions</th>
+
                     <th></th>
                 </tr>
             </thead>
             <tbody id="announcementTableBody">
+
                 @if (Model == null || !Model.Any())
                 {
                     <tr>
                         <td colspan="6" class="empty-state">
+
                             <i class="ti ti-speakerphone"></i>
-                            <div>No announcements yet.</div>
+
+                            <div>
+                                No announcements yet.
+                            </div>
+
                         </td>
                     </tr>
                 }
                 else
                 {
-
-                    foreach (var a in Model)
+                    @* Pinned announcement (if any) is guaranteed to render first *@
+                    foreach (var a in Model.OrderByDescending(x => x.IsPinned).ThenByDescending(x => x.CreatedAt))
                     {
-                        
-                         var isExpired = a.ExpiresAt.HasValue && a.ExpiresAt.Value <= now;
-                         var isScheduled = a.PublishDate.HasValue && a.PublishDate.Value > now;
-                        var status = isExpired ? "Expired" : isScheduled ? "Scheduled" : "Published";
+                        var isExpired =
+                            a.ExpiresAt.HasValue &&
+                            a.ExpiresAt.Value <= now;
 
+                        var isScheduled =
+                            a.PublishDate.HasValue &&
+                            a.PublishDate.Value > now;
+
+                        var status =
+                            isExpired
+                                ? "Expired"
+                                : isScheduled
+                                    ? "Scheduled"
+                                    : "Published";
+
+                        // Per-audience pill color, matched to the reference design.
+                        // Adjust the enum member names below if yours differ.
+                        var audiencePillClass = a.TargetType switch
+                        {
+                            TargetAudience.Everyone => "pill-audience-everyone",
+                            TargetAudience.AllLeaders => "pill-audience-leaders",
+                            TargetAudience.AllMembers => "pill-audience-members",
+                            TargetAudience.SpecificGroup => "pill-audience-group",
+                            _ => "pill-audience"
+                        };
 
 
                         <tr data-id="@a.AnnouncementId"
                             data-audience="@a.TargetType"
                             data-status="@status">
+
+
+                            @* =============================
+                   TITLE
+                ============================= *@
+
                             <td>
-                                @* // PIN Announcement *@
-                                @if (a.IsPinned == true)
-                                {
-                                    <span class="badge badge-pinned">Pinned</span>
-                                }
-                                <div class="ann-title">@a.Title</div>
-                                <div class="ann-snippet">@(a.Content.Length > 60 ? a.Content.Substring(0, 60) + "..." : a.Content)</div>
+
+                                <div class="ann-title-wrapper">
+
+                                    @* Fixed-width slot keeps every row aligned;
+                                       the circle itself only renders for the pinned row. *@
+                                    <div class="ann-pin-slot">
+                                        @if (a.IsPinned)
+                                        {
+                                            <div class="ann-pin-icon">
+                                                <i class="ti ti-pin"></i>
+                                            </div>
+                                        }
+                                    </div>
+
+
+                                    <div class="ann-title-content">
+
+                                        <div class="ann-title-row">
+
+                                            <span class="ann-title">
+                                                @a.Title
+                                            </span>
+
+
+                                            @if (a.IsPinned)
+                                            {
+                                                <span class="badge-pinned">
+                                                    Pinned
+                                                </span>
+                                            }
+
+                                        </div>
+
+
+                                        <div class="ann-snippet">
+
+                                            @(a.Content.Length > 60
+                                                ? a.Content.Substring(0, 60) + "..."
+                                                : a.Content)
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
                             </td>
-                       
+
+
+
+                            @* =============================
+                   AUDIENCE
+                ============================= *@
+
                             <td>
-                                <span class="pill pill-audience">@a.TargetType</span>
-                                @if (a.TargetType == TargetAudience.SpecificGroup && a.GroupName != null)
+
+                                <span class="pill @audiencePillClass">
+
+                                    <i class="ti ti-users"></i>
+
+                                    @a.TargetType
+
+                                </span>
+
+
+                                @if (
+                                    a.TargetType == TargetAudience.SpecificGroup &&
+                                    !string.IsNullOrEmpty(a.GroupName)
+                                )
                                 {
-                                    <div class="ann-group">@a.GroupName</div>
+                                    <div class="ann-group">
+                                        @a.GroupName
+                                    </div>
                                 }
+
                             </td>
+
+
+
+                            @* =============================
+                   STATUS
+                ============================= *@
+
                             <td>
                                 @if (isExpired)
                                 {
-                                    <span class="pill pill-expired">Expired</span>
+                                    <span class="pill pill-expired">
+                                        Expired
+                                    </span>
                                 }
-                                @if (isScheduled)
+                                else if (isScheduled)
                                 {
-                                    <span class="pill pill-scheduled">Scheduled</span>
-                                    <div class="ann-date">@a.PublishDate?.ToString("MMM d, yyyy h:mm tt")</div>
+                                    <span class="pill pill-scheduled">
+                                        Scheduled
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span class="pill pill-live">Published</span>
+                                    <span class="pill pill-live">
+                                        Published
+                                    </span>
                                 }
                             </td>
+
+
+
+                            @* =============================
+                   EXPIRES
+                ============================= *@
+
                             <td>
+
                                 @if (a.ExpiresAt.HasValue)
                                 {
-                                    <div class="ann-date">
-                                        @a.ExpiresAt.Value.ToString("MMM d, yyyy h:mm tt")
-                                    </div>
+                                    <div class="ann-date-wrapper">
 
-                                    @if (isExpired)
-                                    {
-                                        <div class="expired-text">
-                                            Expired
+                                        <div class="ann-date-main">
+
+                                            <i class="ti ti-calendar"></i>
+
+                                            @a.ExpiresAt.Value.ToString("MMM d, yyyy")
+
                                         </div>
-                                    }
+
+
+                                        <div class="ann-date-time">
+
+                                            <i class="ti ti-clock"></i>
+
+                                            @a.ExpiresAt.Value.ToString("h:mm tt")
+
+                                        </div>
+
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="no-expiration">
+                                        No expiration
+                                    </span>
+                                }
+
+                            </td>
+
+
+
+                            @* =============================
+                   CREATED BY
+                ============================= *@
+
+                            <td>
+
+                                @if (!string.IsNullOrEmpty(a.CreatedBy))
+                                {
+                                    <div class="created-by">
+
+                                        <div class="creator-avatar">
+
+                                            <i class="ti ti-user"></i>
+
+                                        </div>
+
+
+                                        <div class="creator-info">
+
+                                            <span class="creator-name">
+                                                @a.CreatedBy
+                                            </span>
+
+
+                                            <span class="creator-date">
+                                                @a.CreatedAt.ToString("MMM d, yyyy")
+                                            </span>
+
+                                        </div>
+
+                                    </div>
                                 }
                                 else
                                 {
                                     <span class="text-muted">
-                                        No expiration
+                                        Unknown
                                     </span>
                                 }
-                            </td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(a.CreatedBy))
-                                {
-                                    <div class="created-by">
-                                        <i class="ti ti-user"></i>
-                                        <span>@a.CreatedBy</span>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">Unknown</span>
-                                }
+
                             </td>
 
-                            <td class="ann-date">
-                                @a.CreatedAt.ToString("MMM d, yyyy")
-                            </td>
+
+
+                            @* =============================
+                   ACTIONS
+                ============================= *@
+
                             <td class="ann-actions">
-                                <button type="button" class="btn-icon btnEditAnnouncement" data-id="@a.AnnouncementId" title="Edit">
-                                    <i class="ti ti-pencil"></i> Edit
+
+                                <button type="button"
+                                        class="btn-icon btnEditAnnouncement"
+                                        data-id="@a.AnnouncementId"
+                                        title="Edit">
+
+                                    <i class="ti ti-pencil"></i>
+
                                 </button>
-                                <button type="button" class="btn-icon btn-danger btnArchiveAnnouncement" data-id="@a.AnnouncementId" title="Archive">
-                                    <i class="ti ti-trash"></i> Archive
+
+
+                                <button type="button"
+                                        class="btn-icon btn-archive btnArchiveAnnouncement"
+                                        data-id="@a.AnnouncementId"
+                                        title="Archive">
+
+                                    <i class="ti ti-trash"></i>
+
                                 </button>
+
+
+                                <button type="button"
+                                        class="btn-icon btn-more"
+                                        data-id="@a.AnnouncementId"
+                                        title="More">
+
+                                    <i class="ti ti-dots-vertical"></i>
+
+                                </button>
+
                             </td>
+
                         </tr>
                     }
                 }
+
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Modal shell: partial form gets injected into #announcementModalBody -->
+
 <div class="modal-overlay" id="announcementModalOverlay" style="display:none;">
     <div class="modal-box">
         <div class="modal-header">

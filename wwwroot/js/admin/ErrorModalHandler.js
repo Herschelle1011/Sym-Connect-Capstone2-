@@ -1,32 +1,64 @@
 ﻿document.addEventListener('submit', async function (e) {
 
-    // 🎯 Only handle forms that have the data-modal-body attribute
-    // This is your "opt-in" — forms without it behave normally
+    // Only handle forms that have data-modal-body
     if (!e.target.hasAttribute('data-modal-body')) return;
 
     e.preventDefault();
 
     const form = e.target;
+
+    // Prevent another submit while this one is still processing
+    if (form.dataset.submitting === "true") return;
+
+    form.dataset.submitting = "true";
+
     const formData = new FormData(form);
 
-    // Read the attribute to know which modal body to update
+    // Read which modal body should be updated
     const modalBodySelector = form.getAttribute('data-modal-body');
     const modalBody = document.querySelector(modalBodySelector);
 
-    const response = await fetch(form.action, {
-        method: 'POST',
-        body: formData
-    });
+    // Show loading screen
+    showLoading();
 
-    if (response.ok) {
-        const html = await response.text();
+    try {
+
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData
+        });
 
         if (response.redirected) {
-            // ✅ Success — go to the redirect URL
             window.location.href = response.url;
-        } else {
-            // ❌ Validation error — update THIS form's modal body
-            modalBody.innerHTML = html;
+            return;
         }
+
+        if (response.ok) {
+
+            const html = await response.text();
+
+            if (modalBody) {
+                modalBody.innerHTML = html;
+            }
+
+        } else {
+
+            console.error("Request failed:", response.status);
+
+        }
+
+    }
+    catch (error) {
+
+        console.error("Submit error:", error);
+
+    }
+    finally {
+
+        // Allow submitting again
+        form.dataset.submitting = "false";
+
+        // Remove loading screen
+        hideLoading();
     }
 });

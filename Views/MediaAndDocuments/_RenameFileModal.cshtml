@@ -1,0 +1,33 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaFileRenameViewModel
+
+<form id="renameFileForm"
+      class="modal-ajax-form"
+      action="@Url.Action("RenameFile", "MediaAndDocuments")"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           name="id"
+           value="@Model.MediaFileId" />
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            File Name
+        </label>
+
+        <input type="text"
+               name="name"
+               class="form-control"
+               value="@Model.FileName"
+               required />
+
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary">
+        Save
+    </button>
+
+</form>

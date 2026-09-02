@@ -83,7 +83,7 @@
         text-transform: uppercase;
         color: #ffffff;
         background: #2563eb;
-        padding: 12px 16px;
+        padding: 14px 16px;
         border-bottom: 1px solid #1d4ed8;
     }
 
@@ -97,9 +97,50 @@
         }
 
     .announcement-table td {
-        padding: 14px 16px;
+        padding: 16px;
         vertical-align: top;
     }
+
+/* ============================
+   TITLE CELL (pin + title + snippet)
+   ============================ */
+
+.ann-title-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+/* Fixed-width slot so rows without a pin still line up with the pinned row */
+.ann-pin-slot {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+.ann-pin-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(37,99,235,.10);
+    color: #2563eb;
+    font-size: 1rem;
+}
+
+.ann-title-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ann-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
 
 .ann-title {
     font-weight: 600;
@@ -112,28 +153,52 @@
     margin-top: 2px;
 }
 
-.ann-date {
-    font-size: .82rem;
-    color: #6b7280;
-}
-
 .ann-group {
     font-size: .78rem;
     color: #6b7280;
     margin-top: 2px;
 }
 
+/* ============================
+   PILLS / BADGES
+   ============================ */
+
 .pill {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     padding: 3px 10px;
     border-radius: 20px;
     font-size: .78rem;
     font-weight: 600;
+    white-space: nowrap;
 }
 
+/* Default audience pill (fallback) */
 .pill-audience {
     background: rgba(99,102,241,.12);
     color: #4f46e5;
+}
+
+/* Per-audience-type variants — matched to the reference screenshot */
+.pill-audience-everyone {
+    background: rgba(129,90,238,.12);
+    color: #7c3aed;
+}
+
+.pill-audience-leaders {
+    background: rgba(217,119,6,.12);
+    color: #b45309;
+}
+
+.pill-audience-members {
+    background: rgba(37,99,235,.12);
+    color: #2563eb;
+}
+
+.pill-audience-group {
+    background: rgba(147,51,234,.12);
+    color: #9333ea;
 }
 
 .pill-live {
@@ -146,6 +211,88 @@
     color: #b45309;
 }
 
+.pill-expired {
+    background-color: rgba(220,38,38,.10);
+    color: #dc2626;
+}
+
+.badge-pinned {
+    background: #eff6ff;
+    color: #2563eb;
+    margin-left: 4px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: .74rem;
+    font-weight: 600;
+}
+
+/* ============================
+   DATE / CREATED BY CELLS
+   ============================ */
+
+.ann-date-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ann-date-main,
+.ann-date-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .82rem;
+    color: #374151;
+}
+
+.ann-date-time {
+    color: #9ca3af;
+    font-size: .78rem;
+}
+
+.no-expiration {
+    font-size: .82rem;
+    color: #9ca3af;
+}
+
+.created-by {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.creator-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(37,99,235,.10);
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.creator-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.creator-name {
+    font-size: .85rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.creator-date {
+    font-size: .78rem;
+    color: #9ca3af;
+}
+
+/* ============================
+   ACTIONS
+   ============================ */
+
 .ann-actions {
     text-align: right;
     white-space: nowrap;
@@ -156,7 +303,11 @@
     border: 1px solid #e5e7eb;
     border-radius: 6px;
     color: #374151;
-    padding: 5px 10px;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: .82rem;
     margin-left: 6px;
     cursor: pointer;
@@ -168,13 +319,35 @@
         color: #111827;
     }
 
-    .btn-icon.btn-danger {
-        color: #dc2626;
-        border-color: rgba(220,38,38,.3);
+    .btn-icon.btnEditAnnouncement {
+        color: #2563eb;
+        border-color: rgba(37,99,235,.3);
     }
 
-        .btn-icon.btn-danger:hover {
-            background: rgba(220,38,38,.08);
+        .btn-icon.btnEditAnnouncement:hover {
+            background: rgba(37,99,235,.08);
+        }
+
+    .btn-icon.btn-archive {
+        color: #d97706;
+        background-color: #fff;
+        border: 1px solid #f59e0b;
+    }
+
+        .btn-icon.btn-archive:hover {
+            color: #fff;
+            background-color: #f59e0b;
+            border-color: #f59e0b;
+        }
+
+    .btn-icon.btn-more {
+        border-color: transparent;
+        color: #6b7280;
+    }
+
+        .btn-icon.btn-more:hover {
+            background: #f3f4f6;
+            color: #111827;
         }
 
 .empty-state {
@@ -189,19 +362,18 @@
         margin-bottom: 8px;
     }
 
-
-
 /* ============================
    MODAL: right-side sliding panel
+   (unchanged — create/edit form)
    ============================ */
 
 .modal-overlay {
     position: fixed;
-    inset: 0; /* shorthand for top/left/right/bottom: 0 */
-    background: rgba(0, 0, 0, .4); /* the dimmed room */
+    inset: 0;
+    background: rgba(0, 0, 0, .4);
     z-index: 1000;
     display: flex;
-    justify-content: flex-end; /* pushes the panel to the right edge */
+    justify-content: flex-end;
 }
 
 .modal-box {
@@ -212,12 +384,12 @@
     box-shadow: -4px 0 16px rgba(0,0,0,.12);
     display: flex;
     flex-direction: column;
-    transform: translateX(100%); /* parked off-screen to the right */
+    transform: translateX(100%);
     transition: transform .25s ease;
 }
 
 .modal-overlay[style*="flex"] .modal-box {
-    transform: translateX(0); /* slides into view when overlay becomes visible */
+    transform: translateX(0);
 }
 
 .modal-header {
@@ -262,7 +434,7 @@
 }
 
 /* ============================
-   FORM FIELDS
+   FORM FIELDS (create/edit form — unchanged)
    ============================ */
 
 .form-group {
@@ -322,10 +494,6 @@
         padding-left: 18px;
     }
 
-/* ============================
-   RADIO GRID (Target Audience)
-   ============================ */
-
 .radio-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -350,54 +518,58 @@
         color: #1d4ed8;
     }
 
-
-/* ===== Checkbox option (e.g. Pin to dashboard) ===== */
-.checkbox-option {
+.form-group .checkbox-option {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: #111827;
-    border: 1px solid #374151;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 13px;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
-    padding: 12px 14px;
     cursor: pointer;
-    font-size: 14px;
-    color: #e5e7eb;
+    color: #374151;
+    font-size: 0.88rem;
+    font-weight: 500;
     margin: 0;
-    font-weight: 400;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-    .checkbox-option:has(input:checked) {
-        border-color: #2563eb;
-        background: rgba(37, 99, 235, 0.08);
-    }
-
-    .checkbox-option input[type="checkbox"] {
-        accent-color: #2563eb;
-        width: 16px;
-        height: 16px;
+    .form-group .checkbox-option input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
         margin: 0;
+        flex-shrink: 0;
+        accent-color: #2563eb;
+        cursor: pointer;
     }
 
+    .form-group .checkbox-option span {
+        line-height: 1.3;
+    }
 
+    .form-group .checkbox-option:hover {
+        background: #f8fafc;
+        border-color: #9ca3af;
+    }
 
+    .form-group .checkbox-option:has(input:checked) {
+        background: #eff6ff;
+        border-color: #2563eb;
+        color: #1d4ed8;
+    }
 
-
-
-
-
-
-/* ============================
-   CONDITIONAL FIELDS
-   ============================ */
+    .form-group .checkbox-option + .hint-text {
+        display: block;
+        margin-top: 6px;
+        padding-left: 2px;
+        font-size: 0.76rem;
+        line-height: 1.45;
+        color: #9ca3af;
+    }
 
 .conditional-field {
-    display: none; /* JS toggles this to 'block' when its trigger condition is true */
-}
-
-.pill-expired {
-    background-color: #f1f1f1;
-    color: #666;
+    display: none;
 }
 
 .expired-text {
@@ -407,8 +579,44 @@
     font-weight: 600;
 }
 
-.badge-pinned {
-    background: rgba(96, 165, 250, 0.15);
-    color: #60a5fa;
-    margin-left: 8px;
+
+.file-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* PDF */
+.file-icon-pdf {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Word */
+.file-icon-docx {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+/* Excel */
+.file-icon-xlsx {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+/* Images */
+.file-icon-image {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+/* Other files */
+.file-icon-default {
+    background: #e5e7eb;
+    color: #6b7280;
 }

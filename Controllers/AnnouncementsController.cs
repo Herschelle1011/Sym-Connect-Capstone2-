@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Announcement;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
@@ -56,8 +58,8 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (user == null) return Unauthorized();
 
-            await _announcementService.CreateAsync(vm, user.Id);
-            return Json(new { success = true });
+            var result = await _announcementService.CreateAsync(vm, user.Id);
+            return Json(new { success = result.Success, message = result.Message });
         }
 
         [HttpGet]
@@ -81,9 +83,29 @@ namespace Sym_Connect__Capstone2_.Controllers
                 return PartialView("_AnnouncementFormEdit", vm);
             }
 
-            await _announcementService.UpdateAsync(vm);
-            return Json(new { success = true });
+            var result = await _announcementService.UpdateAsync(vm);
+            return Json(new { success = result.Success, message = result.Message });
         }
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> Archive(int? id)
+        {
+            var announcement = await _announcementService.GetByIdAsync(id.Value);
+            if (announcement == null) return NotFound();
+
+            var vm = new ArchiveAnnouncementViewModel
+            {
+                AnnouncementId = announcement.AnnouncementId,
+                Title = announcement.Title,
+                TargetType = announcement.TargetAudience.ToString(),
+                CreatedAt = announcement.CreatedAt
+            };
+
+            return PartialView("_ArchiveAnnouncementModal", vm);
+        }
+
 
 
         [HttpPost]
@@ -91,8 +113,11 @@ namespace Sym_Connect__Capstone2_.Controllers
         public async Task<IActionResult> Archive(int id)
         {
             await _announcementService.ArchiveAsync(id);
-            return Json(new { success = true });
+            return Json(new { success = true, message = "Announcement archived successfully"});
         }
+
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
