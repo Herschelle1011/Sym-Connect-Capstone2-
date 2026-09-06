@@ -167,6 +167,11 @@
         color: #B7791F;
     }
 
+    .stat-icon.event {
+        background: #FDEBFB;
+        color: #A83DA0;
+    }
+
     .status-closed {
         background: #FBEAEA;
         color: #BB1414;
@@ -309,6 +314,8 @@
                 <h2 class="mb-0">@Model.EvaluationTitle</h2>
             </div>
             <p class="text-muted mb-0">@Model.Description</p>
+
+           
         </div>
 
         @if (status == "Upcoming")
@@ -348,6 +355,17 @@
                     <p class="stat-value">@Model.OpenAt.ToString("MMM dd, yyyy")</p>
                 </div>
             </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.EventTitle))
+            {
+                <div class="stat-item">
+                    <div class="stat-icon event"><i class="bi bi-calendar-event"></i></div>
+                    <div>
+                        <p class="stat-label">Event</p>
+                        <p class="stat-value">@Model.EventTitle</p>
+                    </div>
+                </div>
+            }
 
             <div class="stat-item">
                 <div class="stat-icon closes"><i class="bi bi-calendar3"></i></div>

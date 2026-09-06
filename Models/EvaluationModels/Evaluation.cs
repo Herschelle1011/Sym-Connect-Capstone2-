@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Sym_Connect__Capstone2_.Models.EventModels;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sym_Connect__Capstone2_.Models
 {
@@ -22,5 +24,11 @@ namespace Sym_Connect__Capstone2_.Models
 
         public ICollection<EvaluationDetails> EvaluationDetails { get; set; } =
                             new List<EvaluationDetails>();
+
+        [ForeignKey(nameof(Event))]
+        public int? EventId { get; set; }
+
+        // Navigation property
+        public Event? Event { get; set; }
     }
 }

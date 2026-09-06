@@ -396,6 +396,33 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.ToTable("Votes");
                 });
 
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EmailVerification", b =>
+                {
+                    b.Property<int>("EmailVerificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmailVerificationId"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("VerificationCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EmailVerificationId");
+
+                    b.ToTable("EmailVerifications");
+                });
+
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
                     b.Property<int>("EvaluationId")
@@ -825,6 +852,12 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MediaFileId"));
 
+                    b.Property<DateTime?>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedByMemberId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("DateArchived")
                         .HasColumnType("datetime2");
 
@@ -845,6 +878,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.Property<bool?>("IsArchived")
                         .HasColumnType("bit");
+
+                    b.Property<int>("MediaFileStatus")
+                        .HasColumnType("int");
 
                     b.Property<int?>("MediaFolderId")
                         .HasColumnType("int");
@@ -901,6 +937,8 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasKey("MediaFolderId");
 
+                    b.HasIndex("CreatedByMemberId");
+
                     b.ToTable("MediaFolders");
                 });
 
@@ -915,6 +953,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ApplicationStatus")
+                        .HasColumnType("int");
 
                     b.Property<string>("Barangay")
                         .IsRequired()
@@ -955,6 +996,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.Property<string>("MiddleName")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PreferredGroupId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("nvarchar(max)");
@@ -1281,9 +1325,11 @@ namespace Sym_Connect__Capstone2_.Migrations
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
-                    b.HasOne("Sym_Connect__Capstone2_.Models.EventModels.Event", null)
+                    b.HasOne("Sym_Connect__Capstone2_.Models.EventModels.Event", "Event")
                         .WithMany("Evaluations")
                         .HasForeignKey("EventId");
+
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationDetails", b =>
@@ -1450,6 +1496,17 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired();
 
                     b.Navigation("Folder");
+
+                    b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.MediaAndDocuments.MediaFolder", b =>
+                {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Member", "Member")
+                        .WithMany()
+                        .HasForeignKey("CreatedByMemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Member");
                 });

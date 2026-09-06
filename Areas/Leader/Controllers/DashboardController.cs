@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Leader.ViewModels.Dashboard;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
     [Area("Leader")]
+    [Authorize]
     public class DashboardController : Controller
     {
         private readonly IAnnouncementService _announcementService;
@@ -24,12 +26,16 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
         public async Task<IActionResult> Index()
         {
-
             int? memberId = HttpContext.Session.GetInt32("CurrentMemberId");
             if (memberId is null)
-                return RedirectToAction("Login", "Account");
+                return RedirectToPage("/Account/Login", new { area = "Identity" });
+
 
             var (groupId, isLeader) = await _memberService.GetAnnouncementContextAsync(memberId.Value);
+
+            Console.WriteLine($"Leader MemberId: {memberId}");
+            Console.WriteLine($"Leader isLeader: {isLeader}");
+            Console.WriteLine($"Leader GroupId: {groupId}");
 
             var pinned = await _announcementService.GetPinnedAnnouncementAsync(isLeader, groupId);
             var announcements = await _announcementService.GetVisibleAnnouncementsAsync(memberId.Value, isLeader, groupId);

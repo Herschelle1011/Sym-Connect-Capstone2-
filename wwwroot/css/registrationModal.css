@@ -1,0 +1,1124 @@
+﻿.registration-modal {
+    border-radius: 18px;
+    border: none;
+    overflow: hidden;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Slightly wider modal like the generated design */
+#membershipRegistrationModal .modal-dialog {
+    max-width: 1180px;
+    width: calc(100% - 32px);
+}
+
+#membershipRegistrationModal .modal-content {
+    max-height: 94vh;
+}
+
+/* ===== Header / Brand ===== */
+.registration-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .registration-brand img {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .registration-brand strong {
+        display: block;
+        font-size: 15px;
+        color: #1F2937;
+    }
+
+    .registration-brand small {
+        display: block;
+        font-size: 12px;
+        color: #8A93A3;
+    }
+
+.registration-modal .modal-header {
+    padding: 24px 28px 0 28px;
+    align-items: flex-start;
+}
+
+.registration-modal h3 {
+    font-weight: 700;
+    font-size: 24px;
+    color: #1F2937;
+}
+
+.registration-modal .modal-header p {
+    font-size: 13.5px;
+    color: #8A93A3;
+}
+
+.registration-modal .btn-close {
+    margin-top: 2px;
+}
+
+.registration-modal .modal-body {
+    padding: 0 28px 28px 28px;
+    max-height: 78vh;
+    overflow-y: auto;
+}
+
+
+/* ===== Step Indicators ===== */
+.registration-steps {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px 4px 0 4px;
+}
+
+.registration-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    position: relative;
+}
+
+    .registration-step span {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #D8DEE8;
+        background: #fff;
+        color: #8A93A3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all .2s ease;
+    }
+
+    .registration-step small {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #8A93A3;
+        white-space: nowrap;
+        text-align: center;
+    }
+
+    .registration-step.active span {
+        background: #2F6FED;
+        border-color: #2F6FED;
+        color: #fff;
+        box-shadow: 0 0 0 4px rgba(47,111,237,0.15);
+    }
+
+    .registration-step.active small {
+        color: #2F6FED;
+    }
+
+    .registration-step.completed span {
+        background: #2F6FED;
+        border-color: #2F6FED;
+        color: #fff;
+        font-size: 0;
+    }
+
+        .registration-step.completed span::after {
+            content: "\F633"; /* bootstrap-icons check */
+            font-family: "bootstrap-icons";
+            font-size: 16px;
+            color: #fff;
+        }
+
+    .registration-step.completed small {
+        color: #2F6FED;
+    }
+
+.step-line {
+    flex: 1;
+    height: 2px;
+    background: #D8DEE8;
+    margin: 17px 6px 0 6px;
+    align-self: flex-start;
+}
+
+
+/* ===== Section heading (icon title + description) ===== */
+.registration-section-heading {
+    margin-bottom: 22px;
+}
+
+    .registration-section-heading p {
+        margin: 5px 0 0 32px;
+        color: #7C8799;
+        font-size: 13px;
+    }
+
+.registration-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 17px;
+    color: #2F6FED;
+    margin-bottom: 2px;
+}
+
+    .registration-section-title i {
+        font-size: 18px;
+        width: 22px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #2F6FED;
+    }
+
+.registration-section > p.text-muted {
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+.registration-section {
+    padding-top: 22px;
+    border-top: 1px solid #EEF1F6;
+    margin-top: 22px;
+}
+
+    .registration-section:first-of-type {
+        border-top: none;
+        margin-top: 8px;
+    }
+
+
+/* ===== Address subsection ===== */
+.address-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #3A4250;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: -4px;
+}
+
+    .address-section-title i {
+        color: #176FE8;
+    }
+
+
+/* ===== Form Fields ===== */
+.registration-modal .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #3A4250;
+    margin-bottom: 6px;
+}
+
+  
+.registration-modal .form-control,
+.registration-modal .form-select {
+    height: 44px;
+    border: 1px solid #DCE2EA;
+    border-radius: 9px;
+    font-size: 13.5px;
+    background-color: #fff;
+}
+
+    .registration-modal .form-control:focus,
+    .registration-modal .form-select:focus {
+        border-color: #2F80ED;
+        box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.1);
+    }
+
+    .registration-modal .form-control::placeholder {
+        color: #B8C0CC;
+        opacity: 1;
+    }
+
+    .registration-modal .form-control[readonly] {
+        background: #F7F9FC;
+        color: #6B7280;
+    }
+
+
+/* Helper text under fields */
+.registration-helper-text {
+    font-size: 12px;
+    color: #8090A7;
+    margin-top: 6px;
+    padding-left: 2px;
+}
+
+
+/* ===== Input Icons ===== */
+.field-icon-wrap {
+    position: relative;
+}
+
+    .field-icon-wrap > i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+        font-size: 15px;
+        line-height: 1;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* Give room for the icon */
+    .field-icon-wrap .form-control,
+    .field-icon-wrap .form-select {
+        padding-left: 42px;
+    }
+
+    /* Make sure select text also stays away from icon */
+    .field-icon-wrap .form-select {
+        padding-right: 38px;
+    }
+
+
+/* ===== Password Fields ===== */
+.password-field-wrap {
+    position: relative;
+}
+
+    .password-field-wrap > i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+        font-size: 15px;
+        line-height: 1;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .password-field-wrap .form-control {
+        padding-left: 42px;
+        padding-right: 46px;
+    }
+
+    .password-field-wrap .toggle-password {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        padding: 4px;
+        color: #9CA3AF;
+        cursor: pointer;
+        z-index: 3;
+    }
+
+        .password-field-wrap .toggle-password:hover {
+            color: #2F6FED;
+        }
+
+        .password-field-wrap .toggle-password i {
+            position: static;
+            transform: none;
+            font-size: 16px;
+        }
+
+
+/* ===== Info banner ===== */
+.registration-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #EAF2FE;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-top: 22px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: #2F5FAE;
+}
+
+    .registration-info-banner i {
+        width: 20px;
+        height: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        color: #2F6FED;
+        flex-shrink: 0;
+    }
+
+
+/* ===== Guidelines / Privacy grid ===== */
+.guidelines-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.guideline-item {
+    display: flex;
+    gap: 12px;
+    background: #F7F9FC;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.guideline-number {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #2F6FED;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.guideline-item strong {
+    display: block;
+    font-size: 13.5px;
+    color: #1F2937;
+    margin-bottom: 4px;
+}
+
+.guideline-item p {
+    font-size: 12.5px;
+    color: #6B7280;
+    margin: 0;
+}
+
+.agreement-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #F7F9FC;
+    border-radius: 10px;
+    padding: 14px 16px;
+}
+
+    .agreement-box .form-check-input {
+        margin-top: 3px;
+    }
+
+    .agreement-box .form-check-label {
+        font-size: 13px;
+        color: #3A4250;
+    }
+
+
+/* ===== Review cards ===== */
+.review-card {
+    border: 1px solid #E3E7ED;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.review-header {
+    background: #F7F9FC;
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: 13.5px;
+    color: #1F2937;
+    border-bottom: 1px solid #E3E7ED;
+}
+
+.review-card .row {
+    padding: 16px 18px;
+}
+
+.review-card strong {
+    font-size: 12px;
+    color: #8A93A3;
+    font-weight: 600;
+}
+
+.review-card p {
+    font-size: 13.5px;
+    color: #1F2937;
+    margin: 2px 0 0 0;
+}
+
+
+/* ===== Email verification box (legacy, kept for safety) ===== */
+.email-verification-box {
+    background: #F7F9FC;
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+    .email-verification-box h6 {
+        font-weight: 700;
+        font-size: 14px;
+        color: #1F2937;
+    }
+
+
+/* =========================================================
+   EMAIL VERIFICATION PANEL (new design)
+========================================================= */
+
+.email-verification-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(260px, .9fr);
+    background: linear-gradient( 135deg, #F5FAFF 0%, #EEF7FF 100% );
+    border: 1px solid #CFE3FC;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.email-verification-main {
+    padding: 24px;
+}
+
+.email-verification-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 17px;
+}
+
+    .email-verification-title > i {
+        font-size: 23px;
+        color: #176FE8;
+        margin-top: 1px;
+    }
+
+    .email-verification-title h6 {
+        font-size: 17px;
+        color: #176FE8;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+    }
+
+    .email-verification-title p {
+        font-size: 13px;
+        color: #65758B;
+        margin: 0;
+    }
+
+/* Send button */
+.verification-send-btn {
+    background: #fff;
+    color: #176FE8;
+    border: 1px solid #176FE8;
+    border-radius: 9px;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 10px 17px;
+}
+
+    .verification-send-btn:hover {
+        background: #176FE8;
+        color: #fff;
+    }
+
+/* Code card */
+.verification-code-card {
+    margin-top: 18px;
+    padding: 18px;
+    background: #fff;
+    border: 1px solid #E0EAF6;
+    border-radius: 11px;
+}
+
+    .verification-code-card .form-label {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #263242;
+    }
+
+.verification-hint {
+    margin: 0 0 11px;
+    color: #77869A;
+    font-size: 12.5px;
+}
+
+.verification-code-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.verification-code-input {
+    flex: 1;
+}
+
+.verification-code-row .btn-primary {
+    min-width: 140px;
+}
+
+/* Successful verification */
+.email-verified-success {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 12px;
+    padding: 10px 13px;
+    border: 1px solid #86DDA9;
+    background: #EAFBF0;
+    border-radius: 8px;
+    color: #138A47;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+    .email-verified-success i {
+        font-size: 17px;
+    }
+
+/* Right verification side */
+.email-verification-side {
+    border-left: 1px solid #D4E4F7;
+    padding: 26px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.verification-illustration {
+    position: relative;
+    width: 82px;
+    height: 72px;
+    margin-bottom: 14px;
+}
+
+    .verification-illustration > i {
+        font-size: 62px;
+        color: #6CAEFF;
+    }
+
+.verification-check {
+    position: absolute;
+    right: 1px;
+    bottom: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #20B15A;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #F3F9FF;
+}
+
+    .verification-check i {
+        font-size: 17px;
+    }
+
+.email-verification-side p {
+    color: #65758B;
+    font-size: 12.5px;
+    margin: 0 0 3px;
+}
+
+.email-verification-side strong {
+    color: #263242;
+    font-size: 13px;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.email-verification-side small {
+    color: #7C8BA0;
+    font-size: 11.5px;
+    max-width: 230px;
+}
+
+
+/* ===== Buttons ===== */
+.registration-actions {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
+    padding-bottom: 10px;
+    border-top: 1px solid #EEF1F6;
+    background: #fff;
+}
+
+#registrationBackBtn {
+    margin-right: auto;
+}
+
+#registrationNextBtn,
+#registrationSubmitBtn {
+    margin-left: auto;
+}
+
+.registration-modal .btn-primary {
+    background: #2F6FED;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 26px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+    .registration-modal .btn-primary:hover {
+        background: #2559C7;
+    }
+
+.registration-modal .btn-outline-secondary {
+    border: 1px solid #E3E7ED;
+    color: #5B6472;
+    border-radius: 10px;
+    padding: 10px 22px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 991px) {
+
+    .email-verification-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .email-verification-side {
+        border-left: none;
+        border-top: 1px solid #D4E4F7;
+    }
+}
+
+@media (max-width: 767px) {
+
+    .guidelines-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .registration-step small {
+        display: none;
+    }
+
+    .verification-code-row {
+        flex-direction: column;
+    }
+
+        .verification-code-row .btn-primary {
+            width: 100%;
+        }
+
+    .registration-section-heading p {
+        margin-left: 0;
+    }
+}
+
+
+.registration-modal .form-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3A4250;
+    margin-bottom: 6px;
+}
+
+.registration-modal .required-mark {
+    display: inline;
+    color: #EB5757;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.registration-modal .is-invalid {
+    border-color: #EB5757 !important;
+}
+
+    .registration-modal .is-invalid:focus {
+        border-color: #EB5757 !important;
+        box-shadow: 0 0 0 3px rgba(235, 87, 87, 0.10) !important;
+    }
+
+.registration-field-error {
+    color: #EB5757;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.guideline-item ul {
+    margin: 7px 0 0;
+    padding-left: 18px;
+}
+
+.guideline-item li {
+    color: #6B7280;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin-bottom: 3px;
+}
+
+/* =========================================================
+   OPTIONAL PROFILE PHOTO - STEP 1
+========================================================= */
+
+.registration-profile-upload {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+    background: #F8FAFD;
+    border: 1px solid #E4EAF2;
+    border-radius: 13px;
+}
+
+.registration-profile-preview {
+    width: 90px;
+    height: 90px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+    .registration-profile-preview img,
+    .registration-profile-placeholder {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+    }
+
+    .registration-profile-preview img {
+        object-fit: cover;
+        border: 2px solid #DDE6F1;
+    }
+
+.registration-profile-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #E9EEF5;
+    color: #A2AEBD;
+}
+
+    .registration-profile-placeholder i {
+        font-size: 48px;
+    }
+
+.registration-profile-camera {
+    position: absolute;
+    right: -1px;
+    bottom: 2px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1685E5;
+    color: #fff;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    padding: 0;
+    cursor: pointer;
+}
+
+    .registration-profile-camera i {
+        font-size: 13px;
+    }
+
+.registration-profile-info {
+    flex: 1;
+}
+
+.registration-profile-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #263242;
+}
+
+.optional-label {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: #EDF2F7;
+    color: #718096;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.registration-profile-info p {
+    margin: 4px 0 1px;
+    color: #718096;
+    font-size: 12.5px;
+}
+
+.registration-profile-info small {
+    color: #97A3B3;
+    font-size: 11.5px;
+}
+
+.registration-profile-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+
+
+/* =========================================================
+   STEP 5 REVIEW
+========================================================= */
+
+.application-review-card {
+    border: 1px solid #D9E0E8;
+    border-radius: 11px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.application-review-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 10px;
+    padding: 9px 13px;
+    border-radius: 7px;
+    background: #D9F0FD;
+    color: #1685D1;
+    font-size: 13.5px;
+    font-weight: 700;
+}
+
+    .application-review-header i {
+        font-size: 17px;
+    }
+
+
+/* Applicant summary */
+.applicant-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 4px 20px 14px;
+}
+
+.applicant-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.review-profile-photo,
+.review-profile-placeholder {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+}
+
+.review-profile-photo {
+    flex-shrink: 0;
+}
+
+    .review-profile-photo img {
+        width: 62px;
+        height: 62px;
+        object-fit: cover;
+        border-radius: 50%;
+    }
+
+.review-profile-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #667391;
+    color: #fff;
+}
+
+    .review-profile-placeholder i {
+        font-size: 34px;
+    }
+
+
+.applicant-name-area h5 {
+    margin: 0 0 4px;
+    color: #283241;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.applicant-name-area small {
+    display: block;
+    margin-top: 3px;
+    color: #8B96A5;
+    font-size: 10px;
+}
+
+.application-pending-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid #D7B73A;
+    border-radius: 10px;
+    background: #FFF5B9;
+    color: #806800;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+
+/* Group preference */
+.review-group-box {
+    min-width: 245px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 15px;
+    background: #FAFAFB;
+    border: 1px solid #E2E5E9;
+    border-radius: 8px;
+}
+
+.review-group-icon {
+    color: #20A0E3;
+    font-size: 21px;
+}
+
+.review-group-box small {
+    display: block;
+    color: #8C96A5;
+    font-size: 11px;
+}
+
+.review-group-box strong {
+    display: block;
+    margin-top: 2px;
+    color: #394352;
+    font-size: 13px;
+}
+
+
+/* Divider */
+.application-review-card hr {
+    margin: 0 17px;
+    border-color: #E6EAF0;
+    opacity: 1;
+}
+
+
+/* Applicant detail grid */
+.review-information-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 50px;
+    row-gap: 18px;
+    padding: 18px 55px 22px;
+}
+
+.review-information-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+    .review-information-item > i {
+        width: 17px;
+        color: #1CA0E5;
+        font-size: 14px;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .review-information-item small {
+        display: block;
+        color: #8B95A4;
+        font-size: 11px;
+    }
+
+    .review-information-item strong {
+        display: block;
+        color: #343E4D;
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+
+/* Account */
+.review-account-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    padding: 13px 55px 20px;
+}
+
+
+/* Agreements */
+.review-agreement-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 10px 55px 20px;
+}
+
+.review-agreement-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #394352;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.review-check-circle {
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #0CBD2B;
+    color: white;
+}
+
+    .review-check-circle i {
+        font-size: 15px;
+    }
+
+
+
+/* Mobile */
+@media (max-width: 767px) {
+
+    .registration-profile-upload {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .applicant-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .review-group-box {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .review-information-grid,
+    .review-account-grid,
+    .review-agreement-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}

@@ -36,6 +36,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public TimeSpan? TimeInScannerOpenTime { get; set; }
         public TimeSpan? TimeInScannerClosesTime { get; set; }
 
+        public double? EvaluationRating { get; set; }
+
 
         public TimeSpan? TimeOutScannerOpenTime { get; set; }
         public TimeSpan? TimeOutScannerClosesTime { get; set; }
@@ -67,10 +69,17 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
         // Flags
         public bool HasEvaluation => EvaluationCount > 0;
+        public int EvaluationResponseCount { get; set; }
+
+
         public bool HasAttendance => AttendanceCount > 0;
 
 
         public AttendanceTabViewModel AttendanceRecords { get; set; }
+
+
+
+
 
 
     }

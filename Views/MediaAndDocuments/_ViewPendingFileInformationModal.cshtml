@@ -1,0 +1,69 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.PendingFileItemViewModel
+
+<div class="pending-file-info-body">
+    <h4 class="pending-file-info-title">@Model.FileName</h4>
+
+    <div class="pending-file-info-row">
+        <div class="pending-file-info-label">Destination Folder</div>
+        <div class="pending-file-info-value">@Model.DestinationFolderName</div>
+    </div>
+
+    <div class="pending-file-info-row">
+        <div class="pending-file-info-label">Uploaded By</div>
+        <div class="pending-file-info-value">@Model.UploadedBy</div>
+    </div>
+
+    <div class="pending-file-info-row">
+        <div class="pending-file-info-label">Uploaded Date</div>
+        <div class="pending-file-info-value">@Model.UploadedDate.ToString("MMMM d, yyyy h:mm tt")</div>
+    </div>
+
+        <div class="pending-file-info-row">
+        <div class="pending-file-info-label">File Type</div>
+        <div class="pending-file-info-value">@Model.FileExtension</div>
+    </div>
+
+    <div class="pending-file-info-row">
+        <div class="pending-file-info-label">Size</div>
+        <div class="pending-file-info-value">@((Model.FileSizeBytes / 1024.0).ToString("N1")) KB</div>
+    </div>
+
+    <div class="pending-file-info-note">
+        <label for="rejectNote" class="pending-file-info-label">Note for leader (optional)</label>
+        <textarea id="rejectNote" name="note" class="form-control" rows="3"
+                  placeholder="Add context for your decision...."></textarea>
+    </div>
+
+    <div class="pending-file-info-footer">
+        <form class="modal-ajax-form d-inline"
+              asp-controller="MediaAndDocuments"
+              asp-action="ApproveFile"
+              method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="mediaFileId" value="@Model.MediaFileId" />
+            <button type="submit" class="btn btn-approve">Approve</button>
+        </form>
+
+        <form class="modal-ajax-form d-inline"
+              asp-controller="MediaAndDocuments"
+              asp-action="RejectFile"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   name="mediaFileId"
+                   value="@Model.MediaFileId" />
+
+            <input type="hidden"
+                   name="reason"
+                   value="Rejected by administrator" />
+
+            <button type="submit"
+                    class="btn btn-reject">
+                Reject
+            </button>
+
+        </form>
+    </div>
+</div>

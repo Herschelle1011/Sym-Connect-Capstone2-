@@ -1,4 +1,28 @@
-﻿.page-header {
+﻿.file-icon-pdf {
+    color: #e5484d;
+}
+
+.file-icon-docx {
+    color: #2f6fed;
+}
+
+.file-icon-xlsx {
+    color: #1e7e34;
+}
+
+.file-icon-ppt {
+    color: #d24726;
+}
+
+.file-icon-image {
+    color: #f0a34e;
+}
+
+.file-icon-default {
+    color: #8a90a2;
+}
+
+.page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -56,41 +80,86 @@
 
 .folder-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 16px;
 }
 
-.folder-card {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #eaf3fe;
-    border-radius: 10px;
-    padding: 18px 20px;
-    text-decoration: none;
-    color: inherit;
-    transition: background 0.15s ease;
+@media (max-width: 1200px) {
+    .folder-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-    .folder-card:hover {
-        background: #dcebfd;
-    }
+.folder-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #eaf3fe;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.folder-card-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+}
 
 .folder-icon {
-    font-size: 1.1rem;
-    color: #0289D8;
+    font-size: 2rem;
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.folder-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
 }
 
 .folder-name {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.15rem;
     color: #1c2b3a;
-    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.visibility-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: fit-content;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-public {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.badge-private {
+    background: #dcfce7;
+    color: #16a34a;
 }
 
 .folder-count {
-    font-weight: 600;
-    color: #4a5568;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #374151;
+    margin-left: auto;
+    padding-right: 8px;
 }
 
 .recent-files-section {
@@ -337,3 +406,437 @@
             background: #eef2f7;
             color: #1f2937;
         }
+
+
+
+/* ================================
+   FILE INFORMATION MODAL ICON
+   ================================ */
+
+.file-info-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+    /* Actual Bootstrap icon */
+    .file-info-icon i {
+        font-size: 2rem;
+        background: transparent;
+    }
+
+    /* PDF */
+    .file-info-icon:has(.file-icon-pdf) {
+        background: #fde3e3;
+    }
+
+    .file-info-icon .file-icon-pdf {
+        color: #e5484d;
+    }
+
+    /* Word */
+    .file-info-icon:has(.file-icon-docx) {
+        background: #dbe9ff;
+    }
+
+    .file-info-icon .file-icon-docx {
+        color: #2563eb;
+    }
+
+    /* Excel */
+    .file-info-icon:has(.file-icon-xlsx) {
+        background: #dcf5e3;
+    }
+
+    .file-info-icon .file-icon-xlsx {
+        color: #16a34a;
+    }
+
+    /* PowerPoint */
+    .file-info-icon:has(.file-icon-ppt) {
+        background: #e8e3ff;
+    }
+
+    .file-info-icon .file-icon-ppt {
+        color: #d24726;
+    }
+
+    /* Images: PNG, JPG, JPEG, etc. */
+    .file-info-icon:has(.file-icon-image) {
+        background: #fff0dc;
+    }
+
+    .file-info-icon .file-icon-image {
+        background: transparent;
+        color: #f0a34e;
+    }
+
+    /* Other files */
+    .file-info-icon:has(.file-icon-default) {
+        background: #e5e7eb;
+    }
+
+    .file-info-icon .file-icon-default {
+        background: transparent;
+        color: #6b7280;
+    }
+
+.file-info-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #1a1a2e;
+    word-break: break-word;
+}
+
+.file-info-ext {
+    font-size: 0.8rem;
+    color: #8a90a2;
+    margin-top: 2px;
+}
+
+.file-info-badges {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+.file-info-body .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.file-info-body .status-published {
+    background: #e6f4ea;
+    color: #1e7e34;
+}
+
+.file-info-body .status-pending {
+    background: #fff4e5;
+    color: #b5720a;
+}
+
+.file-info-body .status-rejected {
+    background: #fde8e8;
+    color: #c62828;
+}
+
+.visibility-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #eef0f4;
+    color: #5b6274;
+}
+
+.file-info-list {
+    margin: 0 0 20px;
+}
+
+.file-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef0f4;
+}
+
+    .file-info-row:last-child {
+        border-bottom: none;
+    }
+
+    .file-info-row dt {
+        font-size: 0.85rem;
+        color: #8a90a2;
+        font-weight: 500;
+    }
+
+    .file-info-row dd {
+        font-size: 0.9rem;
+        color: #1a1a2e;
+        font-weight: 600;
+        margin: 0;
+    }
+
+.file-info-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+
+.pending-files-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 14px;
+    min-height: 42px;
+    border: 1px solid #d9dee5;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #495057;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+    .pending-files-btn:hover {
+        background: #f8f9fa;
+        border-color: #c5cbd3;
+        color: #212529;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+    }
+
+/* Clock icon container */
+.pending-files-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    background: #f1f3f5;
+    color: #6c757d;
+    font-size: 15px;
+}
+
+/* Text */
+.pending-files-text {
+    white-space: nowrap;
+}
+
+/* Number badge */
+.pending-files-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 7px;
+    background: #dc3545;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+    /* Hide when zero */
+    .pending-files-count.d-none {
+        display: none;
+    }
+
+.file-icon-pptx {
+    background-color: #fff0e6;
+    color: #d24726;
+}
+
+.file-name-cell a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .file-name-cell a:hover {
+        text-decoration: underline;
+        color: #1d4ed8;
+    }
+
+
+.pending-file-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .pending-file-link:hover {
+        text-decoration: underline;
+        color: #1d4ed8;
+    }
+
+
+.pending-file-info-title {
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #1a1a2e;
+    margin-bottom: 18px;
+}
+
+.pending-file-info-row {
+    margin-bottom: 14px;
+}
+
+.pending-file-info-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1a1a2e;
+    margin-bottom: 2px;
+}
+
+.pending-file-info-value {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.pending-file-info-note {
+    margin: 18px 0 22px;
+}
+
+.pending-file-info-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-approve {
+    background: #d3f5df;
+    color: #1e7e34;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 600;
+}
+
+
+
+.btn-reject {
+    background: #fde3e3;
+    color: #c62828;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-weight: 600;
+}
+
+.btn-view {
+    background: #fff;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+    .btn-view:hover {
+        background: #eaf3fe;
+    }
+
+
+.table {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+    .table thead tr {
+        background-color: #0289D8;
+    }
+
+    .table thead th {
+        background-color: #0289D8;
+        color: #fff;
+        font-weight: 500;
+        border: none;
+        padding: 14px 20px;
+        vertical-align: middle;
+    }
+
+    .table tbody td {
+        padding: 14px 20px;
+        vertical-align: middle;
+        border-color: #eef1f5;
+        background-color: #fff;
+    }
+
+    .table tbody tr:nth-child(even) td {
+        background-color: #f6faff;
+    }
+
+.pending-file-link {
+    color: #1f2937;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .pending-file-link:hover {
+        text-decoration: underline;
+        color: #2563eb;
+    }
+
+.file-search-box input {
+    width: 200px;
+}
+
+.file-table thead th {
+    background-color: #0289D8;
+    color: #fff;
+    font-weight: 500;
+    padding: 12px 16px;
+    border: none;
+    vertical-align: middle;
+}
+
+.btn-view {
+    background: #fff;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+    .btn-view:hover {
+        background: #eaf3fe;
+    }
+
+.pending-file-link {
+    color: #1f2937;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+    .pending-file-link:hover {
+        text-decoration: underline;
+        color: #2563eb;
+    }
+
+
+/* File Information Modal - Center Header */
+.file-info-body .file-info-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.file-info-body .file-info-name {
+    text-align: center;
+}
+
+.file-info-body .file-info-ext {
+    text-align: center;
+}

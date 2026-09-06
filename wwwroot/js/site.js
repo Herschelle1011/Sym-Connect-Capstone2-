@@ -18,14 +18,12 @@
 
 // ── Modal opener (data-attribute buttons, e.g. "Create Partylist") ──
 
-
-
-
+//FINDS ALL class = .open-modal
 document.querySelectorAll(".open-modal").forEach(button => {
     button.addEventListener("click", function () {
-        const url = this.getAttribute("data-url");
-        const title = this.getAttribute("data-title");
-        openModal(title, url);
+        const url = this.getAttribute("data-url"); //GET ALL URL NOT DATA ACTION 
+        const title = this.getAttribute("data-title"); //get all data title in a button
+        openModal(title, url); //open modal with data-url to get the get action in controller
     });
 });
 
@@ -208,8 +206,27 @@ document.addEventListener("shown.bs.offcanvas", function (e) {
 
 
 // ── Modal opener (global function for inline onclick calls) ──
-function openModal(title, url, size) {
+function openModal(title, url, size, options = {}) {
     document.getElementById("appModalLabel").innerText = title;
+
+    const iconWrap = document.getElementById("appModalIcon");
+    const iconEl = iconWrap.querySelector("i");
+    if (options.icon) {
+        iconEl.className = `bi ${options.icon}`;
+        iconWrap.classList.remove("d-none");
+    } else {
+        iconWrap.classList.add("d-none");
+    }
+
+    const subtitleEl = document.getElementById("appModalSubtitle");
+    if (options.subtitle) {
+        subtitleEl.innerText = options.subtitle;
+        subtitleEl.classList.remove("d-none");
+    } else {
+        subtitleEl.classList.add("d-none");
+        subtitleEl.innerText = "";
+    }
+
 
     const dialog = document.querySelector("#appModal .modal-dialog");
     dialog.classList.remove("modal-lg", "modal-xl");
@@ -237,7 +254,9 @@ document.querySelectorAll(".open-modal").forEach(button => {
         const url = this.getAttribute("data-url");
         const title = this.getAttribute("data-title");
         const size = this.getAttribute("data-modal-size");
-        openModal(title, url, size);
+        const icon = this.getAttribute("data-icon");
+        const subtitle = this.getAttribute("data-subtitle");
+        openModal(title, url, size, {icon, subtitle});
     });
 });
 

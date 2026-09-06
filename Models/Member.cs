@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Sym_Connect__Capstone2_.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sym_Connect__Capstone2_.Models
@@ -56,6 +57,10 @@ namespace Sym_Connect__Capstone2_.Models
         public int EarnedPoints { get; set; }
 
 
+        public MembershipApplicationStatus ApplicationStatus { get; set; }
+            = MembershipApplicationStatus.Pending;
+
+        public int PreferredGroupId { get; set; }
 
 
     }

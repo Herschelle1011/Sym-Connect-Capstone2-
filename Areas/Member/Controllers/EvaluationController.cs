@@ -1,116 +1,162 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
+using Sym_Connect__Capstone2_.Models;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
+    [Authorize]
     public class EvaluationController : Controller
     {
         private readonly IEvaluationService _evaluationService;
-        public EvaluationController(IEvaluationService evaluationService)
+        private readonly UserManager<User> _userManager;
+
+        public EvaluationController(
+            IEvaluationService evaluationService,
+            UserManager<User> userManager)
         {
             _evaluationService = evaluationService;
+            _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var memberId = HttpContext.Session.GetString("CurrentMemberId");
+            var user = await _userManager.GetUserAsync(User);
 
-            if (string.IsNullOrEmpty(memberId))
+            if (user == null)
             {
-                TempData["Error"] = "Please verify your identity first.";
-                return RedirectToAction("VerifyMember");
+                return RedirectToPage(
+                    "/Account/Login",
+                    new { area = "Identity" });
             }
 
-            var evaluations = await _evaluationService.GetAvailableEvaluationsAsync();
-            return View(evaluations); 
-        }
-
-        // GET: shows the "enter your name + email" form
-        [HttpGet]
-        public IActionResult VerifyMember()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> VerifyMember(string firstName, string email)
-        {
-            var member = await _evaluationService.FindMemberForEvaluationAsync(firstName, email);
-
-            if (member == null)
+            if (user.MemberId == null)
             {
-                ModelState.AddModelError("", "No matching member found.");
-                return View();
+                return Forbid();
             }
 
-            HttpContext.Session.SetInt32("CurrentMemberId", member.MemberId);
-            HttpContext.Session.SetString("CurrentMemberName", $"{member.FirstName} {member.LastName}");
-            HttpContext.Session.SetString("CurrentMemberEmail", member.User.Email ?? "");
+            var evaluations =
+                await _evaluationService
+                    .GetAvailableEvaluationsAsync(
+                        user.MemberId.Value,
+                        user.Id);
 
-            return RedirectToAction("Index"); // 
+            return View(evaluations);
         }
-        // GET: 
+
+
         [HttpGet]
         public async Task<IActionResult> TakeEvaluation(int evaluationId)
         {
-            var memberId = HttpContext.Session.GetString("CurrentMemberId");
+            var user = await _userManager.GetUserAsync(User);
 
-            if (string.IsNullOrEmpty(memberId))
+            if (user == null)
             {
-                TempData["Error"] = "Please verify your identity first.";
-                return RedirectToAction("VerifyMember");
+                return RedirectToPage(
+                    "/Account/Login",
+                    new { area = "Identity" });
             }
 
-            var evaluation = await _evaluationService.GetEvaluationByIdAsync(evaluationId);
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            var canTake =
+                await _evaluationService.CanTakeEvaluationAsync(
+                    evaluationId,
+                    user.MemberId.Value,
+                    user.Id);
+
+            if (!canTake)
+            {
+                TempData["Error"] =
+                    "This evaluation is not available to you.";
+
+                return RedirectToAction("Index");
+            }
+
+            var evaluation =
+                await _evaluationService
+                    .GetEvaluationByIdAsync(evaluationId);
+
             if (evaluation == null)
+            {
                 return NotFound();
+            }
 
             var viewModel = new TakeEvaluationViewModel
             {
                 EvaluationId = evaluation.EvaluationId,
                 EvaluationTitle = evaluation.EvaluationTitle,
-                MemberFullName = HttpContext.Session.GetString("CurrentMemberName") ?? "",
-                MemberEmail = HttpContext.Session.GetString("CurrentMemberEmail") ?? "",
-                Questions = evaluation.EvaluationDetails.Select(ed => new AnswerInputViewModel
-                {
-                    EvaluationDetailId = ed.EvaluationDetailId,
-                    QuestionText = ed.EvaluationQuestion!.QuestionText,
-                    AnswerType = ed.EvaluationQuestion!.AnswerType
-                }).ToList()
+
+                MemberFullName = user.DisplayName ?? "",
+                MemberEmail = user.Email ?? "",
+
+                Questions = evaluation.EvaluationDetails
+                    .Select(ed => new AnswerInputViewModel
+                    {
+                        EvaluationDetailId =
+                            ed.EvaluationDetailId,
+
+                        QuestionText =
+                            ed.EvaluationQuestion!.QuestionText,
+
+                        AnswerType =
+                            ed.EvaluationQuestion.AnswerType
+                    })
+                    .ToList()
             };
 
             return View(viewModel);
         }
 
+
         [HttpPost]
-        public async Task<IActionResult> TakeEvaluation(SubmitEvaluationViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TakeEvaluation(
+            SubmitEvaluationViewModel model)
         {
-            var memberId = HttpContext.Session.GetString("CurrentMemberId");
+            var user = await _userManager.GetUserAsync(User);
 
-            if (string.IsNullOrEmpty(memberId))
-            {
-                TempData["Error"] = "Please verify your identity first.";
-                return RedirectToAction("VerifyMember");
-            }
+            if (user == null)
+                return Challenge();
 
-            var success = await _evaluationService.SaveEvaluationAsync(memberId, model);
+            if (user.MemberId == null)
+                return Forbid();
+
+            var success = await _evaluationService.SaveEvaluationAsync(
+                user.Id,
+                model
+            );
 
             if (!success)
             {
-                TempData["Error"] = "This evaluation has already been submitted.";
-                return RedirectToAction("TakeEvaluation");
+                TempData["Error"] =
+                    "This evaluation has already been submitted.";
+
+                return RedirectToAction(
+                    "TakeEvaluation",
+                    new { evaluationId = model.EvaluationId }
+                );
             }
 
             if (model.IsFinalSubmit)
                 return RedirectToAction("ThankYou");
 
-            TempData["Message"] = "Your progress has been saved.";
-            return RedirectToAction("TakeEvaluation");
+            TempData["Message"] =
+                "Your progress has been saved.";
+
+            return RedirectToAction(
+                "TakeEvaluation",
+                new { evaluationId = model.EvaluationId }
+            );
         }
+
 
         [HttpGet]
         public IActionResult ThankYou()
@@ -118,7 +164,4 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             return View();
         }
     }
-
-
 }
-

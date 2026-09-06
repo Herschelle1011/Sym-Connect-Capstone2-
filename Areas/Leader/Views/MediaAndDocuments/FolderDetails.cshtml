@@ -1,0 +1,158 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaFileViewModel>
+@{
+    ViewData["Title"] = "Media & Documents";
+    Layout = "_LeaderLayout";
+
+    int? folderId = ViewBag.FolderId;
+    string FolderName = ViewBag.FolderName;
+
+    (string Icon, string ColorClass) GetFileIcon(string ext)
+    {
+        return ext?.ToLower() switch
+        {
+            ".pdf" => ("bi-file-earmark-pdf-fill", "file-icon-pdf"),
+            ".doc" or ".docx" => ("bi-file-earmark-word-fill", "file-icon-docx"),
+            ".xls" or ".xlsx" => ("bi-file-earmark-excel-fill", "file-icon-xlsx"),
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp"
+                => ("bi-file-earmark-image-fill", "file-icon-image"),
+            _ => ("bi-file-earmark-fill", "file-icon-default")
+        };
+    }
+}
+
+<div class="media-page">
+    <div class="page-header">
+        <div>
+            <h2>@FolderName</h2>
+            <p class="page-subtitle">Upload and view files in this folder</p>
+        </div>
+    </div>
+
+    <div class="breadcrumb-row">
+        <span class="breadcrumb">
+            <a href="@Url.Action("Index", "Dashboard")">Home</a> /
+            <a href="@Url.Action("Index", "MediaAndDocuments")">Documents &amp; Media</a> /
+            @FolderName
+        </span>
+    </div>
+
+    <div class="file-toolbar">
+        <div class="file-search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="fileSearchInput" placeholder="Search" />
+        </div>
+
+        <button type="button" class="btn btn-primary open-modal ms-auto"
+                data-url="@Url.Action("UploadFiles", "MediaAndDocuments", new { folderId = folderId })"
+                data-title="Upload Files">
+            Upload File
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table file-table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Type</th>
+                    <th>Uploaded by</th>
+                    <th>Date</th>
+                    <th class="actions-col"></th>
+                </tr>
+            </thead>
+            <tbody id="fileTableBody">
+                @if (Model == null || !Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted">No files here yet.</td></tr>
+                }
+                else
+                {
+                    foreach (var f in Model)
+                    {
+                        var (icon, colorClass) = GetFileIcon(f.FileExtension);
+
+                        <tr data-id="@f.MediaFileId">
+                            <td>
+                                <div class="file-name-cell">
+                                    <span class="file-icon-badge @colorClass">
+                                        <i class="bi @icon"></i>
+                                    </span>
+                                    <a href="@f.FileUrl" target="_blank">@f.FileName</a>
+                                </div>
+                            </td>
+                            <td>@f.FileExtension?.ToUpper()</td>
+                            <td>@f.UploadedBy</td>
+                            <td>@f.UploadedDate.ToString("MMM. d, yyyy")</td>
+                            <td class="actions-col">
+                                <div class="dropdown file-kebab-wrapper">
+                                    <button class="btn-kebab" type="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        ⋮
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item"
+                                               href="@Url.Action("Download", "MediaAndDocuments", new { id = f.MediaFileId })">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item open-modal file-information-link"
+                                               href="#"
+                                               data-file-id="@f.MediaFileId"
+                                               data-title="File Information"
+                                               data-icon="bi-info-circle"
+                                               data-url="/Leader/MediaAndDocuments/FileInformation?id=@f.MediaFileId">
+
+                                                <i class="bi bi-info-circle"></i>
+                                                File information
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#"
+                                               data-file-id="@f.MediaFileId" data-action="delete-file">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/leader/Media.js"></script>
+
+    @if (ViewBag.OpenFileId != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+            const fileId = "@ViewBag.OpenFileId";
+
+            const fileLink = document.querySelector(
+            `.file-information-link[data-file-id="${fileId}"]`
+            );
+
+            if (!fileLink) {
+            console.error(
+            "File information link not found:",
+            fileId
+            );
+
+            return;
+            }
+
+            const url = fileLink.dataset.url;
+            const title = fileLink.dataset.title;
+
+            openModal(title, url);
+            });
+        </script>
+    }
+}

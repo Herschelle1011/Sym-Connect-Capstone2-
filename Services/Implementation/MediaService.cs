@@ -1,17 +1,24 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Hubs;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.MediaAndDocuments;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments;
+using Sym_Connect__Capstone2_.ViewModels.Notification;
+
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class MediaService : IMediaService
     {
         private readonly AppDbContext _context;
         private readonly Cloudinary _cloudinary;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly INotificationService _notificationService;
 
 
         private static readonly HashSet<string> AllowedExtensions = new()
@@ -20,10 +27,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
         };
         private const long MaxFileSizeBytes = 10 * 1024 * 1024;
-        public MediaService(AppDbContext context, Cloudinary cloudinary)
+        public MediaService(AppDbContext context, Cloudinary cloudinary, INotificationService notificationService, IHubContext<NotificationHub> hubContext)
         {
             _context = context;
             _cloudinary = cloudinary;
+            _notificationService = notificationService;
+            _hubContext = hubContext;
         }
 
         //======= FOLDERS ===== // 
@@ -41,7 +50,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                 CreatedDate = f.CreatedDate,
                                 IsPrivate = f.IsPrivate,
                                isArchived = false,
-                                FileCount = f.Files.Count
+                                FileCount = f.Files.Count(file => file.IsArchived == false && file.MediaFileStatus == MediaFileStatus.Published)
                             }).ToListAsync();
         }
 
@@ -63,15 +72,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 IsPrivate = isPrivate
             };
 
+       
+
             await _context.MediaFolders.AddAsync(folder);
             await _context.SaveChangesAsync();
 
             return new OperationalResult { Success = true, Message = "Folder created successfully!" };
         }
-
-
-
-
 
         public async Task<MediaFolder> GetFolderByIdAsync(int id)
         {
@@ -132,7 +139,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.MediaFiles
                 .AsNoTracking()
-                .Where(f => f.MediaFolderId == folderId && f.IsArchived == false)
+                .Where(f => f.MediaFolderId == folderId && f.IsArchived == false && f.MediaFileStatus == MediaFileStatus.Published)
                 .OrderByDescending(f => f.UploadDate)
                 .Select(f => new MediaFileViewModel
                 {           
@@ -143,16 +150,22 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     IsFolderPrivate = f.Folder.IsPrivate,
                     FileExtension = f.FileExtension,
                     FileSizeBytes = f.FileSizeBytes,
+                    Status = f.MediaFileStatus,
                     UploadedDate = f.UploadDate,
                     UploadedBy = f.Member.FirstName + " " + f.Member.LastName,
                     UploadedByMemberId = f.UploadedByMemberId
                 }).ToListAsync();
         }
 
-        public async Task<OperationalResult> UploadFilesAsync(int? folderId, List<IFormFile> files, int uploadedByMemberId)
+        public async Task<OperationalResult> UploadFilesAsync(int? folderId, List<IFormFile> files, int uploadedByMemberId, bool isAdmin)
         {
             if(files == null || !files.Any())
                      return new OperationalResult { Success = false, Message = "No Files were selected," };
+
+            var folder = await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == folderId);
+            if(folder == null)
+                return new OperationalResult { Success = false, Message = "Target folder does not exists" };
+
 
             if (folderId.HasValue)
             {
@@ -160,8 +173,18 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 if (!folderExists) return new OperationalResult { Success = false, Message = "Target folder does not exists" };
             }
 
-            foreach(var file in files)
+
+            bool canAccess = !folder.IsPrivate || isAdmin || folder.CreatedByMemberId == uploadedByMemberId;
+            if (!canAccess)
+                return new OperationalResult { Success = false, Message = "You don't have permission to upload to this folder." };
+
+            //is admin or no approvalStatus
+            var status = isAdmin ? MediaFileStatus.Published : MediaFileStatus.Pending;
+            MediaFile? firstUploadedMediaFile = null;
+
+            foreach (var file in files)
             {
+
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!AllowedExtensions.Contains(ext))
                 {
@@ -202,6 +225,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 if(uploadResult.Error != null)
                     return new OperationalResult { Success = false, Message = $"Upload failed for {file.FileName}: {uploadResult.Error.Message}" };
 
+
                 var mediaFile = new MediaFile
                 {
                     MediaFolderId = folderId,
@@ -213,27 +237,74 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     FileExtension = ext,
                     FileSizeBytes = file.Length,
                     UploadDate = DateTime.Now,
-                    UploadedByMemberId = uploadedByMemberId
-                };
-                _context.MediaFiles.Add(mediaFile); 
+                    UploadedByMemberId = uploadedByMemberId,
 
+
+                    MediaFileStatus = status,
+                    ApprovedByMemberId = isAdmin ? uploadedByMemberId : null,
+                    ApprovalDate = isAdmin ? DateTime.Now : null
+
+                };      
+                _context.MediaFiles.Add(mediaFile);
+
+                if (firstUploadedMediaFile == null)
+                {
+                    firstUploadedMediaFile = mediaFile;
+                }
             }
             await _context.SaveChangesAsync();
+
+            if (!isAdmin)
+            {
+                await _hubContext.Clients.Group("Admins")
+                    .SendAsync("PendingFilesChanged");
+
+                await _notificationService.NotifyAdminAsync(
+                    new NotificationViewModel
+                    {
+                        Title = "New Files Pending Approval",
+
+                        Message = files.Count == 1
+                            ? $"A new file \"{files[0].FileName}\" was uploaded and is waiting for approval."
+                            : $"{files.Count} new files were uploaded and are waiting for approval.",
+
+                    Url = firstUploadedMediaFile != null
+                    ? $"/MediaAndDocuments/PendingFiles?openFileId={firstUploadedMediaFile.MediaFileId}"
+                    : "/MediaAndDocuments/PendingFiles"
+                    }
+                );
+
+                return new OperationalResult
+                {
+                    Success = true,
+
+                    Message = files.Count == 1
+                        ? "File uploaded successfully and is waiting for approval."
+                        : "Files uploaded successfully and are waiting for approval."
+                };
+            }
 
             return new OperationalResult { Success = true, Message = "Files Uploaded" };
         }
 
 
-        public async Task<List<MediaFileViewModel>> RecentFiles(int viewerMemberId,bool isAdmin)
+        public async Task<List<MediaFileViewModel>> RecentFiles(int viewerMemberId, bool isAdmin)
         {
+            Console.WriteLine("RECENT FILES METHOD CALLED");
+
             var recent = await _context.MediaFiles
                 .AsNoTracking()
-                 .Where(f => f.IsArchived == false &&
-                    (
-                    f.MediaFolderId == null || !f.Folder.IsPrivate ||
-                 isAdmin ||
-                f.UploadedByMemberId == viewerMemberId
-            )
+             .Where(f =>
+            f.IsArchived == false &&
+
+            // Viewer must have access to the folder
+            (f.MediaFolderId == null ||
+             !f.Folder.IsPrivate ||
+             isAdmin ||
+             f.UploadedByMemberId == viewerMemberId) &&
+
+            // Recent Files only shows published files
+            f.MediaFileStatus == MediaFileStatus.Published
         )
                 .OrderByDescending(e => e.UploadDate)
                 .Take(5)
@@ -245,12 +316,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     UploadedByMemberId = f.UploadedByMemberId,
                     folderName = f.Folder.FolderName,
                     fullName = f.Member.FirstName + " " + f.Member.LastName ?? "N/A",
-                    UploadedDate = f.UploadDate
+                    UploadedDate = f.UploadDate,
+                    Status = f.MediaFileStatus
                 }).ToListAsync();
 
             return recent;
         }
-
 
 
 
@@ -281,7 +352,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _cloudinary.DestroyAsync(deleteParams);
         }
 
-        public async Task<OperationalResult> RenameAsync(int id, string newname)
+        public async Task<OperationalResult> RenameFolderAsync(int id, string newname)
         {
             var folder = await _context.MediaFolders.FirstOrDefaultAsync(f => f.MediaFolderId == id);
             if (folder == null)
@@ -401,7 +472,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     folderName = f.FolderName,
                     CreatedAt = f.CreatedDate,
                     IsPrivate = f.IsPrivate,
-                    FileCount = f.Files.Count(),
+                    FileCount = f.Files.Count(fi => fi.IsArchived == false && fi.MediaFileStatus == MediaFileStatus.Published),
                     files = f.Files
                         .Where(fi => fi.IsArchived == false)
                         .Select(fi => new FilesArchiveViewModel
@@ -444,9 +515,264 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return new OperationalResult { Success = true, Message = "Folder archived successfully!" };
         }
 
-        
+        public async Task<List<MediaFolderViewModel>> GetAvailableFolderAsync(int exludeFolderId)
+        {
+            return await _context.MediaFolders.AsNoTracking()
+                .Where(f => f.isArchived == false && f.MediaFolderId != exludeFolderId) 
+                .Select(f => new MediaFolderViewModel
+                {
+                    MediaFolderId = f.MediaFolderId,
+                    
+                    FolderName = f.FolderName,
+                    IsPrivate = f.IsPrivate,
+                    FileCount = f.Files.Count(fi => fi.IsArchived == false),
+                    createByMemberName = f.Member.FirstName + " " + f.Member.LastName ?? ""
+                }).ToListAsync();
+        }
 
 
+
+
+        public async Task<OperationalResult> MoveFile(int fileid, int newFolderId ,int requestingMemberId, bool isAdmin)
+        {
+            var file = await _context.MediaFiles
+                             .FirstOrDefaultAsync(f => f.MediaFileId == fileid);
+
+            if (file == null) return new OperationalResult { Success = false, Message = "File doesn't exist." };
+
+            var folder = await _context.MediaFolders
+                .FirstOrDefaultAsync(f => f.MediaFolderId == newFolderId && f.isArchived == false);
+           
+            if (file.MediaFolderId == newFolderId)
+                return new OperationalResult { Success = false, Message = "File is already inside this folder." };
+
+            if (!isAdmin && file.UploadedByMemberId != requestingMemberId)
+                return new OperationalResult { Success = false, Message = "You don't have permission to move this file." };
+
+            if(folder == null)
+                return new OperationalResult { Success = false, Message = "Folder doesn't exist" };
+
+            file.MediaFolderId = folder.MediaFolderId;
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = $"File successfully moved to {folder.FolderName}" };
+
+        }
+
+        public async Task<FileInformationViewModel?> FileInformation(int fileId)
+        {
+            return await _context.MediaFiles
+                .AsNoTracking()
+                .Where(f => f.IsArchived == false && f.MediaFileId == fileId)
+                .Select(f => new FileInformationViewModel
+                {
+                    FileId = f.MediaFileId,
+                    FileName = f.FileName,
+                    FileExtension = f.FileExtension,
+                    Size = f.FileSizeBytes.ToString(),
+                    UploadedBy = f.Member.FirstName + " " + f.Member.LastName,
+                    CreatedAt = f.UploadDate,
+                    Status = f.MediaFileStatus,
+                    Visibility = f.Folder.IsPrivate ? "Private" : "Everyone"
+                }).FirstOrDefaultAsync();
+        }
+
+
+        public async Task<OperationalResult> ApproveFileAsync(int fileId,int approvedByMemberId)
+        {
+            var file = await _context.MediaFiles
+                .FirstOrDefaultAsync(f => f.MediaFileId == fileId);
+
+            if (file == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "File doesn't exist."
+                };
+            }
+            file.MediaFileStatus = MediaFileStatus.Published;
+            file.ApprovedByMemberId = approvedByMemberId;
+            file.ApprovalDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group("Admins")
+                .SendAsync("PendingFilesChanged");
+
+            var uploaderUserId = await _context.Users
+                .Where(u => u.MemberId == file.UploadedByMemberId)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+
+            if (uploaderUserId != null)
+            {
+                string notificationUrl;
+
+                if (file.MediaFolderId != null)
+                {
+                    notificationUrl =
+                        $"/Leader/MediaAndDocuments/FolderDetails/{file.MediaFolderId}" +
+                        $"?openFileId={file.MediaFileId}";
+                }
+                else
+                {
+                    notificationUrl =
+                        $"/Leader/MediaAndDocuments?openFileId={file.MediaFileId}";
+                }
+
+                await _notificationService.NotifyUserAsync(
+                    uploaderUserId,
+                    "File Approved!",
+                    $"Your file \"{file.FileName}\" has been approved and published.",
+                    notificationUrl
+                );
+            }
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "File approved and published."
+            };
+        }
+
+        public async Task<OperationalResult> RejectFileAsync(int fileId, string reason, int rejectedByMemberId)
+        {
+            var file = await _context.MediaFiles.FirstOrDefaultAsync(f => f.MediaFileId == fileId);
+            if (file == null) return new OperationalResult { Success = false, Message = "File doesn't exist." };
+            if (string.IsNullOrWhiteSpace(reason))
+                return new OperationalResult { Success = false, Message = "A rejection reason is required." };
+
+            file.MediaFileStatus = MediaFileStatus.Rejected;
+            file.ApprovedByMemberId = rejectedByMemberId;   // "who acted on it," approve or reject
+            file.ApprovalDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            await _hubContext.Clients.Group("Admins")
+            .SendAsync("PendingFilesChanged");
+
+            var uploaderUserId = await _context.Users
+        .Where(u => u.MemberId == file.UploadedByMemberId)
+        .Select(u => u.Id)
+        .FirstOrDefaultAsync();
+
+            Console.WriteLine($"File uploaded by MemberId: {file.UploadedByMemberId}");
+            Console.WriteLine($"Rejected by MemberId: {rejectedByMemberId}");
+            Console.WriteLine($"Uploader UserId: {uploaderUserId}");
+
+            if (uploaderUserId != null)
+            {
+                await _notificationService.NotifyUserAsync(
+                    uploaderUserId,
+                    "File Rejected",
+                    $"Your file \"{file.FileName}\" was rejected. Reason: {reason}",
+                    "/Leader/MediaAndDocuments"
+                );
+            }
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "File rejected."
+            };
+        }
+
+
+        public async Task<PendingFilesViewModel> GetPendingFiles()
+        {
+            var files = await _context.MediaFiles
+                .AsNoTracking()
+                .Where(f => f.MediaFileStatus == MediaFileStatus.Pending && f.IsArchived == false)
+                .OrderBy(f => f.UploadDate)
+                .Select(f => new PendingFileItemViewModel
+                {
+                    MediaFileId = f.MediaFileId,
+                    FileName = f.FileName,
+                    FileUrl = f.FileUrl,
+                    FileExtension = f.FileExtension,
+                    UploadedBy = f.Member.FirstName + " " + f.Member.LastName ?? "N/A",
+                    UploadedDate = f.UploadDate,
+                   
+                })
+                .ToListAsync();
+
+            return new PendingFilesViewModel { Files = files };
+        }
+
+        public async Task<PendingFileItemViewModel?> GetPendingFilesDetails(int id)
+        {
+            var files = await _context.MediaFiles
+             .AsNoTracking()
+             .Where(f => f.MediaFileId == id)
+             .Select(f => new PendingFileItemViewModel
+             {
+                 MediaFileId = f.MediaFileId,
+                 FileName = f.FileName,
+                 FileUrl = f.FileUrl,
+                 FileExtension = f.FileExtension,
+                 FileSizeBytes = f.FileSizeBytes,
+                 UploadedBy = f.Member.FirstName + " " + f.Member.LastName ?? "N/A",
+                 UploadedDate = f.UploadDate,
+                 DestinationFolderId = f.MediaFolderId,
+                 DestinationFolderName = f.MediaFolderId != null ? f.Folder.FolderName : "Unfiled"
+             })
+             .FirstOrDefaultAsync();
+
+            return files;
+        }
+
+        public async Task<OperationalResult> ChangeVisibility(
+             int folderId,
+             bool isPrivate)
+        {
+            var folder = await _context.MediaFolders
+                .FirstOrDefaultAsync(f =>
+                    f.MediaFolderId == folderId &&
+                    f.isArchived == false);
+
+            if (folder == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Folder not found."
+                };
+            }
+
+            folder.IsPrivate = isPrivate;
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = isPrivate
+                    ? "Folder changed to Private."
+                    : "Folder changed to Public."
+            };
+        }
+
+
+        public async Task<int> GetPendingFilesCountAsync()
+        {
+            return await _context.MediaFiles.CountAsync(f => f.IsArchived == false && f.MediaFileStatus == MediaFileStatus.Pending);
+        }
+
+       public async Task<FileInformationViewModel?> GetDeleteFile(int id)
+        {
+            var existingFile = await _context.MediaFiles
+                .AsNoTracking()
+                .Where(f => f.MediaFileId == id)
+                .Select(f => new FileInformationViewModel
+                {
+                    FileId = f.MediaFileId,
+                    FileExtension = f.FileExtension,
+                    Size = f.FileSizeBytes.ToString(),
+                    UploadedBy = f.Member.FullName ?? ""
+                }).FirstOrDefaultAsync();
+
+            return existingFile;
+        }
 
     }
 }

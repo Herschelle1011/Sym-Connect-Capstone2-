@@ -1,0 +1,640 @@
+﻿@model DetailsEvaluationViewModel
+@{
+    ViewData["Title"] = "Evaluation Details";
+    Layout = "_AdminLayout";
+
+    // ---- Computed status (Open / Upcoming / Closed) ----
+    // Same logic used on the Index cards: compare today's date against
+    // OpenAt / ClosesAt. Nothing new is added to the model — this only
+    // reads the two date fields that already exist on DetailsEvaluationViewModel.
+    var today = DateTime.Today;
+    string status = today < Model.OpenAt.Date ? "Upcoming"
+                   : today > Model.ClosesAt.Date ? "Closed"
+                   : "Open";
+    string statusKey = status.ToLower();
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-warning">@TempData["ErrorMessage"]</div>
+    }
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+    /* ===== Responses list ===== */
+    .response-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .response-card {
+        background: #fff;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 14px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .response-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #E8ECFB;
+        color: #3B4CCA;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+
+    .response-main {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .response-email {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #1F2937;
+    }
+
+    .response-date {
+        margin: 3px 0 0;
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .response-status {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 14px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+        .response-status.status-submitted {
+            background: #E6F4EA;
+            color: #1E7E34;
+        }
+
+        .response-status.status-draft {
+            background: #FFF4E0;
+            color: #B7791F;
+        }
+
+    .btn-view-response {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fff;
+        border: 1px solid #2F6FED;
+        color: #2F6FED;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 16px;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+
+        .btn-view-response:hover {
+            background: #F0F5FF;
+        }
+
+    .responses-empty {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--text-muted);
+    }
+
+        .responses-empty i {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.5;
+        }
+
+    .eval-details-page, .eval-details-page * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+        .eval-details-page .breadcrumb-row {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+            .eval-details-page .breadcrumb-row a {
+                color: var(--text-muted);
+                text-decoration: none;
+            }
+
+        .eval-details-page .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+            .eval-details-page .status-pill .dot {
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: currentColor;
+            }
+
+    .status-open {
+        background: #E6F4EA;
+        color: #1E7E34;
+    }
+
+    .status-upcoming {
+        background: #FFF4E0;
+        color: #B7791F;
+    }
+
+    .stat-icon.event {
+        background: #FDEBFB;
+        color: #A83DA0;
+    }
+
+    .status-closed {
+        background: #FBEAEA;
+        color: #BB1414;
+    }
+
+    .eval-details-page .meta-box {
+        background: #fff;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 14px;
+        padding: 22px 24px;
+    }
+
+    .eval-details-page .meta-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0 0 2px 0;
+    }
+
+    .eval-details-page .meta-value {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .eval-details-page .stats-row {
+        display: flex;
+        gap: 40px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color, #EEE);
+    }
+
+    .eval-details-page .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .eval-details-page .stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.opens {
+        background: #E8ECFB;
+        color: #3B4CCA;
+    }
+
+    .stat-icon.closes {
+        background: #E8ECFB;
+        color: #3B4CCA;
+    }
+
+    .stat-icon.questions {
+        background: #FFF4E0;
+        color: #B7791F;
+    }
+
+    .eval-details-page .stat-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .eval-details-page .stat-value {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .eval-details-page .btn-archive-outline {
+        border: 1px solid #BB1414;
+        color: #BB1414;
+        background: #fff;
+        border-radius: 10px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+        .eval-details-page .btn-archive-outline:hover {
+            background: #FBEAEA;
+        }
+
+    .eval-details-page .question-card {
+        background: #fff;
+        border: 1px solid var(--border-color, #EEE);
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin-bottom: 14px;
+    }
+
+    .eval-details-page .question-number {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #E8ECFB;
+        color: #3B4CCA;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .eval-details-page .type-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .eval-details-page .answer-preview .form-check {
+        margin-bottom: 4px;
+    }
+</style>
+
+<div class="container mt-4 eval-details-page">
+
+    @* ---- BREADCRUMB ---- *@
+    <p class="breadcrumb-row">
+        <a asp-action="Index"><i class="bi bi-arrow-left"></i> Evaluations</a>
+        &nbsp;›&nbsp; @Model.EvaluationTitle
+    </p>
+
+    @* ---- TITLE ROW ---- *@
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <h2 class="mb-0">@Model.EvaluationTitle</h2>
+            </div>
+            <p class="text-muted mb-0">@Model.Description</p>
+
+           
+        </div>
+
+        @if (status == "Upcoming")
+        {
+            <a asp-action="Edit" asp-route-id="@Model.EvaluationId" class="btn btn-primary">
+                <i class="bi bi-pencil-square"></i> Edit Evaluation
+            </a>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primary" disabled title="Only Upcoming evaluations can be edited">
+                <i class="bi bi-pencil-square"></i> Edit Evaluation
+            </button>
+        }
+
+
+    </div>
+
+    @* ---- STATUS + META ---- *@
+    <div class="meta-box mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <span class="status-pill status-@statusKey">
+                <span class="dot"></span> @status
+            </span>
+
+            <div class="text-end">
+                <p class="meta-label mb-1">CREATED ON</p>
+                <p class="meta-value">@Model.DateCreated.ToString("MMM dd, yyyy")</p>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-icon opens"><i class="bi bi-calendar3"></i></div>
+                <div>
+                    <p class="stat-label">Opens</p>
+                    <p class="stat-value">@Model.OpenAt.ToString("MMM dd, yyyy")</p>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.EventTitle))
+            {
+                <div class="stat-item">
+                    <div class="stat-icon event"><i class="bi bi-calendar-event"></i></div>
+                    <div>
+                        <p class="stat-label">Event</p>
+                        <p class="stat-value">@Model.EventTitle</p>
+                    </div>
+                </div>
+            }
+
+            <div class="stat-item">
+                <div class="stat-icon closes"><i class="bi bi-calendar3"></i></div>
+                <div>
+                    <p class="stat-label">Closes</p>
+                    <p class="stat-value">@Model.ClosesAt.ToString("MMM dd, yyyy")</p>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-icon questions"><i class="bi bi-list-check"></i></div>
+                <div>
+                    <p class="stat-label">Questions</p>
+                    <p class="stat-value">@(Model.Questions?.Count ?? 0) Questions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ---- ACTIONS ROW: only Archive exists in the backend ---- *@
+    <div class="d-flex justify-content-end mb-4">
+        <button type="button"
+                class="btn-archive-outline open-modal"
+                data-url="@Url.Action("Archive", "Evaluations", new { area = "Leader", id = Model.EvaluationId })"
+                data-title="Archive Evaluation">
+            <i class="bi bi-archive"></i> Archive Evaluation
+        </button>
+    </div>
+
+    @* ---- QUESTIONS (read-only list + Edit link only — no Delete/Add: not in backend) ---- *@
+    @* ---- TABS: Questions / Responses ---- *@
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#questionsTab">
+                Questions (@(Model.Questions?.Count ?? 0))
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#responsesTab">
+                Responses (@(Model.Submissions?.Count ?? 0))
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="summaryTabBtn" data-bs-toggle="tab" data-bs-target="#summaryTab">
+                <i class="bi bi-bar-chart-fill"></i> Summary
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        @* ---- QUESTIONS TAB ---- *@
+        <div class="tab-pane fade show active" id="questionsTab">
+            @if (Model.Questions == null || !Model.Questions.Any())
+            {
+                <p class="text-muted">No questions added yet.</p>
+            }
+            else
+            {
+                for (int i = 0; i < Model.Questions.Count; i++)
+                {
+                    var q = Model.Questions[i];
+                    var typeInfo = GetTypeBadge(q.AnswerType.ToString());
+
+                    <div class="question-card" data-detail-id="@q.EvaluationDetailId">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="question-number">@(i + 1)</span>
+                                <span class="type-badge" style="background:@typeInfo.Bg; color:@typeInfo.Color;">
+                                    <i class="bi @typeInfo.Icon"></i> @typeInfo.Label
+                                </span>
+                            </div>
+                        </div>
+
+                        <p class="mb-2 question-text-display">@q.QuestionText</p>
+
+                        <div class="question-edit-row d-none">
+                            <input type="text" class="form-control question-text-input mb-2" value="@q.QuestionText" />
+                            <input type="hidden" class="question-answertype-input" value="@((int)q.AnswerType)" />
+                            <div class="d-flex gap-2 mb-2">
+                                <button type="button" class="btn btn-sm btn-primary save-question-btn">Save</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary cancel-question-btn">Cancel</button>
+                            </div>
+                            <p class="text-danger small question-error-msg mb-2 d-none"></p>
+                        </div>
+
+                        <div class="answer-preview text-muted" data-type="@q.AnswerType"></div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- ---- RESPONSES TAB ---- -->
+        <div class="tab-pane fade" id="responsesTab">
+            @if (Model.Submissions == null || !Model.Submissions.Any())
+            {
+                <div class="responses-empty">
+                    <i class="bi bi-inbox"></i>
+                    <p>No responses yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="response-list">
+                    @foreach (var s in Model.Submissions)
+                    {
+                        var respStatusKey = s.Status;
+                        <div class="response-card">
+                            <div class="response-avatar">
+                                <i class="bi bi-person-fill"></i>
+                            </div>
+
+                            <div class="response-main">
+                                <p class="response-email">@s.Email</p>
+                                <p class="response-date">
+                                    <i class="bi bi-calendar3"></i>
+                                    @(s.SubmittedAt?.ToString("MMM dd, yyyy 'at' h:mm tt") ?? "Not submitted")
+                                </p>
+                            </div>
+
+                            <span class="response-status status-@respStatusKey">@s.Status</span>
+
+                            <button class="btn-view-response open-modal"
+                                    data-url="@Url.Action("SubmissionDetails",  new { area = "Leader", id = s.SubmissionId })"
+                                    data-title="Response from @s.Email">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+
+        <!-- ---- SUMMARY TAB (lazy-loaded) ---- -->
+        <div class="tab-pane fade" id="summaryTab">
+            <div id="summaryTabContent" class="text-center text-muted py-5">
+                <div class="spinner-border spinner-border-sm me-2"></div> Loading summary...
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@await Html.PartialAsync("~/Views/Shared/_Modal.cshtml")
+
+@functions {
+    // Cosmetic-only helper: maps your AnswerType enum to a label/icon/color
+    // for the small badge. Purely visual — doesn't touch or assume any
+    // backend logic beyond the enum value's name.
+    (string Label, string Icon, string Bg, string Color) GetTypeBadge(string answerType)
+    {
+        return answerType switch
+        {
+            "RatingScale" => ("Rating Scale", "bi-star-fill", "#E8ECFB", "#3B4CCA"),
+            _ => (answerType, "bi-question-circle", "#F0F0F0", "#555555")
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        function buildAnswerPreview(type) {
+            if (type === "RatingScale") {
+                let stars = "";
+                for (let i = 1; i <= 5; i++) {
+                    stars += `<i class="bi bi-star fs-4 me-2"></i>`;
+                }
+                return `<div class="d-flex">${stars}</div>`;
+            }
+
+            
+
+            return "";
+        }
+
+        document.querySelectorAll(".answer-preview").forEach(function (el) {
+            el.innerHTML = buildAnswerPreview(el.dataset.type);
+        });
+
+                // ---- Summary tab: lazy-load its HTML only the first time it's opened ----
+        let summaryLoaded = false;
+        document.getElementById('summaryTabBtn').addEventListener('shown.bs.tab', async function () {
+            if (summaryLoaded) return; // already fetched — don't hit the server again
+
+            const container = document.getElementById('summaryTabContent');
+            try {
+                const response = await fetch('@Url.Action("SummaryReports", "Evaluations",  new { area = "Leader", id = Model.EvaluationId })');
+                if (!response.ok) throw new Error('Failed to load');
+
+                container.innerHTML = await response.text();
+                summaryLoaded = true;
+            } catch (err) {
+                container.innerHTML = '<p class="text-danger">Could not load summary. Please try again.</p>';
+            }
+        });
+
+        // ---- Inline question editing: no redirect, updates the card in place ----
+        document.querySelectorAll('.edit-question-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const card = this.closest('.question-card');
+                card.querySelector('.question-text-display').classList.add('d-none');
+                card.querySelector('.question-edit-row').classList.remove('d-none');
+                this.classList.add('d-none');
+            });
+        });
+
+        document.querySelectorAll('.cancel-question-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const card = this.closest('.question-card');
+                const display = card.querySelector('.question-text-display');
+
+                // Reset the textbox back to whatever is currently displayed
+                card.querySelector('.question-text-input').value = display.textContent.trim();
+
+                card.querySelector('.question-edit-row').classList.add('d-none');
+                card.querySelector('.question-error-msg').classList.add('d-none');
+                display.classList.remove('d-none');
+                card.querySelector('.edit-question-btn').classList.remove('d-none');
+            });
+        });
+
+        document.querySelectorAll('.save-question-btn').forEach(function (btn) {
+            btn.addEventListener('click', async function () {
+                const card = this.closest('.question-card');
+                const detailId = card.dataset.detailId;
+                const newText = card.querySelector('.question-text-input').value.trim();
+                const answerType = card.querySelector('.question-answertype-input').value;
+                const errorMsg = card.querySelector('.question-error-msg');
+
+                if (!newText) {
+                    errorMsg.textContent = "Question text can't be empty.";
+                    errorMsg.classList.remove('d-none');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('EvaluationDetailId', detailId);
+                formData.append('QuestionText', newText);
+                formData.append('answerType', answerType);
+
+                try {
+                    const response = await fetch('@Url.Action("SaveQuestionViewModel", "Evaluations", new { area = "Leader" })', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        errorMsg.textContent = 'Could not save. Please try again.';
+                        errorMsg.classList.remove('d-none');
+                        return;
+                    }
+
+                    const display = card.querySelector('.question-text-display');
+                    display.textContent = result.questionText;
+
+                    card.querySelector('.question-edit-row').classList.add('d-none');
+                    errorMsg.classList.add('d-none');
+                    display.classList.remove('d-none');
+                    card.querySelector('.edit-question-btn').classList.remove('d-none');
+                } catch (err) {
+                    errorMsg.textContent = 'Network error. Please try again.';
+                    errorMsg.classList.remove('d-none');
+                }
+
+            });
+        });
+    </script>
+}

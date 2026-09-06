@@ -17,10 +17,19 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/sidebar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/leader/dashboard.css" asp-append-version="true" />
+
     <link rel="stylesheet" href="~/Sym_Connect__Capstone2_.styles.css" asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/notification-dropdown.css"
+          asp-append-version="true" />
 </head>
 <body>
 
+    <div style="display:none;">
+        @Html.AntiForgeryToken()
+    </div>
     @{
         var userId = UserManager.GetUserId(User);
 
@@ -38,21 +47,47 @@
     }
 
     <!-- ═══════════════════════════════ TOP BAR ═══════════════════════════════ -->
-    <div id="topbar">
-        <button id="sidebar-toggle" title="Open menu">
-            <i class="bi bi-list"></i>
-        </button>
-        <span class="topbar-brand">SYM-Connect</span>
-        <div class="topbar-actions">
-            <a asp-controller="Notifications" asp-action="Index" class="topbar-icon-btn" title="Notifications">
+  <div id="topbar">
+
+    <button id="sidebar-toggle"
+            title="Open menu">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <span class="topbar-brand">
+        SYM-Connect
+    </span>
+
+    <div class="topbar-actions">
+
+        <a asp-controller="Notifications"
+           asp-action="Index"
+           asp-area=""
+           class="topbar-icon-btn"
+           id="notifBell"
+           title="Notifications">
+
                 <i class="bi bi-bell"></i>
-                <span class="notif-dot"></span>
-            </a>
-            <img class="topbar-avatar"
-                 src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
-                 alt="User Avatar" />
+                <span class="notif-count"
+                      id="notifCount"
+                      style="display:none;">
+                    0
+                </span>
+
+        </a>
+
+        <div id="notifDropdownPanel"
+             class="notif-dropdown-panel">
         </div>
+
+        <img class="topbar-avatar"
+             src="@(string.IsNullOrEmpty(profilePicture)
+                 ? fallbackAvatar
+                 : profilePicture)"
+             alt="User Avatar" />
+
     </div>
+</div>
 
     <!-- ═══════════════════════════════ OVERLAY ═══════════════════════════════ -->
     <div id="sidebar-overlay"></div>
@@ -83,7 +118,7 @@
                 <span class="nav-label">Notifications</span>
             </a>
 
-            <a asp-controller="Dashboard" asp-action="Index"
+            <a asp-controller="Member" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
                 <i class="bi bi-grid"></i>
                 <span class="nav-label">Dashboard</span>
@@ -172,10 +207,16 @@
             </div>
         </div>
 
-        <script src="~/lib/jquery/dist/jquery.min.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-        @await RenderSectionAsync("Scripts", required: false)
+ <script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+<script src="~/js/admin/notification.js" asp-append-version="true"></script>
+
+@await RenderSectionAsync("Scripts", required: false)
 
         <script>
             const sidebar = document.getElementById('sidebar');

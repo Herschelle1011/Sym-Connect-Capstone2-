@@ -2,27 +2,53 @@
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.ViewModels.Announcement;
 using Sym_Connect__Capstone2_.Services.Interfaces;
-
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Dashboard;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
     public class MemberController : Controller
     {
         private readonly IMemberService _memberService;
+        private readonly IAnnouncementService _announcementService;
 
-        public MemberController(IMemberService memberService)
+
+        public MemberController(IMemberService memberService, IAnnouncementService announcementService)
         {
             _memberService = memberService;
+            _announcementService = announcementService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            int? memberId = HttpContext.Session.GetInt32("CurrentMemberId");
+            if (memberId is null)
+                return RedirectToAction("Login", "Account", new { area = "Identity" });
+
+            var (groupId, isLeader) = await _memberService.GetAnnouncementContextAsync(memberId.Value);
+
+            var model = new DashboardViewModel
+            {
+                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementAsync(isLeader, groupId)
+            };
+
+            return View(model);
         }
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            return View();
+            int? memberId = HttpContext.Session.GetInt32("CurrentMemberId");
+            if (memberId is null)
+                return RedirectToAction("Login", "Account", new { area = "Identity" });
+
+            var (groupId, isLeader) = await _memberService.GetAnnouncementContextAsync(memberId.Value);
+
+            var model = new DashboardViewModel
+            {
+                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementAsync(isLeader, groupId)
+            };
+
+            return View(model);
         }
         public IActionResult SimulateLogin(int memberId)
         {

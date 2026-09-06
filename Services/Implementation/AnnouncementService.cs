@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.AnnouncementModels;
 using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -14,13 +16,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         private readonly AppDbContext _context;
         private readonly IGroupService _groupService;
         private readonly INotificationService _notificationService;
+        private readonly UserManager<User> _userManager;
 
 
-        public AnnouncementService(AppDbContext context, IGroupService groupService, INotificationService notificationService)
+        public AnnouncementService(AppDbContext context, IGroupService groupService, INotificationService notificationService, UserManager<User> userManager)
         {
             _context = context;
             _groupService = groupService;
             _notificationService = notificationService;
+            _userManager = userManager;
         }
 
         public async Task<List<ListAnnouncementViewModel>> GetAllAnnouncementAsync()
@@ -62,6 +66,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     PublishDate = a.PublishDate
                 })
                 .ToListAsync();
+
+
+
         }
 
         public async Task<DetailsAnnouncementViewModel> GetByIdAsync(int id)
@@ -126,6 +133,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             _context.Announcements.Add(NewAnnouncement);
             await _context.SaveChangesAsync();
+
+            //MUST ANNOUNCE IF PUBLISHDATE MATCHES DATE NOW 
+            if (NewAnnouncement.PublishDate <= DateTime.Now)
+            {
+                await SendAnnouncementNotificationsAsync(NewAnnouncement);
+            }
+
             return new OperationalResult { Success = true, Message = "Announcement created successfully" };
         }
 
@@ -192,6 +206,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                                                 bool isLeader, int? groupId)
         {
             var now = DateTime.Now;
+            
 
             return await _context.Announcements.AsNoTracking()
                     .Where(a => !a.IsArchived)
@@ -200,7 +215,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     .Where(a =>
                             a.TargetAudience == TargetAudience.Everyone ||
                             (a.TargetAudience == TargetAudience.AllLeaders && isLeader) ||
-                            a.TargetAudience == TargetAudience.AllMembers ||
+                            a.TargetAudience == TargetAudience.AllMembers && !isLeader||
                             a.TargetAudience == TargetAudience.SpecificGroup && a.GroupId == groupId)
                     .OrderByDescending(a => a.PublishDate)
                     .Select(a => new VisibleAnnouncementViewModel
@@ -216,13 +231,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         GroupName = a.Group.GroupName != null ? a.Group.GroupName : null
                     })
                     .ToListAsync();
+
+
         }
 
         //============ PINNED TO DASHBOARD =========== 
         public async Task<VisibleAnnouncementViewModel?> GetPinnedAnnouncementAsync(bool isLeader, int? groupId)
         {
             var now = DateTime.Now;
-
+       
             return await _context.Announcements.AsNoTracking()
                     .Where(a => !a.IsArchived)
                     .Where(a => a.IsPinned == true)
@@ -231,17 +248,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     .Where(a =>
                             a.TargetAudience == TargetAudience.Everyone ||
                             (a.TargetAudience == TargetAudience.AllLeaders && isLeader) ||
-                            a.TargetAudience == TargetAudience.AllMembers ||
+                            a.TargetAudience == TargetAudience.AllMembers && !isLeader ||
                             (a.TargetAudience == TargetAudience.SpecificGroup && a.GroupId == groupId))
                     .OrderByDescending(a => a.PublishDate)
                     .Select(a => new VisibleAnnouncementViewModel
                     {
                         AnnouncementId = a.AnnouncementId,
                         Title = a.Title,
+                        PhotoUrl= a.User != null ? a.User.ProfilePictureUrl : "null",
                         Content = a.Content,
                         PublishedAt = a.PublishDate,
                         ExpiresAt = a.ExpirationDate,
                         TargetType = a.TargetAudience,
+                        PostedByName = a.User.DisplayName ?? "Unknown",
                         GroupName = a.Group.GroupName
                     })
                     .FirstOrDefaultAsync();
@@ -353,5 +372,185 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
         }
 
+
+
+
+        private async Task SendAnnouncementNotificationsAsync(Announcement announcement)
+        {
+          
+            var title = "New Announcement";
+
+            var message =
+                $"A new announcement \"{announcement.Title}\" has been posted.";
+
+            var url =
+                $"/AnnouncementFeed?openAnnouncementId={announcement.AnnouncementId}";
+
+
+            // EVERYONE
+
+            if (announcement.TargetAudience == TargetAudience.Everyone)
+            {
+                
+
+                var allUsers = await _context.Users
+              .Where(u => u.MemberId != null)
+              .ToListAsync();
+
+
+                foreach (var user in allUsers)
+                {
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.NotifyUserAsync(
+                        user.Id,
+                        title,
+                        message,
+                        url
+                    );
+                }
+
+                return;
+            }
+
+
+            // ALL LEADERS
+
+            if (announcement.TargetAudience == TargetAudience.AllLeaders)
+            {
+                var leaderMemberIds = await _context.Groups
+                    .Where(g =>
+                        !g.IsArchived &&
+                        g.LeaderId != null)
+                    .Select(g => g.LeaderId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                var leaderUserIds = await _context.Users
+                    .Where(u =>
+                        u.MemberId != null &&
+                        leaderMemberIds.Contains(u.MemberId.Value))
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                foreach (var userId in leaderUserIds)
+                {
+                    await _notificationService.NotifyUserAsync(
+                        userId,
+                        title,
+                        message,
+                        url
+                    );
+                }
+
+                return;
+            }
+
+
+            // ALL MEMBERS
+
+            if (announcement.TargetAudience == TargetAudience.AllMembers)
+            {
+
+                var leaderMemberIds = await _context.Groups
+                    .Where(g =>
+                        !g.IsArchived &&
+                        g.LeaderId != null)
+                    .Select(g => g.LeaderId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                var memberUserIds = await _context.Users
+                    .Where(u =>
+                        u.MemberId != null &&
+                        !leaderMemberIds.Contains(u.MemberId.Value))
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                var users = await _context.Users
+             .Where(u =>
+                u.MemberId != null &&
+                 !leaderMemberIds.Contains(u.MemberId.Value))
+               .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    if(await _userManager.IsInRoleAsync(user, "Admin"))
+                    {
+                        continue;
+                    }
+
+                    await _notificationService.NotifyUserAsync(
+                        user.Id,
+                        title,
+                        message,
+                        url
+                    );
+                }
+
+                return;
+            }
+
+
+            /// ==========================================
+            // SPECIFIC GROUP
+            // Leader + members of that group
+            // ==========================================
+
+            if (announcement.TargetAudience == TargetAudience.SpecificGroup &&
+                announcement.GroupId.HasValue)
+            {
+                var groupId = announcement.GroupId.Value;
+
+                // Get normal members from GroupDetails
+                var groupMemberIds = await _context.GroupDetails
+                    .Where(gd => gd.GroupId == groupId)
+                    .Select(gd => gd.MemberId)
+                    .ToListAsync();
+
+
+                // Get the leader from Group.LeaderId
+                var leaderMemberId = await _context.Groups
+                    .Where(g => g.GroupId == groupId)
+                    .Select(g => g.LeaderId)
+                    .FirstOrDefaultAsync();
+
+
+                // Add the leader to the recipients
+                if (leaderMemberId.HasValue)
+                {
+                    groupMemberIds.Add(leaderMemberId.Value);
+                }
+
+
+                // Remove duplicates
+                groupMemberIds = groupMemberIds
+                    .Distinct()
+                    .ToList();
+
+
+                // Convert MemberIds into Identity UserIds
+                var userIds = await _context.Users
+                    .Where(u =>
+                        u.MemberId != null &&
+                        groupMemberIds.Contains(u.MemberId.Value))
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+
+                foreach (var userId in userIds)
+                {
+                    await _notificationService.NotifyUserAsync(
+                        userId,
+                        title,
+                        message,
+                        url
+                    );
+                }
+            }
+        }
     }
 }

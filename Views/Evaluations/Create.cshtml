@@ -89,14 +89,16 @@
         margin-bottom: 6px;
     }
 
-    .eval-create-page .form-control {
+    .eval-create-page .form-control,
+    .eval-create-page .form-select {
         border: 1px solid #E3E7ED;
         border-radius: 10px;
         padding: 10px 14px;
         font-size: 14px;
     }
 
-        .eval-create-page .form-control:focus {
+        .eval-create-page .form-control:focus,
+        .eval-create-page .form-select:focus {
             border-color: #2F6FED;
             box-shadow: 0 0 0 3px rgba(47,111,237,0.12);
         }
@@ -474,6 +476,11 @@
             background: #2559C7;
             color: #fff;
         }
+
+
+
+
+
 </style>
 
 <div class="container eval-create-page">
@@ -493,6 +500,69 @@
                         <input asp-for="EvaluationTitle" class="form-control" placeholder="Enter title..." />
                         <span asp-validation-for="EvaluationTitle" class="text-danger"></span>
                     </div>
+
+                    <div class="mb-3">
+
+                        <label class="form-label">
+                            Event to Evaluate
+                        </label>
+
+                        <!-- This is the actual value submitted to Controller -->
+                        <input asp-for="EventId"
+                               type="hidden"
+                               id="selectedEventId" />
+
+
+                        <!-- Nothing selected yet -->
+                        <button type="button"
+                                class="btn btn-outline-primary w-100 text-start"
+                                id="btnSelectEvent">
+
+                            <i class="bi bi-calendar-event me-2"></i>
+
+                            <span id="selectedEventButtonText">
+                                Select Event
+                            </span>
+
+                        </button>
+
+
+                        <!-- Selected Event -->
+                        <div id="selectedEventDisplay"
+                             class="mt-2 p-3 border rounded-3 bg-light"
+                             style="display:none;">
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <div>
+                                    <div class="small text-muted">
+                                        Selected Event
+                                    </div>
+
+                                    <div class="fw-semibold"
+                                         id="selectedEventTitle">
+                                    </div>
+                                </div>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-link"
+                                        id="btnChangeEvent">
+
+                                    Change
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <span asp-validation-for="EventId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Description</label>
                         <textarea asp-for="Description" class="form-control" placeholder="Enter description..."></textarea>
@@ -616,7 +686,17 @@
                 <div class="top-bar"></div>
                 <div class="overview-card-body">
                     <h3 class="overview-eval-title" id="overviewTitle"></h3>
+                    <div class="mt-2">
+                        <span class="overview-date-label">
+                            Event:
+                        </span>
+                        <span id="overviewEvent"
+                              class="fw-semibold ms-1">
+                        </span>
+                        </div>
                     <hr />
+
+
                     <p class="overview-description" id="overviewDescription"></p>
                     <hr />
                     <div class="overview-dates">
@@ -673,7 +753,20 @@
         // ---- Date validation ----
         const openAtInput = document.getElementById("openAtInput");
         const closedAtInput = document.getElementById("closedAtInput");
-        const today = new Date().toISOString().split("T")[0];
+        const selectedEventId =
+            document.getElementById("selectedEventId");
+
+        const selectedEventTitle =
+            document.getElementById("selectedEventTitle");
+
+        const selectedEventDisplay =
+            document.getElementById("selectedEventDisplay");
+
+        const btnSelectEvent =
+            document.getElementById("btnSelectEvent");
+
+        const btnChangeEvent =
+            document.getElementById("btnChangeEvent");        const today = new Date().toISOString().split("T")[0];
         openAtInput.min = today;
         closedAtInput.min = today;
         openAtInput.addEventListener("change", function () {
@@ -684,7 +777,6 @@
                 }
             }
         });
-
         // ---- Core: add one question block into a given section ----
         function addQuestionBlock(listName, containerId, questionId = "", questionText = "") {
             const template = document.getElementById("questionTemplate").content.cloneNode(true);
@@ -795,10 +887,19 @@
         }
 
         function validateStep(stepNumber) {
-            if (stepNumber === 1) {
-                return document.querySelector('[name="EvaluationTitle"]').value.trim()
-                    && openAtInput.value && closedAtInput.value;
-            }
+                    if (stepNumber === 1) {
+
+            return document
+                    .querySelector('[name="EvaluationTitle"]')
+                    .value
+                    .trim()
+
+                && selectedEventId.value
+
+                && openAtInput.value
+
+                && closedAtInput.value;
+        }
             if (stepNumber === 2) {
                 const filled = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input"))
                     .some(i => i.value.trim());
@@ -831,34 +932,92 @@
             return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
         }
 
-        function updateOverview() {
-            const title = document.querySelector('[name="EvaluationTitle"]').value || "(No title yet)";
-            const description = document.querySelector('[name="Description"]').value || "";
+                function updateOverview() {
 
-            document.getElementById("overviewTitle").textContent = title;
-            document.getElementById("overviewDescription").textContent = description;
-            document.getElementById("overviewOpenDate").textContent = formatOverviewDate(openAtInput.value);
-            document.getElementById("overviewCloseDate").textContent = formatOverviewDate(closedAtInput.value);
+            const title =
+                document.querySelector('[name="EvaluationTitle"]').value
+                || "(No title yet)";
 
-            const ratingTexts = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input"))
-                .map(i => i.value.trim()).filter(Boolean);
+            const description =
+                document.querySelector('[name="Description"]').value
+                || "";
 
-            const starLabels = ["Very poor", "Poor", "Neutral", "Excellent", "Very Excellent"];
+                    const eventName =
+        selectedEventTitle.textContent.trim()
+            || "No event selected";
+
+
+            document.getElementById("overviewTitle")
+                .textContent = title;
+
+            document.getElementById("overviewEvent")
+                .textContent = eventName;
+
+            document.getElementById("overviewDescription")
+                .textContent = description;
+
+            document.getElementById("overviewOpenDate")
+                .textContent = formatOverviewDate(openAtInput.value);
+
+            document.getElementById("overviewCloseDate")
+                .textContent = formatOverviewDate(closedAtInput.value);
+
+
+            const ratingTexts = Array.from(
+                document.querySelectorAll(
+                    "#ratingQuestionsContainer .question-text-input"
+                )
+            )
+                .map(i => i.value.trim())
+                .filter(Boolean);
+
+
+            const starLabels = [
+                "Very poor",
+                "Poor",
+                "Neutral",
+                "Excellent",
+                "Very Excellent"
+            ];
+
             let colorIndex = 0;
             let html = "";
 
+
             ratingTexts.forEach(t => {
-                const color = overviewCardColors[colorIndex % overviewCardColors.length];
+
+                const color =
+                    overviewCardColors[
+                        colorIndex % overviewCardColors.length
+                    ];
+
                 colorIndex++;
-                html += `<div class="overview-question-block" style="border-left-color:${color}">
-                    <p class="overview-question-label">${t}</p>
-                    <div class="overview-star-row">
-                        ${starLabels.map(label => `<div class="overview-star-item"><i class="bi bi-star"></i><span>${label}</span></div>`).join("")}
+
+                html += `
+                    <div class="overview-question-block"
+                         style="border-left-color:${color}">
+
+                        <p class="overview-question-label">
+                            ${t}
+                        </p>
+
+                        <div class="overview-star-row">
+
+                            ${starLabels.map(label => `
+                                <div class="overview-star-item">
+                                    <i class="bi bi-star"></i>
+                                    <span>${label}</span>
+                                </div>
+                            `).join("")}
+
+                        </div>
                     </div>
-                </div>`;
+                `;
             });
 
-            document.getElementById("overviewContent").innerHTML = html;
+
+            document.getElementById("overviewContent")
+                .innerHTML = html;
         }
 
         setupCommonQuestionsBox('.common-questions-box[data-list="RatingQuestions"]', "RatingQuestions", "ratingQuestionsContainer");
@@ -874,5 +1033,125 @@
                 goToStep(2);
             }
         });
+
+
+                      async function openEventPicker() {
+            try {
+                const response = await fetch(
+                    '@Url.Action("SelectEvent", "Evaluations", new { area = "Admin" })',
+                    { headers: { "X-Requested-With": "XMLHttpRequest" } }
+                );
+
+                if (!response.ok) throw new Error("Could not load events.");
+
+                const html = await response.text();
+
+                document.getElementById("appModalBody").innerHTML = html;   // ✅ matches site.js
+                document.getElementById("appModalLabel").innerText = "Select Event"; // optional but consistent
+
+                const modalElement = document.getElementById("appModal");   // ✅ matches site.js
+                const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                modal.show();
+
+                bindEventPicker();
+            }
+            catch (error) {
+                console.error(error);
+                alert("Unable to load completed events.");
+            }
+        }
+
+                btnSelectEvent.addEventListener("click", function () {
+            openEventPicker();
+        });
+
+        btnChangeEvent.addEventListener("click", function () {
+            openEventPicker();
+        });
+
+                function bindEventPicker() {
+
+            const searchInput =
+                document.getElementById("eventSearchInput");
+
+
+            // ================= SEARCH =================
+
+            if (searchInput) {
+
+                searchInput.addEventListener("input", function () {
+
+                    const search =
+                        this.value.trim().toLowerCase();
+
+                    document
+                        .querySelectorAll(".event-candidate-row")
+                        .forEach(function (row) {
+
+                            const title =
+                                row.dataset.eventTitle.toLowerCase();
+
+                            row.style.display =
+                                title.includes(search)
+                                    ? "block"
+                                    : "none";
+                        });
+                });
+            }
+
+
+            // ================= SELECT EVENT =================
+
+            document
+                .querySelectorAll(".event-candidate-row")
+                .forEach(function (row) {
+
+                    row.addEventListener("click", function () {
+
+                        const eventId =
+                            this.dataset.eventId;
+
+                        const eventTitle =
+                            this.dataset.eventTitle;
+
+
+                        // Put selected ID into hidden input
+                        selectedEventId.value = eventId;
+
+
+                        // Show selected event name
+                        selectedEventTitle.textContent =
+                            eventTitle;
+
+
+                        selectedEventDisplay.style.display =
+                            "block";
+
+
+                        // Hide original Select Event button
+                        btnSelectEvent.style.display =
+                            "none";
+
+
+                        // Close modal
+                        const modalElement =
+                            document.getElementById("open-modal");
+
+                        const modal =
+                            bootstrap.Modal.getInstance(modalElement);
+
+                        if (modal) {
+                            modal.hide();
+                        }
+
+
+                        // Update Step 3 preview
+                        updateOverview();
+
+                    });
+
+                });
+        }
+
     </script>
 }

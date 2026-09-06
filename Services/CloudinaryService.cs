@@ -11,7 +11,7 @@ namespace Sym_Connect__Capstone2_.Services
             _cloudinary = cloudinary;
         }
 
-        public async Task<string> UploadProfilePicture(IFormFile file, string userId)
+        public async Task<string?> UploadProfilePicture(IFormFile file, string userId)
         {
             await using var stream = file.OpenReadStream();
 

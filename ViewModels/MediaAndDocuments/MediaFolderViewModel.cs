@@ -1,4 +1,5 @@
-﻿namespace Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments
+﻿using Sym_Connect__Capstone2_.Models.Enums;
+namespace Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments
 {
     public class MediaFolderViewModel
     {
@@ -10,5 +11,12 @@
         public bool IsPrivate { get; set; }
 
         public bool? isArchived { get; set; }
+
+        public MediaFileStatus MediaFileStatus { get; set; }
+
+        public List<MediaFolderViewModel> Folders { get; set; }
+              = new List<MediaFolderViewModel>();
+
+        public string createByMemberName { get; set; } = string.Empty;
     }
 }

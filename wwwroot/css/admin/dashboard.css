@@ -1,0 +1,176 @@
+﻿/* ============================================================
+   Admin Dashboard — Event Status card + Recent Event Requests card
+   Place at: wwwroot/css/adminDashboardCards.css
+   (Add a matching @section Styles / <link> in the layout,
+   the same way eventRequest.css is included on the Events page.)
+   ============================================================ */
+
+/* ---- Shared small icon badge used in card headers ---- */
+.card-icon-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-icon-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+    .card-icon-badge.blue {
+        background: #dbeafe;
+        color: #3b82f6;
+    }
+
+    .card-icon-badge.pink {
+        background: #fbe3ef;
+        color: #db2777;
+    }
+
+    .card-icon-badge.green {
+        background: #d1fae5;
+        color: #10b981;
+    }
+
+    .card-icon-badge.orange {
+        background: #fef3c7;
+        color: #f59e0b;
+    }
+
+.view-all-link {
+    color: #2f6fed;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+    .view-all-link:hover {
+        text-decoration: underline;
+    }
+
+/* ---- Recent Event Requests: status pills ---- */
+.status-badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fff3cd;
+    color: #997404;
+}
+
+.status-approved {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-rejected {
+    background: #f8d7da;
+    color: #842029;
+}
+
+/* ---- Event Status card ---- */
+.chart-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.period-select-btn {
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #6b7280;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+    .period-select-btn:disabled {
+        opacity: 0.7;
+        cursor: default;
+    }
+
+.donut-chart-wrapper {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    flex-shrink: 0;
+}
+
+    .donut-chart-wrapper canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+.donut-center-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.donut-center-number {
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: #1c1c28;
+    line-height: 1.1;
+}
+
+.donut-center-caption {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+.chart-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-grow: 1;
+    min-width: 160px;
+}
+
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    color: #374151;
+}
+
+    .chart-legend-item .legend-dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+
+    .chart-legend-item strong {
+        font-weight: 700;
+        color: #1c1c28;
+    }
+
+/* ---- Weekly Summary card (kept compact, below Event Status) ---- */
+.bar-chart-wrapper {
+    position: relative;
+    height: 180px;
+}
+
+    .bar-chart-wrapper canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }

@@ -84,6 +84,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var notification = new Notification
             {
+
                 Title = title,
                 Message = message,
                 CreatedAt = DateTime.Now,
@@ -160,6 +161,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Take(count)
                 .Select(n => new NotificationViewModel
                 {
+                    NotificationId = n.NotificationId,
                     Title = n.Title,
                     Message = n.Message,
                     CreatedAt = n.CreatedAt,

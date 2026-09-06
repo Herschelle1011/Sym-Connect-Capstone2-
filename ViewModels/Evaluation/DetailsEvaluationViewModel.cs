@@ -6,6 +6,7 @@
         public string EvaluationTitle { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
+        public string EventTitle { get; set; } = string.Empty;
 
         public DateTime DateCreated { get; set; }
         public DateTime OpenAt { get; set; }

@@ -5,108 +5,62 @@
     Layout = "_AdminLayout";
 }
 
-<style>
-    .dot {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        margin-right: 4px;
-    }
 
-    .date-box {
-        background: #eef1ff;
-        border-radius: 8px;
-        padding: 6px 12px;
-        min-width: 56px;
-    }
-
-    .status-badge {
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-weight: 500;
-    }
-
-    .status-pending {
-        background: #fff3cd;
-        color: #997404;
-    }
-
-    .status-approved {
-        background: #d1e7dd;
-        color: #0f5132;
-    }
-
-    .status-rejected {
-        background: #f8d7da;
-        color: #842029;
-    }
-
-    .btn-approve-event {
-        background: #d1e7dd;
-        color: #0f5132;
-        border: none;
-    }
-
-        .btn-approve-event:hover {
-            background: #b8dfc9;
-        }
-
-    .btn-reject-event {
-        background: #f8d7da;
-        color: #842029;
-        border: none;
-    }
-
-        .btn-reject-event:hover {
-            background: #f1b0b7;
-        }
-</style>
-<div class="container-fluid py-4">
+<div class="container-fluid py-4 event-request-page">
 
     <div style="display:none">
         @Html.AntiForgeryToken()
     </div>
 
+    <h2 class="page-title mb-4">Event Request</h2>
+
     <!-- ═══════════════ STAT CARDS ═══════════════ -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="fw-bold mb-1">@Model.TotalRequests</h3>
-                    <span class="text-muted small">
-                        <span class="dot bg-secondary"></span> Total requests
-                    </span>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-blue">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>@Model.TotalRequests</h3>
+                    <div class="stat-label">Total Request</div>
+                    <div class="stat-sub">Assigned events</div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="fw-bold mb-1">@Model.PendingCount</h3>
-                    <span class="text-muted small">
-                        <span class="dot bg-warning"></span> Awaiting review
-                    </span>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-orange">
+                    <i class="bi bi-clock-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>@Model.PendingCount</h3>
+                    <div class="stat-label">Awaiting review</div>
+                    <div class="stat-sub">All group members</div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="fw-bold mb-1">@Model.ApprovedCount</h3>
-                    <span class="text-muted small">
-                        <span class="dot bg-success"></span> Approved
-                    </span>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-green">
+                    <i class="bi bi-check-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>@Model.ApprovedCount</h3>
+                    <div class="stat-label">Approve</div>
+                    <div class="stat-sub">All members attended</div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h3 class="fw-bold mb-1">@Model.RejectedCount</h3>
-                    <span class="text-muted small">
-                        <span class="dot bg-danger"></span> Rejected
-                    </span>
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-red">
+                    <i class="bi bi-x-circle-fill"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>@Model.RejectedCount</h3>
+                    <div class="stat-label">Rejected</div>
+                    <div class="stat-sub">No members attended</div>
                 </div>
             </div>
         </div>
@@ -114,26 +68,20 @@
 
     <!-- ═══════════════ FILTER TABS + SEARCH ═══════════════ -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <div class="btn-group filter-tabs" role="group">
-            <button type="button" class="btn btn-dark active" data-filter="all">
-                All (@Model.TotalRequests)
-            </button>
-            <button type="button" class="btn btn-outline-secondary" data-filter="pending">
-                Pending (@Model.PendingCount)
-            </button>
-            <button type="button" class="btn btn-outline-secondary" data-filter="approved">
-                Approved (@Model.ApprovedCount)
-            </button>
-            <button type="button" class="btn btn-outline-secondary" data-filter="rejected">
-                Rejected (@Model.RejectedCount)
-            </button>
+        <div class="filter-tabs" role="group">
+            <button type="button" class="filter-tab active" data-filter="all">All</button>
+            <button type="button" class="filter-tab" data-filter="pending">Pending</button>
+            <button type="button" class="filter-tab" data-filter="approved">Approved</button>
+            <button type="button" class="filter-tab" data-filter="rejected">Rejected</button>
         </div>
 
-        <input type="text"
-               id="eventRequestSearch"
-               class="form-control"
-               style="max-width: 280px;"
-               placeholder="Search your events..." />
+        <div class="search-wrap">
+            <input type="text"
+                   id="eventRequestSearch"
+                   class="form-control search-input"
+                   placeholder="Search your events..." />
+            <i class="bi bi-search"></i>
+        </div>
     </div>
 
     <!-- ═══════════════ EVENT LIST ═══════════════ -->
@@ -142,82 +90,73 @@
         {
             var statusKey = e.ApprovalStatus.ToString().ToLower(); // "pending" | "approved" | "rejected"
 
-            <div class="card border-0 shadow-sm event-request-row"
+            <div class="event-request-row"
+                 data-event-id="@e.EventId"
                  data-status="@statusKey"
                  data-title="@e.EventTitle.ToLower()"
-                 data-url="@Url.Action("Details", "Events", new { id = e.EventId })"
-                 style="cursor: pointer;">
+                 data-url="@Url.Action("Details", "Events", new { id = e.EventId })">
 
-                <div class="card-body d-flex align-items-center gap-3">
+                <div class="event-row-body">
 
                     <!-- Date box -->
                     <div class="date-box text-center flex-shrink-0">
-                        <div class="fw-bold text-primary">@e.StartDate.Day</div>
-                        <div class="text-uppercase small text-muted">@e.StartDate.ToString("MMM")</div>
+                        <div class="date-day">@e.StartDate.Day</div>
+                        <div class="date-month">@e.StartDate.ToString("MMM")</div>
                     </div>
 
                     <!-- Main info -->
                     <div class="flex-grow-1 min-w-0">
-                        <div class="fw-semibold">@e.EventTitle</div>
-                        <div class="text-muted small text-truncate">
-                            @if (e.FacilityNames.Any())
-                            {
-                                @string.Join(", ", e.FacilityNames)
-                                <span class="mx-1">·</span>
-                            }
-                            @if (e.GroupNames.Any())
-                            {
-                                @string.Join(", ", e.GroupNames)
-                                <span class="mx-1">·</span>
-                            }
-
+                        <div class="event-title-row">
+                            <span class="event-title fw-semibold">@e.EventTitle</span>
                             @switch (e.ApprovalStatus)
                             {
                                 case ApprovalStatus.Pending:
-                                    <span>Submitted @e.DateCreated.ToTimeAgo()</span>
+                                    <span class="badge status-badge status-pending">Pending</span>
                                     break;
                                 case ApprovalStatus.Approved:
-                                    <span>Approved by @(e.ApproveByName ?? "Admin")</span>
+                                    <span class="badge status-badge status-approved">Approved</span>
                                     break;
                                 case ApprovalStatus.Rejected:
-                                    <span>Reviewed @(e.ApprovedDate?.ToTimeAgo() ?? e.DateCreated.ToTimeAgo())</span>
+                                    <span class="badge status-badge status-rejected" title="@e.RejectionReason">Rejected</span>
+                                    break;
+                            }
+                        </div>
+
+                        <div class="event-meta">
+                            @if (e.FacilityNames.Any())
+                            {
+                                <span class="meta-item"><i class="bi bi-geo-alt"></i>@string.Join(", ", e.FacilityNames)</span>
+                            }
+                            @if (e.GroupNames.Any())
+                            {
+                                <span class="meta-item"><i class="bi bi-people"></i>@string.Join(", ", e.GroupNames)</span>
+                            }
+                            @switch (e.ApprovalStatus)
+                            {
+                                case ApprovalStatus.Pending:
+                                    <span class="meta-item">Submitted @e.DateCreated.ToTimeAgo()</span>
+                                    break;
+                                case ApprovalStatus.Approved:
+                                    <span class="meta-item meta-approved"><i class="bi bi-check-circle-fill"></i>Approved by @(e.ApproveByName ?? "Admin")</span>
+                                    break;
+                                case ApprovalStatus.Rejected:
+                                    <span class="meta-item meta-rejected"><i class="bi bi-x-circle-fill"></i>Rejected by @(e.ApproveByName ?? "Admin")</span>
                                     break;
                             }
                         </div>
                     </div>
 
-                    <!-- Right side: actions or status badge -->
+                    <!-- Right side: actions -->
                     <div class="flex-shrink-0 d-flex align-items-center gap-2">
                         @if (e.ApprovalStatus == ApprovalStatus.Pending)
                         {
-                            <span class="badge status-badge status-pending">Pending review</span>
-                            <button type="button"
-                                    class="btn btn-sm btn-approve-event"
-                                    data-event-id="@e.EventId">
-                                Approve
-                            </button>
-                            <button type="button"
-                                    class="btn btn-sm btn-reject-event"
-                                    data-event-id="@e.EventId"
-                                    data-event-title="@e.EventTitle">
-                                Reject
-                            </button>
+                           
                         }
-                        else if (e.ApprovalStatus == ApprovalStatus.Approved)
-                        {
-                            <span class="badge status-badge status-approved">Approved</span>
-                        }
-                        else
-                        {
-                            <span class="badge status-badge status-rejected"
-                                  title="@e.RejectionReason">
-                                Rejected
-                            </span>
-                        }
+                        <button type="button" class="btn-view">View</button>
                     </div>
-                    </div>
+
                 </div>
-     
+            </div>
         }
         <div id="noResultsMessage" class="text-center text-muted py-5 d-none">
             No events match your search.
@@ -227,3 +166,31 @@
 
 <!-- Reject Reason Modal (uses shared #appModal shell pattern) -->
 <partial name="_RejectReasonModal" />
+
+@section Scripts {
+
+    @if (ViewBag.OpenEventId != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+                const eventId = "@ViewBag.OpenEventId";
+
+                const eventRow = document.querySelector(
+                    `.event-request-row[data-event-id="${eventId}"]`
+                );
+
+                if (eventRow) {
+                    console.log("Opening event request:", eventId);
+                    eventRow.click();
+                }
+                else {
+                    console.error(
+                        "Event request row not found for ID:",
+                        eventId
+                    );
+                }
+            });
+        </script>
+    }
+}

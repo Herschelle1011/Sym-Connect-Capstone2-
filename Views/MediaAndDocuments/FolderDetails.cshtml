@@ -19,6 +19,9 @@
             ".xls" or ".xlsx"
                 => ("bi-file-earmark-excel-fill", "file-icon-xlsx"),
 
+          ".ppt" or ".pptx"
+                => ("bi-file-earmark-slides-fill", "file-icon-pptx"),
+
             ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp"
                 => ("bi-file-earmark-image-fill", "file-icon-image"),
 
@@ -140,7 +143,11 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="#" data-file-id="@f.MediaFileId" data-action="move-file">
+                                            <a class="dropdown-item open-modal" href="#"  
+                                            data-title ="Move File"
+                                               data-url="/MediaAndDocuments/GetAvailableFolders?currentFolderid=@f.MediaFolderId&fileId=@f.MediaFileId"
+                                               data-subtitle="Select a destination folder for this file."
+                                               data-icon="bi-folder-symlink">
                                                 <i class="bi bi-box-arrow-in-right"></i> Move file
                                             </a>
                                         </li>
@@ -150,17 +157,22 @@
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" href="#" data-file-id="@f.MediaFileId" data-action="file-info">
+                                            <a class="dropdown-item open-modal" href="#" 
+                                            data-title="File Information" 
+                                            data-icon = "bi-info-circle"
+                                               data-url="/MediaAndDocuments/FileInformation?id=@f.MediaFileId">
                                                 <i class="bi bi-info-circle"></i> File information
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider" /></li>
                                       
-                                        <li>
-                                            <a class="dropdown-item text-danger" href="#" data-file-id="@f.MediaFileId" data-action="trash-file">
-                                                <i class="bi bi-trash"></i> Move to trash
-                                            </a>
-                                        </li>
+                                              <li>
+                                                <a class="dropdown-item text-danger open-modal" href="#"
+                                                   data-url="@Url.Action("GetDeleteFile", "MediaAndDocuments", new { mediaFileId = f.MediaFileId })"
+                                                   data-title="Delete File">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </a>
+                                            </li>
                                     </ul>
                                 </div>
                             </td>

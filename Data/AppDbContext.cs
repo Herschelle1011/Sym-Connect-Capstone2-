@@ -45,12 +45,11 @@ namespace Sym_Connect__Capstone2_.Data
         public DbSet<MediaFolder> MediaFolders { get; set; }
         public DbSet<MediaFile> MediaFiles { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-
-
-
         public DbSet<Announcement> Announcements { get; set; }
 
         public DbSet<Vote> Votes { get; set; }
+
+        public DbSet<EmailVerification> EmailVerifications { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

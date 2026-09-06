@@ -23,6 +23,10 @@
     <link rel="stylesheet" href="~/css/admin/ProfileViewMember.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/group-attendance-modal.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/notification-dropdown.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/eventRequest.css" />
+    <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true" />
+
+
 
 
     <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
@@ -60,7 +64,11 @@
         <div class="topbar-actions">
             <a asp-controller="Notifications" asp-action="Index" class="topbar-icon-btn" id="notifBell" title="Notifications">
                 <i class="bi bi-bell"></i>
-                <span class="notif-dot" id="notifDot" style="display:none;"></span>
+                <span class="notif-count"
+                      id="notifCount"
+                      style="display:none;">
+                    0
+                </span>
             </a>
             <div id="notifDropdownPanel" class="notif-dropdown-panel"></div>
             <img class="topbar-avatar"
@@ -247,6 +255,7 @@
     <script src="~/js/admin/AddressScript.js" asp-append-version="true"></script>
     <script src="~/js/profile.js"></script>
     <script src="~/lib/microsoft/signalr/dist/browser/signalr.min.js"></script>
+    <script src="~/js/admin/notification.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 
     <script>
@@ -336,228 +345,7 @@
         }
 
 
-        // ---- Notification dropdown ----
-
-        const bell = document.getElementById('notifBell');
-        const panel = document.getElementById('notifDropdownPanel');
-        const dot = document.getElementById('notifDot');
-
-        let hideTimer = null;
-        let loaded = false;
-
-
-        async function refreshNotificationDropdown() {
-
-        try {
-
-        const response = await fetch('/Notifications/Dropdown');
-
-        if (!response.ok) {
-        console.error("Failed to load notifications.");
-        return;
-        }
-
-        const html = await response.text();
-
-        panel.innerHTML = html;
-
-        loaded = true;
-        }
-        catch (error) {
-        console.error("Notification refresh error:", error);
-        }
-        }
-
-
-        function showPanel() {
-
-        clearTimeout(hideTimer);
-
-        panel.classList.add('show');
-
-        if (!loaded) {
-        refreshNotificationDropdown();
-        }
-        }
-
-
-        function scheduleHide() {
-
-        hideTimer = setTimeout(
-        () => panel.classList.remove('show'),
-        250
-        );
-        }
-
-
-        bell.addEventListener('mouseenter', showPanel);
-
-        bell.addEventListener('mouseleave', scheduleHide);
-
-        panel.addEventListener(
-        'mouseenter',
-        () => clearTimeout(hideTimer)
-        );
-
-        panel.addEventListener(
-        'mouseleave',
-        scheduleHide
-        );
-
-
-        // Initial unread indicator
-
-        fetch('/Notifications/UnreadCount')
-        .then(r => r.json())
-        .then(d => {
-
-        if (d.count > 0) {
-        dot.style.display = 'block';
-        }
-
-        });
-
-
-        // ===============================
-        // SIGNALR
-        // ===============================
-
-        const notifConnection =
-        new signalR.HubConnectionBuilder()
-        .withUrl("/notificationHub")
-        .withAutomaticReconnect()
-        .build();
-
-
-        notifConnection.on(
-        "ReceiveNotification",
-        function (data) {
-
-        console.log(
-        "New notification received:",
-        data
-        );
-
-        // Show red notification dot
-        dot.style.display = 'block';
-
-        // Immediately load newest notifications
-        refreshNotificationDropdown();
-        }
-        );
-
-
-        notifConnection.start()
-        .then(function () {
-
-        console.log(
-        "Notification SignalR connected."
-        );
-
-        })
-        .catch(function (err) {
-
-        console.error(
-        "SignalR connection error:",
-        err
-        );
-
-        });
-
-
-        async function markNotificationAsRead(notificationId) {
-
-        const tokenInput = document.querySelector(
-        'input[name="__RequestVerificationToken"]'
-        );
-
-        if (!tokenInput) {
-        console.error("Anti-forgery token not found.");
-        return false;
-        }
-
-        const formData = new FormData();
-
-        formData.append(
-        "notificationId",
-        notificationId
-        );
-
-        formData.append(
-        "__RequestVerificationToken",
-        tokenInput.value
-        );
-
-        try {
-
-        const response = await fetch('/Notifications/MarkAsRead', {
-        method: 'POST',
-        body: formData
-        });
-
-        console.log("MarkAsRead status:", response.status);
-
-        if (!response.ok) {
-        const responseText = await response.text();
-
-        console.error(
-        "MarkAsRead failed:",
-        response.status,
-        responseText
-        );
-
-        return false;
-        }
-
-        return true;
-        }
-        catch (error) {
-
-        console.error(
-        "MarkAsRead error:",
-        error
-        );
-
-        return false;
-        }
-        }
-
-        document.addEventListener('click', async function (e) {
-
-        const viewBtn = e.target.closest('.notif-view-btn');
-
-        if (!viewBtn) {
-        return;
-        }
-
-        e.preventDefault();
-
-        const notificationItem =
-        viewBtn.closest('.notif-item, .notif-row');
-
-        if (!notificationItem) {
-        console.error("Notification item not found.");
-        return;
-        }
-
-        const notificationId =
-        notificationItem.dataset.id;
-
-        console.log(
-        "Sending notification ID:",
-        notificationId
-        );
-
-        const marked =
-        await markNotificationAsRead(
-        notificationId
-        );
-
-        if (marked) {
-        notificationItem.classList.remove('unread');
-        }
-        });
-
+      
 
     </script>
     <partial name="_Modal" />

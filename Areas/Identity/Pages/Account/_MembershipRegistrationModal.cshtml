@@ -1,0 +1,1784 @@
+﻿@model MembershipRegistrationViewModel
+
+<div class="modal fade"
+     id="membershipRegistrationModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+
+        <div class="modal-content registration-modal">
+
+            <!-- HEADER -->
+            <div class="modal-header border-0">
+
+                <div>
+                    <div class="registration-brand">
+
+                        <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/v1787378932/ChatGPT_Image_Aug_22_2026_02_05_02_PM_j5vans.png"
+                             alt="SYM Logo" />
+
+                        <div>
+                            <strong>SYM-Connect</strong>
+                            <small>Salesian Youth Movement</small>
+                        </div>
+
+                    </div>
+
+                    <h3 class="mt-3 mb-1">
+                        Membership Registration
+                    </h3>
+
+                    <p class="text-muted mb-0">
+                        Please fill out the form below to start
+                        your membership application.
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <!-- STEP INDICATORS -->
+                <div class="registration-steps">
+
+                    <div class="registration-step active"
+                         data-step-indicator="1">
+
+                        <span>1</span>
+                        <small>Personal Information</small>
+
+                    </div>
+
+                    <div class="step-line"></div>
+
+
+                    <div class="registration-step"
+                         data-step-indicator="2">
+
+                        <span>2</span>
+                        <small>Account Information</small>
+
+                    </div>
+
+                    <div class="step-line"></div>
+
+
+                    <div class="registration-step"
+                         data-step-indicator="3">
+
+                        <span>3</span>
+                        <small>Guidelines</small>
+
+                    </div>
+
+                    <div class="step-line"></div>
+
+
+                    <div class="registration-step"
+                         data-step-indicator="4">
+
+                        <span>4</span>
+                        <small>Privacy & Consent</small>
+
+                    </div>
+
+                    <div class="step-line"></div>
+
+
+                    <div class="registration-step"
+                         data-step-indicator="5">
+
+                        <span>5</span>
+                        <small>Review & Submit</small>
+
+                    </div>
+
+                </div>
+
+
+                <hr />
+
+
+                <!-- REGISTRATION FORM -->
+                <form id="membershipRegistrationForm"
+                      method="post" enctype="multipart/form-data">
+
+                    @Html.AntiForgeryToken()
+
+
+                    <!-- =========================
+                         STEP 1 - PERSONAL INFO
+                    ========================== -->
+
+                    <div class="registration-section active"
+                         data-step="1">
+
+                        <div class="registration-section-heading">
+
+                            <div class="registration-section-title">
+                                <i class="bi bi-people"></i>
+                                <span>Personal Information</span>
+                            </div>
+
+
+                            <!-- OPTIONAL PROFILE PHOTO -->
+                            <div class="registration-profile-upload">
+
+                                <div class="registration-profile-preview">
+
+                                    <img id="registrationProfilePreview"
+                                         src=""
+                                         alt="Profile preview"
+                                         style="display:none;" />
+
+                                    <div id="registrationProfilePlaceholder"
+                                         class="registration-profile-placeholder">
+
+                                        <i class="bi bi-person-fill"></i>
+
+                                    </div>
+
+                                    <button type="button"
+                                            id="registrationPhotoButton"
+                                            class="registration-profile-camera"
+                                            title="Choose profile photo">
+
+                                        <i class="bi bi-camera-fill"></i>
+
+                                    </button>
+
+                                </div>
+
+
+                                <div class="registration-profile-info">
+
+                                    <div class="registration-profile-title">
+                                        Profile Photo
+                                        <span class="optional-label">
+                                            Optional
+                                        </span>
+                                    </div>
+
+                                    <p>
+                                        You may add a profile photo now or leave this blank.
+                                    </p>
+
+                                    <small>
+                                        JPG or PNG only. Maximum file size: 2 MB.
+                                    </small>
+
+
+                                    <div class="registration-profile-buttons">
+
+                                        <button type="button"
+                                                id="registrationUploadPhotoBtn"
+                                                class="btn btn-outline-primary">
+
+                                            <i class="bi bi-upload me-1"></i>
+                                            Upload Photo
+
+                                        </button>
+
+
+                                        <button type="button"
+                                                id="registrationRemovePhotoBtn"
+                                                class="btn btn-light"
+                                                style="display:none;">
+
+                                            Remove
+
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+
+                                <input type="file"
+                                       id="registrationProfilePhoto"
+                                       name="ProfilePhoto"
+                                       accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                       hidden />
+
+                            </div>
+
+                            <p>
+                                Please provide your basic personal information.
+                            </p>
+
+                        </div>
+
+
+                        <div class="row g-3">
+
+                            <!-- FIRST NAME -->
+                            <div class="col-md-4">
+
+                                <label asp-for="FirstName" class="form-label">
+                                    First Name <span class="required-mark">*</span>
+                                </label>
+
+                                <input asp-for="FirstName"
+                                       class="form-control"
+                                       placeholder="Enter your first name" />
+
+                                <span asp-validation-for="FirstName"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- MIDDLE NAME -->
+                            <div class="col-md-4">
+
+                                <label asp-for="MiddleName" class="form-label">Middle Name</label>
+
+                                <input asp-for="MiddleName"
+                                       class="form-control"
+                                       placeholder="Enter your middle name" />
+
+                                <span asp-validation-for="MiddleName"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- LAST NAME -->
+                            <div class="col-md-4">
+
+                                <label asp-for="LastName" class="form-label">
+                                    Last Name <span class="required-mark">*</span>
+                                </label>
+
+                                <input asp-for="LastName"
+                                       class="form-control"
+                                       placeholder="Enter your last name" />
+
+                                <span asp-validation-for="LastName"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- DATE OF BIRTH -->
+                            <div class="col-md-3">
+
+                                <label asp-for="DateOfBirth" class="form-label">
+                                    Date of Birth <span class="required-mark">*</span>
+                                </label>
+
+
+                                <input asp-for="DateOfBirth"
+                                       id="registrationDob"
+                                       class="form-control"
+                                       type="date" />
+
+                                <span asp-validation-for="DateOfBirth"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- AGE -->
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Age <span class="required-mark">*</span>
+                                </label>
+
+                                <input id="registrationAge"
+                                       name="Age"
+                                       class="form-control"
+                                       placeholder="-- age --"
+                                       readonly />
+
+                            </div>
+
+
+                            <!-- GENDER -->
+                            <div class="col-md-3">
+
+                                <label asp-for="Gender" class="form-label">
+                                    Gender <span class="required-mark">*</span>
+                                </label>
+
+                                <select asp-for="Gender"
+                                        class="form-select">
+
+                                    <option value="">
+                                        -- Select Gender --
+                                    </option>
+
+                                    <option value="Male">
+                                        Male
+                                    </option>
+
+                                    <option value="Female">
+                                        Female
+                                    </option>
+
+                                </select>
+
+                                <span asp-validation-for="Gender"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CONTACT NUMBER -->
+                            <div class="col-md-4">
+
+                                <label asp-for="ContactNumber" class="form-label">
+                                    Contact Number <span class="required-mark">*</span>
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-telephone"></i>
+
+                                    <input asp-for="ContactNumber"
+                                           class="form-control"
+                                           placeholder="Enter your contact number" />
+
+                                </div>
+
+                                <span asp-validation-for="ContactNumber"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- ADDRESS TITLE -->
+                            <div class="col-12 mt-4">
+
+                                <div class="address-section-title">
+
+                                    <i class="bi bi-geo-alt"></i>Address<span class="text-danger">*</span>
+                                </div>
+
+                            </div>
+
+
+                            <!-- COUNTRY -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Country
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-globe-asia-australia"></i>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           value="Philippines"
+                                           readonly />
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- PROVINCE -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Province
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-map"></i>
+
+                                    <select id="provinceSelect"
+                                            class="form-select">
+
+                                        <option value="">
+                                            Loading provinces...
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- CITY -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    City / Municipality
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-buildings"></i>
+
+                                    <select id="citySelect"
+                                            class="form-select"
+                                            disabled>
+
+                                        <option value="">
+                                            -- Select City --
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- BARANGAY -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Barangay
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-pin-map"></i>
+
+                                    <select id="barangaySelect"
+                                            name="Barangay"
+                                            class="form-select"
+                                            disabled>
+
+                                        <option value="">
+                                            -- Select Barangay --
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- HIDDEN ADDRESS VALUES -->
+
+                            <input type="hidden"
+                                   id="provinceName"
+                                   name="Province"
+                                   value="Cebu" />
+
+                            <input type="hidden"
+                                   id="cityName"
+                                   name="City"
+                                   value="" />
+
+                            <input type="hidden"
+                                   id="savedProvince"
+                                   value="Cebu" />
+
+                            <input type="hidden"
+                                   id="savedCity"
+                                   value="" />
+
+                            <input type="hidden"
+                                   id="savedBarangay"
+                                   value="" />
+
+                            <input type="hidden"
+                                   name="Country"
+                                   value="Philippines" />
+
+
+                            <!-- GROUP -->
+                            <div class="col-12 mt-3">
+
+                                <label asp-for="GroupId" class="form-label">
+                                    Group Preference <span class="required-mark">*</span>
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-people"></i>
+
+                                    <select asp-for="GroupId"
+                                            id="registrationGroupId"
+                                            class="form-select">
+
+                                        <option value="">
+                                            Choose your preferred group
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                                <span asp-validation-for="GroupId"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="registration-info-banner">
+
+                            <i class="bi bi-info-circle-fill"></i>
+
+                            <span>
+                                All fields marked with
+                                <strong>*</strong>
+                                are required.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =========================
+                         STEP 2 - ACCOUNT INFO
+                    ========================== -->
+
+                    <div class="registration-section"
+                         data-step="2"
+                         style="display:none;">
+
+                        <div class="registration-section-heading">
+
+                            <div class="registration-section-title">
+
+                                <i class="bi bi-lock-fill"></i>
+
+                                <span>
+                                    Account Information
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Create your account and verify your email address.
+                            </p>
+
+                        </div>
+
+
+                        <!-- ACCOUNT FIELDS -->
+                        <div class="row g-4">
+
+                            <!-- EMAIL -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Email" class="form-label">
+                                    Email Address <span class="required-mark">*</span>
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-envelope"></i>
+
+                                    <input asp-for="Email"
+                                           id="registrationEmail"
+                                           class="form-control"
+                                           type="email"
+                                           placeholder="Enter your email address" />
+
+                                </div>
+
+                                <div class="registration-helper-text">
+                                    A verification code will be sent to this email.
+                                </div>
+
+                                <span asp-validation-for="Email"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- USERNAME -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Username" class="form-label">
+                                    Username <span class="required-mark">*</span>
+                                </label>
+
+                                <div class="field-icon-wrap">
+
+                                    <i class="bi bi-person"></i>
+
+                                    <input asp-for="Username"
+                                           class="form-control"
+                                           placeholder="Enter your username" />
+
+                                </div>
+
+                                <div class="registration-helper-text">
+                                    Choose a unique username for your SYM-Connect account.
+                                </div>
+
+                                <span asp-validation-for="Username"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- PASSWORD -->
+                            <div class="col-md-6">
+
+                                <label asp-for="Password" class="form-label">
+                                    Password <span class="required-mark">*</span>
+                                </label>
+
+                                <div class="field-icon-wrap password-field-wrap">
+
+                                    <i class="bi bi-lock"></i>
+
+                                    <input asp-for="Password"
+                                           id="registrationPassword"
+                                           class="form-control"
+                                           type="password"
+                                           placeholder="Enter your password" />
+
+                                    <button type="button"
+                                            class="toggle-password"
+                                            data-target="registrationPassword"
+                                            aria-label="Show password">
+
+                                        <i class="bi bi-eye"></i>
+
+                                    </button>
+
+                                </div>
+
+                                <div class="registration-helper-text">
+                                    Use at least 8 characters with letters, numbers, and symbols.
+                                </div>
+
+                                <span asp-validation-for="Password"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- CONFIRM PASSWORD -->
+                            <div class="col-md-6">
+
+                                <label asp-for="ConfirmPassword" class="form-label">
+                                    Confirm Password <span class="required-mark">*</span>
+                                </label>
+
+                                <div class="field-icon-wrap password-field-wrap">
+
+                                    <i class="bi bi-lock"></i>
+
+                                    <input asp-for="ConfirmPassword"
+                                           id="registrationConfirmPassword"
+                                           class="form-control"
+                                           type="password"
+                                           placeholder="Confirm your password" />
+
+                                    <button type="button"
+                                            class="toggle-password"
+                                            data-target="registrationConfirmPassword"
+                                            aria-label="Show password">
+
+                                        <i class="bi bi-eye"></i>
+
+                                    </button>
+
+                                </div>
+
+                                <div class="registration-helper-text">
+                                    Re-enter your password to confirm.
+                                </div>
+
+                                <span asp-validation-for="ConfirmPassword"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- EMAIL VERIFICATION CARD -->
+                        <div class="email-verification-panel mt-4">
+
+                            <div class="email-verification-main">
+
+                                <div class="email-verification-title">
+
+                                    <i class="bi bi-envelope-check"></i>
+
+                                    <div>
+
+                                        <h6>
+                                            Email Verification
+                                        </h6>
+
+                                        <p>
+                                            Send a verification code to confirm that
+                                            the email address belongs to you.
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <button type="button"
+                                        id="sendVerificationCodeBtn"
+                                        class="btn verification-send-btn">
+
+                                    <i class="bi bi-send me-2"></i>
+
+                                    Send Verification Code
+
+                                </button>
+
+
+                                <!-- CODE AREA -->
+                                <div id="verificationCodeContainer"
+                                     class="verification-code-card"
+                                     style="display:none;">
+
+                                    <label for="verificationCode"
+                                           class="form-label mb-1">
+
+                                        Enter Verification Code
+
+                                    </label>
+
+                                    <p class="verification-hint">
+                                        Please enter the 6-digit code sent to your email.
+                                    </p>
+
+
+                                    <div class="verification-code-row">
+
+                                        <div class="field-icon-wrap verification-code-input">
+
+                                            <i class="bi bi-key"></i>
+
+                                            <input type="text"
+                                                   id="verificationCode"
+                                                   maxlength="6"
+                                                   inputmode="numeric"
+                                                   class="form-control"
+                                                   placeholder="Enter 6-digit code" />
+
+                                        </div>
+
+
+                                        <button type="button"
+                                                id="verifyCodeBtn"
+                                                class="btn btn-primary">
+
+                                            Verify Code
+
+                                        </button>
+
+                                    </div>
+
+
+                                    <div id="emailVerifiedMessage"
+                                         class="email-verified-success"
+                                         style="display:none;">
+
+                                        <i class="bi bi-check-circle-fill"></i>
+
+                                        <span>
+                                            Email verified successfully!
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- RIGHT SIDE INFORMATION -->
+                            <div class="email-verification-side">
+
+                                <div class="verification-illustration">
+
+                                    <i class="bi bi-envelope-paper"></i>
+
+                                    <span class="verification-check">
+                                        <i class="bi bi-check"></i>
+                                    </span>
+
+                                </div>
+
+
+                                <p>
+                                    A verification code will be sent to
+                                </p>
+
+                                <strong id="verificationEmailPreview">
+                                    your email address
+                                </strong>
+
+                                <small>
+                                    Please check your inbox and spam folder
+                                    for the 6-digit code.
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="registration-info-banner">
+
+                            <i class="bi bi-info-circle-fill"></i>
+
+                            <span>
+                                All fields marked with
+                                <strong>*</strong>
+                                are required.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =========================
+                         STEP 3 - GUIDELINES
+                    ========================== -->
+                    <!-- =========================
+     STEP 3 - GUIDELINES
+========================== -->
+
+                    <div class="registration-section"
+                         data-step="3"
+                         style="display:none;">
+
+                        <div class="registration-section-heading">
+
+                            <div class="registration-section-title">
+                                <i class="bi bi-journal-text"></i>
+                                <span>Membership Guidelines</span>
+                            </div>
+
+                            <p>
+                                Please read and agree to the guidelines before proceeding.
+                            </p>
+
+                        </div>
+
+
+                        <div class="guidelines-grid">
+
+                            <!-- 1 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    1
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Membership and Application
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Applicants must meet the membership requirements
+                                            established by the Salesian Youth Movement.
+                                        </li>
+
+                                        <li>
+                                            All information provided during registration must
+                                            be complete, accurate, and truthful.
+                                        </li>
+
+                                        <li>
+                                            Submission of an application does not automatically
+                                            guarantee membership.
+                                        </li>
+
+                                        <li>
+                                            Membership becomes active only after approval by
+                                            an authorized administrator.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 2 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    2
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Respect and Proper Conduct
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Members are expected to treat fellow members,
+                                            leaders, administrators, and other individuals
+                                            with respect.
+                                        </li>
+
+                                        <li>
+                                            Members should avoid harassment, bullying,
+                                            discrimination, threats, and other inappropriate
+                                            behavior.
+                                        </li>
+
+                                        <li>
+                                            Members are expected to respect the opinions,
+                                            privacy, and contributions of others.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 3 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    3
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Participation in Activities
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Members are encouraged to actively participate
+                                            in SYM activities and programs.
+                                        </li>
+
+                                        <li>
+                                            Members should follow the instructions of
+                                            authorized leaders and administrators during
+                                            activities.
+                                        </li>
+
+                                        <li>
+                                            Attendance and participation records must
+                                            accurately reflect actual participation.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 4 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    4
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Responsible Use of SYM-Connect
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Members must use SYM-Connect responsibly and
+                                            only for legitimate organizational purposes.
+                                        </li>
+
+                                        <li>
+                                            Members must not access another person's account
+                                            or attempt to bypass system security.
+                                        </li>
+
+                                        <li>
+                                            Members must not upload inappropriate, harmful,
+                                            or unauthorized content.
+                                        </li>
+
+                                        <li>
+                                            Account credentials must be kept confidential
+                                            and must not be shared with others.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 5 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    5
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Membership QR Code
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Approved members are assigned a unique QR code
+                                            through SYM-Connect.
+                                        </li>
+
+                                        <li>
+                                            The QR code is used by authorized leaders or
+                                            administrators for attendance identification.
+                                        </li>
+
+                                        <li>
+                                            Members must not intentionally alter, misuse,
+                                            or allow unauthorized use of their QR code.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 6 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    6
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Compliance
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Members are expected to follow the organization's
+                                            rules, policies, and authorized instructions.
+                                        </li>
+
+                                        <li>
+                                            Failure to follow these guidelines may result
+                                            in appropriate action, including restriction
+                                            or changes to membership status.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="agreement-box mt-4">
+
+                            <input asp-for="AcceptedGuidelines"
+                                   class="form-check-input" />
+
+                            <label asp-for="AcceptedGuidelines"
+                                   class="form-check-label">
+
+                                I have read, understood, and agree to follow
+                                the Membership Guidelines.
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =========================
+                         STEP 4 - PRIVACY
+                    ========================== -->
+                    <!-- =========================
+     STEP 4 - PRIVACY
+========================== -->
+
+                    <div class="registration-section"
+                         data-step="4"
+                         style="display:none;">
+
+                        <div class="registration-section-heading">
+
+                            <div class="registration-section-title">
+
+                                <i class="bi bi-shield-check"></i>
+
+                                <span>
+                                    Privacy &amp; Consent
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Please read and understand carefully before proceeding.
+                            </p>
+
+                        </div>
+
+
+                        <div class="guidelines-grid">
+
+                            <!-- 1 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    1
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Information Collected
+                                    </strong>
+
+                                    <p>
+                                        The system may collect information provided during
+                                        registration, such as your name, date of birth,
+                                        contact information, address, account information,
+                                        and group preference.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 2 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    2
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Attendance and Participation Records
+                                    </strong>
+
+                                    <p>
+                                        Your attendance, participation points, evaluation
+                                        responses, and related organizational records may
+                                        be stored in SYM-Connect to support proper monitoring
+                                        and reporting.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 3 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    3
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Accuracy of Information
+                                    </strong>
+
+                                    <p>
+                                        Applicants are responsible for providing accurate
+                                        and updated information. If information becomes
+                                        incorrect or outdated, members should request the
+                                        necessary correction through the appropriate
+                                        administrator.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 4 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    4
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Consent
+                                    </strong>
+
+                                    <p>
+                                        By submitting this registration, you acknowledge
+                                        that you have read and understood this Privacy Notice
+                                        and consent to the collection, use, storage, and
+                                        processing of your information for legitimate
+                                        SYM-Connect and organizational purposes.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 5 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    5
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Access and Confidentiality
+                                    </strong>
+
+                                    <ul>
+                                        <li>
+                                            Personal information may only be accessed by
+                                            authorized administrators and leaders according
+                                            to their assigned roles.
+                                        </li>
+
+                                        <li>
+                                            Members should not access or share another
+                                            member's personal information without authorization.
+                                        </li>
+
+                                        <li>
+                                            Reasonable measures will be applied to protect
+                                            information from unauthorized access or misuse.
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- 6 -->
+                            <div class="guideline-item">
+
+                                <span class="guideline-number">
+                                    6
+                                </span>
+
+                                <div>
+
+                                    <strong>
+                                        Purpose of Collection
+                                    </strong>
+
+                                    <p>
+                                        Your information will be used for legitimate
+                                        organizational purposes, including:
+                                    </p>
+
+                                    <ul>
+                                        <li>
+                                            Processing and managing membership applications
+                                        </li>
+
+                                        <li>
+                                            Managing member accounts and group assignments
+                                        </li>
+
+                                        <li>
+                                            Recording attendance and participation
+                                        </li>
+
+                                        <li>
+                                            Sending announcements and system notifications
+                                        </li>
+
+                                        <li>
+                                            Managing activities, evaluations, and voting
+                                        </li>
+
+                                        <li>
+                                            Generating organizational reports and summaries
+                                        </li>
+                                    </ul>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="agreement-box mt-4">
+
+                            <input asp-for="AcceptedPrivacy"
+                                   class="form-check-input" />
+
+                            <label asp-for="AcceptedPrivacy"
+                                   class="form-check-label">
+
+                                I have read and understood the Privacy Notice and
+                                consent to the collection, use, storage, and processing
+                                of my information for SYM-Connect purposes.
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =========================
+     STEP 5 - REVIEW
+========================== -->
+
+                    <div class="registration-section"
+                         data-step="5"
+                         style="display:none;">
+
+                        <div class="registration-section-heading">
+
+                            <div class="registration-section-title">
+
+                                <i class="bi bi-clipboard-check"></i>
+
+                                <span>
+                                    Review Application
+                                </span>
+
+                            </div>
+
+                            <p>
+                                Please carefully review your information before submitting.
+                            </p>
+
+                        </div>
+
+
+                        <!-- =====================================
+         APPLICANT INFORMATION
+    ====================================== -->
+
+                        <div class="application-review-card">
+
+                            <div class="application-review-header">
+
+                                <i class="bi bi-person-vcard-fill"></i>
+
+                                <span>
+                                    Applicant Information
+                                </span>
+
+                            </div>
+
+
+                            <!-- PROFILE / NAME / GROUP -->
+                            <div class="applicant-summary">
+
+                                <div class="applicant-summary-left">
+
+                                    <!-- PHOTO -->
+                                    <div class="review-profile-photo">
+
+                                        <img id="reviewProfilePhoto"
+                                             src=""
+                                             alt="Applicant photo"
+                                             style="display:none;" />
+
+                                        <div id="reviewProfilePlaceholder"
+                                             class="review-profile-placeholder">
+
+                                            <i class="bi bi-person-fill"></i>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- NAME -->
+                                    <div class="applicant-name-area">
+
+                                        <h5 id="reviewName">
+                                            -
+                                        </h5>
+
+                                        <span class="application-pending-badge">
+                                            Pending
+                                        </span>
+
+                                        <small>
+                                            Membership application
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- GROUP -->
+                                <div class="review-group-box">
+
+                                    <div class="review-group-icon">
+                                        <i class="bi bi-people"></i>
+                                    </div>
+
+                                    <div>
+
+                                        <small>
+                                            Group Preference
+                                        </small>
+
+                                        <strong id="reviewGroup">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <hr />
+
+
+                            <!-- APPLICANT DETAILS -->
+                            <div class="review-information-grid">
+
+                                <!-- EMAIL -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-envelope"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Email Address
+                                        </small>
+
+                                        <strong id="reviewEmail">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- CONTACT -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-telephone"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Contact Number
+                                        </small>
+
+                                        <strong id="reviewContact">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- DOB -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-calendar3"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Date of Birth
+                                        </small>
+
+                                        <strong id="reviewBirthDate">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- GENDER -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-gender-ambiguous"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Gender
+                                        </small>
+
+                                        <strong id="reviewGender">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- ADDRESS -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-geo-alt"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Address
+                                        </small>
+
+                                        <strong id="reviewAddress">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- AGE -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-person-circle"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Age
+                                        </small>
+
+                                        <strong id="reviewAge">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- =====================================
+         ACCOUNT INFORMATION
+    ====================================== -->
+
+                        <div class="application-review-card mt-3">
+
+                            <div class="application-review-header">
+
+                                <i class="bi bi-lock-fill"></i>
+
+                                <span>
+                                    Account Information
+                                </span>
+
+                            </div>
+
+
+                            <div class="review-account-grid">
+
+                                <!-- USERNAME -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-person"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Username
+                                        </small>
+
+                                        <strong id="reviewUsername">
+                                            -
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- PASSWORD -->
+                                <div class="review-information-item">
+
+                                    <i class="bi bi-lock"></i>
+
+                                    <div>
+
+                                        <small>
+                                            Password
+                                        </small>
+
+                                        <strong>
+                                            ••••••••••
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- =====================================
+         MEMBERSHIP APPLICATION DETAILS
+    ====================================== -->
+
+                        <div class="application-review-card mt-3">
+
+                            <div class="application-review-header">
+
+                                <i class="bi bi-file-earmark-text-fill"></i>
+
+                                <span>
+                                    Membership Application Details
+                                </span>
+
+                            </div>
+
+
+                            <div class="review-agreement-grid">
+
+                                <div class="review-agreement-item">
+
+                                    <span class="review-check-circle">
+                                        <i class="bi bi-check-lg"></i>
+                                    </span>
+
+                                    <span>
+                                        Membership Guidelines
+                                    </span>
+
+                                </div>
+
+
+                                <div class="review-agreement-item">
+
+                                    <span class="review-check-circle">
+                                        <i class="bi bi-check-lg"></i>
+                                    </span>
+
+                                    <span>
+                                        Data Privacy &amp; Consent
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PENDING NOTICE -->
+                        <div class="registration-info-banner">
+
+                            <i class="bi bi-info-circle-fill"></i>
+
+                            <span>
+                                Your account will remain
+                                <strong>Pending</strong>
+                                until your membership application is approved
+                                by an administrator.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =========================
+     NAVIGATION BUTTONS
+========================== -->
+
+                    <div class="registration-actions">
+
+                        <button type="button"
+                                id="registrationBackBtn"
+                                class="btn btn-outline-secondary"
+                                style="display:none;">
+                            <i class="bi bi-arrow-left me-1"></i>
+                            Back
+                        </button>
+
+                        <button type="button"
+                                id="registrationNextBtn"
+                                class="btn btn-primary">
+                            Continue
+                            <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+
+                        <button type="submit"
+                                id="registrationSubmitBtn"
+                                class="btn btn-primary"
+                                style="display:none;">
+                            <i class="bi bi-send me-1"></i>
+                            Submit Application
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

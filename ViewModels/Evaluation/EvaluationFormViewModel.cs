@@ -16,6 +16,12 @@ namespace Sym_Connect__Capstone2_.ViewModels.Evaluation
         [Required(ErrorMessage = "Open Date is required")]
         public DateTime OpenAt { get; set; }
 
+        [Required(ErrorMessage = "Please select an event.")]
+        public int? EventId { get; set; }
+
+        public List<EvaluationEventOptionViewModel> EventOptions { get; set; }
+            = new();
+
         public List<EvaluationQuestionViewModel> Questions { get; set; }
                                                    = new();
 

@@ -2,14 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,33 +9,38 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Services;
+using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Membership;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<User> _signInManager;
         private readonly UserManager<User> _userManager;
-        private readonly IUserStore<User> _userStore;
-        private readonly IUserEmailStore<User> _emailStore;
-        private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
+        private readonly AppDbContext _context;
+        private readonly IEmailService _emailService;
+        private readonly CloudinaryService _cloudinaryService;
+
 
         public RegisterModel(
-            UserManager<User> userManager,
-            IUserStore<User> userStore,
-            SignInManager<User> signInManager,
-            ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+          UserManager<User> userManager,
+          AppDbContext context,
+          IEmailService emailService, CloudinaryService cloudinaryService)
         {
             _userManager = userManager;
-            _userStore = userStore;
-            _emailStore = GetEmailStore();
-            _signInManager = signInManager;
-            _logger = logger;
-            _emailSender = emailSender;
+            _context = context;
+            _emailService = emailService;
+            _cloudinaryService = cloudinaryService;
         }
 
         /// <summary>
@@ -51,131 +48,346 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [BindProperty]
-        public InputModel Input { get; set; }
+        public MembershipRegistrationViewModel Input { get; set; } = new();
 
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public string ReturnUrl { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public IList<AuthenticationScheme> ExternalLogins { get; set; }
-
-        /// <summary>
-        ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public class InputModel
+        public async Task<IActionResult> OnPostSendCodeAsync(
+     [FromBody] EmailVerificationRequestViewModel request)
         {
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [EmailAddress]
-            [Display(Name = "Email")]
-            public string Email { get; set; }
-
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [Required]
-            [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-            [DataType(DataType.Password)]
-            [Display(Name = "Password")]
-            public string Password { get; set; }
-
-            /// <summary>
-            ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-            ///     directly from your code. This API may change or be removed in future releases.
-            /// </summary>
-            [DataType(DataType.Password)]
-            [Display(Name = "Confirm password")]
-            [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-            public string ConfirmPassword { get; set; }
-        }
-
-
-        public async Task OnGetAsync(string returnUrl = null)
-        {
-            ReturnUrl = returnUrl;
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-        }
-
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
-        {
-            returnUrl ??= Url.Content("~/");
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-            if (ModelState.IsValid)
+            if (string.IsNullOrWhiteSpace(request.Email))
             {
-                var user = CreateUser();
-
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-                var result = await _userManager.CreateAsync(user, Input.Password);
-
-                if (result.Succeeded)
+                return new JsonResult(new
                 {
-                    _logger.LogInformation("User created a new account with password.");
+                    success = false,
+                    message = "Please enter your email address."
+                });
+            }
 
-                    var userId = await _userManager.GetUserIdAsync(user);
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { area = "Identity", userId = userId, code = code, returnUrl = returnUrl },
-                        protocol: Request.Scheme);
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
 
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    {
-                        return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
-                    }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
-                }
-                foreach (var error in result.Errors)
+            if (existingUser != null)
+            {
+                return new JsonResult(new
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    success = false,
+                    message = "This email is already registered."
+                });
+            }
+
+            var code = Random.Shared.Next(100000, 999999).ToString();
+
+            var existingVerification =
+                await _context.EmailVerifications
+                    .FirstOrDefaultAsync(v => v.Email == request.Email);
+
+            if (existingVerification == null)
+            {
+                existingVerification = new EmailVerification
+                {
+                    Email = request.Email,
+                    VerificationCode = code,
+                    ExpiresAt = DateTime.Now.AddMinutes(10),
+                    IsVerified = false
+                };
+
+                _context.EmailVerifications.Add(existingVerification);
+            }
+            else
+            {
+                existingVerification.VerificationCode = code;
+                existingVerification.ExpiresAt = DateTime.Now.AddMinutes(10);
+                existingVerification.IsVerified = false;
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _emailService.SendVerificationCodeAsync(
+                request.Email,
+                code);
+
+            return new JsonResult(new
+            {
+                success = true,
+                message = "Verification code sent."
+            });
+        }
+
+
+        public async Task<IActionResult> OnPostVerifyCodeAsync(
+     [FromBody] VerifyEmailCodeViewModel request)
+        {
+            var verification =
+                await _context.EmailVerifications
+                    .FirstOrDefaultAsync(v =>
+                        v.Email == request.Email &&
+                        v.VerificationCode == request.Code);
+
+            if (verification == null)
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Invalid verification code."
+                });
+            }
+
+            if (verification.ExpiresAt < DateTime.Now)
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Verification code has expired."
+                });
+            }
+
+            verification.IsVerified = true;
+
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(new
+            {
+                success = true,
+                message = "Email verified successfully."
+            });
+        }
+
+        public async Task<IActionResult> OnPostAsync(MembershipRegistrationViewModel registration, IFormFile? ProfilePhoto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Please complete all required fields."
+                });
+            }
+
+            // 2. Make sure the email was verified
+            var emailVerification = await _context.EmailVerifications
+                .FirstOrDefaultAsync(v =>
+                    v.Email == registration.Email &&
+                    v.IsVerified);
+
+            if (emailVerification == null)
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Please verify your email address first."
+                });
+            }
+
+
+            // 3. Check if email already exists
+            var existingEmailUser =
+                await _userManager.FindByEmailAsync(registration.Email);
+
+            if (existingEmailUser != null)
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "This email address is already registered."
+                });
+            }
+
+
+            // 4. Check if username already exists
+            var existingUsernameUser =
+                await _userManager.FindByNameAsync(registration.Username);
+
+            if (existingUsernameUser != null)
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "This username is already taken."
+                });
+            }
+
+
+            // 5. Create Identity User
+            var user = new User
+            {
+                UserName = registration.Username,
+                Email = registration.Email,
+
+                DisplayName =
+                    $"{registration.FirstName} {registration.LastName}",
+
+                EmailConfirmed = true
+            };
+
+
+            var createUserResult =
+               await _userManager.CreateAsync(
+                   user,
+                   registration.Password
+               );
+
+            if (!createUserResult.Succeeded)
+            {
+                var errorMessage =
+                    createUserResult.Errors
+                        .FirstOrDefault()?.Description
+                    ?? "Unable to create account.";
+
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = errorMessage
+                });
+            }
+
+            // Optional profile photo
+            if (ProfilePhoto != null &&
+                ProfilePhoto.Length > 0)
+            {
+                var allowedExtensions =
+                    new[] { ".jpg", ".jpeg", ".png" };
+
+                var extension =
+                    Path.GetExtension(ProfilePhoto.FileName)
+                        .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    await _userManager.DeleteAsync(user);
+
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = "Profile photo must be JPG or PNG."
+                    });
                 }
+
+
+                const long maxFileSize =
+                    2 * 1024 * 1024;
+
+                if (ProfilePhoto.Length > maxFileSize)
+                {
+                    await _userManager.DeleteAsync(user);
+
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = "Profile photo must not be larger than 2 MB."
+                    });
+                }
+
+
+                var profilePictureUrl =
+                    await _cloudinaryService
+                        .UploadProfilePicture(
+                            ProfilePhoto,
+                            user.Id
+                        );
+
+
+                if (string.IsNullOrWhiteSpace(
+                    profilePictureUrl))
+                {
+                    await _userManager.DeleteAsync(user);
+
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = "Unable to upload profile photo."
+                    });
+                }
+
+
+                user.ProfilePictureUrl =
+                    profilePictureUrl;
+
+
+                await _userManager.UpdateAsync(user);
             }
 
-            // If we got this far, something failed, redisplay form
-            return Page();
+            // 6. Create Member
+            var member = new Sym_Connect__Capstone2_.Models.Member
+            {
+                FirstName = registration.FirstName,
+
+                MiddleName = registration.MiddleName,
+
+                LastName = registration.LastName,
+
+                BirthDate = registration.DateOfBirth,
+
+                Gender = registration.Gender,
+
+                ContactNumber = registration.ContactNumber,
+
+                Address =
+                    $"{registration.Barangay}, " +
+                    $"{registration.City}, " +
+                    $"{registration.Province}, " +
+                    $"{registration.Country}",
+
+                PreferredGroupId = registration.GroupId.Value,
+
+
+                ApplicationStatus =
+                    MembershipApplicationStatus.Pending
+            };
+
+
+            _context.Members.Add(member);
+
+            await _context.SaveChangesAsync();
+
+
+            // 7. Connect Identity User to Member
+            user.MemberId = member.MemberId;
+
+            await _userManager.UpdateAsync(user);
+
+
+            // 9. Remove the used email verification record
+            _context.EmailVerifications.Remove(
+                emailVerification);
+
+            await _context.SaveChangesAsync();
+
+
+            // 10. Return success
+            return new JsonResult(new
+            {
+                success = true,
+                message =
+                    "Your membership application has been submitted and is now pending admin approval."
+            });
         }
 
-        private User CreateUser()
+        public async Task<IActionResult> OnGetGroupsAsync()
         {
-            try
-            {
-                return Activator.CreateInstance<User>();
-            }
-            catch
-            {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                    $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
-            }
+            var groups = await _context.Groups
+                .AsNoTracking()
+                .Where(g => !g.IsArchived)
+                .OrderBy(g => g.GroupName)
+                .Select(g => new
+                {
+                    groupId = g.GroupId,
+                    groupName = g.GroupName
+                })
+                .ToListAsync();
+
+            return new JsonResult(groups);
         }
 
-        private IUserEmailStore<User> GetEmailStore()
+        //REQUEST MODELS
+        public class EmailVerificationRequestViewModel
         {
-            if (!_userManager.SupportsUserEmail)
-            {
-                throw new NotSupportedException("The default UI requires a user store with email support.");
-            }
-            return (IUserEmailStore<User>)_userStore;
+            public string Email { get; set; } = string.Empty;
+        }
+
+
+        public class VerifyEmailCodeViewModel
+        {
+            public string Email { get; set; } = string.Empty;
+
+            public string Code { get; set; } = string.Empty;
         }
     }
 }

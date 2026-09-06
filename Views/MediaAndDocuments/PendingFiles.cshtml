@@ -1,0 +1,157 @@
+﻿@using Sym_Connect__Capstone2_.Helpers
+@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.PendingFilesViewModel
+@{
+    ViewData["Title"] = "Pending Files";
+    Layout = "_AdminLayout";
+
+    (string Icon, string ColorClass) GetFileIcon(string ext)
+    {
+        return ext?.ToLower() switch
+        {
+            ".pdf" => ("bi-file-earmark-pdf-fill", "file-icon-pdf"),
+
+            ".doc" or ".docx"
+                => ("bi-file-earmark-word-fill", "file-icon-docx"),
+
+            ".xls" or ".xlsx"
+                => ("bi-file-earmark-excel-fill", "file-icon-xlsx"),
+
+            ".ppt" or ".pptx"
+                  => ("bi-file-earmark-slides-fill", "file-icon-pptx"),
+
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp"
+                => ("bi-file-earmark-image-fill", "file-icon-image"),
+
+            _ => ("bi-file-earmark-fill", "file-icon-default")
+        };
+    }
+}
+
+<div class="media-page">
+    <div class="page-header">
+        <div class="d-flex align-items-center gap-2">
+            <a href="@Url.Action("Index", "MediaAndDocuments")" class="btn-back" title="Back to Media & Documents">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h2>Pending Files</h2>
+                <p class="page-subtitle">Manage and organize SYM files and media</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="file-toolbar">
+        <div class="file-search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="fileSearchInput" placeholder="Search" />
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-calendar3"></i> Modified dates
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-sort="newest">Newest first</a></li>
+                <li><a class="dropdown-item" href="#" data-sort="oldest">Oldest first</a></li>
+            </ul>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-file-earmark"></i> Type
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" data-type="all">All</a></li>
+                <li><a class="dropdown-item" href="#" data-type="pdf">PDF</a></li>
+                <li><a class="dropdown-item" href="#" data-type="docx">Docx</a></li>
+                <li><a class="dropdown-item" href="#" data-type="xlsx">Xlsx</a></li>
+                <li><a class="dropdown-item" href="#" data-type="image">Image</a></li>
+            </ul>
+        </div>
+    </div>
+
+    @if (!Model.Files.Any())
+    {
+        <p class="text-muted">No files waiting for approval right now.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table file-table">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th>Uploaded by</th>
+                        <th>Date</th>
+                        <th class="actions-col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in Model.Files)
+                    {
+                        var (icon, colorClass) = GetFileIcon(file.FileExtension);
+
+                        <tr>
+                            <td>
+                                <div class="file-name-cell">
+                                    <span class="file-icon-badge @colorClass">
+                                        <i class="bi @icon"></i>
+                                    </span>
+                                    <a href="@file.FileUrl" target="_blank" class="pending-file-link">
+                                        @file.FileName
+                                    </a>
+                                </div>
+                            </td>
+                            <td>@file.UploadedBy</td>
+                            <td>@file.UploadedDate.ToString("MMM d, yyyy h:mm tt")</td>
+                            <td class="text-end">
+                                <button type="button"
+                                        class="btn btn-view open-modal pending-file-details-btn"
+                                        data-file-id="@file.MediaFileId"
+                                        data-url="@Url.Action(
+                                                    "PendingFileInformation",
+                                                    "MediaAndDocuments",
+                                                    new { id = file.MediaFileId })"
+                                        data-title="File Information">
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/admin/Media.js"></script>
+
+    @if (ViewBag.OpenFileId != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+
+            const fileId = "@ViewBag.OpenFileId";
+
+            console.log("Trying to open pending file:", fileId);
+
+            const viewButton = document.querySelector(
+            `.pending-file-details-btn[data-file-id="${fileId}"]`
+            );
+
+            if (!viewButton) {
+            console.error("View button not found for file:", fileId);
+            return;
+            }
+
+            const url = viewButton.dataset.url;
+            const title = viewButton.dataset.title;
+
+            console.log("Opening modal URL:", url);
+
+            openModal(title, url);
+            });
+        </script>
+    }
+}

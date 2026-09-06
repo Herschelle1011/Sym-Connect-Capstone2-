@@ -620,3 +620,27 @@
     background: #e5e7eb;
     color: #6b7280;
 }
+
+
+.topbar-icon-btn {
+    position: relative;
+}
+
+.notif-count {
+    position: absolute;
+    top: -6px;
+    right: -7px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #dc3545;
+    color: #ffffff;
+    border-radius: 999px;
+    border: 2px solid #ffffff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}

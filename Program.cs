@@ -101,6 +101,14 @@ builder.Services.AddScoped<
     INotificationService,
     NotificationService>();
 
+builder.Services.AddScoped<
+    ICurrentUserContext,
+    CurrentUserContext>();
+
+builder.Services.AddScoped<
+    IDashboardService,
+    DashboardService>();
+
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
                             Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();

@@ -99,11 +99,13 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             var election = await _context.Elections.FindAsync(vm.electionId);
             if(election == null ||  election.Status != "Open") return VoteResult.InvalidSelection;
 
+
             if (vm.selectedVotes == null || vm.selectedVotes.Count == 0) return VoteResult.InvalidSelection;
 
             bool hasDuplicatePositions = vm.selectedVotes
             .GroupBy(v => v.positionId)
             .Any(g => g.Count() > 1);
+
                     if (hasDuplicatePositions) return VoteResult.InvalidSelection;
 
             using var transaction = await _context.Database.BeginTransactionAsync();

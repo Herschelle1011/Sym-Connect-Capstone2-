@@ -24,6 +24,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
 
         Task<(int? GroupId, bool IsLeader)> GetAnnouncementContextAsync(int memberId);
+        Task<int> GetTotalCountAsync();
+
         ////LOAD ALL Members dropDown
         //Task<List<Member>> GetMemberOptionsAsync(int groupId);
     }

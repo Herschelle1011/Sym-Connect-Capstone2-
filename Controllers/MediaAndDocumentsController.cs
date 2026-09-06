@@ -31,6 +31,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             _groupService = groupService;
         }
 
+
         public async Task<IActionResult> Index()
         {
             var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
@@ -39,6 +40,9 @@ namespace Sym_Connect__Capstone2_.Controllers
             if (user == null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
 
+
+            ViewBag.PendingFilesCount =
+                          await _mediaService.GetPendingFilesCountAsync();
 
             if (!isAdmin && memberId == null)
             {
@@ -49,6 +53,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             }
 
 
+
             var recentFiles = await _mediaService.RecentFiles(memberId.Value ,isAdmin);
             var folders = await _mediaService.GetAllFoldersAsync(memberId.Value, isAdmin);
             var vm = new MediaAndDocumentsIndexViewModel
@@ -57,9 +62,24 @@ namespace Sym_Connect__Capstone2_.Controllers
                 RecentFiles = recentFiles
             };
 
+            ViewBag.IsAdmin = isAdmin;  
+
             return View(vm);
         }
 
+
+
+        [HttpGet]
+        public async Task<IActionResult> PendingFilesCount()
+        {
+            var count =
+                await _mediaService.GetPendingFilesCountAsync();
+
+            return Json(new
+            {
+                count = count
+            });
+        }
 
         public async Task<IActionResult> FolderDetails(int? id)
         {
@@ -129,8 +149,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
         public async Task<IActionResult> Rename(int id, string name)
         {
-            var result = await _mediaService.RenameAsync(id, name);
-         
+            var result = await _mediaService.RenameFolderAsync(id, name);    
 
             return Json(new { success = result.Success, message = result.Message });
 
@@ -219,13 +238,22 @@ namespace Sym_Connect__Capstone2_.Controllers
             var (memberId, isAdmin, isLeader) = await ResolveCurrentUserAsync();
             if (memberId is null)
                 return RedirectToPage("/Account/Login", new { area = "Identity" });
-            if (!isAdmin && !isLeader) return Forbid();
+            if (!isAdmin) return Forbid();
 
-            var result = await _mediaService.UploadFilesAsync(vm.MediaFolderId, vm.Files, memberId.Value);
+            var result = await _mediaService.UploadFilesAsync(vm.MediaFolderId, vm.Files, memberId.Value, isAdmin);
             return Json(new { success = result.Success, message = result.Message });
         }
 
+
         //=== DELETE FILE ====
+
+        [HttpGet]
+        public async Task<IActionResult> GetDeleteFile(int mediaFileId)
+        {
+            var file = await _mediaService.GetDeleteFile(mediaFileId);
+            return PartialView("_DeleteFileModalConfirmation", file);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -325,6 +353,147 @@ namespace Sym_Connect__Capstone2_.Controllers
                 message = result.Message
             });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAvailableFolders(int currentFolderid, int fileId)
+        {
+            var folders = await _mediaService.GetAvailableFolderAsync(currentFolderid);
+            var vm = new MediaFolderViewModel
+            {
+                Folders = folders,
+            };
+
+            ViewBag.FileId = fileId; 
+            return PartialView("_AvailableFoldersModal", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MoveFileAsync(int fileid, int folderId)
+        {
+            var (memberId, isAdmin, isLeader) =
+         await ResolveCurrentUserAsync();
+
+            if (!isAdmin && memberId == null)
+            {
+                return Forbid();
+            }
+
+            if (!isAdmin && !isLeader)
+            {
+                return Forbid();
+            }
+
+            var result = await _mediaService.MoveFile(fileid, folderId, memberId ?? 0, isAdmin);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        public async Task<IActionResult> FileInformation(int? id)
+        {
+            if (id == null) return NotFound();
+            var fileInfo = await _mediaService.FileInformation(id.Value);
+           
+            return PartialView("_ViewFileInformationModal", fileInfo);
+        }
+
+
+
+        //=== PENDING FILES QUEUE === ADMIN ONLY
+        [HttpGet]
+        public async Task<IActionResult> PendingFiles(int? openFileId)
+        {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+            if (!isAdmin) return Forbid();
+
+            var vm = await _mediaService.GetPendingFiles();
+            ViewBag.OpenFileId = openFileId;
+
+            return View(vm);
+        }
+
+        //MODAL OPENER FOR VIEW BUTTON
+        public async Task<IActionResult> PendingFileInformation(int id)
+        {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+            if (!isAdmin) return Forbid();
+
+            var vm = await _mediaService.GetPendingFilesDetails(id);
+            if (vm == null) return NotFound();
+            return PartialView("_ViewPendingFileInformationModal", vm);
+        }
+
+        //=== APPROVE FILE === ADMIN ONLY
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveFile(int mediaFileId)
+        {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+            if (!isAdmin) return Forbid();
+
+            var result = await _mediaService.ApproveFileAsync(mediaFileId, memberId ?? 0);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        //=== REJECT FILE (POST) === ADMIN ONLY
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectFile(int mediaFileId, string reason)
+        {
+            var (memberId, isAdmin, _) = await ResolveCurrentUserAsync();
+            if (!isAdmin) return Forbid();
+
+            var result = await _mediaService.RejectFileAsync(mediaFileId, reason, memberId ?? 0);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangeVisibility(int folderId)
+        {
+            var (_, isAdmin, _) = await ResolveCurrentUserAsync();
+            if (!isAdmin) return Forbid();
+
+            var folder = await _mediaService.GetFolderByIdAsync(folderId);
+            if (folder == null) return NotFound();
+
+            var vm = new ChangeVisibilityViewModel
+            {
+                MediaFolderId = folder.MediaFolderId,
+                FolderName = folder.FolderName,
+                IsPrivate = folder.IsPrivate
+            };
+
+            return PartialView("_ChangeVisibilityModal", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeVisibility(
+                int folderId,
+                bool isPrivate)
+        {
+            var (_, isAdmin, _) = await ResolveCurrentUserAsync();
+
+            if (!isAdmin)
+                return Forbid();
+
+            var result = await _mediaService.ChangeVisibility(
+                folderId,
+                isPrivate
+            );
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
+
+
+
+
+
+
+
 
 
 

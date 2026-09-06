@@ -1,9 +1,9 @@
-﻿@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaAndDocumentsIndexViewModel
+﻿@using Sym_Connect__Capstone2_.Helpers
+@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaAndDocumentsIndexViewModel
 @{
     ViewData["Title"] = "Media & Documents";
     Layout = "_AdminLayout";
 }
-
 
 <div class="media-page">
     <div class="page-header">
@@ -17,11 +17,39 @@
         <span class="breadcrumb">
             <a href="@Url.Action("Index", "Dashboard")">Home</a> / Documents &amp; Media
         </span>
-        <button type="button" class="btn btn-primary open-modal"
-                data-url="@Url.Action("CreateFolder", "MediaAndDocuments")"
-                data-title="New Folder">
-            + New Folder
-        </button>
+
+        <div class="media-header-actions">
+
+                @if ((bool)(ViewBag.IsAdmin ?? false))
+                {
+                               <a href="@Url.Action("PendingFiles", "MediaAndDocuments")"
+                           class="pending-files-btn">
+
+                            <span class="pending-files-icon">
+                                <i class="bi bi-clock-history"></i>
+                            </span>
+
+                            <span class="pending-files-text">
+                                Pending Files
+                            </span>
+
+                            <span id="pendingFilesCount"
+                                  class="pending-files-count @(ViewBag.PendingFilesCount == 0 ? "d-none" : "")">
+                                @ViewBag.PendingFilesCount
+                            </span>
+
+                        </a>
+
+                    <button type="button"
+                            class="btn btn-primary open-modal"
+                            data-url="@Url.Action("CreateFolder", "MediaAndDocuments")"
+                            data-title="New Folder">
+                        <i class="bi bi-plus-lg"></i>
+                        New Folder
+                    </button>
+                }
+
+        </div>
     </div>
 
     <div class="folder-grid">
@@ -37,17 +65,27 @@
                     <a href="@Url.Action("FolderDetails", new { id = folder.MediaFolderId })"
                        class="folder-card-link">
 
-                        <img src="~/images/folder.png"
-                             alt="Folder"
-                             class="folder-icon" />
-                        @if (folder.IsPrivate)
-                        {
-                            <i class="bi bi-lock-fill folder-lock"></i>
-                        }
+                        <i class="bi bi-folder-fill folder-icon"></i>
 
-                        <span class="folder-name">@folder.FolderName</span>
-                        <span class="folder-count">@folder.FileCount</span>
+                        <div class="folder-info">
+                            <span class="folder-name">@folder.FolderName</span>
+
+                            @if (folder.IsPrivate)
+                            {
+                                <span class="visibility-badge badge-private">
+                                    <i class="bi bi-lock-fill"></i> Private
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="visibility-badge badge-public">
+                                    <i class="bi bi-globe"></i> Public
+                                </span>
+                            }
+                        </div>
                     </a>
+
+                    <span class="folder-count">@folder.FileCount</span>
 
                     <div class="dropdown folder-kebab-wrapper">
                         <button class="btn-kebab" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -62,13 +100,19 @@
                                 </a>
                             </li>
                             <li>
-                                <li>
-                                    <a class="dropdown-item text-danger open-modal" href="#"
-                                       data-url="@Url.Action("GetArchive", "MediaAndDocuments", new { id = folder.MediaFolderId })"
-                                       data-title="Archive Folder">
-                                        Archive
-                                    </a>
-                                </li>
+                                <a class="dropdown-item open-modal" href="#"
+                                   data-url="@Url.Action("ChangeVisibility", "MediaAndDocuments", new { folderId = folder.MediaFolderId })"
+                                   data-title="Change Folder Visibility">
+                                    Visibility
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger open-modal" href="#"
+                                   data-folder-id="@folder.MediaFolderId"
+                                   data-url="@Url.Action("GetArchive", "MediaAndDocuments", new { id = folder.MediaFolderId })"
+                                    data-title="Archive Folder">
+                                    Archive
+                                </a>
                             </li>
                         </ul>
                     </div>
@@ -119,8 +163,6 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li><a class="dropdown-item" href="@Url.Action("Download", "MediaAndDocuments", new { id = file.MediaFileId })">Download</a></li>
-                                            <li><a class="dropdown-item text-danger" href="#" data-file-id="@file.UploadedByMemberId">Delete</a></li>
-                                        </ul>
                                     </div>
                                 </td>
                             </tr>
@@ -132,9 +174,6 @@
     </div>
 </div>
 
-@section Scripts{
-    @{
-
-    }
+@section Scripts {
     <script src="~/js/admin/Media.js"></script>
 }

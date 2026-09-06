@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Sym_Connect__Capstone2_.Models.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Sym_Connect__Capstone2_.Models.MediaAndDocuments
@@ -20,6 +21,11 @@ namespace Sym_Connect__Capstone2_.Models.MediaAndDocuments
 
         public long FileSizeBytes { get; set; }
 
+        public MediaFileStatus MediaFileStatus { get; set; }
+
+
+
+
         public DateTime UploadDate { get; set; }
 
         [ForeignKey(nameof(Member))]
@@ -29,6 +35,12 @@ namespace Sym_Connect__Capstone2_.Models.MediaAndDocuments
 
         public bool? IsArchived { get; set; }
         public DateTime? DateArchived { get; set; }
+
+
+
+        //APPROVAL
+        public int? ApprovedByMemberId { get; set; }
+        public DateTime? ApprovalDate { get; set; }
 
 
 

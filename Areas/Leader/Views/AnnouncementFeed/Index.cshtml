@@ -32,6 +32,14 @@
                             {
                                 <span class="badge badge-leaders">Leaders</span>
                             }
+                            else if (a.TargetType == TargetAudience.AllMembers)
+                            {
+                                <span class="badge badge-members">Members</span>
+                            }
+                            else if (a.TargetType == TargetAudience.Everyone)
+                            {
+                                <span class="badge badge-everyone">Everyone</span>
+                            }
                         </div>
                         <div class="announcement-posted-by">
                             Posted by @a.PostedByName
@@ -67,6 +75,7 @@
     }
 
     .announcement-card {
+        display: block;
         position: relative;
         background: #fff;
         border-radius: 14px;
@@ -160,5 +169,15 @@
     .badge-leaders {
         background: #fff1e6;
         color: #e8722a;
+    }
+
+    .badge-members {
+        background: #e6f4f4;
+        color: #2e8b8b;
+    }
+
+    .badge-everyone {
+        background: #e6f4ea;
+        color: #2e8b57;
     }
 </style>

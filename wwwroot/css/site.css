@@ -79,3 +79,158 @@ body {
         transform: rotate(360deg);
     }
 }
+
+/* =========================================
+   MOVE FILE MODAL — FOLDER LIST
+   ========================================= */
+
+.move-folder-body {
+    padding-top: 4px;
+}
+
+    .move-folder-body .folder-search-wrap {
+        position: relative;
+        margin-bottom: 14px;
+    }
+
+        .move-folder-body .folder-search-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #b3b8c5;
+            pointer-events: none;
+        }
+
+    .move-folder-body .folder-search-input {
+        padding-left: 38px;
+        border-radius: 10px;
+        border: 1px solid #e4e7ed;
+        height: 44px;
+        width: 100%;
+    }
+
+        .move-folder-body .folder-search-input:focus {
+            box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+            border-color: #2f6fed;
+            outline: none;
+        }
+
+    .move-folder-body .folder-list {
+        max-height: 420px;
+        overflow-y: auto;
+        border: 1px solid #eef0f4;
+        border-radius: 12px;
+    }
+
+    .move-folder-body .folder-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #eef0f4;
+        cursor: pointer;
+        margin: 0;
+        transition: background 0.12s ease;
+    }
+
+        .move-folder-body .folder-row:last-child {
+            border-bottom: none;
+        }
+
+        .move-folder-body .folder-row:hover {
+            background: #f7f9fc;
+        }
+
+    .move-folder-body .folder-row-selected,
+    .move-folder-body .folder-row-selected:hover {
+        background: #eaf1ff;
+    }
+
+    .move-folder-body .folder-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #f0a34e;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .move-folder-body .folder-icon-active {
+        color: #2f6fed;
+    }
+
+    .move-folder-body .folder-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .move-folder-body .folder-name-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .move-folder-body .folder-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #1a1a2e;
+    }
+
+    .move-folder-body .badge-private {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #f1f2f6;
+        color: #6b7280;
+        font-size: 0.68rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+    }
+
+    .move-folder-body .folder-meta {
+        font-size: 0.78rem;
+        color: #8a90a2;
+    }
+
+    .move-folder-body .folder-radio {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        accent-color: #2f6fed;
+        margin: 0;
+    }
+
+    .move-folder-body .move-folder-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .move-folder-body .move-here-btn {
+        background: #2f6fed;
+        border-color: #2f6fed;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+        .move-folder-body .move-here-btn:hover {
+            background: #2660d4;
+            border-color: #2660d4;
+        }
+
+
+
+
+

@@ -4,11 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 using Sym_Connect__Capstone2_.ViewModels.Member;
+using Sym_Connect__Capstone2_.ViewModels.Membership;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Metrics;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -374,21 +377,33 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
 
-
-
         //====== ANNOUNCEMENTS =========
         public async Task<(int? GroupId, bool IsLeader)> GetAnnouncementContextAsync(int memberId)
         {
-            var context = await _context.GroupDetails
+            var leaderGroup = await _context.Groups
+                .AsNoTracking().FirstOrDefaultAsync(g => 
+                g.LeaderId == memberId && g.IsArchived == false);
+
+            if(leaderGroup != null)
+            {
+                return (leaderGroup.GroupId, true);
+            }
+
+            var memberGroupId = await _context.GroupDetails
                 .AsNoTracking()
                 .Where(e => e.MemberId == memberId)
-                .Select(gd => new
-                {
-                    gd.GroupId,
-                    isLeader = gd.Group.LeaderId == gd.MemberId
-                }).FirstOrDefaultAsync();
+                .Select(gd => (int?)gd.GroupId).FirstOrDefaultAsync();
 
-            return context == null ? (null, false) : (context.GroupId, context.isLeader);
+
+            return (
+                    memberGroupId,
+                    false
+                );
+        }
+
+        public async Task<int> GetTotalCountAsync()
+        {
+            return await _context.Members.Where(m => m.Status != "Inactive").CountAsync();
         }
 
     }

@@ -304,9 +304,12 @@ public class EventsController : Controller
 
 
     //EVENT REQUEST CLICK CARD ==============
-    public async Task<IActionResult> ViewEventsRequests()
+    public async Task<IActionResult> ViewEventsRequests(int? id,int? openEventId)
     {
         var events = await _eventService.GetEventsSummaryForAdminAsync();
+
+        ViewBag.OpenEventId = openEventId ?? id;
+
         return View(events);
     }
 

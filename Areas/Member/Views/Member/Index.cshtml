@@ -1,25 +1,65 @@
-﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Dashboard.DashboardViewModel;
-
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Dashboard.DashboardViewModel
+@using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums
 
 @{
     Layout = "_MemberLayout";
     ViewData["Title"] = "Dashboard";
+
+    string AccentColor(TargetAudience t) => t switch
+    {
+        TargetAudience.SpecificGroup => "#f0a34e",
+        TargetAudience.AllLeaders => "#f0a34e",
+        _ => "#4a7fd6"
+    };
+
+    string Initials(string name) =>
+        string.IsNullOrWhiteSpace(name) ? "?" :
+        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                           .Take(2)
+                           .Select(w => char.ToUpper(w[0])));
 }
 
+<h1>Members Dashboard</h1>
 
-@* // WONT SHOW PINNED ANNOUNCEMENTS *@
-
-<h1>Leaders Dashboard</h1>
-
-@if (Model != null)
+@if (Model?.PinnedAnnouncement != null)
 {
-    <div class="pinned-announcement">
-        <div class="pinned-label">📌 Pinned</div>
-        <h3>@Model.PinnedAnnouncement.Title</h3>
-        <p>@Model.PinnedAnnouncement.Content</p>
-        <div class="pinned-meta">
-            Posted @Model.PinnedAnnouncement.PublishedAt.Value.ToString("MMM d, yyyy")
+    var item = Model.PinnedAnnouncement;
+
+    <div class="announcement-panel">
+        <div class="announcement-panel-header">
+            <i class="bi bi-star-fill"></i>
+            <span>Pinned Announcement</span>
+        </div>
+
+        <div class="announcement-card" style="--accent: @AccentColor(item.TargetType)">
+            <div class="announcement-avatar">
+                @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
+                {
+                    <img src="@item.PhotoUrl" alt="@item.PostedByName" />
+                }
+                else
+                {
+                    <span>@Initials(item.PostedByName)</span>
+                }
+            </div>
+
+            <div class="announcement-body">
+                <div class="announcement-title">@item.Title</div>
+                <div class="announcement-meta">
+                    <span>Posted by @item.PostedByName</span>
+                    <span class="dot">•</span>
+                    <span>
+                        @(item.PublishedAt.HasValue
+                            ? item.PublishedAt.Value.ToString("MMM d, yyyy")
+                            : "—")
+                    </span>
+                    @if (item.PublishedAt.HasValue)
+                    {
+                        <span>@item.PublishedAt.Value.ToString("h:mm tt")</span>
+                    }
+                </div>
+                <p class="announcement-content">@item.Content</p>
+            </div>
         </div>
     </div>
 }
-

@@ -1,0 +1,201 @@
+﻿@model List<EvaluationEventOptionViewModel>
+
+<div class="modal-header border-0 pb-2">
+    <div>
+        <h5 class="modal-title fw-bold mb-1">
+            Select Event
+        </h5>
+
+        <p class="text-muted small mb-0">
+            Select the completed event this evaluation is for.
+        </p>
+    </div>
+
+    <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal">
+    </button>
+</div>
+
+
+<div class="modal-body">
+
+    <!-- Search -->
+    <div class="position-relative mb-3">
+        <i class="bi bi-search position-absolute"
+           style="left:14px; top:50%; transform:translateY(-50%); color:#8A93A3;">
+        </i>
+
+        <input type="text"
+               id="eventSearchInput"
+               class="form-control ps-5"
+               placeholder="Search events..." />
+    </div>
+
+
+    <div class="event-picker-list">
+
+        @if (!Model.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x text-muted"
+                   style="font-size:3rem;">
+                </i>
+
+                <h6 class="fw-semibold mt-3">
+                    No Completed Events
+                </h6>
+
+                <p class="text-muted small mb-0">
+                    There are currently no completed events available
+                    for evaluation.
+                </p>
+            </div>
+        }
+        else
+        {
+            @foreach (var e in Model)
+            {
+                <div class="event-candidate-row"
+                     data-event-id="@e.EventId"
+                     data-event-title="@e.EventTitle"
+                     role="button">
+
+                    <div class="d-flex justify-content-between gap-3">
+
+                        <div class="flex-grow-1">
+
+                            <!-- Event Title -->
+                            <div class="fw-semibold event-picker-title">
+                                @e.EventTitle
+                            </div>
+
+
+                            <!-- Date -->
+                            <div class="event-picker-detail mt-2">
+                                <i class="bi bi-calendar3"></i>
+
+                                @e.StartDate.Value.ToString("MMM dd, yyyy")
+
+                                @if (e.EndDate.HasValue != e.StartDate.HasValue)
+                                {
+                                    <span>
+                                        -
+                                        @e.EndDate.Value.ToString("MMM dd, yyyy")
+                                    </span>
+                                }
+                            </div>
+
+
+                            <!-- Time -->
+                            @if (e.StartTime.HasValue || e.EndTime.HasValue)
+                            {
+                                <div class="event-picker-detail">
+
+                                    <i class="bi bi-clock"></i>
+
+                                    @if (e.StartTime.HasValue)
+                                    {
+                                        <span>@(DateTime.Today.Add(e.StartTime.Value).ToString("h:mm tt"))</span>
+                                    }
+
+                                    @if (e.StartTime.HasValue && e.EndTime.HasValue)
+                                    {
+                                        <span> - </span>
+                                    }
+
+                                    @if (e.EndTime.HasValue)
+                                    {
+                                        <span>@(DateTime.Today.Add(e.EndTime.Value).ToString("h:mm tt"))</span>
+                                    }
+
+                                </div>
+                            }
+
+                            <!-- Groups -->
+                            @if (e.GroupNames != null &&
+                                 e.GroupNames.Any())
+                            {
+                                <div class="event-picker-detail">
+
+                                    <i class="bi bi-people"></i>
+
+                                    @string.Join(", ", e.GroupNames)
+
+                                </div>
+                            }
+
+
+                            <!-- Facilities -->
+                            @if (e.FacilityNames != null &&
+                                 e.FacilityNames.Any())
+                            {
+                                <div class="event-picker-detail">
+
+                                    <i class="bi bi-geo-alt"></i>
+
+                                    @string.Join(", ", e.FacilityNames)
+
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <div class="d-flex align-items-center">
+
+                            <i class="bi bi-chevron-right text-muted"></i>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+
+    </div>
+</div>
+
+
+<style>
+
+    .event-picker-list {
+        max-height: 430px;
+        overflow-y: auto;
+    }
+
+    .event-candidate-row {
+        padding: 16px;
+        border: 1px solid #E3E7ED;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: .15s ease;
+    }
+
+        .event-candidate-row:hover {
+            border-color: #2F6FED;
+            background: #F7F9FF;
+        }
+
+    .event-picker-title {
+        color: #1F2937;
+        font-size: 14px;
+    }
+
+    .event-picker-detail {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: #6B7280;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+        .event-picker-detail i {
+            width: 15px;
+            color: #8A93A3;
+        }
+
+</style>

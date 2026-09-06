@@ -5,6 +5,8 @@
         public int EvaluationId { get; set; }
         public string EvaluationTitle { get; set; } = string.Empty;
 
+        public string EventTitle { get; set; } = string.Empty;
+
         public string Description { get; set; } = string.Empty;
 
         public DateTime DateCreated { get; set; }

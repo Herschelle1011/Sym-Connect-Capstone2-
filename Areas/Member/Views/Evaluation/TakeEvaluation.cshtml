@@ -222,9 +222,17 @@
 
         </div>
     </div>
+    <form id="evaluationForm"
+          asp-action="TakeEvaluation"
+          asp-controller="Evaluation"
+          asp-area="Member"
+          method="post">
 
-    <form asp-action="TakeEvaluation" method="post">
-        <input type="hidden" name="EvaluationId" value="@Model.EvaluationId" />
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="EvaluationId"
+               value="@Model.EvaluationId" />
 
         <div class="step-card">
             <div class="top-bar"></div>
@@ -293,29 +301,69 @@
             });
         });
 
-                document.querySelector('form').addEventListener('submit', function (e) {
+document.getElementById('evaluationForm')
+        .addEventListener('submit', function (e) {
+
             let hasError = false;
 
-            document.querySelectorAll('.eval-question-card').forEach(function (card) {
-                const textarea = card.querySelector('textarea');
-                const radios = card.querySelectorAll('input[type="radio"]');
+            document.querySelectorAll('.eval-question-card')
+                .forEach(function (card) {
 
-                let answered = true;
+                    const textarea =
+                        card.querySelector('textarea');
 
-                if (textarea) {
-                    answered = textarea.value.trim() !== '';
-                } else if (radios.length > 0) {
-                    answered = Array.from(radios).some(r => r.checked);
-                }
+                    const radios =
+                        card.querySelectorAll('input[type="radio"]');
 
-                card.classList.toggle('has-error', !answered);
+                    let answered = true;
 
-                if (!answered) hasError = true;
-            });
+                    if (textarea) {
+                        answered =
+                            textarea.value.trim() !== '';
+                    }
+                    else if (radios.length > 0) {
+                        answered =
+                            Array.from(radios)
+                                .some(r => r.checked);
+                    }
 
-            if (hasError) {
-                e.preventDefault(); // stop the form from submitting
+                    card.classList.toggle(
+                        'has-error',
+                        !answered
+                    );
+
+                    if (!answered) {
+                        hasError = true;
+                    }
+                });
+
+               if (hasError) {
+            e.preventDefault();
+
+            showAlertDialog(
+                "Please answer all questions before submitting your evaluation.",
+                "warning",
+                "Incomplete Evaluation"
+            );
+
+            const firstError =
+                document.querySelector(
+                    '.eval-question-card.has-error'
+                );
+
+            if (firstError) {
+                firstError.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
             }
+
+            return;
+        }
+
+            console.log(
+                "Evaluation form is being submitted."
+            );
         });
 
                 document.querySelectorAll('.eval-question-card').forEach(function (card) {

@@ -9,6 +9,7 @@ using Sym_Connect__Capstone2_.Models.FacilityModels;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Attendance;
+using Sym_Connect__Capstone2_.ViewModels.Dashboard;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.ViewModels.Group;
@@ -24,12 +25,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     {
         private readonly AppDbContext _context;
         private readonly INotificationService _notificationService;
+        private readonly IEvaluationService _evaluationService;
 
 
-        public EventService(AppDbContext context, INotificationService notificationService)
+
+        public EventService(AppDbContext context, INotificationService notificationService, IEvaluationService evaluationService)
         {
             _context = context;
             _notificationService = notificationService;
+            _evaluationService = evaluationService;
         }
 
         public async Task<int> GetPendingRequestCountAsync()
@@ -87,8 +91,70 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     FacilityNames = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
                     GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList()
                 }).ToListAsync();
+        }
+
+        public async Task<List<EventListItemViewModel>> GetAllEventForEvaluationAsync(int currentUserId, bool IsAdmin)
+        {
+            var now = DateTime.Now;
+            var today = now.Date;
+            var currentTime = now.TimeOfDay;
+
+            var query = _context.Events
+             .Where(e =>
+          !e.IsArchived &&
+          e.ApprovalStatus == ApprovalStatus.Approved && 
+                            (e.EndDate < today || (
+                              e.EndDate == today &&
+                              e.EndTime.HasValue &&
+                              e.EndTime.Value < currentTime)));
+
+            //check if its leader Not admin
+            if (!IsAdmin)
+            {
+                query = query.Where(e => e.CreatedByUserId == currentUserId);
+            }
 
 
+            return await query
+               .OrderByDescending(e => e.EndDate)
+               .Select(e => new EventListItemViewModel
+                  {
+           EventId = e.EventId,
+           EventTitle = e.EventTitle,
+
+           StartDate = e.StartDate,
+           StartTime = e.StartTime,
+
+           EndTime = e.EndTime,
+           EndDate = e.EndDate,
+
+           ApprovalStatus = e.ApprovalStatus,
+
+           DateCreated = e.DateCreated,
+           ApprovedDate = e.ApprovedDate,
+
+           RejectionReason = e.RejectionReason,
+
+           ApproveByName =
+               e.ApprovedByUser != null
+                   ? e.ApprovedByUser.FirstName + " " + e.ApprovedByUser.LastName
+                   : null,
+
+           SubmittedByName =
+               e.CreatedByUser != null
+                   ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName
+                   : null,
+
+           FacilityNames =
+               e.ExpectedFacilities
+                   .Select(f => f.Facility.FacilityName)
+                   .ToList(),
+
+                    GroupNames =
+                      e.ExpectedGroups
+                   .Select(g => g.Group.GroupName)
+                   .ToList()
+                        }).ToListAsync();
 
         }
 
@@ -253,6 +319,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             existingEvent.Status = status;
+
+            var rating = 
+            existingEvent.EvaluationRating =
+                await _evaluationService.GetEventFinalRatingAsync(id);
+
+            Console.WriteLine($"EVENT ID: {id}");
+            Console.WriteLine($"RATING: {rating}");
+
 
             return existingEvent;
         }
@@ -431,7 +505,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                   {
                       Title = "New Event Request",
                       Message = $"A new event request \"{newEvent.EventTitle}\" has been submitted.",
-                      Url = $"/Events/ViewEventsRequests/{newEvent.EventId}"
+                      Url = $"/Events/ViewEventsRequests?openEventId={newEvent.EventId}"
                   }
               );
             }
@@ -694,27 +768,73 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
         //understand this part >>>> to be check....
-        public async Task<Event?> HasFacilityConflictAsync(List<int>? facilityId, bool isAllDay, DateTime startDate,
-                                        DateTime? endDate, TimeSpan? startTime, TimeSpan? endTime, int? excludeEventId = null)
+        public async Task<Event?> HasFacilityConflictAsync(
+                     List<int>? facilityId,
+                     bool isAllDay,
+                     DateTime startDate,
+                     DateTime? endDate,
+                     TimeSpan? startTime,
+                     TimeSpan? endTime,
+                     int? excludeEventId = null)
         {
-            var (newStart, newEnd) = EventRange(isAllDay, startDate, endDate, startTime, endTime);
-            //list of those events in the same DATE
-            var possibleEventConflicts = await _context.Events.Where(e =>
-                                        e.ExpectedFacilities.Any(ef => facilityId.Contains(ef.FacilityId))
-                                        && e.StartDate.Date <= endDate.Value.Date
-                                        && e.EndDate.Date >= startDate.Date
-                                        && (excludeEventId == null || e.EventId != excludeEventId)).ToListAsync();
-            //checks the list 
+            if (facilityId == null || !facilityId.Any())
+                return null;
+
+            if (endDate == null)
+                return null;
+
+            var (newStart, newEnd) = EventRange(
+                isAllDay,
+                startDate,
+                endDate,
+                startTime,
+                endTime
+            );
+
+            var possibleEventConflicts = await _context.Events
+                .Where(e =>
+                    !e.IsArchived &&
+
+             
+                    // Rejected events no reserve the facility
+                    e.ApprovalStatus != ApprovalStatus.Rejected &&
+
+                    e.ExpectedFacilities.Any(
+                        ef => facilityId.Contains(ef.FacilityId)
+                    ) &&
+
+                    e.StartDate.Date <= endDate.Value.Date &&
+                    e.EndDate.Date >= startDate.Date &&
+
+                    (
+                        excludeEventId == null ||
+                        e.EventId != excludeEventId
+                    )
+                )
+                .ToListAsync();
+
             foreach (var existing in possibleEventConflicts)
             {
-                var (existingStart, existingEnd) = EventRange
-                    (existing.IsAllDay, existing.StartDate, existing.EndDate, existing.StartTime, existing.EndTime);
+                var (existingStart, existingEnd) =
+                    EventRange(
+                        existing.IsAllDay,
+                        existing.StartDate,
+                        existing.EndDate,
+                        existing.StartTime,
+                        existing.EndTime
+                    );
 
-                if (newStart < existingEnd && existingStart < newEnd) return existing;
+                if (
+                    newStart < existingEnd &&
+                    existingStart < newEnd
+                )
+                {
+                    return existing;
+                }
             }
+
             return null;
         }
-
 
 
         //============ QR SCANNER PART CODE ==============
@@ -1139,7 +1259,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<EventResult> ApproveEventAsync(int eventId, int? approveByUserId)
         {
-            var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            var existingEvent = await _context.Events
+                  .Include(e => e.CreatedByUser)
+                .FirstOrDefaultAsync(e => e.EventId == eventId);
             if (existingEvent == null) return new EventResult { Success = false, ErrorMessage = "Event doesn't exist" };
 
             existingEvent.ApprovalStatus = ApprovalStatus.Approved;
@@ -1148,13 +1270,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             await _context.SaveChangesAsync();
 
-            await _notificationService.NotifyUserAsync(
-                existingEvent.CreatedByUser.UserId,   
+            if (existingEvent.CreatedByUser != null &&
+                !string.IsNullOrWhiteSpace(existingEvent.CreatedByUser.UserId))
+            {
+                await _notificationService.NotifyUserAsync(
+                existingEvent.CreatedByUser.UserId,
                  "Event Approved!",
-                 $"Your Event has been approved \"{existingEvent.EventTitle}\" ",
-                $"/Leader/Events/Details/{existingEvent.EventId}"
+                  $"Your event \"{existingEvent.EventTitle}\" has been approved.",
+                    $"/Leader/Events?openEventId={existingEvent.EventId}"
           );
-
+         }
             return EventResult.Ok();
 
 
@@ -1164,8 +1289,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<EventResult> RejectEventAsync(int eventId, string reason)
         {
-            var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
+            var existingEvent = await _context.Events
+                .Include(e => e.CreatedByUser)
+                .FirstOrDefaultAsync(e => e.EventId == eventId);
             if (existingEvent == null) return new EventResult { Success = false, ErrorMessage = "Event doesn't exist" };
+
 
             existingEvent.ApprovalStatus = ApprovalStatus.Rejected;
 
@@ -1173,13 +1301,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             await _context.SaveChangesAsync();
 
-            await _notificationService.NotifyUserAsync(
-               existingEvent.CreatedByUser.UserId,
-                "Event Rejected!",
-                $"Your Event has been rejected \"{existingEvent.EventTitle}\" ",
-               $"/Leader/Events/Details/{existingEvent.EventId}"
-         );
 
+            if (existingEvent.CreatedByUser != null &&
+                !string.IsNullOrWhiteSpace(existingEvent.CreatedByUser.UserId))
+            {
+                await _notificationService.NotifyUserAsync(
+                    existingEvent.CreatedByUser.UserId,
+                    "Event Rejected!",
+                    $"Your event \"{existingEvent.EventTitle}\" has been rejected.",
+                    $"/Leader/Events?openEventId={existingEvent.EventId}"
+                );
+            }
 
             return EventResult.Ok();
         }
@@ -1303,7 +1435,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             if (groups == null) return null;
 
-            // Need the raw group members separately since they're not on the view model
             var groupMembers = await _context.GroupDetails
                 .Where(gd => gd.GroupId == groupId)
                 .Select(gd => new
@@ -1364,5 +1495,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         .AnyAsync(e => e.CreatedByUserId == LeaderMemberId
                         || e.ExpectedGroups.Any(e => e.Group.LeaderId == LeaderMemberId));
         }
+
+        public async Task<int> GetUpcomingCountAsync()
+        {
+            var now = DateTime.Now;
+
+            return await _context.Events
+                .Where(e => !e.IsArchived
+                         && e.ApprovalStatus == ApprovalStatus.Approved
+                         && e.StartDate.Date >= now.Date
+                         && (e.StartDate.Date > now.Date ||
+                             (e.StartTime == null || e.StartTime.Value >= now.TimeOfDay)))
+                .CountAsync();
+        }
+
     }
 }

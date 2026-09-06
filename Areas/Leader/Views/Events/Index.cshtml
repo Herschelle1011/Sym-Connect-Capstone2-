@@ -510,6 +510,30 @@
         });
         }
 
+        // ========================================
+        // OPEN EVENT FROM NOTIFICATION
+        // ========================================
+
+        @if (ViewBag.OpenEventId != null)
+        {
+            <text>
+                document.addEventListener(
+                "DOMContentLoaded",
+                function () {
+
+                const eventId =
+                @ViewBag.OpenEventId;
+
+                console.log(
+                "Opening event from notification:",
+                eventId
+                );
+
+                openEventDetails(eventId);
+                }
+                );
+            </text>
+        }
 
     </script>
 }

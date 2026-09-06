@@ -188,50 +188,158 @@ document.addEventListener("submit", async function (e) {
 // =========================================================
 // ARCHIVE FOLDER
 // =========================================================
-document.addEventListener('submit', async function (e) {
-    if (e.target.id !== 'archiveFolderForm') return;
+// document.addEventListener('submit', async function (e) {
+//     if (e.target.id !== 'archiveFolderForm') return;
 
-    e.preventDefault();
-    const form = e.target;
+//     e.preventDefault();
+//     const form = e.target;
 
-    const submitBtn = form.querySelector('button[type="submit"]');
-    if (submitBtn) submitBtn.disabled = true;
+//     const submitBtn = form.querySelector('button[type="submit"]');
+//     if (submitBtn) submitBtn.disabled = true;
+
+//     try {
+//         const response = await fetch(form.action, {
+//             method: 'POST',
+//             body: new FormData(form)
+//         });
+
+//         const result = await response.json();
+
+//         if (result.success) {
+//             const modalElement = document.getElementById('appModal');
+//             const modal = bootstrap.Modal.getInstance(modalElement);
+//             if (modal) modal.hide();
+
+//             showAlertDialog(
+//                 result.message || 'Folder archived successfully.',
+//                 'success',
+//                 'Success'
+//             );
+
+//             setTimeout(() => location.reload(), 1000);
+//         } else {
+//             showAlertDialog(
+//                 result.message || 'Unable to archive folder.',
+//                 'error',
+//                 'Failed'
+//             );
+//             if (submitBtn) submitBtn.disabled = false;
+//         }
+//     } catch (error) {
+//         console.error('Archive error:', error);
+//         showAlertDialog(
+//             'Something went wrong while archiving.',
+//             'error',
+//             'Error'
+//         );
+//         if (submitBtn) submitBtn.disabled = false;
+//     }
+// });
+
+
+
+
+// ═══════════════ MOVE FILE MODAL: search + select ═══════════════
+document.addEventListener('input', function (e) {
+    if (e.target.id !== 'folderSearchInput') return;
+
+    const term = e.target.value.trim().toLowerCase();
+    document.querySelectorAll('#folderList .folder-row').forEach(row => {
+        const name = row.querySelector('.folder-name').textContent.toLowerCase();
+        row.style.display = name.includes(term) ? '' : 'none';
+    });
+});
+
+document.addEventListener('click', function (e) {
+    const row = e.target.closest('#folderList .folder-row');
+    if (!row) return;
+
+    document.querySelectorAll('#folderList .folder-row').forEach(r => {
+        r.classList.remove('folder-row-selected');
+        r.querySelector('.folder-icon').classList.remove('folder-icon-active');
+    });
+    row.classList.add('folder-row-selected');
+    row.querySelector('.folder-icon').classList.add('folder-icon-active');
+});
+
+// ═══════════════ MOVE FILE MODAL: confirm move ═══════════════
+document.addEventListener('click', async function (e) {
+    const btn = e.target.closest('#moveFileConfirmBtn');
+    if (!btn) return;
+
+    const selectedRadio = document.querySelector('input[name="destinationFolder"]:checked');
+    if (!selectedRadio) {
+        showAlertDialog('Please select a folder.', 'error');
+        return;
+    }
+
+    const fileId = btn.dataset.fileId;
+    const folderId = selectedRadio.value;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    btn.disabled = true;
 
     try {
-        const response = await fetch(form.action, {
+        const response = await fetch('/MediaAndDocuments/MoveFile', {
             method: 'POST',
-            body: new FormData(form)
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ fileId, folderId, __RequestVerificationToken: token })
         });
 
         const result = await response.json();
 
         if (result.success) {
-            const modalElement = document.getElementById('appModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) modal.hide();
-
-            showAlertDialog(
-                result.message || 'Folder archived successfully.',
-                'success',
-                'Success'
-            );
-
+            bootstrap.Modal.getInstance(document.getElementById('appModal'))?.hide();
+            showAlertDialog(result.message || 'File moved successfully.', 'success');
             setTimeout(() => location.reload(), 1000);
         } else {
-            showAlertDialog(
-                result.message || 'Unable to archive folder.',
-                'error',
-                'Failed'
-            );
-            if (submitBtn) submitBtn.disabled = false;
+            showAlertDialog(result.message || 'Unable to move file.', 'error');
+            btn.disabled = false;
         }
-    } catch (error) {
-        console.error('Archive error:', error);
-        showAlertDialog(
-            'Something went wrong while archiving.',
-            'error',
-            'Error'
-        );
-        if (submitBtn) submitBtn.disabled = false;
+    } catch (err) {
+        console.error(err);
+        showAlertDialog('Something went wrong. Please try again.', 'error');
+        btn.disabled = false;
     }
 });
+
+async function refreshPendingFilesCount() {
+
+    const countElement =
+        document.getElementById("pendingFilesCount");
+
+    if (!countElement) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/MediaAndDocuments/PendingFilesCount");
+
+        if (!response.ok) {
+            console.error("Unable to get pending file count.");
+            return;
+        }
+
+        const data = await response.json();
+
+        countElement.textContent = data.count;
+
+        if (data.count > 0) {
+            countElement.classList.remove("d-none");
+        }
+        else {
+            countElement.classList.add("d-none");
+        }
+
+    }
+    catch (error) {
+
+        console.error(
+            "Pending file count error:",
+            error
+        );
+    }
+}
+

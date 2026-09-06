@@ -1,8 +1,10 @@
-﻿using Sym_Connect__Capstone2_.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Attendance;
+using Sym_Connect__Capstone2_.ViewModels.Dashboard;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 
@@ -62,5 +64,10 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<GroupAttendanceDetailsViewModel> GroupAttendanceDetailsView(int groupId, int eventId);
 
         Task<bool> LeaderOwnsEventsAsync(int eventId, int LeaderMemberId);
-       }
+
+        Task<int> GetUpcomingCountAsync();
+
+        Task<List<EventListItemViewModel>> GetAllEventForEvaluationAsync(int currentUserId, bool IsAdmin);
+
+    }
 }

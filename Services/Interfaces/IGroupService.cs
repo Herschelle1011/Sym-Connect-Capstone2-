@@ -32,5 +32,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<Group?> GetGroupLedByMemberAsync(int? memberId);
 
         Task<Group?> GetGroupByLeaderIdAsync(int memberId);
+
+        Task<int> GetTotalCountAsync();
     }
 }

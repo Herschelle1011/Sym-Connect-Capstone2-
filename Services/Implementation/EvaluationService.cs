@@ -1,29 +1,60 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Helpers;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class EvaluationService : IEvaluationService
     {
         private readonly AppDbContext _context;
-        public EvaluationService(AppDbContext context)
+        private readonly INotificationService _notificationService;
+        private readonly UserManager<User> _userManager;
+
+        public EvaluationService(AppDbContext context, INotificationService notificationService, UserManager<User> userManager)
         {
             _context = context;
+            _notificationService = notificationService;
+            _userManager = userManager;
         }
-        public async Task<List<Evaluation>> GetAllEvaluationsAsync()
-        {
-            return await _context.Evaluations
 
-                    .Include(d => d.EvaluationDetails)
-                     .ThenInclude(q => q.EvaluationQuestion)
-                      .Where(e => e.IsArchived == false)
-                            .ToListAsync();
+        public async Task<List<MemberEvaluationListItemViewModel>>GetAvailableEvaluationsAsync(int currentMemberId,bool isAdmin)
+        {
+            var query = _context.Evaluations
+                .AsNoTracking()
+                .Where(e =>
+                    !e.IsArchived &&
+                    e.OpenAt <= DateTime.Now &&
+                    e.ClosedAt >= DateTime.Now);
+            // Leader only sees evaluations for events they created
+            if (!isAdmin)
+            {
+                query = query.Where(e =>
+                    e.Event.CreatedByUserId == currentMemberId);
+            }
+
+            return await query
+                .Select(e => new MemberEvaluationListItemViewModel
+                {
+                    EvaluationId = e.EvaluationId,
+                    EvaluationTitle = e.EvaluationTitle,
+                    Description = e.Description,
+                    DateCreated = e.DateCreated,
+                    OpenAt = e.OpenAt,
+                    ClosedAt = e.ClosedAt,
+                    EventTitle = e.Event.EventTitle
+                })
+                .ToListAsync();
         }
+
+
         public async Task<List<EvaluationQuestion>> GetAllQuestionsAsync()
         {
             var questions = await _context.EvaluationQuestions.ToListAsync();
@@ -41,39 +72,139 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         .FirstOrDefaultAsync(e => e.EvaluationId == id && e.IsArchived == false);
         }
 
+
+
+        public async Task<DetailsEvaluationViewModel?> GetEvaluationByIdAsync(
+    int evaluationId,
+    int currentMemberId,
+    bool isAdmin)
+        {
+            var query = _context.Evaluations
+                .AsNoTracking()
+                .Where(e =>
+                    e.EvaluationId == evaluationId &&
+                    !e.IsArchived);
+
+            // If this is a Leader, only allow evaluations
+            // for events created by that Leader.
+            if (!isAdmin)
+            {
+                query = query.Where(e =>
+                    e.Event.CreatedByUserId == currentMemberId);
+            }
+
+            return await query
+                .Select(e => new DetailsEvaluationViewModel
+                {
+                    EvaluationId = e.EvaluationId,
+
+                    EvaluationTitle = e.EvaluationTitle,
+
+                    Description = e.Description,
+
+                    OpenAt = e.OpenAt,
+
+                    ClosesAt = e.ClosedAt,
+
+                    DateCreated = e.DateCreated,
+
+                    EventTitle = e.Event.EventTitle,
+
+                    Questions = e.EvaluationDetails
+                        .Select(d => new EvaluationQuestionViewModel
+                        {
+                            EvaluationDetailId =
+                                d.EvaluationDetailId,
+
+                            QuestionId =
+                                d.QuestionId,
+
+                            QuestionText =
+                                d.EvaluationQuestion.QuestionText,
+
+                            AnswerType =
+                                d.EvaluationQuestion.AnswerType
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+
+
+
+
+
+
         //------PROCEED TO THE OTHER METHODS NEEDED -------//
         // SEARCH FOR INCLUDE, .SELECT , ENTITY FRAMEWORKDS //
 
-        public async Task CreateOrReuseQuestionAsync(int evaluationid, string questionText,
-            AnswerType answertype)
+        public async Task CreateOrReuseQuestionAsync(int evaluationId, string questionText, AnswerType answerType)
         {
-            //first find/search question along with its answertype using first to get first question && answertype
-            var question = await _context.EvaluationQuestions.FirstOrDefaultAsync(e => e.QuestionText == questionText && e.AnswerType == answertype);
+            // Search if the exact question already exists.
+            var question = await _context.EvaluationQuestions
+                .FirstOrDefaultAsync(q =>
+                    q.QuestionText == questionText &&
+                    q.AnswerType == answerType);
+
+            // If it does not exist, create it.
             if (question == null)
             {
-                //if question doesnt exist yet create a new question 
-                // REUSE the same variable after the search and fill it up if question if empty create New
                 question = new EvaluationQuestion
                 {
                     QuestionText = questionText,
-                    AnswerType = answertype,
+                    AnswerType = answerType
                 };
+
                 _context.EvaluationQuestions.Add(question);
                 await _context.SaveChangesAsync();
             }
-            //Avoid duplicate remove BRIDGE if it is already linked like evaluation == questionId already 
-            var AlreadyExist = await _context.EvaluationDetail.AnyAsync(e => e.EvaluationId == evaluationid && e.QuestionId == question.QuestionId);
-            if (AlreadyExist) return; //IF true STOP !!
 
-            // no search was invented here so create a New variable
+            // Check if this question is already connected
+            // to this evaluation.
+            var alreadyExists = await _context.EvaluationDetail
+                .AnyAsync(d =>
+                    d.EvaluationId == evaluationId &&
+                    d.QuestionId == question.QuestionId);
+
+            if (alreadyExists)
+            {
+                return;
+            }
+
+            // Create the bridge between Evaluation and Question.
             var evaluationDetail = new EvaluationDetails
             {
-                QuestionId = question.QuestionId,
-                EvaluationId = evaluationid,
-
+                EvaluationId = evaluationId,
+                QuestionId = question.QuestionId
             };
-            _context.EvaluationDetail.Add(evaluationDetail); //this continue to add bridges 
+
+            _context.EvaluationDetail.Add(evaluationDetail);
+
             await _context.SaveChangesAsync();
+        }
+
+
+        //GET MOST REUSED QUESTIOSN 
+        public async Task<List<ReusableQuestionViewModel>> GetFrequentlyUsedQuestionsAsync()
+        {
+            var questions = await _context.EvaluationQuestions
+                .Select(q => new ReusableQuestionViewModel
+                {
+                    QuestionId = q.QuestionId,
+                    QuestionText = q.QuestionText,
+                    AnswerType = q.AnswerType,
+
+                    UsageCount = _context.EvaluationDetail
+                        .Count(d => d.QuestionId == q.QuestionId)
+                })
+                .Where(q => q.UsageCount >= 5)
+                .OrderByDescending(q => q.UsageCount)
+                .Take(10)
+                .ToListAsync();
+
+            return questions;
         }
 
         public async Task<EditQuestionViewModel> GetQuestionAsync(int id)
@@ -123,43 +254,186 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task CreateEvaluationAsync(CreateEvaluationViewModel vm)
+        public async Task<OperationalResult> CreateEvaluationAsync(
+    CreateEvaluationViewModel vm, int currentMemberId,
+    bool isAdmin)
         {
-            //follow this method and POLISH everything ------STUCK HERE RESEARCH 7/6/2026
+            // Make sure an event was selected
+            if (!vm.EventId.HasValue)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Please select an event."
+                };
+            }
+
+     
+
+
+            // Make sure the selected event really exists
+            var selectedEvent = await _context.Events
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e =>
+                    e.EventId == vm.EventId.Value && e.ApprovalStatus != ApprovalStatus.Pending && e.ApprovalStatus != ApprovalStatus.Rejected &&
+                    !e.IsArchived);
+
+            if (selectedEvent == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "The selected event was not found."
+                };
+            }
+
+            var alreadyHasEvaluation =
+           await _context.Evaluations
+         .AnyAsync(e =>
+             e.EventId == selectedEvent.EventId &&
+             !e.IsArchived);
+
+            if (alreadyHasEvaluation)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "This event already has an active evaluation."
+                };
+            }
+
+            if (!isAdmin &&
+               selectedEvent.CreatedByUserId != currentMemberId)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "You can only create an evaluation for an event you created."
+                };
+            }
+
+
+            // Create the evaluation
             var evaluation = new Evaluation
             {
                 EvaluationTitle = vm.EvaluationTitle,
                 Description = vm.Description,
+
+                // Connect evaluation to event
+                EventId = selectedEvent.EventId,
+
                 OpenAt = vm.OpenAt,
                 ClosedAt = vm.ClosedAt,
                 DateCreated = DateTime.Now,
                 IsArchived = false,
                 ArchivedDate = null,
             };
-            //add evaluation
+
             _context.Evaluations.Add(evaluation);
+
+            // Save first so EvaluationId is generated
             await _context.SaveChangesAsync();
-            //add question to evaluationdetails
+
+
+            // Add questions
             foreach (var question in vm.RatingQuestions)
             {
                 await CreateOrReuseQuestionAsync(
                     evaluation.EvaluationId,
                     question.QuestionText,
                     AnswerType.RatingScale
-                    );
+                );
             }
 
 
+            // ================= NOTIFICATION =================
+
+            var expectedGroupIds = await _context.Events
+        .Where(e => e.EventId == selectedEvent.EventId)
+        .SelectMany(e => e.ExpectedGroups)
+        .Select(eg => eg.GroupId)
+        .ToListAsync();
+
+
+            // Get members who:
+            // 1. belong to one of the expected groups
+            // 2. actually attended this event
+            var attendedMemberIds = await _context.Attendances
+                .Where(a =>
+                    a.EventId == selectedEvent.EventId &&
+                    (a.Status == "Present" || a.Status == "Late") &&
+                    a.Member.GroupDetails.Any(gd =>
+                        expectedGroupIds.Contains(gd.GroupId)))
+                .Select(a => a.MemberId)
+                .Distinct()
+                .ToListAsync();
+
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+
+            var adminUserIds = adminUsers
+                .Select(u => u.Id)
+                .ToList();
+
+
+            // Convert MemberId into ASP.NET Identity UserId
+            var userIds = await _context.Users
+                .AsNoTracking()
+                .Where(u =>
+                    u.MemberId.HasValue &&
+                    attendedMemberIds.Contains(u.MemberId.Value) && !adminUserIds.Contains(u.Id))
+                .Select(u => u.Id)
+                .ToListAsync();
+
+ 
+
+            // Send notification only to those users
+            foreach (var userId in userIds)
+            {
+                await _notificationService.NotifyUserAsync(
+                    userId,
+                    "Event Evaluation Required",
+                    $"You attended \"{selectedEvent.EventTitle}\". Please complete the required evaluation.",
+                    $"/Member/Evaluation/TakeEvaluation?evaluationId={evaluation.EvaluationId}"
+                );
+            }
+
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Evaluation Created Successfully"
+            };
         }
 
-        public async Task<UpdateEvaluationViewModel?> GetUpdateEvaluationAsync(int id)
-        {
-            var evaluation = await _context.Evaluations.
-                Include(ed => ed.EvaluationDetails)
-                .ThenInclude(q => q.EvaluationQuestion).
-                FirstOrDefaultAsync(e => e.EvaluationId == id);
 
-            if (evaluation == null) return null;
+
+        public async Task<UpdateEvaluationViewModel?> GetUpdateEvaluationAsync(
+                int id,
+                int currentMemberId,
+                bool isAdmin)
+        {
+
+            var query = _context.Evaluations
+           .AsNoTracking()
+           .Include(e => e.Event)
+           .Include(e => e.EvaluationDetails)
+               .ThenInclude(d => d.EvaluationQuestion)
+           .Where(e =>
+               e.EvaluationId == id &&
+               !e.IsArchived);
+
+            if (!isAdmin)
+            {
+                query = query.Where(e =>
+                    e.Event.CreatedByUserId == currentMemberId);
+            }
+            var evaluation = await query.FirstOrDefaultAsync();
+
+            if (evaluation == null)
+            {
+                return null;
+            }
+
             return new UpdateEvaluationViewModel
             {
                 EvaluationId = evaluation.EvaluationId,
@@ -168,7 +442,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 ClosedAt = evaluation.ClosedAt,
                 OpenAt = evaluation.OpenAt,
 
-                // FIX: filter each list by AnswerType instead of selecting all details into both
                 RatingScale = evaluation.EvaluationDetails
                     .Where(e => e.EvaluationQuestion!.AnswerType == AnswerType.RatingScale)
                     .Select(e => new QuestionRowViewModel
@@ -185,35 +458,117 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
 
-        public async Task UpdateEvaluationAsync(UpdateEvaluationViewModel vm)
+        public async Task<OperationalResult> UpdateEvaluationAsync(UpdateEvaluationViewModel vm,int currentMemberId,
+                                                            bool isAdmin)
         {
-            var Exist = await _context.Evaluations.FindAsync(vm.EvaluationId);
-            if (Exist == null) return;
+            // Find evaluation
+            var existingEvaluation = await _context.Evaluations
+                .FindAsync(vm.EvaluationId);
 
-            Exist.EvaluationTitle = vm.EvaluationTitle;
-            Exist.Description = vm.Description;
-            Exist.OpenAt = vm.OpenAt;
-            Exist.ClosedAt = vm.ClosedAt;
-            Exist.UpdatedAt = DateTime.Now;
+            if (existingEvaluation == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Evaluation not found."
+                };
+            }
+
+
+            // Make sure an event was selected
+            if (!vm.EventId.HasValue)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Please select an event."
+                };
+            }
+
+            var selectedEvent = await _context.Events
+        .AsNoTracking()
+        .FirstOrDefaultAsync(e =>
+            e.EventId == vm.EventId.Value &&
+            !e.IsArchived &&
+            e.ApprovalStatus == ApprovalStatus.Approved);
+
+            if (selectedEvent == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "The selected event was not found."
+                };
+            }
+
+
+            if (!isAdmin &&
+              selectedEvent.CreatedByUserId != currentMemberId)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "You can only update an evaluation for an event you created."
+                };
+            }
+
+            // Update evaluation
+            existingEvaluation.EvaluationTitle = vm.EvaluationTitle;
+            existingEvaluation.Description = vm.Description;
+
+            // Update its event
+            existingEvaluation.EventId = selectedEvent.EventId;
+
+            existingEvaluation.OpenAt = vm.OpenAt;
+            existingEvaluation.ClosedAt = vm.ClosedAt;
+            existingEvaluation.UpdatedAt = DateTime.Now;
+
+
+            // Remove existing EvaluationDetail bridges
+            var existingQuestions = await _context.EvaluationDetail
+                .Where(e => e.EvaluationId == vm.EvaluationId)
+                .ToListAsync();
+
+            _context.EvaluationDetail.RemoveRange(existingQuestions);
+
             await _context.SaveChangesAsync();
 
 
-            //Remove the Bridge which is EvaluationDetail where evaluationid == evaluationId(EditedbyUser) then convert to LIST();
-            var ExistingQuestions = _context.EvaluationDetail.Where(e => e.EvaluationId == vm.EvaluationId).ToList();
-            _context.EvaluationDetail.RemoveRange(ExistingQuestions);
-
-            await _context.SaveChangesAsync();
-
+            // Add the updated questions
             foreach (var question in vm.RatingScale)
             {
                 await CreateOrReuseQuestionAsync(
                     vm.EvaluationId,
                     question.QuestionText,
                     question.AnswerType
-                   );
+                );
             }
 
-            await _context.SaveChangesAsync();
+
+            // ================= NOTIFICATION =================
+
+            var userIds = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.MemberId != null)
+                .Select(u => u.Id)
+                .ToListAsync();
+
+            foreach (var userId in userIds)
+            {
+                await _notificationService.NotifyUserAsync(
+                    userId,
+                    "Evaluation Updated",
+                    $"The evaluation for \"{selectedEvent.EventTitle}\" has been updated.",
+                    $"/Member/Evaluation/TakeEvaluation?evaluationId={existingEvaluation.EvaluationId}"
+                );
+            }
+
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Evaluation updated successfully."
+            };
         }
 
         public async Task DeleteEvaluationAsync(int id)
@@ -229,25 +584,73 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return await _context.Evaluations.AnyAsync(e => e.EvaluationId == id);
         }
 
-        public async Task<ArchiveEvaluationViewModel?> GetArchiveEvaluationConfirmation(int id)
+        public async Task<ArchiveEvaluationViewModel?> GetArchiveEvaluationConfirmation(int id,int currentMemberId,bool isAdmin)
         {
-            var evaluation = await _context.Evaluations.FindAsync(id);
-            if (evaluation == null) return null;
+            var query = _context.Evaluations
+                .AsNoTracking()
+                .Include(e => e.Event)
+                .Where(e =>
+                    e.EvaluationId == id &&
+                    !e.IsArchived);
+
+            if (!isAdmin)
+            {
+                query = query.Where(e =>
+                    e.Event.CreatedByUserId == currentMemberId);
+            }
+
+            var evaluation =
+                await query.FirstOrDefaultAsync();
+
+            if (evaluation == null)
+                return null;
 
             return new ArchiveEvaluationViewModel
             {
                 EvaluationId = evaluation.EvaluationId,
                 EvaluationTitle = evaluation.EvaluationTitle,
-                Description = evaluation.Description,
+                Description = evaluation.Description
             };
         }
-        public async Task ArchiveEvaluation(int id)
+
+        public async Task<OperationalResult> ArchiveEvaluationAsync(int id,int currentMemberId,bool isAdmin)
         {
-            var evaluation = await _context.Evaluations.FindAsync(id);
-            if (evaluation == null) return;
+            var evaluation = await _context.Evaluations
+                .Include(e => e.Event)
+                .FirstOrDefaultAsync(e =>
+                    e.EvaluationId == id &&
+                    !e.IsArchived);
+
+            if (evaluation == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Evaluation not found."
+                };
+            }
+
+            if (!isAdmin &&
+                evaluation.Event.CreatedByUserId != currentMemberId)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "You can only archive evaluations for events you created."
+                };
+            }
+
             evaluation.IsArchived = true;
             evaluation.ArchivedDate = DateTime.Now;
+
             await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Evaluation archived successfully."
+            };
         }
 
         public async Task<SummaryResponseReportViewModel> summaryReport(int? evaluationId)
@@ -388,6 +791,50 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (evaluation == null) return null;
 
             return EvaluationStatusHelper.GetStatus(evaluation.OpenAt, evaluation.ClosedAt);
+        }
+
+
+        public async Task<double?> GetEventFinalRatingAsync(int eventId)
+        {
+            var ratings = await _context.EvaluationResponses
+                .Where(r =>
+                    r.EvaluationSubmission.Evaluation.EventId == eventId &&
+
+                    // Ignore archived evaluations
+                    !r.EvaluationSubmission.Evaluation.IsArchived &&
+
+                    // Only completed submissions
+                    r.EvaluationSubmission.Status ==
+                        SubmissionStatus.Submitted &&
+
+                    // Only rating questions
+                    r.EvaluationDetail.EvaluationQuestion.AnswerType ==
+                        AnswerType.RatingScale)
+                .Select(r => r.Answer)
+                .ToListAsync();
+
+            var numericRatings = ratings
+                .Where(r => int.TryParse(r, out _))
+                .Select(r => int.Parse(r!))
+                .ToList();
+
+            if (!numericRatings.Any())
+            {
+                return null;
+            }
+
+            return Math.Round(
+                numericRatings.Average(),
+                1);
+        }
+        public async Task<int> GetEventResponseCountAsync(int eventId)
+        {
+            return await _context.EvaluationSubmissions
+                .AsNoTracking()
+                .CountAsync(s =>
+                    s.Evaluation.EventId == eventId &&
+                    !s.Evaluation.IsArchived &&
+                    s.Status == SubmissionStatus.Submitted);
         }
     }
 }

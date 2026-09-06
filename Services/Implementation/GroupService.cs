@@ -337,5 +337,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                g.LeaderId == memberId &&
                !g.IsArchived);
         }
+
+
+        public async Task<int> GetTotalCountAsync()
+        {
+            return await _context.Groups.Where(g => g.IsArchived == false).CountAsync();
+        }
     }
 }

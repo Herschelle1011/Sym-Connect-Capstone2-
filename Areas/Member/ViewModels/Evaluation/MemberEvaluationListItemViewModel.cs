@@ -7,7 +7,12 @@
         public DateTime OpenAt { get; set; }
         public DateTime ClosedAt { get; set; }
 
-        // Computed once, in the Service — not repeated in every View that needs it
+        public string EventTitle { get; set; } = string.Empty;
+
+        public DateTime DateCreated { get; set; }
+
+        public string Description { get; set; } = string.Empty;
+
         public string Status { get; set; } = string.Empty;   // "Upcoming" / "Open" / "Closed"
         public bool IsAnswerable => Status == "Open";
     }

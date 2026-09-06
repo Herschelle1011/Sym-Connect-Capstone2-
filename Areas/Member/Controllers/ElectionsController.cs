@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Election;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -12,27 +14,34 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
+    [Authorize]
     public class ElectionsController : Controller
     {
         private readonly IElectionService _electionService;
+        private readonly UserManager<User> _userManager;
 
-        public ElectionsController(IElectionService electionService)
+
+        public ElectionsController(IElectionService electionService, UserManager<User> userManager)
         {
             _electionService = electionService;
+            _userManager = userManager;
+
         }
 
         // GET: /Member/Elections
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var memberIdStr = HttpContext.Session.GetString("CurrentMemberId");
-            if (string.IsNullOrEmpty(memberIdStr))
-            {
-                TempData["Error"] = "Please verify your identity first.";
-                return RedirectToAction("VerifyMember");
-            }
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            if (user.MemberId == null)
+                return Forbid();
 
             var elections = await _electionService.getAllElectionList();
+
             return View(elections);
         }
 
@@ -67,41 +76,47 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         [HttpGet]
         public async Task<IActionResult> TakeVoteElection(int id)
         {
-            var memberIdStr = HttpContext.Session.GetString("CurrentMemberId");
+            var user = await _userManager.GetUserAsync(User);
 
+            if (user == null)
+                return Challenge();
 
-            if (string.IsNullOrEmpty(memberIdStr))
-            {
-                TempData["Error"] = "Please verify your identity first.";
-                return RedirectToAction("VerifyMember", new { electionId = id });
-            }
+            if (user.MemberId == null)
+                return Forbid();
 
-            bool ifAlreadyVoted = await _electionService.HasMemberVotedAsync(memberIdStr, id);
-            if (ifAlreadyVoted)
+            bool alreadyVoted =
+                await _electionService.HasMemberVotedAsync(user.Id, id);
+
+            if (alreadyVoted)
             {
                 return RedirectToAction(nameof(AlreadyVoted));
             }
 
-            var positionsGroup = await _electionService.GetBallot(id);
+            var positionsGroup =
+                await _electionService.GetBallot(id);
+
             if (positionsGroup == null || positionsGroup.Count == 0)
             {
-                return NotFound("No candidates found or this election layout is unavailable.");
+                return NotFound(
+                    "No candidates found or this election layout is unavailable.");
             }
 
             var viewModel = new TakeVoteViewModel
             {
                 electionId = id,
-                memberId = memberIdStr,
+                memberId = user.Id,
+
                 selectedVotes = new List<SelectedCandidateViewModel>()
             };
 
             foreach (var positionGroup in positionsGroup)
             {
-                viewModel.selectedVotes.Add(new SelectedCandidateViewModel
-                {
-                    positionId = positionGroup.PositionId,
-                    CandidateId = 0 
-                });
+                viewModel.selectedVotes.Add(
+                    new SelectedCandidateViewModel
+                    {
+                        positionId = positionGroup.PositionId,
+                        CandidateId = 0
+                    });
             }
 
             ViewBag.BallotLayout = positionsGroup;
@@ -113,39 +128,62 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         // POST: /Member/Elections/TakeVote
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> TakeVoteElection(TakeVoteViewModel model)
+        public async Task<IActionResult> TakeVoteElection(
+     TakeVoteViewModel model)
         {
-            // 1. If any basic schema attributes violate rules, rebuild view layout and show message
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            if (user.MemberId == null)
+                return Forbid();
+
+            // Always use the logged-in user's real Identity ID
+            model.memberId = user.Id;
+
             if (!ModelState.IsValid)
             {
-                ViewBag.BallotLayout = await _electionService.GetBallot(model.electionId);
+                ViewBag.BallotLayout =
+                    await _electionService.GetBallot(model.electionId);
+
                 return View(model);
             }
 
-            // 2. Clear out any unselected/blank lines if a user intentionally left radio fields empty
-            model.selectedVotes.RemoveAll(v => v.CandidateId <= 0);
+            model.selectedVotes.RemoveAll(
+                v => v.CandidateId <= 0
+            );
 
-            var result = await _electionService.CastVote(model);
+            var result =
+                await _electionService.CastVote(model);
 
             switch (result)
             {
                 case VoteResult.Success:
-                    return RedirectToAction(nameof(ThankYouForVoting));
+                    return RedirectToAction(
+                        nameof(ThankYouForVoting));
 
                 case VoteResult.AlreadyVoted:
-                    ModelState.AddModelError(string.Empty, "You have already voted in this election.");
-                    ViewBag.BallotLayout = await _electionService.GetBallot(model.electionId);
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "You have already voted in this election.");
+
+                    ViewBag.BallotLayout =
+                        await _electionService.GetBallot(model.electionId);
+
                     return View(model);
 
-                case VoteResult.InvalidSelection:
                 default:
-                    ModelState.AddModelError(string.Empty, "Something went wrong while submitting your ballot. Please try again.");
-                    ViewBag.BallotLayout = await _electionService.GetBallot(model.electionId);
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Something went wrong while submitting your ballot. Please try again.");
+
+                    ViewBag.BallotLayout =
+                        await _electionService.GetBallot(model.electionId);
+
                     return View(model);
             }
-
         }
-
         [HttpGet]
         public IActionResult ThankYouForVoting()
         {

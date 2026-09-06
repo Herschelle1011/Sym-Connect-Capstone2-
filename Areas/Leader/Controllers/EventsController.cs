@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.EventModels;
@@ -9,6 +10,7 @@ using Sym_Connect__Capstone2_.ViewModels.Event;
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
     [Area("Leader")]
+    [Authorize]
     public class EventsController : Controller
     {
 
@@ -37,7 +39,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         }
 
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? openEventId)
         {
 
             var user = await _userManager.GetUserAsync(User);
@@ -68,6 +70,8 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
             ViewBag.FormController = "Events";
             ViewBag.FormArea = "Leader";
+            ViewBag.OpenEventId = openEventId;
+
             return View(events);
         }
 
