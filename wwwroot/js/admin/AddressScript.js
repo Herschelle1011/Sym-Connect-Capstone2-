@@ -10,17 +10,82 @@
 // DELEGATED EVENT LISTENERS
 // =========================
 
-document.addEventListener('change', function (e) {
 
-    if (e.target && e.target.id === 'provinceSelect') {
-        handleProvinceChange(e.target);
+
+document.addEventListener(
+    "change",
+    function (e) {
+
+        if (
+            e.target &&
+            e.target.id === "provinceSelect"
+        ) {
+
+            handleProvinceChange(
+                e.target
+            );
+        }
+
+
+        if (
+            e.target &&
+            e.target.id === "citySelect"
+        ) {
+
+            handleCityChange(
+                e.target
+            );
+        }
+
+
+        if (
+            e.target &&
+            e.target.id === "barangaySelect"
+        ) {
+
+            handleBarangayChange(
+                e.target
+            );
+        }
+    }
+);
+
+
+
+function handleBarangayChange(
+    barangaySelect
+) {
+
+    const barangayName =
+        document.getElementById(
+            "barangayName"
+        );
+
+
+    if (!barangayName) {
+        return;
     }
 
-    if (e.target && e.target.id === 'citySelect') {
-        handleCityChange(e.target);
+
+    if (!barangaySelect.value) {
+
+        barangayName.value =
+            "";
+
+        return;
     }
 
-});
+
+    const selectedOption =
+        barangaySelect.options[
+        barangaySelect.selectedIndex
+        ];
+
+
+    barangayName.value =
+        selectedOption.textContent.trim();
+}
+
 
 
 // =========================
@@ -490,6 +555,20 @@ async function loadBarangaysForEdit(
             barangaySelect.value =
                 barangayOption.value;
 
+
+            const barangayName =
+                document.getElementById(
+                    "barangayName"
+                );
+
+
+            if (barangayName) {
+
+                barangayName.value =
+                    barangayOption
+                        .textContent
+                        .trim();
+            }
         }
         else {
 
@@ -525,21 +604,28 @@ async function handleProvinceChange(
 ) {
 
     const citySelect =
-        document.getElementById('citySelect');
+        document.getElementById(
+            "citySelect"
+        );
 
     const barangaySelect =
         document.getElementById(
-            'barangaySelect'
+            "barangaySelect"
         );
 
     const provinceName =
         document.getElementById(
-            'provinceName'
+            "provinceName"
         );
 
     const cityName =
         document.getElementById(
-            'cityName'
+            "cityName"
+        );
+
+    const barangayName =
+        document.getElementById(
+            "barangayName"
         );
 
 
@@ -548,31 +634,31 @@ async function handleProvinceChange(
     }
 
 
-    // Reset city
     citySelect.innerHTML =
         '<option value="">-- Select City/Municipality --</option>';
 
     citySelect.disabled = true;
 
 
-    // Reset barangay
     barangaySelect.innerHTML =
         '<option value="">-- Select City First --</option>';
 
     barangaySelect.disabled = true;
 
 
-    // Reset hidden city name
     if (cityName) {
-        cityName.value = '';
+        cityName.value = "";
+    }
+
+    if (barangayName) {
+        barangayName.value = "";
     }
 
 
-    // No province selected
     if (!provinceSelect.value) {
 
         if (provinceName) {
-            provinceName.value = '';
+            provinceName.value = "";
         }
 
         return;
@@ -585,11 +671,12 @@ async function handleProvinceChange(
         ];
 
 
-    // Store province NAME instead of code
     if (provinceName) {
 
         provinceName.value =
-            selectedOption.textContent.trim();
+            selectedOption
+                .textContent
+                .trim();
     }
 
 
@@ -606,9 +693,8 @@ async function handleProvinceChange(
 
 
         if (!response.ok) {
-
             throw new Error(
-                'Unable to load cities.'
+                "Unable to load cities."
             );
         }
 
@@ -629,7 +715,9 @@ async function handleProvinceChange(
             .forEach(city => {
 
                 const option =
-                    document.createElement('option');
+                    document.createElement(
+                        "option"
+                    );
 
                 option.value =
                     city.code;
@@ -649,10 +737,9 @@ async function handleProvinceChange(
     catch (error) {
 
         console.error(
-            'City error:',
+            "City error:",
             error
         );
-
 
         citySelect.innerHTML =
             '<option value="">Unable to load cities</option>';
@@ -672,14 +759,25 @@ async function handleCityChange(
 
     const barangaySelect =
         document.getElementById(
-            'barangaySelect'
+            "barangaySelect"
         );
 
     const cityName =
         document.getElementById(
-            'cityName'
+            "cityName"
         );
 
+    const barangayName =
+        document.getElementById(
+            "barangayName"
+        );
+
+
+    if (barangayName) {
+
+        barangayName.value =
+            "";
+    }
 
     if (!barangaySelect) {
         return;

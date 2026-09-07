@@ -60,6 +60,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Membership
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; } = string.Empty;
 
+        public DateTime DateApplied { get; set; } 
 
         // AGREEMENTS
 

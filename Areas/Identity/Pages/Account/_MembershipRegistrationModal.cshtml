@@ -367,7 +367,11 @@
 
                                 <div class="address-section-title">
 
-                                    <i class="bi bi-geo-alt"></i>Address<span class="text-danger">*</span>
+                                    <i class="bi bi-geo-alt"></i>
+
+                                    Address
+                                    <span class="required-mark">*</span>
+
                                 </div>
 
                             </div>
@@ -457,7 +461,6 @@
                                     <i class="bi bi-pin-map"></i>
 
                                     <select id="barangaySelect"
-                                            name="Barangay"
                                             class="form-select"
                                             disabled>
 
@@ -472,17 +475,28 @@
                             </div>
 
 
-                            <!-- HIDDEN ADDRESS VALUES -->
+                            <!-- VALUES THAT ASP.NET ACTUALLY RECEIVES -->
 
-                            <input type="hidden"
+                            <input asp-for="Country"
+                                   type="hidden"
+                                   id="countryName"
+                                   value="Philippines" />
+
+                            <input asp-for="Province"
+                                   type="hidden"
                                    id="provinceName"
-                                   name="Province"
                                    value="Cebu" />
 
-                            <input type="hidden"
-                                   id="cityName"
-                                   name="City"
-                                   value="" />
+                            <input asp-for="City"
+                                   type="hidden"
+                                   id="cityName" />
+
+                            <input asp-for="Barangay"
+                                   type="hidden"
+                                   id="barangayName" />
+
+
+                            <!-- VALUES USED WHEN INITIALIZING ADDRESS DROPDOWNS -->
 
                             <input type="hidden"
                                    id="savedProvince"
@@ -496,9 +510,20 @@
                                    id="savedBarangay"
                                    value="" />
 
-                            <input type="hidden"
-                                   name="Country"
-                                   value="Philippines" />
+
+                            <!-- VALIDATION -->
+
+                            <span asp-validation-for="Country"
+                                  class="text-danger"></span>
+
+                            <span asp-validation-for="Province"
+                                  class="text-danger"></span>
+
+                            <span asp-validation-for="City"
+                                  class="text-danger"></span>
+
+                            <span asp-validation-for="Barangay"
+                                  class="text-danger"></span>
 
 
                             <!-- GROUP -->

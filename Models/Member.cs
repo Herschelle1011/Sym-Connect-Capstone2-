@@ -60,7 +60,12 @@ namespace Sym_Connect__Capstone2_.Models
         public MembershipApplicationStatus ApplicationStatus { get; set; }
             = MembershipApplicationStatus.Pending;
 
-        public int PreferredGroupId { get; set; }
+        [ForeignKey(nameof(PrefferedGroup))]
+        public int? PreferredGroupId { get; set; }
+        public Group? PrefferedGroup { get; set; }
+
+
+        public DateTime? DateApplied { get; set; }
 
 
     }

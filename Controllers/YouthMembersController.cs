@@ -36,8 +36,12 @@ namespace Sym_Connect__Capstone2_.Controllers
         // GET: YouthMembers
         public async Task<IActionResult> Index()
         {
-            var members = await _memberService.GetAllMembersAsync();
-            return View(members);
+            var vm = new MembersPageViewModel
+            {
+                Members = (await _memberService.GetAllMembersAsync()).ToList(),
+                Applicants = await _memberService.AllMemberApplicants()
+            };
+            return View(vm);
         }
         // GET: YouthMembers/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -254,8 +258,54 @@ namespace Sym_Connect__Capstone2_.Controllers
         }
 
 
-  
 
+
+
+        //======= MEMBERSHIP =========
+
+        public async Task<IActionResult> GetAllApplicants()
+        {
+            var applicant = await _memberService.AllMemberApplicants();
+            return View(applicant);
+        }
+
+        public async Task<IActionResult> GetApplicationInformation(int id)
+        {
+            var applicant = await _memberService.GetApplicantInformationByIdAsync(id);
+            return PartialView("_ApplicationInformation", applicant);
+        }
+
+        public async Task<>
+
+
+
+        // POST: YouthMembers/ApproveApplicant/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveApplicant(int id)
+        {
+            var result = await _memberService.ApproveApplicantAsync(id);
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
+
+        // POST: YouthMembers/RejectApplicant/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectApplicant(int id, string reason)
+        {
+            var result = await _memberService.RejectApplicantAsync(id, reason);
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
 
 
 

@@ -1,167 +1,909 @@
-﻿@model IEnumerable<MemberListViewModel>
+﻿@using Sym_Connect__Capstone2_.Models.Enums
+@model Sym_Connect__Capstone2_.ViewModels.Member.MembersPageViewModel
+
 @{
-    ViewData["Title"] = "Groups";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Members";
+    Layout = "_AdminLayout";
+
+    int pendingCount =
+        Model.Applicants.Count(a =>
+            a.Status == MembershipApplicationStatus.Pending);
 }
 
 <div class="member-page">
 
+    <!-- =========================
+         PAGE HEADER
+    ========================== -->
     <div class="page-header">
-        <div class="page-title-row">
-            <h1 class="page-title">Member</h1>
+
+        <div>
+            <h1 class="page-title">Members</h1>
+
+            <p class="page-subtitle">
+                View and manage everyone in your organization.
+            </p>
         </div>
 
         <button type="button"
-                class="btn-add open-modal"
-                data-url="@Url.Action("Create", "YouthMembers")"
-                data-title="Add Member">
-            <span>+</span> Add Member
+                class="btn-export">
+            <i class="bi bi-upload"></i>
+            Export
         </button>
+
     </div>
 
-    <div class="filter-bar">
-        <div class="filter-tabs">
-            <button type="button" class="filter-tab active-tab" data-status="all">
-                All (@Model.Count())
-            </button>
 
-            <button type="button" class="filter-tab" data-status="active">
-                Active (@Model.Count(m => m.Status == "Active"))
-            </button>
+    <!-- =========================
+         MAIN TABS
+         ALL MEMBERS / APPLICANTS
+    ========================== -->
+    <div class="top-tabs">
 
-            <button type="button" class="filter-tab" data-status="inactive">
-                Inactive (@Model.Count(m => m.Status == "Inactive"))
-            </button>
-        </div>
+        <button type="button"
+                class="top-tab"
+                data-section="members-section">
 
-        <div class="spacer"></div>
+            <i class="bi bi-people"></i>
 
-        <div class="search-box">
-            <i class="bi bi-search"></i>
-            <input type="text" id="searchInput" placeholder="Search members..." />
-        </div>
+            All Members
 
-        <button type="button" class="btn-filter">
-            <i class="bi bi-funnel"></i> Filter
         </button>
 
-        <button type="button" class="btn-date">
-            <i class="bi bi-calendar3"></i> Date
+
+        <button type="button"
+                class="top-tab active-tab"
+                data-section="applicants-section">
+
+            <i class="bi bi-people"></i>
+
+            Applicants
+
+            @if (pendingCount > 0)
+            {
+                <span class="tab-count-badge">
+                    @pendingCount
+                </span>
+            }
+
         </button>
+
     </div>
 
-    <div class="table-card">
-        <table class="members-table" id="membersTable">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Member</th>
-                    <th>Contact no.</th>
-                    <th>Address</th>
-                    <th>Birth Date</th>
-                    <th>Gender</th>
-                    <th>Status</th>
-                    <th>Joined Date</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
 
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr class="empty-row">
-                        <td colspan="9">No members found.</td>
-                    </tr>
-                }
-                else
-                {
-                    
-                        int rowNumber = 1;
-                    
-                    foreach (var item in Model)
-                    {
-                        <tr data-status="@item.Status.ToLower()">
-                            <td>@rowNumber</td>
-                            <td>
-                                <div class="member-cell open-modal"
-                                     data-url="@Url.Action("Profile", "YouthMembers", new { id = item.MemberId })"
-                                     data-title="Member Profile">
-                                    <img src="@item.PhotoUrl" alt="@item.FullName" class="member-avatar" />
-                                    <div class="member-name-cell">
-                                        <div class="member-fullname">@item.FullName</div>
-                                        <div class="member-email">@item.Email</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>@item.ContactNumber</td>
-                            <td>@item.Address</td>
-                            <td>@(item.BirthDate.HasValue ? @item.BirthDate.Value.ToString("MM/dd/yyyy") : "")</td>
-                            <td>@item.Gender</td>
-                            <td>
-                                @if (item.Status == "Active")
-                                {
-                                    <span class="badge-status badge-active">Active</span>
-                                }
-                                else
-                                {
-                                    <span class="badge-status badge-inactive">Inactive</span>
-                                }
-                            </td>
-                            <td>@item.DateRegistered.ToString("MM/dd/yyyy")</td>
-                            <td>
-                                <div class="action-cell">
+    <!-- =====================================================
+         ALL MEMBERS SECTION
+         Hidden when the page first opens
+    ====================================================== -->
+    <div id="members-section"
+         class="tab-section"
+         style="display:none;">
 
-                                    <button type="button"
-                                            class="btn-icon btn-view open-modal"
-                                            data-url="@Url.Action("Profile", "YouthMembers", new { id = item.MemberId })"
-                                            data-title="Member Profile">
-                                        <i class="bi bi-person-lines-fill"></i>
-                                    </button>
 
-                                    <button type="button"
-                                            class="btn-icon btn-edit open-modal"
-                                            data-url="@Url.Action("Edit", "YouthMembers", new { id = item.MemberId })"
-                                            data-title="Edit Member">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
+        <!-- =========================
+             MEMBER FILTER BAR
+        ========================== -->
+        <div class="filter-bar">
 
-                                    <button type="button"
-                                            class="btn-icon btn-delete open-modal"
-                                            data-url="@Url.Action("Delete", "YouthMembers", new { id = item.MemberId })"
-                                            data-title="Delete Member">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        rowNumber++;
-                    }
-                }
-            </tbody>
-        </table>    
-        <!-- Pagination bar -->
-        <div style="display:flex; align-items:center; justify-content:space-between;
-                    padding:12px 16px; border-top:1px solid var(--border-color);
-                    font-size:13px; color:var(--text-muted);">
+            <div class="filter-tabs">
 
-            <span id="pageInfo"></span>
+                <button type="button"
+                        class="filter-tab active-tab"
+                        data-status="all">
 
-            <div style="display:flex; align-items:center; gap:8px;">
-                <button id="prevBtn" class="btn-filter">← Prev</button>
-                <span id="pageNum" style="min-width:90px; text-align:center;"></span>
-                <button id="nextBtn" class="btn-filter">Next →</button>
+                    All
+
+                    <span class="count-badge">
+                        @Model.Members.Count
+                    </span>
+
+                </button>
+
+
+                <button type="button"
+                        class="filter-tab"
+                        data-status="active">
+
+                    Active
+
+                    <span class="count-badge">
+                        @Model.Members.Count(m =>
+                            m.Status == "Active")
+                    </span>
+
+                </button>
+
+
+                <button type="button"
+                        class="filter-tab"
+                        data-status="inactive">
+
+                    Inactive
+
+                    <span class="count-badge">
+                        @Model.Members.Count(m =>
+                            m.Status == "Inactive")
+                    </span>
+
+                </button>
+
             </div>
+
+
+            <div class="spacer"></div>
+
+
+            <!-- Search -->
+            <div class="search-box">
+
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       class="search-input"
+                       data-target="membersTable"
+                       placeholder="Search..." />
+
+            </div>
+
+
+            <!-- Date -->
+            <button type="button"
+                    class="btn-filter">
+
+                <i class="bi bi-calendar3"></i>
+                Modified dates
+
+            </button>
+
+
+            <!-- Sort -->
+            <button type="button"
+                    class="btn-filter">
+
+                <i class="bi bi-funnel"></i>
+                Sort
+
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             MEMBERS TABLE
+        ========================== -->
+        <div class="table-card">
+
+            <table class="members-table"
+                   id="membersTable">
+
+                <thead>
+                    <tr>
+
+                        <th>Id</th>
+
+                        <th>FirstName</th>
+
+                        <th>MiddleName</th>
+
+                        <th>LastName</th>
+
+                        <th>Group</th>
+
+                        <th>Role</th>
+
+                        <th>Email</th>
+
+                        <th>Status</th>
+
+                        <th>Action</th>
+
+                    </tr>
+                </thead>
+
+
+                <tbody>
+
+                    @if (!Model.Members.Any())
+                    {
+                        <tr class="empty-row">
+
+                            <td colspan="9">
+                                No members found.
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.Members)
+                        {
+                            <tr data-status="@item.Status.ToLower()">
+
+                                <td>
+                                    @item.MemberId.ToString("D4")
+                                </td>
+
+
+                                <td>
+                                    @item.FirstName
+                                </td>
+
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(item.MiddleName)
+                                        ? "-"
+                                        : item.MiddleName)
+                                </td>
+
+
+                                <td>
+                                    @item.LastName
+                                </td>
+
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(item.GroupName)
+                                        ? "N/A"
+                                        : item.GroupName)
+                                </td>
+
+
+                                <td>
+                                    @item.Role
+                                </td>
+
+
+                                <td>
+                                    @item.Email
+                                </td>
+
+
+                                <td>
+
+                                    <span class="
+                                        badge-status
+                                        @(item.Status == "Active"
+                                              ? "badge-active"
+                                              : "badge-inactive")">
+
+                                        @item.Status
+
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <button type="button"
+                                            class="btn-icon open-modal"
+                                            data-url="@Url.Action(
+                                                                                            "Profile",
+                                                                                            "YouthMembers",
+                                                                                            new
+                                                                                            {
+                                                                                                area = "Admin",
+                                                                                                id = item.MemberId
+                                                                                            })"
+                                            data-title="Member Profile">
+
+                                        <i class="bi bi-box-arrow-up-right"></i>
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
     </div>
+
+
+    <!-- =====================================================
+         APPLICANTS SECTION
+         Visible when page first opens
+    ====================================================== -->
+    <div id="applicants-section"
+         class="tab-section">
+
+
+        <!-- =========================
+             APPLICANT FILTER BAR
+        ========================== -->
+        <div class="filter-bar">
+
+            <div class="filter-tabs">
+
+                <button type="button"
+                        class="filter-tab active-tab"
+                        data-status="all">
+                    All
+                </button>
+
+
+                <button type="button"
+                        class="filter-tab dot-pending"
+                        data-status="pending">
+                    Pending
+                </button>
+
+
+                <button type="button"
+                        class="filter-tab dot-approved"
+                        data-status="approved">
+                    Approved
+                </button>
+
+
+                <button type="button"
+                        class="filter-tab dot-rejected"
+                        data-status="rejected">
+                    Rejected
+                </button>
+
+            </div>
+
+
+            <div class="spacer"></div>
+
+
+            <div class="search-box">
+
+                <i class="bi bi-search"></i>
+
+                <input type="text"
+                       class="search-input"
+                       data-target="applicantsTable"
+                       placeholder="Search..." />
+
+            </div>
+
+
+            <button type="button"
+                    class="btn-filter">
+
+                <i class="bi bi-calendar3"></i>
+                Modified dates
+
+            </button>
+
+
+            <button type="button"
+                    class="btn-filter">
+
+                <i class="bi bi-funnel"></i>
+                Sort
+
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             APPLICANTS TABLE
+        ========================== -->
+        <div class="table-card">
+
+            <table class="members-table"
+                   id="applicantsTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Id</th>
+
+                        <th>FirstName</th>
+
+                        <th>MiddleName</th>
+
+                        <th>LastName</th>
+
+                        <th>Preferred Group</th>
+
+                        <th>Email</th>
+
+                        <th>Date Applied</th>
+
+                        <th>Status</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    @if (!Model.Applicants.Any())
+                    {
+                        <tr class="empty-row">
+
+                            <td colspan="8">
+                                No applicants found.
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in Model.Applicants)
+                        {
+                            var applicantStatus =
+                                item.Status
+                                    .ToString()
+                                    .ToLower();
+
+                            <tr class="applicant-row open-modal"
+                                data-status="@applicantStatus"
+                                data-url="@Url.Action(
+                                                                    "GetApplicationInformation",
+                                                                    "YouthMembers",
+                                                                    new
+                                                                    {
+                                                                        area = "Admin",
+                                                                        id = item.MemberId
+                                                                    })"
+                                data-title="Applicant Information">
+
+
+                                <td>
+                                    @item.MemberId.ToString("D4")
+                                </td>
+
+
+                                <td>
+                                    @item.FirstName
+                                </td>
+
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(item.MiddleName)
+                                        ? "-"
+                                        : item.MiddleName)
+                                </td>
+
+
+                                <td>
+                                    @item.LastName
+                                </td>
+
+
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(item.GroupName)
+                                        ? "N/A"
+                                        : item.GroupName)
+                                </td>
+
+
+                                <td>
+                                    @item.Email
+                                </td>
+
+
+                                <td>
+                                    @(item.DateApplied?.ToString("MM/dd/yyyy")
+                                        ?? "N/A")
+                                </td>
+
+
+                                <td>
+
+                                    <span class="badge-status badge-@applicantStatus">
+
+                                        @item.Status
+
+                                    </span>
+
+                                </td>
+
+                            </tr>
+                        }
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>
-</div>
 
 
-@await Html.PartialAsync("~/Views/Shared/_Modal.cshtml")
+<!-- =========================
+     REUSABLE MODAL
+========================== -->
+@await Html.PartialAsync(
+    "~/Views/Shared/_Modal.cshtml"
+)
 
-@section Scripts {
+
+@section Scripts
+{
     @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial"
+        );
     }
-        <script src="~/js/admin/membersTable.js"></script>
 
+
+    <script src="~/js/admin/membersTable.js"></script>
+
+
+    <script>
+
+        document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+        /* =========================================
+        TOP LEVEL TABS
+        ALL MEMBERS / APPLICANTS
+        ========================================== */
+
+        const topTabs =
+        document.querySelectorAll(".top-tab");
+
+        const sections =
+        document.querySelectorAll(".tab-section");
+
+
+        topTabs.forEach(function (tab) {
+
+        tab.addEventListener(
+        "click",
+        function () {
+
+        const targetSection =
+        this.dataset.section;
+
+
+        // Remove active style
+        topTabs.forEach(
+        function (button) {
+
+        button.classList.remove(
+        "active-tab"
+        );
+
+        }
+        );
+
+
+        // Set clicked button active
+        this.classList.add(
+        "active-tab"
+        );
+
+
+        // Show correct section
+        sections.forEach(
+        function (section) {
+
+        if (
+        section.id ===
+        targetSection
+        ) {
+
+        section.style.display =
+        "block";
+
+        }
+        else {
+
+        section.style.display =
+        "none";
+
+        }
+
+        }
+        );
+
+        }
+        );
+
+        });
+
+
+
+        /* =========================================
+        STATUS FILTERS
+        Works separately for each section
+        ========================================== */
+
+        document
+        .querySelectorAll(".tab-section")
+        .forEach(function (section) {
+
+        const filterTabs =
+        section.querySelectorAll(
+        ".filter-tab"
+        );
+
+
+        filterTabs.forEach(
+        function (button) {
+
+        button.addEventListener(
+        "click",
+        function () {
+
+        filterTabs.forEach(
+        function (item) {
+
+        item.classList.remove(
+        "active-tab"
+        );
+
+        }
+        );
+
+
+        this.classList.add(
+        "active-tab"
+        );
+
+
+        const status =
+        this.dataset.status;
+
+
+        const rows =
+        section.querySelectorAll(
+        "tbody tr[data-status]"
+        );
+
+
+        rows.forEach(
+        function (row) {
+
+        const rowStatus =
+        row.dataset.status
+        .toLowerCase();
+
+
+        if (
+        status === "all" ||
+        rowStatus === status
+        ) {
+
+        row.style.display =
+        "";
+
+        }
+        else {
+
+        row.style.display =
+        "none";
+
+        }
+
+        }
+        );
+
+        }
+        );
+
+        }
+        );
+
+        });
+
+
+
+        /* =========================================
+        SEARCH
+        ========================================== */
+
+        document
+        .querySelectorAll(".search-input")
+        .forEach(function (input) {
+
+        input.addEventListener(
+        "input",
+        function () {
+
+        const table =
+        document.getElementById(
+        this.dataset.target
+        );
+
+
+        if (!table) {
+        return;
+        }
+
+
+        const query =
+        this.value
+        .trim()
+        .toLowerCase();
+
+
+        const rows =
+        table.querySelectorAll(
+        "tbody tr[data-status]"
+        );
+
+
+        rows.forEach(
+        function (row) {
+
+        const rowText =
+        row.textContent
+        .toLowerCase();
+
+
+        if (
+        rowText.includes(query)
+        ) {
+
+        row.style.display =
+        "";
+
+        }
+        else {
+
+        row.style.display =
+        "none";
+
+        }
+
+        }
+        );
+
+        }
+        );
+
+        });
+
+        }
+        );
+
+
+
+        /* =========================================
+        REUSABLE MODAL
+        MEMBER PROFILE + APPLICANT INFO
+        ========================================== */
+
+        document.addEventListener(
+        "click",
+        async function (event) {
+
+        const trigger =
+        event.target.closest(
+        ".open-modal"
+        );
+
+
+        if (!trigger) {
+        return;
+        }
+
+
+        const url =
+        trigger.dataset.url;
+
+        const title =
+        trigger.dataset.title;
+
+
+        if (!url) {
+
+        console.error(
+        "Modal URL was not found."
+        );
+
+        return;
+        }
+
+
+        try {
+
+        console.log(
+        "Opening modal:",
+        url
+        );
+
+
+        const response =
+        await fetch(url);
+
+
+        if (!response.ok) {
+
+        const serverResponse =
+        await response.text();
+
+
+        console.error(
+        "Server response:",
+        serverResponse
+        );
+
+
+        throw new Error(
+        "Request failed: " +
+        response.status
+        );
+        }
+
+
+        const html =
+        await response.text();
+
+
+        const modalElement =
+        document.getElementById(
+        "appModal"
+        );
+
+
+        const modalTitle =
+        document.getElementById(
+        "appModalLabel"
+        );
+
+
+        const modalBody =
+        document.getElementById(
+        "appModalBody"
+        );
+
+
+        if (
+        !modalElement ||
+        !modalTitle ||
+        !modalBody
+        ) {
+
+        console.error(
+        "Reusable modal was not found."
+        );
+
+        return;
+        }
+
+
+        modalTitle.textContent =
+        title ||
+        "Information";
+
+
+        modalBody.innerHTML =
+        html;
+
+
+        const modal =
+        bootstrap.Modal
+        .getOrCreateInstance(
+        modalElement
+        );
+
+
+        modal.show();
+
+        }
+        catch (error) {
+
+        console.error(
+        "Unable to open modal:",
+        error
+        );
+
+        }
+
+        }
+        );
+
+    </script>
 }

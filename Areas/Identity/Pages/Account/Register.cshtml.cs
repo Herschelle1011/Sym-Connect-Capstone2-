@@ -329,7 +329,10 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 
 
                 ApplicationStatus =
-                    MembershipApplicationStatus.Pending
+                    MembershipApplicationStatus.Pending,
+
+                DateApplied = DateTime.Now
+
             };
 
 
@@ -340,6 +343,7 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 
             // 7. Connect Identity User to Member
             user.MemberId = member.MemberId;
+            await _userManager.UpdateAsync(user);
 
             await _userManager.UpdateAsync(user);
 
@@ -348,6 +352,7 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
             _context.EmailVerifications.Remove(
                 emailVerification);
 
+            member.UserId = user.Id;
             await _context.SaveChangesAsync();
 
 

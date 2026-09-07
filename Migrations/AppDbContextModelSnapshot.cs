@@ -976,6 +976,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("DateApplied")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("DateRegistered")
                         .HasColumnType("datetime2");
 
@@ -997,7 +1000,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("MiddleName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PreferredGroupId")
+                    b.Property<int?>("PreferredGroupId")
                         .HasColumnType("int");
 
                     b.Property<string>("ProfilePictureUrl")
@@ -1018,6 +1021,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("MemberId");
+
+                    b.HasIndex("PreferredGroupId");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -1513,10 +1518,16 @@ namespace Sym_Connect__Capstone2_.Migrations
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Member", b =>
                 {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.Group", "PrefferedGroup")
+                        .WithMany()
+                        .HasForeignKey("PreferredGroupId");
+
                     b.HasOne("Sym_Connect__Capstone2_.Models.User", "User")
                         .WithOne("Member")
                         .HasForeignKey("Sym_Connect__Capstone2_.Models.Member", "UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("PrefferedGroup");
 
                     b.Navigation("User");
                 });

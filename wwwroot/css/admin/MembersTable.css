@@ -389,3 +389,99 @@
     .member-cell.open-modal:hover .member-fullname {
         text-decoration: underline;
     }
+
+
+/* --- Top-level tabs (All Members / Applicants) --- */
+.top-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0;
+}
+
+.top-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    background: #fff;
+    color: #555;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+    .top-tab.active-tab {
+        background: #1a6fe0;
+        color: #fff;
+        border-color: #1a6fe0;
+    }
+
+.tab-count-badge {
+    background: #ff8a3d;
+    color: #fff;
+    font-size: 11px;
+    padding: 1px 6px;
+    border-radius: 999px;
+}
+
+/* --- Filter tabs with counts --- */
+.count-badge {
+    background: rgba(0,0,0,0.08);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-size: 11px;
+    margin-left: 4px;
+}
+
+/* --- Colored dot indicators for applicant filter tabs --- */
+.filter-tab.dot-pending::before,
+.filter-tab.dot-approved::before,
+.filter-tab.dot-rejected::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+}
+
+.filter-tab.dot-pending::before {
+    background: #f5b13d;
+}
+
+.filter-tab.dot-approved::before {
+    background: #3dbf6a;
+}
+
+.filter-tab.dot-rejected::before {
+    background: #e05656;
+}
+
+/* --- Status badges --- */
+.badge-status {
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-active, .badge-approved {
+    background: #e4f7ec;
+    color: #1c9a54;
+}
+
+.badge-inactive {
+    background: #fdecec;
+    color: #d9534f;
+}
+
+.badge-pending {
+    background: #fdf3dc;
+    color: #b8860b;
+}
+
+.badge-rejected {
+    background: #fdecec;
+    color: #d9534f;
+}

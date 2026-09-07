@@ -21,13 +21,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         private readonly AppDbContext _context;
         private readonly CloudinaryService _cloudinary;
         private readonly UserManager<User> _userManager;
+        private readonly IEmailService _emailService;
 
 
-        public MemberService(AppDbContext context, CloudinaryService cloudinary, UserManager<User> userManager)
+        public MemberService(AppDbContext context, CloudinaryService cloudinary, UserManager<User> userManager, IEmailService emailService)
         {
             _context = context;
             _cloudinary = cloudinary;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         
@@ -51,7 +53,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
         //======== CONFIRM EMAIL =========
-
         public async Task<OperationalResult> ConfirmEmailAsync(string userId, string Token)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -124,14 +125,24 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
-
+        public async Task<List<int>> GetAllLeaderMemberIdsAsync()
+        {
+            return await _context.Groups
+                .AsNoTracking()
+                .Where(g => !g.IsArchived && g.LeaderId != null)
+                .Select(g => g.LeaderId!.Value)
+                .ToListAsync();
+        }
 
         //========= GET ALL MEMBERS PART ==== 
 
         public async Task<List<MemberListViewModel>> GetAllMembersAsync()
         {
-            return await _context.Members
+            var leaderIds = await GetAllLeaderMemberIdsAsync();
+
+            var members = await  _context.Members
                 .AsNoTracking()
+                .Where(m => m.ApplicationStatus == MembershipApplicationStatus.Approved)
                 .Select(m => new MemberListViewModel
             {
                 MemberId = m.MemberId,
@@ -154,10 +165,152 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     GroupId = gd.GroupId,
                     MemberId = gd.MemberId,
                     GroupName = gd.Group.GroupName ?? "",
-                   
+         
                 }).ToList()
-            }).ToListAsync();         
+            }).ToListAsync();
+
+            foreach (var member in members)
+            {
+                member.Role = leaderIds.Contains(member.MemberId) ? "Leader" : "Member";
+            }
+
+            return members;
+
         }
+
+        //MEMBER REGISTRATION
+
+        public async Task<List<MembershipApplicantDetailsViewModel>> AllMemberApplicants()
+        {
+            var members = await _context.Members
+                .AsNoTracking()
+                .Where(e => e.ApplicationStatus == MembershipApplicationStatus.Pending)
+                .Select(e => new MembershipApplicantDetailsViewModel
+                {
+                    MemberId = e.MemberId,
+                    FirstName = e.FirstName,
+                    MiddleName = e.MiddleName,
+                    GroupId = e.PreferredGroupId,
+                    GroupName = e.PrefferedGroup!= null ? e.PrefferedGroup.GroupName : "",
+                                Email = e.User != null
+                ? e.User.Email ?? "Unverified"
+                : "Unverified",
+                    DateApplied = e.DateApplied != null
+                    ? e.DateApplied.Value
+                    : null
+                })
+                .ToListAsync();
+
+            return members;
+        }
+
+        public async Task<MembershipApplicantDetailsViewModel?>GetApplicantInformationByIdAsync(int id)
+        {
+            var pendingMember =
+                await _context.Members
+                    .AsNoTracking()
+                    .Where(m =>
+                        m.MemberId == id &&
+                        m.ApplicationStatus ==
+                            MembershipApplicationStatus.Pending)
+                    .Select(m =>
+                        new MembershipApplicantDetailsViewModel
+                        {
+                            MemberId = m.MemberId,
+
+                            FirstName = m.FirstName,
+
+                            MiddleName = m.MiddleName,
+
+                            LastName = m.LastName,
+
+                            DateOfBirth = m.BirthDate,
+
+                            Gender = m.Gender,
+
+                            Email =
+                                m.User != null
+                                    ? m.User.Email ?? "Unverified"
+                                    : "Unverified",
+
+                            ContactNumber =
+                                m.ContactNumber,
+
+                            Address =
+                                m.Address,
+
+                            GroupId =
+                                m.PreferredGroupId,
+
+                            GroupName =
+                           m.PreferredGroupId != null
+                              ? m.PrefferedGroup.GroupName
+                                    : "N/A",
+
+                            ProfilePictureUrl =
+                                m.User != null
+                                    ? m.User.ProfilePictureUrl
+                                    : null,
+
+                            Username =
+                                m.User != null
+                                    ? m.User.UserName ?? ""
+                                    : "",
+                            AcceptedPrivacy = true,
+                            AcceptedGuidelines = true,
+                            
+                        })
+                    .FirstOrDefaultAsync();
+
+            return pendingMember;
+        }
+
+
+        public async Task<OperationalResult> ApproveApplicantAsync(int id)
+        {
+            var applicant = await _context.Members
+                .Where(e => e.MemberId == id 
+                && e.ApplicationStatus == MembershipApplicationStatus.Pending).FirstOrDefaultAsync();
+
+            if (applicant == null) return new OperationalResult { Success = false, Message = "Applicant not found" };
+
+            applicant.ApplicationStatus = MembershipApplicationStatus.Approved;
+            await _context.SaveChangesAsync();
+
+            await _emailService.SendMembershipStatusEmailAsync(
+          applicant.User.Email,
+          applicant.FullName,
+          MembershipApplicationStatus.Approved
+      
+      );
+
+            return new OperationalResult { Success = true, Message = $"{applicant.FullName} has been successfully approved as a member of the Salesian Youth Movement." };
+        }
+
+        public async Task<OperationalResult> RejectApplicantAsync(int id, string reason)
+        {
+            var applicant = await _context.Members
+                .Where(e => e.MemberId == id
+                && e.ApplicationStatus == MembershipApplicationStatus.Pending).FirstOrDefaultAsync();
+
+            if (applicant == null) return new OperationalResult { Success = false, Message = "Applicant not found" };
+
+            applicant.ApplicationStatus = MembershipApplicationStatus.Rejected;
+            await _context.SaveChangesAsync();
+
+            await _emailService.SendMembershipStatusEmailAsync(
+       applicant.User.Email,
+       applicant.FullName,
+       MembershipApplicationStatus.Rejected,
+       reason
+   );
+
+
+            return new OperationalResult { Success = true, Message = $"{applicant.FullName} has been successfully rejected" };
+
+        }
+
+
 
         public async Task <Member?> GetMemberByIdAsync(int id)
         {
@@ -219,7 +372,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 };
             }
 
-      
                 var member = new Member
                 {
                     FirstName = vm.FirstName,

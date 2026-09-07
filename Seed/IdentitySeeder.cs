@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 
 namespace Sym_Connect__Capstone2_.Seed
 {
@@ -117,7 +118,6 @@ namespace Sym_Connect__Capstone2_.Seed
             if (existingUser != null)
                 return; // already seeded
 
-            // Member must exist FIRST so we have a MemberId to hand to the Identity user.
             var member = new Member
             {
                 FirstName = firstName,
@@ -126,45 +126,13 @@ namespace Sym_Connect__Capstone2_.Seed
                 Gender = gender,
                 Status = "Active",
                 ProfilePictureUrl = photoUrl,
-                DateRegistered = DateTime.Now
+                DateRegistered = DateTime.Now,
+                ApplicationStatus = MembershipApplicationStatus.Approved 
             };
 
             context.Members.Add(member);
-            await context.SaveChangesAsync(); // populates member.MemberId
-
-            var user = new User
-            {
-                UserName = email,
-                Email = email,
-                EmailConfirmed = true,
-                ProfilePictureUrl = photoUrl,
-                DisplayName = $"{firstName} {lastName}",
-                MemberId = member.MemberId
-            };
-
-            var result =
-                await userManager.CreateAsync(
-                    user,
-                    password
-                );
-
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(
-                    user,
-                    role
-                );
-
-                // complete the reverse link
-                member.UserId = user.Id;
-                await context.SaveChangesAsync();
-            }
-            else
-            {
-                // Identity creation failed - don't leave an orphaned Member row behind
-                context.Members.Remove(member);
-                await context.SaveChangesAsync();
-            }
+            await context.SaveChangesAsync();
         }
-    }
+        }
+    
 }

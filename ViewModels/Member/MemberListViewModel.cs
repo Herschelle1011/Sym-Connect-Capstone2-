@@ -27,6 +27,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         public string Gender { get; set; } = string.Empty;
         public string Status { get; set; } = "Active";
 
+
+
         public DateTime DateRegistered { get; set; } = DateTime.Now;
 
         public ICollection<MemberGroupDetailsViewModel> GroupDetailsVM { get; set; } = new List<MemberGroupDetailsViewModel>();
@@ -34,6 +36,12 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
                 $"{FirstName} {MiddleName} {LastName}".Replace("  ", " ").Trim();
 
         public bool isEmailConfirmed { get; set; }
-        
+
+        public string Role { get; set; } = "Member";
+
+
+        public string GroupName { get; set; }
+
+
     }
 }

@@ -22,9 +22,19 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<OperationalResult> SetPasswordAsync(string userId, string token, string password);
 
-
         Task<(int? GroupId, bool IsLeader)> GetAnnouncementContextAsync(int memberId);
         Task<int> GetTotalCountAsync();
+
+        Task<List<MembershipApplicantDetailsViewModel>> AllMemberApplicants();
+
+        Task<MembershipApplicantDetailsViewModel?> GetApplicantInformationByIdAsync(int id);
+
+        Task<OperationalResult> ApproveApplicantAsync(int id);
+            
+        Task<OperationalResult> RejectApplicantAsync(int id, string reason);
+
+
+
 
         ////LOAD ALL Members dropDown
         //Task<List<Member>> GetMemberOptionsAsync(int groupId);

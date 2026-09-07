@@ -59,13 +59,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
-        public async Task SendMembershipStatusEmailAsync(string email, MembershipApplicationStatus status)
+        public async Task SendMembershipStatusEmailAsync(string email, string fullName, MembershipApplicationStatus status, string? reason = null)
         {
             string subject = "SYM-Connect Membership Update";
             string body = status switch
             {
                 MembershipApplicationStatus.Approved => "Congrats, your membership has been approved!",
-                MembershipApplicationStatus.Rejected => "Unfortunately, your application was not approved this time.",
+                MembershipApplicationStatus.Rejected => string.IsNullOrWhiteSpace(reason)
+                    ? $"Hi {fullName}, unfortunately your application was not approved this time."
+                    : $"Hi {fullName}, unfortunately your application was not approved this time. Reason: {reason}",
                 MembershipApplicationStatus.Pending => "Your application is still under review.",
                 _ => "There is an update to your membership application."
             };

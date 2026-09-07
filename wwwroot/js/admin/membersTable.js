@@ -1,12 +1,4 @@
 ﻿
-
-        // ── Search & status filter ────────────────────────────────────
-        const searchInput = document.getElementById("searchInput");
-        const statusButtons = document.querySelectorAll(".filter-tab");
-        const allRows = Array.from(
-        document.querySelectorAll("#membersTable tbody tr:not(.empty-row)")
-        );
-
         let currentStatus = "all";
         let currentPage   = 1;
         const rowsPerPage = 10;
@@ -298,3 +290,102 @@ document.addEventListener("submit", async function (e) {
     }
 });
 
+document.addEventListener("DOMContentLoaded", function () {
+
+    document.addEventListener("click", async function (e) {
+
+        const clickable = e.target.closest(".open-modal");
+
+        if (!clickable) {
+            return;
+        }
+
+        const url = clickable.dataset.url;
+        const title = clickable.dataset.title;
+
+        if (!url) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error("Failed to load applicant information.");
+            }
+
+            const html = await response.text();
+
+            /*
+                Change these IDs if your _Modal.cshtml
+                uses different IDs.
+            */
+            const modalElement =
+                document.getElementById("appModal");
+
+            const modalTitle =
+                modalElement.querySelector(".modal-title");
+
+            const modalBody =
+                modalElement.querySelector(".modal-body");
+
+
+            modalTitle.textContent =
+                title || "Applicant Information";
+
+            modalBody.innerHTML = html;
+
+
+            const modal =
+                bootstrap.Modal.getOrCreateInstance(
+                    modalElement
+                );
+
+            modal.show();
+
+        }
+        catch (error) {
+
+            console.error(error);
+
+            alert("Unable to load applicant information.");
+        }
+
+    });
+
+    // ---- 2. Status filter tabs (works for BOTH Members and Applicants tables) ----
+    // Delegated listener: one handler, works for filter-tabs inside either section
+    document.querySelectorAll(".filter-bar").forEach(bar => {
+        const tableCard = bar.nextElementSibling; // the .table-card right after this filter-bar
+        const rows = tableCard.querySelectorAll("tbody tr[data-status]");
+
+        bar.querySelectorAll(".filter-tab").forEach(btn => {
+            btn.addEventListener("click", function () {
+                bar.querySelectorAll(".filter-tab").forEach(b => b.classList.remove("active-tab"));
+                this.classList.add("active-tab");
+
+                const status = this.dataset.status;
+                rows.forEach(row => {
+                    row.style.display = (status === "all" || row.dataset.status === status)
+                        ? ""
+                        : "none";
+                });
+            });
+        });
+    });
+
+    // ---- 3. Search filter (matches text across all cells in that row) ----
+    document.querySelectorAll(".search-input").forEach(input => {
+        input.addEventListener("input", function () {
+            const table = document.getElementById(this.dataset.target);
+            const query = this.value.trim().toLowerCase();
+
+            table.querySelectorAll("tbody tr").forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? "" : "none";
+            });
+        });
+    });
+
+});

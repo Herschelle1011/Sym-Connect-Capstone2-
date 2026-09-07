@@ -39,14 +39,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         FullName = e.Member != null ? e.Member.FullName.Trim() : "N/A"
                     }).ToList(),
                 }).ToListAsync();
-
             return groups;
       }
 
-      
-
-
-
+     
 
         //GET GROUP BY ID
         public async Task<GroupDetailsViewModel?> GetGroupByIdAsync(int id)
