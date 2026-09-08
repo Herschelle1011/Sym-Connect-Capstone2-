@@ -40,7 +40,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
         public string Role { get; set; } = "Member";
 
 
-        public string GroupName { get; set; }
+        public string GroupName { get; set; } = string.Empty;
+     
 
 
     }

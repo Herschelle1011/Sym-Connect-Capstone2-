@@ -62,14 +62,71 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task SendMembershipStatusEmailAsync(string email, string fullName, MembershipApplicationStatus status, string? reason = null)
         {
             string subject = "SYM-Connect Membership Update";
+            string loginUrl = "https://excuse-fastball-crunchy.ngrok-free.dev/Identity/Account/Login?returnUrl=%2FLogin%2FAccount";
+
             string body = status switch
             {
-                MembershipApplicationStatus.Approved => "Congrats, your membership has been approved!",
-                MembershipApplicationStatus.Rejected => string.IsNullOrWhiteSpace(reason)
-                    ? $"Hi {fullName}, unfortunately your application was not approved this time."
-                    : $"Hi {fullName}, unfortunately your application was not approved this time. Reason: {reason}",
-                MembershipApplicationStatus.Pending => "Your application is still under review.",
-                _ => "There is an update to your membership application."
+                MembershipApplicationStatus.Approved => $@"
+            <html>
+            <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <h2 style='color: #2e7d32;'>Congratulations, {fullName}!</h2>
+                    <p>We're excited to let you know that your <strong>SYM-Connect membership application has been approved</strong>.</p>
+                    <p>You can now log in and start exploring your membership benefits.</p>
+                    <p style='text-align: center; margin: 30px 0;'>
+                        <a href='{loginUrl}' style='background-color: #2e7d32; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Log In to Your Account</a>
+                    </p>
+                    <p>If the button above doesn't work, copy and paste this link into your browser:</p>
+                    <p><a href='{loginUrl}'>{loginUrl}</a></p>
+                    <p>Welcome aboard!</p>
+                    <p style='color: #777; font-size: 12px; margin-top: 40px;'>— The SYM-Connect Team</p>
+                </div>
+            </body>
+            </html>",
+
+                MembershipApplicationStatus.Rejected => $@"
+            <html>
+            <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <h2 style='color: #c62828;'>Membership Application Update</h2>
+                    <p>Hi {fullName},</p>
+                    <p>Thank you for applying for SYM-Connect membership. Unfortunately, we're unable to approve your application at this time.</p>
+                    {(string.IsNullOrWhiteSpace(reason) ? "" : $"<p><strong>Reason:</strong> {reason}</p>")}
+                    <p>If you believe this was a mistake or would like more information, feel free to reach out to our support team.</p>
+                    <p style='color: #777; font-size: 12px; margin-top: 40px;'>— The SYM-Connect Team</p>
+                </div>
+            </body>
+            </html>",
+
+                MembershipApplicationStatus.Pending => $@"
+            <html>
+            <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <h2 style='color: #f9a825;'>Application Under Review</h2>
+                    <p>Hi {fullName},</p>
+                    <p>Your SYM-Connect membership application is currently <strong>under review</strong>. We'll notify you as soon as a decision has been made.</p>
+                    <p style='text-align: center; margin: 30px 0;'>
+                        <a href='{loginUrl}' style='background-color: #f9a825; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Check Your Status</a>
+                    </p>
+                    <p style='color: #777; font-size: 12px; margin-top: 40px;'>— The SYM-Connect Team</p>
+                </div>
+            </body>
+            </html>",
+
+                _ => $@"
+            <html>
+            <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                    <h2>Membership Application Update</h2>
+                    <p>Hi {fullName},</p>
+                    <p>There has been an update to your SYM-Connect membership application.</p>
+                    <p style='text-align: center; margin: 30px 0;'>
+                        <a href='{loginUrl}' style='background-color: #1976d2; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;'>Log In to Check Details</a>
+                    </p>
+                    <p style='color: #777; font-size: 12px; margin-top: 40px;'>— The SYM-Connect Team</p>
+                </div>
+            </body>
+            </html>"
             };
 
             await SendEmailAsync(email, subject, body); // reuses your working helper

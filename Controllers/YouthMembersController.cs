@@ -34,13 +34,16 @@ namespace Sym_Connect__Capstone2_.Controllers
 
 
         // GET: YouthMembers
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? openApplicantId)
         {
             var vm = new MembersPageViewModel
             {
                 Members = (await _memberService.GetAllMembersAsync()).ToList(),
                 Applicants = await _memberService.AllMemberApplicants()
             };
+
+            ViewBag.OpenApplicantId = openApplicantId;
+
             return View(vm);
         }
         // GET: YouthMembers/Details/5
@@ -262,20 +265,43 @@ namespace Sym_Connect__Capstone2_.Controllers
 
 
         //======= MEMBERSHIP =========
-
+        //HTTPGET
         public async Task<IActionResult> GetAllApplicants()
         {
             var applicant = await _memberService.AllMemberApplicants();
             return View(applicant);
         }
-
+        //HTTPGET
         public async Task<IActionResult> GetApplicationInformation(int id)
         {
             var applicant = await _memberService.GetApplicantInformationByIdAsync(id);
+            if (applicant == null)
+            {
+                return NotFound();
+            }
             return PartialView("_ApplicationInformation", applicant);
         }
+        //HTTPGET
 
-        public async Task<>
+        public async Task<IActionResult> ApproveModal(int id)
+        {
+            var getMemberForApproval = await _memberService.GetMemberForApprovalAsync(id);
+            if (getMemberForApproval == null)
+            {
+                return NotFound();
+            }
+            return PartialView("_ApplicationApproveModal", getMemberForApproval);
+        }
+        //HTTPGET
+        public async Task<IActionResult> RejectModal(int id)
+        {
+            var getMemberForApproval = await _memberService.GetMemberForRejectionAsync(id);
+            if (getMemberForApproval == null)
+            {
+                return NotFound();
+            }
+            return PartialView("_RejectMembershipApplicationModal", getMemberForApproval);
+        }
 
 
 

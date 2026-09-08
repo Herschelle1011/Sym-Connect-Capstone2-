@@ -33,6 +33,10 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
             
         Task<OperationalResult> RejectApplicantAsync(int id, string reason);
 
+        Task<ApproveMembershipViewModel?> GetMemberForApprovalAsync(int memberId);
+
+        Task<RejectMembershipViewModel?> GetMemberForRejectionAsync(int memberId);
+
 
 
 

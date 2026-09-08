@@ -30,6 +30,10 @@
                     <span class="field-label">Gender</span>
                     <span class="field-value">@Model.Gender</span>
                 </div>
+                <div class="profile-field">
+                    <span class="field-label">Date Applied</span>
+                    <span class="field-value">@Model.DateApplied</span>
+                </div>
             </div>
 
             <div class="profile-col">
@@ -57,29 +61,5 @@
             </div>
         </div>
 
-        <div class="profile-columns profile-membership">
-            <div class="profile-col">
-                <h3 class="profile-section-title">Membership</h3>
-                <div class="profile-field">
-                    <span class="field-label">Group</span>
-                    <span class="field-value-lg">@(Model.groupDetails.Any() ? string.Join(", ", Model.groupDetails.Select(g => g.GroupName)) : "No group")</span>
-                </div>
-                <div class="profile-field">
-                    <span class="field-label">Event Attended</span>
-                    <span class="field-value-lg">@Model.EventAttendedCount</span>
-                </div>
-            </div>
-
-            <div class="profile-col">
-                <div class="profile-field" style="margin-top: 28px;">
-                    <span class="field-label">Role</span>
-                    <span class="field-value-lg">Member</span>
-                </div>
-                <div class="profile-field">
-                    <span class="field-label">Date</span>
-                    <span class="field-value-lg">@(Model.DateJoinedGroup?.ToString("MMMM d, yyyy") ?? "—")</span>
-                </div>
-            </div>
-        </div>
     </div>
 </div>

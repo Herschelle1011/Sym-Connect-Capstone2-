@@ -16,6 +16,7 @@ using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Membership;
+using Sym_Connect__Capstone2_.ViewModels.Notification;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -30,17 +31,19 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
         private readonly AppDbContext _context;
         private readonly IEmailService _emailService;
         private readonly CloudinaryService _cloudinaryService;
+        private readonly INotificationService _notificationService;
 
 
         public RegisterModel(
           UserManager<User> userManager,
           AppDbContext context,
-          IEmailService emailService, CloudinaryService cloudinaryService)
+          IEmailService emailService, CloudinaryService cloudinaryService, INotificationService notificationService)
         {
             _userManager = userManager;
             _context = context;
             _emailService = emailService;
             _cloudinaryService = cloudinaryService;
+            _notificationService = notificationService;
         }
 
         /// <summary>
@@ -300,7 +303,6 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 user.ProfilePictureUrl =
                     profilePictureUrl;
 
-
                 await _userManager.UpdateAsync(user);
             }
 
@@ -345,8 +347,6 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
             user.MemberId = member.MemberId;
             await _userManager.UpdateAsync(user);
 
-            await _userManager.UpdateAsync(user);
-
 
             // 9. Remove the used email verification record
             _context.EmailVerifications.Remove(
@@ -354,6 +354,21 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 
             member.UserId = user.Id;
             await _context.SaveChangesAsync();
+
+
+
+            var notification = new NotificationViewModel
+            {
+                Title = "New Membership Application",
+
+                Message =
+               $"{member.FullName} submitted a membership application.",
+
+                Url =
+               $"/YouthMembers/Index?openApplicantId={member.MemberId}"
+            };
+
+            await _notificationService.NotifyAdminAsync(notification);
 
 
             // 10. Return success

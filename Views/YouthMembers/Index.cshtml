@@ -241,11 +241,9 @@
                                 </td>
 
 
-                                <td>
-                                    @(string.IsNullOrWhiteSpace(item.GroupName)
-                                        ? "N/A"
-                                        : item.GroupName)
-                                </td>
+                           <td>
+    @(item.GroupDetailsVM.FirstOrDefault()?.GroupName ?? "N/A")
+</td>
 
 
                                 <td>
@@ -442,9 +440,7 @@
 
                             <tr class="applicant-row open-modal"
                                 data-status="@applicantStatus"
-                                data-url="@Url.Action(
-                                                                    "GetApplicationInformation",
-                                                                    "YouthMembers",
+                                data-url="@Url.Action( "GetApplicationInformation","YouthMembers",
                                                                     new
                                                                     {
                                                                         area = "Admin",
@@ -534,376 +530,126 @@
         );
     }
 
-
     <script src="~/js/admin/membersTable.js"></script>
-
 
     <script>
 
-        document.addEventListener(
-        "DOMContentLoaded",
-        function () {
+        document.addEventListener("DOMContentLoaded", function () {
 
-        /* =========================================
-        TOP LEVEL TABS
-        ALL MEMBERS / APPLICANTS
-        ========================================== */
+            /* =========================================
+            TOP LEVEL TABS
+            ALL MEMBERS / APPLICANTS
+            ========================================== */
 
-        const topTabs =
-        document.querySelectorAll(".top-tab");
+            const topTabs = document.querySelectorAll(".top-tab");
+            const sections = document.querySelectorAll(".tab-section");
 
-        const sections =
-        document.querySelectorAll(".tab-section");
+            topTabs.forEach(function (tab) {
+                tab.addEventListener("click", function () {
+                    const targetSection = this.dataset.section;
 
+                    topTabs.forEach(function (button) {
+                        button.classList.remove("active-tab");
+                    });
 
-        topTabs.forEach(function (tab) {
+                    this.classList.add("active-tab");
 
-        tab.addEventListener(
-        "click",
-        function () {
+                    sections.forEach(function (section) {
+                        section.style.display = (section.id === targetSection) ? "block" : "none";
+                    });
+                });
+            });
 
-        const targetSection =
-        this.dataset.section;
+            /* =========================================
+            STATUS FILTERS
+            Works separately for each section
+            ========================================== */
 
+            document.querySelectorAll(".tab-section").forEach(function (section) {
+                const filterTabs = section.querySelectorAll(".filter-tab");
 
-        // Remove active style
-        topTabs.forEach(
-        function (button) {
+                filterTabs.forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        filterTabs.forEach(function (item) {
+                            item.classList.remove("active-tab");
+                        });
 
-        button.classList.remove(
-        "active-tab"
-        );
+                        this.classList.add("active-tab");
 
-        }
-        );
+                        const status = this.dataset.status;
+                        const rows = section.querySelectorAll("tbody tr[data-status]");
 
+                        rows.forEach(function (row) {
+                            const rowStatus = row.dataset.status.toLowerCase();
+                            row.style.display = (status === "all" || rowStatus === status) ? "" : "none";
+                        });
+                    });
+                });
+            });
 
-        // Set clicked button active
-        this.classList.add(
-        "active-tab"
-        );
+            /* =========================================
+            SEARCH
+            ========================================== */
 
+            document.querySelectorAll(".search-input").forEach(function (input) {
+                input.addEventListener("input", function () {
+                    const table = document.getElementById(this.dataset.target);
+                    if (!table) { return; }
 
-        // Show correct section
-        sections.forEach(
-        function (section) {
+                    const query = this.value.trim().toLowerCase();
+                    const rows = table.querySelectorAll("tbody tr[data-status]");
 
-        if (
-        section.id ===
-        targetSection
-        ) {
+                    rows.forEach(function (row) {
+                        const rowText = row.textContent.toLowerCase();
+                        row.style.display = rowText.includes(query) ? "" : "none";
+                    });
+                });
+            });
 
-        section.style.display =
-        "block";
+            /* =========================================
+            OPEN APPLICANT MODAL ON PAGE LOAD
+            (e.g. after redirect from an email link)
+            ========================================== */
 
-        }
-        else {
+            (async function () {
+                const openApplicantId = '@ViewBag.OpenApplicantId';
 
-        section.style.display =
-        "none";
+                if (!openApplicantId) { return; }
 
-        }
+                const applicantUrl =
+                    '@Url.Action("GetApplicationInformation", "YouthMembers")' + '?id=' + openApplicantId;
 
-        }
-        );
+                try {
+                    const response = await fetch(applicantUrl);
 
-        }
-        );
+                    if (!response.ok) {
+                        throw new Error("Unable to load applicant.");
+                    }
 
-        });
+                    const html = await response.text();
 
+                    const modalElement = document.getElementById("appModal");
+                    const modalTitle = modalElement.querySelector(".modal-title");
+                    const modalBody = modalElement.querySelector(".modal-body");
 
+                    if (!modalElement || !modalTitle || !modalBody) {
+                        console.error("Reusable modal was not found.");
+                        return;
+                    }
 
-        /* =========================================
-        STATUS FILTERS
-        Works separately for each section
-        ========================================== */
+                    modalTitle.textContent = "Applicant Information";
+                    modalBody.innerHTML = html;
 
-        document
-        .querySelectorAll(".tab-section")
-        .forEach(function (section) {
-
-        const filterTabs =
-        section.querySelectorAll(
-        ".filter-tab"
-        );
-
-
-        filterTabs.forEach(
-        function (button) {
-
-        button.addEventListener(
-        "click",
-        function () {
-
-        filterTabs.forEach(
-        function (item) {
-
-        item.classList.remove(
-        "active-tab"
-        );
-
-        }
-        );
-
-
-        this.classList.add(
-        "active-tab"
-        );
-
-
-        const status =
-        this.dataset.status;
-
-
-        const rows =
-        section.querySelectorAll(
-        "tbody tr[data-status]"
-        );
-
-
-        rows.forEach(
-        function (row) {
-
-        const rowStatus =
-        row.dataset.status
-        .toLowerCase();
-
-
-        if (
-        status === "all" ||
-        rowStatus === status
-        ) {
-
-        row.style.display =
-        "";
-
-        }
-        else {
-
-        row.style.display =
-        "none";
-
-        }
-
-        }
-        );
-
-        }
-        );
-
-        }
-        );
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+                    modal.show();
+                }
+                catch (error) {
+                    console.error("Unable to open applicant:", error);
+                }
+            })();
 
         });
-
-
-
-        /* =========================================
-        SEARCH
-        ========================================== */
-
-        document
-        .querySelectorAll(".search-input")
-        .forEach(function (input) {
-
-        input.addEventListener(
-        "input",
-        function () {
-
-        const table =
-        document.getElementById(
-        this.dataset.target
-        );
-
-
-        if (!table) {
-        return;
-        }
-
-
-        const query =
-        this.value
-        .trim()
-        .toLowerCase();
-
-
-        const rows =
-        table.querySelectorAll(
-        "tbody tr[data-status]"
-        );
-
-
-        rows.forEach(
-        function (row) {
-
-        const rowText =
-        row.textContent
-        .toLowerCase();
-
-
-        if (
-        rowText.includes(query)
-        ) {
-
-        row.style.display =
-        "";
-
-        }
-        else {
-
-        row.style.display =
-        "none";
-
-        }
-
-        }
-        );
-
-        }
-        );
-
-        });
-
-        }
-        );
-
-
-
-        /* =========================================
-        REUSABLE MODAL
-        MEMBER PROFILE + APPLICANT INFO
-        ========================================== */
-
-        document.addEventListener(
-        "click",
-        async function (event) {
-
-        const trigger =
-        event.target.closest(
-        ".open-modal"
-        );
-
-
-        if (!trigger) {
-        return;
-        }
-
-
-        const url =
-        trigger.dataset.url;
-
-        const title =
-        trigger.dataset.title;
-
-
-        if (!url) {
-
-        console.error(
-        "Modal URL was not found."
-        );
-
-        return;
-        }
-
-
-        try {
-
-        console.log(
-        "Opening modal:",
-        url
-        );
-
-
-        const response =
-        await fetch(url);
-
-
-        if (!response.ok) {
-
-        const serverResponse =
-        await response.text();
-
-
-        console.error(
-        "Server response:",
-        serverResponse
-        );
-
-
-        throw new Error(
-        "Request failed: " +
-        response.status
-        );
-        }
-
-
-        const html =
-        await response.text();
-
-
-        const modalElement =
-        document.getElementById(
-        "appModal"
-        );
-
-
-        const modalTitle =
-        document.getElementById(
-        "appModalLabel"
-        );
-
-
-        const modalBody =
-        document.getElementById(
-        "appModalBody"
-        );
-
-
-        if (
-        !modalElement ||
-        !modalTitle ||
-        !modalBody
-        ) {
-
-        console.error(
-        "Reusable modal was not found."
-        );
-
-        return;
-        }
-
-
-        modalTitle.textContent =
-        title ||
-        "Information";
-
-
-        modalBody.innerHTML =
-        html;
-
-
-        const modal =
-        bootstrap.Modal
-        .getOrCreateInstance(
-        modalElement
-        );
-
-
-        modal.show();
-
-        }
-        catch (error) {
-
-        console.error(
-        "Unable to open modal:",
-        error
-        );
-
-        }
-
-        }
-        );
 
     </script>
+}
 }

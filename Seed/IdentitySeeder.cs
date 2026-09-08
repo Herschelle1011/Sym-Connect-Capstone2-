@@ -101,23 +101,23 @@ namespace Sym_Connect__Capstone2_.Seed
         }
 
         private static async Task SeedUserAsync(
-            UserManager<User> userManager,
-            AppDbContext context,
-            string email,
-            string password,
-            string firstName,
-            string lastName,
-            string photoUrl,
-            string role,
-            string gender = "Unspecified",
-            string contactNumber = "0000000000")
+      UserManager<User> userManager,
+      AppDbContext context,
+      string email,
+      string password,
+      string firstName,
+      string lastName,
+      string photoUrl,
+      string role,
+      string gender = "Unspecified",
+      string contactNumber = "0000000000")
         {
-            var existingUser =
-                await userManager.FindByEmailAsync(email);
+            var existingUser = await userManager.FindByEmailAsync(email);
 
             if (existingUser != null)
-                return; // already seeded
+                return;
 
+            // STEP 1: Create the Member
             var member = new Member
             {
                 FirstName = firstName,
@@ -127,12 +127,37 @@ namespace Sym_Connect__Capstone2_.Seed
                 Status = "Active",
                 ProfilePictureUrl = photoUrl,
                 DateRegistered = DateTime.Now,
-                ApplicationStatus = MembershipApplicationStatus.Approved 
+                ApplicationStatus = MembershipApplicationStatus.Approved
             };
 
             context.Members.Add(member);
             await context.SaveChangesAsync();
+
+            // STEP 2: Create the Identity User
+            var user = new User
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                ProfilePictureUrl = photoUrl,
+
+                MemberId = member.MemberId
+            };
+
+            // STEP 3: Create the login account and password
+            var result = await userManager.CreateAsync(user, password);
+
+            if (!result.Succeeded)
+            {
+                // Remove the member if creating the Identity User failed
+                context.Members.Remove(member);
+                await context.SaveChangesAsync();
+
+                return;
+            }
+
+            // STEP 4: Give the user their role
+            await userManager.AddToRoleAsync(user, role);
         }
-        }
-    
+    }
 }

@@ -269,20 +269,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<OperationalResult> ApproveApplicantAsync(int id)
         {
             var applicant = await _context.Members
-                .Where(e => e.MemberId == id 
+                .Include(m => m.User)
+                .Where(e => e.MemberId == id
                 && e.ApplicationStatus == MembershipApplicationStatus.Pending).FirstOrDefaultAsync();
 
             if (applicant == null) return new OperationalResult { Success = false, Message = "Applicant not found" };
 
+            if (applicant.User == null)
+                return new OperationalResult { Success = false, Message = "Applicant account is missing its linked user record. Please contact support." };
+
             applicant.ApplicationStatus = MembershipApplicationStatus.Approved;
+
+            if (applicant.PreferredGroupId.HasValue)
+            {
+                var groupDetail = new GroupDetails
+                {
+                    MemberId = applicant.MemberId,
+                    GroupId = applicant.PreferredGroupId.Value
+                };
+
+                _context.GroupDetails.Add(groupDetail);
+            }
+
             await _context.SaveChangesAsync();
 
             await _emailService.SendMembershipStatusEmailAsync(
-          applicant.User.Email,
-          applicant.FullName,
-          MembershipApplicationStatus.Approved
-      
-      );
+                applicant.User.Email,
+                applicant.FullName,
+                MembershipApplicationStatus.Approved
+            );
 
             return new OperationalResult { Success = true, Message = $"{applicant.FullName} has been successfully approved as a member of the Salesian Youth Movement." };
         }
@@ -290,10 +305,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<OperationalResult> RejectApplicantAsync(int id, string reason)
         {
             var applicant = await _context.Members
+                .Include(m => m.User)
                 .Where(e => e.MemberId == id
                 && e.ApplicationStatus == MembershipApplicationStatus.Pending).FirstOrDefaultAsync();
-
             if (applicant == null) return new OperationalResult { Success = false, Message = "Applicant not found" };
+
+            if (applicant.User == null)
+                return new OperationalResult { Success = false, Message = "Applicant account is missing its linked user record. Please contact support." };
+
 
             applicant.ApplicationStatus = MembershipApplicationStatus.Rejected;
             await _context.SaveChangesAsync();
@@ -303,11 +322,55 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
        applicant.FullName,
        MembershipApplicationStatus.Rejected,
        reason
-   );
-
-
+               );
             return new OperationalResult { Success = true, Message = $"{applicant.FullName} has been successfully rejected" };
 
+        }
+
+        public async Task<ApproveMembershipViewModel?> GetMemberForApprovalAsync(int memberId)
+        {
+            return await _context.Members
+                .AsNoTracking()
+                .Where(m =>
+                    m.MemberId == memberId &&
+                    m.ApplicationStatus == MembershipApplicationStatus.Pending)
+                .Select(m => new ApproveMembershipViewModel
+                {
+                    MemberId = m.MemberId,
+
+                    FullName =
+                        m.FirstName + " " +
+                        (string.IsNullOrWhiteSpace(m.MiddleName)
+                            ? ""
+                            : m.MiddleName.Substring(0, 1) + ". ") +
+                        m.LastName,
+
+                    GroupName = m.PreferredGroupId != null
+                        ? m.PrefferedGroup.GroupName
+                        : "No Group"
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<RejectMembershipViewModel?> GetMemberForRejectionAsync(int memberId)
+        {
+            return await _context.Members
+                .AsNoTracking()
+                .Where(m =>
+                    m.MemberId == memberId &&
+                    m.ApplicationStatus == MembershipApplicationStatus.Pending)
+                .Select(m => new RejectMembershipViewModel
+                {
+                    MemberId = m.MemberId,
+
+                    FullName =
+                        m.FirstName + " " +
+                        (string.IsNullOrWhiteSpace(m.MiddleName)
+                            ? ""
+                            : m.MiddleName.Substring(0, 1) + ". ") +
+                        m.LastName
+                })
+                .FirstOrDefaultAsync();
         }
 
 
@@ -335,6 +398,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     BirthDate = m.BirthDate,
                     Gender = m.Gender,
                     Status = m.Status,
+                    DateApplied = m.DateApplied,
                     MemberSince = m.DateRegistered,
                     Email = m.User != null && m.User.Email != null
                     ? m.User.Email
@@ -557,6 +621,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.Members.Where(m => m.Status != "Inactive").CountAsync();
         }
+
+     
+
 
     }
 }

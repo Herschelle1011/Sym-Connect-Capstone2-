@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -123,71 +124,160 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
         {
             returnUrl ??= Url.Content("~/");
 
-            ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+            ExternalLogins = (
+                await _signInManager
+                    .GetExternalAuthenticationSchemesAsync()
+            ).ToList();
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+                return Page();
+            }
 
+            // STEP 1:
+            // Find the Identity User using the EMAIL entered in the login form.
+            var user = await _userManager.FindByEmailAsync(Input.Email);
 
-                if (result.Succeeded)
+            if (user == null)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Invalid email or password."
+                );
+
+                return Page();
+            }
+
+            // STEP 2:
+            // Admin does not need a Member record.
+            bool isAdmin =
+                await _userManager.IsInRoleAsync(user, "Admin");
+
+            if (!isAdmin)
+            {
+                // Find the Member connected to this Identity User.
+                var member = await _context.Members
+                    .FirstOrDefaultAsync(m => m.UserId == user.Id);
+
+                if (member == null)
                 {
-                    _logger.LogInformation("User logged in.");
-                    
-                    var user = await _userManager.FindByEmailAsync(Input.Email);
-                    if (user != null) {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Member account was not found."
+                    );
 
-                        if (await _userManager.IsInRoleAsync(user, "Admin"))
-                        {
-                            return RedirectToAction(
-                                "Dashboard",
-                                "Admin",
-                                new { area = "" }
-                            );
-                        }
-                        else 
-                        {
-                            var member = await _context.Members.FirstOrDefaultAsync(m => m.UserId == user.Id);
-                            if(member != null)
-                            {
-                                HttpContext.Session.SetInt32("CurrentMemberId", member.MemberId);
-                                bool isLeader = await _groupService.IsMemberALeaderAsync(member.MemberId);
-                                if (isLeader)
-                                    return RedirectToAction("Index", "Dashboard", new { area = "Leader" });
-                            }
-                            return RedirectToAction("Index", "Member", new { area = "Member" });
-
-                        }
-
-
-                    }
-
-                    return LocalRedirect(returnUrl);
-
+                    return Page();
                 }
 
+                // STEP 3:
+                // Do not allow Pending members to login.
+                if (member.ApplicationStatus ==
+                    MembershipApplicationStatus.Pending)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Your membership application is still pending approval."
+                    );
 
+                    return Page();
+                }
 
-                if (result.RequiresTwoFactor)
+                // Do not allow rejected members to login.
+                if (member.ApplicationStatus ==
+                    MembershipApplicationStatus.Rejected)
                 {
-                    return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
-                }
-                if (result.IsLockedOut)
-                {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToPage("./Lockout");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Your membership application has been rejected."
+                    );
+
                     return Page();
                 }
             }
 
-            // If we got this far, something failed, redisplay form
+            // STEP 4:
+            // IMPORTANT:
+            // PasswordSignInAsync expects USERNAME here.
+            var result = await _signInManager.PasswordSignInAsync(
+                user.UserName!,
+                Input.Password,
+                Input.RememberMe,
+                lockoutOnFailure: false
+            );
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User logged in.");
+
+                // ADMIN
+                if (isAdmin)
+                {
+                    return RedirectToAction(
+                        "Dashboard",
+                        "Admin",
+                        new { area = "" }
+                    );
+                }
+
+                // MEMBER / LEADER
+                var member = await _context.Members
+                    .FirstOrDefaultAsync(m => m.UserId == user.Id);
+
+                if (member != null)
+                {
+                    HttpContext.Session.SetInt32(
+                        "CurrentMemberId",
+                        member.MemberId
+                    );
+
+                    bool isLeader =
+                        await _groupService
+                            .IsMemberALeaderAsync(member.MemberId);
+
+                    if (isLeader)
+                    {
+                        return RedirectToAction(
+                            "Index",
+                            "Dashboard",
+                            new { area = "Leader" }
+                        );
+                    }
+                }
+
+                return RedirectToAction(
+                    "Index",
+                    "Member",
+                    new { area = "Member" }
+                );
+            }
+
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToPage(
+                    "./LoginWith2fa",
+                    new
+                    {
+                        ReturnUrl = returnUrl,
+                        RememberMe = Input.RememberMe
+                    }
+                );
+            }
+
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("User account locked out.");
+
+                return RedirectToPage("./Lockout");
+            }
+
+            ModelState.AddModelError(
+                string.Empty,
+                "Invalid email or password."
+            );
+
             return Page();
+      
+
         }
     }
 }
