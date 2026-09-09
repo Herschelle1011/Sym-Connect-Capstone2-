@@ -16,65 +16,103 @@
 
 <div class="calendar-wrapper mx-auto">
 
-    <div class="calendar-breadcrumb d-flex align-items-center gap-2 mb-2">
-        <a asp-action="Index">Events Screen</a>
-        <span class="breadcrumb-sep">&gt;</span>
-        <span class="fw-bold">Calendar</span>
-        <i class="ti ti-help-circle breadcrumb-help"></i>
-    </div>
+    <!-- Page Header -->
+    <div class="events-header">
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <h1 class="calendar-page-title">@Model.MonthLabel</h1>
+        <h1 class="events-title">Events</h1>
 
-        <div class="calendar-toolbar d-flex align-items-center gap-2 mb-0">
-            <a asp-action="Index" asp-route-year="@today.Year" asp-route-month="@today.Month"
-               class="calendar-btn-today">Today</a>
+        <div class="events-toolbar">
 
-            <select class="calendar-month-select" onchange="if(this.value){window.location.href=this.value;}">
-                @for (int m = 1; m <= 12; m++)
-                {
-                    var optUrl = Url.Action("Index", new { year = Model.Year, month = m });
-                    if (m == Model.Month)
+            <!-- View Controls -->
+            <div class="calendar-view-buttons">
+                <button type="button" class="view-btn active">Month</button>
+                <button type="button" class="view-btn">Year</button>
+
+                <a asp-action="Index"
+                   asp-route-year="@today.Year"
+                   asp-route-month="@today.Month"
+                   class="view-btn">
+                    Today
+                </a>
+            </div>
+
+            <!-- Month Navigation -->
+            <div class="month-navigation">
+
+                <a asp-action="Index"
+                   asp-route-year="@Model.PreviousYear"
+                   asp-route-month="@Model.PreviousMonth"
+                   class="month-arrow">
+                    <i class="ti ti-chevron-left"></i>
+                </a>
+
+                <span class="current-month">
+                    @Model.MonthLabel.Replace(Model.Year.ToString(), "")
+                </span>
+
+
+                <span class="current-year">
+                    @Model.Year
+                </span>
+
+                <a asp-action="Index"
+                   asp-route-year="@Model.NextYear"
+                   asp-route-month="@Model.NextMonth"
+                   class="month-arrow">
+                    <i class="ti ti-chevron-right"></i>
+                </a>
+
+            </div>
+
+            <!-- Right Actions -->
+            <div class="events-actions">
+
+                <!-- Search -->
+                <button type="button"
+                        class="event-search-btn"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#searchEventPanel">
+                    <span>Search</span>
+                    <i class="ti ti-search"></i>
+                </button>
+
+                <!-- Facilities -->
+                <a asp-action="AvailableFacilities"
+                   class="event-action-btn">
+                    <i class="ti ti-building"></i>
+                    <span>View Facilities</span>
+                </a>
+
+                <!-- Requests -->
+                <a asp-action="ViewEventsRequests"
+                   class="event-action-btn position-relative">
+
+                    <i class="ti ti-clipboard-check"></i>
+                    <span>Event Requests</span>
+
+                    @if (ViewBag.PendingRequestCount != null &&
+                         (int)ViewBag.PendingRequestCount > 0)
                     {
-                        <option value="@optUrl" selected>@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
+                        <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle">
+                            @ViewBag.PendingRequestCount
+                        </span>
                     }
-                    else
-                    {
-                        <option value="@optUrl">@CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(m)</option>
-                    }
-                }
-            </select>
 
-            <a asp-action="Index" asp-route-year="@Model.PreviousYear" asp-route-month="@Model.PreviousMonth"
-               class="calendar-icon-circle"><i class="ti ti-chevron-left"></i></a>
-            <a asp-action="Index" asp-route-year="@Model.NextYear" asp-route-month="@Model.NextMonth"
-               class="calendar-icon-circle"><i class="ti ti-chevron-right"></i></a>
+                </a>
 
-            <button type="button"
-                    class="calendar-icon-circle"
-                    data-bs-toggle="offcanvas"
-                    data-bs-target="#searchEventPanel">
-                <i class="ti ti-search"></i>
-            </button>
+                <!-- Create Event -->
+                <button type="button"
+                        class="create-event-btn"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#eventPanel">
+                    <i class="ti ti-plus"></i>
+                    Create Events
+                </button>
 
-            <a asp-action="AvailableFacilities" class="btn btn-outline-secondary ms-2">
-                <i class="ti ti-building"></i> View Facilities
-            </a>
+            </div>
 
-            <a asp-action="ViewEventsRequests" class="btn btn-outline-secondary ms-2 position-relative">
-                <i class="ti ti-clipboard-check"></i> Event Requests
-                @if (ViewBag.PendingRequestCount != null && (int)ViewBag.PendingRequestCount > 0)
-                {
-                    <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle">
-                        @ViewBag.PendingRequestCount
-                    </span>
-                }
-            </a>
-
-            <button type="button" class="btn btn-primary ms-2" data-bs-toggle="offcanvas" data-bs-target="#eventPanel">
-                <i class="ti ti-plus"></i> Add Event
-            </button>
         </div>
+
     </div>
 
     <!-- GRID: tablet and desktop only -->
