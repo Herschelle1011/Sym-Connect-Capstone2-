@@ -99,9 +99,15 @@
     <nav id="sidebar">
 
         <div class="sidebar-brand">
-            <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/q_auto/f_auto/v1778759822/profiles/8f97c2e0-2fc4-46d0-a8ad-499b0f30e2c1.png" alt="SYM-Connect Logo"
+            <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/q_auto/f_auto/v1778759822/profiles/8f97c2e0-2fc4-46d0-a8ad-499b0f30e2c1.png"
+                 alt="SYM-Connect Logo"
                  onerror="this.src='https://ui-avatars.com/api/?name=SYM&background=4a6cf7&color=fff&size=36'" />
-            <span class="sidebar-brand-name">SYM-Connect</span>
+
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-name">SYM-Connect</span>
+                <span class="sidebar-brand-subname">Salesian Youth Movement</span>
+            </div>
+
             <button id="sidebar-close" title="Close menu" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
@@ -205,17 +211,17 @@
         <!-- Bottom links -->
         <div class="sidebar-bottom">
 
-            <a asp-controller="Settings" asp-action="Index"
+            @* <a asp-controller="Settings" asp-action="Index"
                class="nav-item @(controller == "Settings" ? "active" : "")">
                 <i class="bi bi-gear"></i>
                 <span class="nav-label">Settings</span>
-            </a>
+            </a> *@
 
-            <a asp-controller="Help" asp-action="Index"
+            @* <a asp-controller="Help" asp-action="Index"
                class="nav-item @(controller == "Help" ? "active" : "")">
                 <i class="bi bi-question-circle"></i>
                 <span class="nav-label">Help</span>
-            </a>
+            </a> *@
 
             <a asp-controller="Account" asp-action="Login" asp-area="Identity"
                asp-route-returnUrl="@Url.Action("Account", "Login")"

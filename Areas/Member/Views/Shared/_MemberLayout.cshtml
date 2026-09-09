@@ -97,14 +97,26 @@
 
         <div class="sidebar-brand">
             <img src="https://res.cloudinary.com/dxzmz62w4/image/upload/q_auto/f_auto/v1778759822/profiles/8f97c2e0-2fc4-46d0-a8ad-499b0f30e2c1.png"
-                 alt="SYM-Connect Logo" />
-            <span class="sidebar-brand-name">SYM-Connect</span>
-            <button id="sidebar-close" title="Close menu">
+                 alt="SYM-Connect Logo"
+                 onerror="this.src='https://ui-avatars.com/api/?name=SYM&background=4a6cf7&color=fff&size=36'" />
+
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-name">SYM-Connect</span>
+                <span class="sidebar-brand-subname">Salesian Youth Movement</span>
+            </div>
+
+            <button id="sidebar-close" title="Close menu" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
 
         <div class="sidebar-nav">
+
+            <a asp-controller="Member" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="bi bi-grid"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
 
             <a asp-controller="AnnouncementFeed" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Announcement" ? "active" : "")">
@@ -112,17 +124,23 @@
                 <span class="nav-label">Announcements</span>
             </a>
 
-            <a asp-controller="Notifications" asp-action="Index"
+            <a asp-controller="Participation" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Participation" ? "active" : "")">
+                <i class="bi bi-puzzle"></i>
+                <span class="nav-label">Points</span>
+            </a>
+
+            <a asp-controller="Calendar" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Calendar" ? "active" : "")">
+                <i class="bi bi-calendar-event"></i>
+                <span class="nav-label">Calendar</span>
+            </a>
+
+            @* <a asp-controller="Notifications" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
                 <i class="bi bi-bell"></i>
                 <span class="nav-label">Notifications</span>
-            </a>
-
-            <a asp-controller="Member" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
-                <i class="bi bi-grid"></i>
-                <span class="nav-label">Dashboard</span>
-            </a>
+            </a> *@
 
             @* <a asp-controller="Events" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")">
@@ -133,19 +151,19 @@
             <a asp-controller="Evaluation" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluation" ? "active" : "")">
                 <i class="bi bi-star-half"></i>
-                <span class="nav-label">Evaluations</span>
+                <span class="nav-label">Evaluation</span>
             </a>
 
             <a asp-controller="Elections" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Elections" ? "active" : "")">
                 <i class="bi bi-hand-index-thumb"></i>
-                <span class="nav-label">Elections</span>
+                <span class="nav-label">Election</span>
             </a>
 
-            <a asp-controller="Calendar" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Calendar" ? "active" : "")">
-                <i class="bi bi-calendar-event"></i>
-                <span class="nav-label">Calendar</span>
+            <a asp-controller="MediaAndDocuments" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MediaAndDocuments" ? "active" : "")">
+                <i class="bi bi-file-earmark-text"></i>
+                <span class="nav-label">Documents &amp; Media</span>
             </a>
 
         </div>

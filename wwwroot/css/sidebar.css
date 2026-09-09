@@ -159,41 +159,59 @@ body {
     }
 
 /* ── Brand row w/ close button ── */
+/* ── Sidebar Brand ── */
 .sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 14px 10px 14px 18px;
-    min-height: 64px;
+    gap: 9px;
+    padding: 10px 10px 10px 14px;
+    min-height: 82px;
     border-bottom: 1px solid var(--sidebar-border);
     white-space: nowrap;
 }
 
     .sidebar-brand img {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        object-fit: cover;
+        width: 52px;
+        height: 52px;
+        object-fit: contain;
         flex-shrink: 0;
     }
 
-.sidebar-brand-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--nav-text-color);
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
     flex: 1;
+}
+
+.sidebar-brand-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #26344a;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+}
+
+.sidebar-brand-subname {
+    font-size: 11px;
+    font-weight: 500;
+    color: #26344a;
+    line-height: 1.2;
+    margin-top: 5px;
 }
 
 #sidebar-close {
     background: none;
     border: none;
-    font-size: 16px;
+    font-size: 14px;
     color: var(--nav-icon-color);
     cursor: pointer;
-    padding: 6px;
-    border-radius: 8px;
+    padding: 5px;
+    border-radius: 6px;
     line-height: 1;
     transition: background 0.2s, color 0.2s;
+    flex-shrink: 0;
 }
 
     #sidebar-close:hover {
@@ -254,13 +272,15 @@ body {
         color: var(--nav-text-color);
     }
 
+    /* ── Hover state ── */
     .nav-item:not(.active):hover {
-        background: var(--nav-hover-bg);
+        background: var(--nav-active-bg);
+        color: var(--nav-active-color);
     }
 
         .nav-item:not(.active):hover i,
         .nav-item:not(.active):hover .nav-label {
-            color: var(--nav-active-bg);
+            color: var(--nav-active-color);
         }
 
     .nav-item.active {
