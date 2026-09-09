@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Sym_Connect__Capstone2_.Services.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Areas.Leader.ViewModels.Dashboard;
-using Microsoft.AspNetCore.Authorization;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
@@ -10,44 +10,38 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
     public class DashboardController : Controller
     {
         private readonly IAnnouncementService _announcementService;
-        private readonly IMemberService _memberService;
+        private readonly IGroupService _groupService;
 
-        public DashboardController(IAnnouncementService announcementService, IMemberService memberService)
+        public DashboardController(IAnnouncementService announcementService, IGroupService groupService)
         {
             _announcementService = announcementService;
-            _memberService = memberService;
-        }
-
-        public async Task<IActionResult> Dashboard()
-        {
-
-            return View();
+            _groupService = groupService;
         }
 
         public async Task<IActionResult> Index()
         {
             int? memberId = HttpContext.Session.GetInt32("CurrentMemberId");
+
             if (memberId is null)
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
+                return RedirectToAction("Login", "Account", new { area = "Identity" });
 
+            bool isLeader = await _groupService.IsMemberALeaderAsync(memberId);
+            if (!isLeader)
+                return Forbid();
 
-            var (groupId, isLeader) = await _memberService.GetAnnouncementContextAsync(memberId.Value);
+            var leaderGroup = await _groupService.GetGroupLedByMemberAsync(memberId);
+            if (leaderGroup == null)
+                return Forbid();
 
-            Console.WriteLine($"Leader MemberId: {memberId}");
-            Console.WriteLine($"Leader isLeader: {isLeader}");
-            Console.WriteLine($"Leader GroupId: {groupId}");
-
-            var pinned = await _announcementService.GetPinnedAnnouncementAsync(isLeader, groupId);
-            var announcements = await _announcementService.GetVisibleAnnouncementsAsync(memberId.Value, isLeader, groupId);
+            int groupId = leaderGroup.GroupId;
 
             var vm = new DashboardViewModel
             {
-                PinnedAnnouncement = pinned,
-                Announcements = announcements
+                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(true, groupId),
+                Announcements = await _announcementService.GetVisibleAnnouncementsAsync(memberId.Value, true, groupId)
             };
+
             return View(vm);
         }
-
-
     }
 }

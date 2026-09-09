@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
 using Sym_Connect__Capstone2_.Data;
@@ -16,7 +17,8 @@ using System.Threading.Tasks;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-   
+
+    [Authorize(Roles = "Admin")]
     public class YouthMembersController : Controller
     {
         private readonly IMemberService _memberService;

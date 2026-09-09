@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Threading.Tasks;
 
+[Authorize(Roles = "Admin")]
 public class ElectionsController : Controller
 {
     private readonly IElectionService _electionService;

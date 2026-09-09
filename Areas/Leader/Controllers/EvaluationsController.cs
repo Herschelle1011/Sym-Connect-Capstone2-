@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
@@ -14,12 +15,14 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         private readonly IEvaluationService _evaluationService;
         private readonly IEventService _eventService;
         private readonly UserManager<User> _userManager;
+        private readonly IGroupService _groupService;
 
-        public EvaluationsController(IEvaluationService evaluationService, IEventService eventService, UserManager<User> userManager)
+        public EvaluationsController(IEvaluationService evaluationService, IEventService eventService, UserManager<User> userManager, IGroupService groupService)
         {
             _evaluationService = evaluationService;
             _eventService = eventService;
             _userManager = userManager;
+            _groupService = groupService;
         }
 
         //GET
@@ -32,7 +35,18 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 return Challenge();
             }
 
+
             if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            bool isLeader =
+         await _groupService.IsMemberALeaderAsync(
+           user.MemberId.Value
+       );
+
+            if (!isLeader)
             {
                 return Forbid();
             }

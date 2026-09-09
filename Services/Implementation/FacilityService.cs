@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.FacilityModels;
+using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
@@ -23,6 +24,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<List<FacilityListViewModel>> GetAllFacilitiesAsync()
         {
+            var now = DateTime.Now;
             return await _context.Facilities
                 .AsNoTracking().
                 Where(f => f.IsArchived == false)
@@ -38,7 +40,34 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     {
                         PhotoId = p.FacilityPhotoId,
                         PhotoUrl = p.PhotoUrl
-                    }).ToList()
+                    }).ToList(),
+                    UpcomingReservations = _context.EventFacilities
+                     .Where(ef =>
+                    ef.FacilityId == f.FacilityId &&
+                    !ef.Event.IsArchived &&
+                    (
+                        ef.Event.EndDate > now.Date ||
+                        (
+                            ef.Event.EndDate == now.Date &&
+                            ef.Event.EndTime >= now.TimeOfDay
+                        )
+                    )
+                )
+                .OrderBy(ef => ef.Event.StartDate)
+                .ThenBy(ef => ef.Event.StartTime)
+                .Take(3)
+                .Select(ef => new FacilityReservationViewModel
+                {
+                    Date = ef.Event.StartDate,
+                    StartTime = ef.Event.StartTime,
+                    EndTime = ef.Event.EndTime,
+                    EventTitle = ef.Event.EventTitle,
+
+                    GroupName = ef.Event.ExpectedGroups
+                        .Select(g => g.Group.GroupName)
+                        .ToList()
+                })
+                .ToList(),
                 }).ToListAsync();
         }
 
@@ -65,22 +94,70 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<FacilityDetailsViewModel?> GetFacilityAsyncById(int id)
         {
+            var now = DateTime.Now;
+
             var existingFacility = await _context.Facilities
                 .AsNoTracking()
-                .Where(f => f.FacilityId == id && f.IsArchived == false)
+                .Where(f =>
+                    f.FacilityId == id &&
+                    f.IsArchived == false)
                 .Select(f => new FacilityDetailsViewModel
                 {
                     FacilityId = f.FacilityId,
+
                     FacilityName = f.FacilityName,
+
                     FacilityDescription = f.FacilityDescription,
+
                     Status = f.Status,
+
                     Capacity = f.Capacity,
-                    Photos = f.FacilityPhotos.Select(p => new ExistingPhotoViewModel
-                    {
-                        PhotoId = p.FacilityPhotoId,
-                        PhotoUrl = p.PhotoUrl
-                    }).ToList()
-                }).FirstOrDefaultAsync();
+
+                    Photos = f.FacilityPhotos
+                        .Select(p => new ExistingPhotoViewModel
+                        {
+                            PhotoId = p.FacilityPhotoId,
+                            PhotoUrl = p.PhotoUrl
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (existingFacility == null)
+            {
+                return null;
+            }
+
+            existingFacility.UpcomingReservations = await _context.EventFacilities
+                .AsNoTracking()
+                .Where(ef =>
+                    ef.FacilityId == id &&
+                    !ef.Event.IsArchived &&
+                    (
+                        ef.Event.EndDate > now.Date ||
+                        (
+                            ef.Event.EndDate == now.Date &&
+                            ef.Event.EndTime >= now.TimeOfDay
+                        )
+                    )
+                )
+                .OrderBy(ef => ef.Event.StartDate)
+                .ThenBy(ef => ef.Event.StartTime)
+                .Select(ef => new FacilityReservationViewModel
+                {
+                    Date = ef.Event.StartDate,
+
+                    StartTime = ef.Event.StartTime,
+
+                    EndTime = ef.Event.EndTime,
+
+                    EventTitle = ef.Event.EventTitle,
+
+                    GroupName = ef.Event.ExpectedGroups
+                        .Select(eg => eg.Group.GroupName)
+                        .ToList()
+                })
+                .ToListAsync();
 
             return existingFacility;
         }

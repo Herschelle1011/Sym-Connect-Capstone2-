@@ -28,5 +28,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Announcement
         public string CreatedBy { get; set; } = string.Empty;
 
         public bool IsPinned { get; set; } = false;
+
+        public string CreatedByPhotoUrl { get; set; } = string.Empty;
     }
 }

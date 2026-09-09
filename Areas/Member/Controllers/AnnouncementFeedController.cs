@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
+    [Authorize(Roles = "Member")]
     public class AnnouncementFeedController : Controller
     {
         private readonly IAnnouncementService _announcementService;

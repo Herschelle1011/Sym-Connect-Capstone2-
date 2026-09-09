@@ -21,45 +21,48 @@
 
 <h1>Members Dashboard</h1>
 
-@if (Model?.PinnedAnnouncement != null)
+@if (Model?.PinnedAnnouncement != null && Model.PinnedAnnouncement.Any(a => a != null))
 {
-    var item = Model.PinnedAnnouncement;
-
     <div class="announcement-panel">
         <div class="announcement-panel-header">
             <i class="bi bi-star-fill"></i>
-            <span>Pinned Announcement</span>
+            <span>Pinned Announcement@(Model.PinnedAnnouncement.Count(a => a != null) > 1 ? "s" : "")</span>
         </div>
 
-        <div class="announcement-card" style="--accent: @AccentColor(item.TargetType)">
-            <div class="announcement-avatar">
-                @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
-                {
-                    <img src="@item.PhotoUrl" alt="@item.PostedByName" />
-                }
-                else
-                {
-                    <span>@Initials(item.PostedByName)</span>
-                }
-            </div>
+        @foreach (var item in Model.PinnedAnnouncement)
+        {
+            if (item == null) continue;
 
-            <div class="announcement-body">
-                <div class="announcement-title">@item.Title</div>
-                <div class="announcement-meta">
-                    <span>Posted by @item.PostedByName</span>
-                    <span class="dot">•</span>
-                    <span>
-                        @(item.PublishedAt.HasValue
-                            ? item.PublishedAt.Value.ToString("MMM d, yyyy")
-                            : "—")
-                    </span>
-                    @if (item.PublishedAt.HasValue)
+            <div class="announcement-card" style="--accent: @AccentColor(item.TargetType)">
+                <div class="announcement-avatar">
+                    @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
                     {
-                        <span>@item.PublishedAt.Value.ToString("h:mm tt")</span>
+                        <img src="@item.PhotoUrl" alt="@item.PostedByName" />
+                    }
+                    else
+                    {
+                        <span>@Initials(item.PostedByName)</span>
                     }
                 </div>
-                <p class="announcement-content">@item.Content</p>
+
+                <div class="announcement-body">
+                    <div class="announcement-title">@item.Title</div>
+                    <div class="announcement-meta">
+                        <span>Posted by @item.PostedByName</span>
+                        <span class="dot">&bull;</span>
+                        <span>
+                            @(item.PublishedAt.HasValue
+                                ? item.PublishedAt.Value.ToString("MMM d, yyyy")
+                                : "&mdash;")
+                        </span>
+                        @if (item.PublishedAt.HasValue)
+                        {
+                            <span>@item.PublishedAt.Value.ToString("h:mm tt")</span>
+                        }
+                    </div>
+                    <p class="announcement-content">@item.Content</p>
+                </div>
             </div>
-        </div>
+        }
     </div>
 }

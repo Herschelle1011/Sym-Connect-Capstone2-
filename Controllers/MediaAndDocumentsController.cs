@@ -12,8 +12,7 @@ using Sym_Connect__Capstone2_.Helpers;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-    [Authorize]
-
+    [Authorize(Roles = "Admin")]
     public class MediaAndDocumentsController : Controller
     {
         private readonly IMediaService _mediaService;

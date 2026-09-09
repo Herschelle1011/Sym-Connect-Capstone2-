@@ -118,9 +118,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var groupMembers = await _context.GroupDetails.Where(gd => gd.GroupId == id).ToListAsync();
             _context.GroupDetails.RemoveRange(groupMembers);
+            getGroup.LeaderId = null;
+            getGroup.Leader = null;
+            var announcements = await _context.Announcements
+               .Where(a => a.GroupId == id)
+               .ToListAsync();
+
+            var members = await _context.Members.Where(e => e.PreferredGroupId == id).ToListAsync();
+            foreach(var preferredGroup in members)
+            {
+                preferredGroup.PreferredGroupId = null;
+            }
+
+            foreach (var announcement in announcements)
+            {
+                announcement.GroupId = null;
+            }
+
             _context.Groups.Remove(getGroup);
             await _context.SaveChangesAsync();
-
             return new OperationalResult { Success = true, Message = $"{getGroup.GroupName} deleted" };
         }
 
@@ -218,15 +234,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-
-
-
-
-
-
-
-
-
         // ADD MEMBER TO GROUP =======
         public async Task<OperationalResult> AddMemberToGroupAsync(int groupId, int memberId)
         {
@@ -267,6 +274,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             group.Status = "Inactive";
             group.IsArchived = true;
             group.ArchivedDate = DateTime.Now;
+            group.Leader = null;
+            group.LeaderId = null;
             await _context.SaveChangesAsync();
             return new OperationalResult { Success = true, Message = "Group saved to archived" };
         }

@@ -17,10 +17,14 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task RestoreAsync(int id);
         Task<AnnouncementViewModel?> GetEditForm(int announcementId);
 
-        Task<VisibleAnnouncementViewModel?> GetPinnedAnnouncementAsync(bool isLeader, int? groupId);
-
+        Task<List<VisibleAnnouncementViewModel>> GetPinnedAnnouncementsAsync(bool isLeader, int? groupId);
         Task<List<ListAnnouncementViewModel>> GetAnnouncementsForLeaderAsync(int groupId);
 
         Task<List<VisibleAnnouncementViewModel>> GetVisibleAnnouncementsAsync(int memberId, bool isLeader, int? group);
+
+        Task<OperationalResult> CreateAdminAnnouncementAsync(AnnouncementViewModel vm, string adminUserId);
+
+        Task<AnnouncementViewModel?> GetEditFormForLeaderAsync(int announcementId, int leaderGroupId);
+        Task<OperationalResult> UpdateLeaderAnnouncementAsync(AnnouncementViewModel vm, int leaderGroupId);
     }
 }

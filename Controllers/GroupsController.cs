@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
@@ -8,6 +9,7 @@ using Sym_Connect__Capstone2_.ViewModels.Group;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class GroupsController : Controller
     {
         private readonly IGroupService _groupService;

@@ -1151,8 +1151,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var result = new List<ViewAvailableFacilitiesViewModel>();
 
-
-
             foreach (var facility in facilities)
             {
                 var upcoming = await _context.Events

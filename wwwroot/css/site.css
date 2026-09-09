@@ -231,6 +231,39 @@ body {
         }
 
 
+.logout-button {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
 
 
 
+#appModal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+#appModal .modal-title {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Default — small confirmations like Archive */
+#appModal .app-modal-dialog {
+    max-width: 480px;
+}
+
+    /* Medium — forms like Create/Edit Announcement */
+    #appModal .app-modal-dialog.modal-size-md {
+        max-width: 640px;
+    }
+
+    /* Large — content that genuinely needs the room (photo uploads, multi-column forms) */
+    #appModal .app-modal-dialog.modal-size-lg {
+        max-width: 880px;
+        width: calc(100% - 32px);
+    }

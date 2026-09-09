@@ -3,9 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-    [AllowAnonymous] //TEMPORARY - REMOVE THIS LATER
-                     //[Authorize(Roles = "Leader")]
 
+    [Authorize]
     public class LeaderController : Controller
     {
         [AllowAnonymous] //TEMPORARY - REMOVE THIS LATER

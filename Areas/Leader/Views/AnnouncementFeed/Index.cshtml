@@ -2,11 +2,16 @@
 @using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums
 @{
     ViewData["Title"] = "Announcements";
-    Layout = "~/Areas/Leader/Views/Shared/_LeaderLayout.cshtml";
+    Layout = "_LeaderLayout";
 }
 
 <div class="announcement-feed">
-    <h2 class="announcement-feed-title">Announcements</h2>
+    <div class="announcement-feed-header">
+        <h2 class="announcement-feed-title">Announcements</h2>
+        <button type="button" class="btn-create-announcement" id="openCreateAnnouncementBtn">
+            <span>&#43;</span> New Announcement
+        </button>
+    </div>
 
     @if (Model == null || !Model.Any())
     {
@@ -67,12 +72,39 @@
         padding: 24px 16px 48px;
     }
 
+    .announcement-feed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
     .announcement-feed-title {
         font-size: 1.6rem;
         font-weight: 700;
         color: #1a1a2e;
-        margin-bottom: 20px;
+        margin: 0;
     }
+
+    .btn-create-announcement {
+        background: #2f6fed;
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 9px 18px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+        .btn-create-announcement:hover {
+            background: #2560d4;
+        }
 
     .announcement-card {
         display: block;
@@ -181,3 +213,76 @@
         color: #2e8b57;
     }
 </style>
+
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            function initializeAnnouncementForm() {
+                const publishSelect = document.getElementById("publishOptionSelect");
+                const scheduleField = document.getElementById("scheduleField");
+                const expirationSelect = document.getElementById("expirationOptionSelect");
+                const customExpirationField = document.getElementById("customExpirationField");
+
+                function updatePublishField() {
+                    if (!publishSelect || !scheduleField) return;
+                    scheduleField.style.display = publishSelect.value === "Scheduled" ? "block" : "none";
+                }
+
+                function updateExpirationField() {
+                    if (!expirationSelect || !customExpirationField) return;
+                    customExpirationField.style.display = expirationSelect.value === "Custom" ? "block" : "none";
+                }
+
+                if (publishSelect) {
+                    publishSelect.addEventListener("change", updatePublishField);
+                }
+
+                if (expirationSelect) {
+                    expirationSelect.addEventListener("change", updateExpirationField);
+                }
+
+                // Run immediately when modal opens
+                updatePublishField();
+                updateExpirationField();
+            }
+
+            // ==============================
+            // OPEN CREATE MODAL
+            // ==============================
+            document.getElementById("openCreateAnnouncementBtn").addEventListener("click", async function () {
+                const response = await fetch("/Leader/AnnouncementFeed/Create");
+                const html = await response.text();
+
+                document.getElementById("appModalLabel").textContent = "New Announcement";
+                document.getElementById("appModalBody").innerHTML = html;
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal")).show();
+
+                initializeAnnouncementForm();
+            });
+
+            // ==============================
+            // SUBMIT (event delegation, since the form loads dynamically)
+            // ==============================
+            document.getElementById("appModalBody").addEventListener("submit", async function (e) {
+                const form = e.target.closest("#announcementForm");
+                if (!form) return;
+                e.preventDefault();
+
+                const response = await fetch(form.action, { method: "POST", body: new FormData(form) });
+                const result = await response.json();
+
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById("appModal")).hide();
+                    showAlertDialog(result.message || "Announcement saved successfully.", "success", "Success");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlertDialog(result.message || "Unable to save announcement.", "error", "Failed");
+                }
+            });
+
+        });
+    </script>
+}

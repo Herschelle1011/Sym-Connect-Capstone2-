@@ -44,11 +44,25 @@ document.addEventListener("submit", async function (e) {
 
     form.dataset.submitting = "true";
 
-    const submitBtn =
-        form.querySelector('button[type="submit"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    let originalButtonHtml = "";
 
     if (submitBtn) {
+
+        // Save original button content
+        originalButtonHtml = submitBtn.innerHTML;
+
+        // Disable button
         submitBtn.disabled = true;
+
+        // Show loading inside button
+        submitBtn.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"></span>
+            Loading...
+        `;
     }
 
     try {
@@ -58,8 +72,7 @@ document.addEventListener("submit", async function (e) {
             body: new FormData(form)
         });
 
-        const contentType =
-            response.headers.get("content-type");
+        const contentType = response.headers.get("content-type");
 
         // Controller returned JSON
         if (
@@ -73,7 +86,6 @@ document.addEventListener("submit", async function (e) {
 
             if (result.success) {
 
-                // Close normal app modal
                 const modalElement =
                     document.getElementById("appModal");
 
@@ -84,14 +96,12 @@ document.addEventListener("submit", async function (e) {
                     modal.hide();
                 }
 
-                // Show success alert
                 showAlertDialog(
                     result.message || "Saved successfully.",
                     "success",
                     "Success"
                 );
 
-                // Give user time to see alert
                 setTimeout(() => {
                     location.reload();
                 }, 1200);
@@ -104,13 +114,15 @@ document.addEventListener("submit", async function (e) {
                     "Failed"
                 );
 
+                // Restore button
                 if (submitBtn) {
                     submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalButtonHtml;
                 }
             }
         }
 
-        // Controller returned another partial view
+        // Controller returned partial view
         else {
 
             const html = await response.text();
@@ -130,8 +142,10 @@ document.addEventListener("submit", async function (e) {
             "Error"
         );
 
+        // Restore button
         if (submitBtn) {
             submitBtn.disabled = false;
+            submitBtn.innerHTML = originalButtonHtml;
         }
 
     } finally {
@@ -139,6 +153,14 @@ document.addEventListener("submit", async function (e) {
         form.dataset.submitting = "false";
     }
 });
+
+function setAppModalSize(size) {
+    const dialog = document.querySelector('#appModal .app-modal-dialog');
+    if (!dialog) return;
+    dialog.classList.remove('modal-size-lg'); // always reset first
+    if (size === 'lg') dialog.classList.add('modal-size-lg');
+}
+
 
 // ── Position status toggle (instant AJAX, no modal) ──
 document.addEventListener("change", function (e) {

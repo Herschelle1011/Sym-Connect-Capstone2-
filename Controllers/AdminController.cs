@@ -11,8 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-    [AllowAnonymous] //TEMPORARY - REMOVE THIS LATER
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -23,10 +22,12 @@ namespace Sym_Connect__Capstone2_.Controllers
         private readonly IEventService _eventService;
         private readonly IMediaService _mediaService;
         private readonly IDashboardService _dashboardService;
+        private readonly SignInManager<User> _signInManager;
+
 
 
         public AdminController(UserManager<User> userManager,
-        CloudinaryService cloudinaryService, IAnnouncementService announcementService, IMemberService memberService, IGroupService groupService, IEventService eventService, IMediaService mediaService, IDashboardService dashboardService)
+        CloudinaryService cloudinaryService, IAnnouncementService announcementService, IMemberService memberService, IGroupService groupService, IEventService eventService, IMediaService mediaService, IDashboardService dashboardService, SignInManager<User> signInManager)
         {
             _userManager = userManager;
             _cloudinaryService = cloudinaryService;
@@ -36,6 +37,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             _eventService = eventService;
             _mediaService = mediaService;
             _dashboardService = dashboardService;
+            _signInManager = signInManager;
         }
 
         // ── GET: /Admin/Profile ─────────────────────────────────────────────
@@ -159,9 +161,23 @@ namespace Sym_Connect__Capstone2_.Controllers
                     Value = await _dashboardService.GetAnnouncementCountThisWeekAsync(startOfWeek, endOfWeek)
                 }
             };
-
-
             return View(vm);
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            // Remove Identity login
+            await _signInManager.SignOutAsync();
+
+            // Remove all Session values
+            HttpContext.Session.Clear();
+
+            // Send user to Identity Login page
+            return Redirect("/Identity/Account/Login");
+
         }
     }
 }

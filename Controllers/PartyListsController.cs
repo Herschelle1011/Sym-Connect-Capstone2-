@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
@@ -5,6 +6,7 @@ using Sym_Connect__Capstone2_.ViewModels.PartyList;
 using System.Threading.Tasks;
 
 
+[Authorize(Roles = "Admin")]
 public class PartyListsController : Controller
 {
     private readonly IPartyListService _partyListService;

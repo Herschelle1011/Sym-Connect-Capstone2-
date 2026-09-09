@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Facility;
 
+[Authorize(Roles = "Admin")]
 public class FacilitiesController : Controller
 {
     private readonly IFacilityService _facilityService;

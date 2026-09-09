@@ -6,12 +6,12 @@ using System.Diagnostics;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-    [AllowAnonymous] //TEMPORARY - REMOVE THIS LATER
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         public IActionResult Index()
         {
-            return View();
+            return Redirect("/Identity/Account/Login");
         }
 
         public IActionResult Privacy()

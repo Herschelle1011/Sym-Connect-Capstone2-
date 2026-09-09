@@ -195,6 +195,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<bool>("IsPinned")
                         .HasColumnType("bit");
 
+                    b.Property<int>("PinScope")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("PublishDate")
                         .HasColumnType("datetime2");
 
@@ -688,7 +691,7 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.HasIndex("FacilityId");
 
-                    b.ToTable("EventFacility");
+                    b.ToTable("EventFacilities");
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EventModels.EventGroup", b =>

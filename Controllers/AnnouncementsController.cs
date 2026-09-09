@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-
+    [Authorize(Roles = "Admin")]
     public class AnnouncementsController : Controller
     {
         private readonly IAnnouncementService _announcementService;
@@ -58,7 +59,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (user == null) return Unauthorized();
 
-            var result = await _announcementService.CreateAsync(vm, user.Id);
+            var result = await _announcementService.CreateAdminAnnouncementAsync(vm, user.Id);
             return Json(new { success = result.Success, message = result.Message });
         }
 

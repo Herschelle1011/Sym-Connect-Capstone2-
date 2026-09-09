@@ -16,6 +16,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Facility
 
         public List<string> FacilityTypes { get; set; } = new();
 
+        public List<FacilityReservationViewModel> UpcomingReservations { get; set; } = new List<FacilityReservationViewModel>();
+
         public List<ExistingPhotoViewModel> Photos { get; set; } = new();
     }
 }

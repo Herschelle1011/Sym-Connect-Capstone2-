@@ -8,6 +8,7 @@ using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Dashboard;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
+    [Authorize(Roles = "Member")]
     public class MemberController : Controller
     {
         private readonly IMemberService _memberService;
@@ -30,7 +31,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
             var model = new DashboardViewModel
             {
-                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementAsync(isLeader, groupId)
+                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(isLeader, groupId.Value)
             };
 
             return View(model);
@@ -45,7 +46,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
             var model = new DashboardViewModel
             {
-                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementAsync(isLeader, groupId)
+                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(isLeader, groupId.Value)
             };
 
             return View(model);

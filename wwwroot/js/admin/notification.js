@@ -15,23 +15,47 @@
 
         if (!panel) return;
 
-
         try {
             const response = await fetch("/Notifications/Dropdown");
 
+            // Check if ASP.NET redirected us somewhere
+            if (response.redirected) {
+                console.error(
+                    "Notification request was redirected to:",
+                    response.url
+                );
+
+                return;
+            }
 
             if (!response.ok) {
                 console.error(
                     "Failed to load notifications:",
                     response.status
                 );
+
+                return;
+            }
+
+            const contentType =
+                response.headers.get("content-type");
+
+            // We expect HTML because Dropdown returns a PartialView
+            if (!contentType ||
+                !contentType.includes("text/html")) {
+
+                console.error(
+                    "Unexpected notification response:",
+                    contentType
+                );
+
                 return;
             }
 
             const html = await response.text();
 
-     
             panel.innerHTML = html;
+
             loaded = true;
         }
         catch (error) {

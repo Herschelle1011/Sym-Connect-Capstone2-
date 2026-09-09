@@ -5,6 +5,224 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+<style>
+    /* ===== Center the page content ===== */
+    .facility-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+        /* ===== Legend (from AvailableFacilities.cshtml) ===== */
+        .facility-page .fac-legend {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #fff;
+            border: 1px solid var(--border-color, #EEE);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin: 14px 0 22px 0;
+            font-size: 13px;
+            color: var(--text-secondary, #5B6472);
+        }
+
+            .facility-page .fac-legend .dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 6px;
+            }
+
+            .facility-page .fac-legend strong {
+                color: #000;
+            }
+
+        .facility-page .dot-available {
+            background: #1E7E34;
+        }
+
+        .facility-page .dot-limited {
+            background: #B7791F;
+        }
+
+        .facility-page .dot-inactive {
+            background: #C0392B;
+        }
+
+        /* ===== Card photo header (rounded, bleeds to card edges) ===== */
+        .facility-page .card-photo-wrapper {
+            position: relative;
+            border-radius: 14px 14px 0 0;
+            overflow: hidden;
+        }
+
+
+            .facility-page .card-photo-wrapper .carousel-img,
+            .facility-page .card-photo-wrapper .no-photo {
+                border-radius: 14px 14px 0 0;
+            }
+
+            .facility-page .card-photo-wrapper .photo-count-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(0,0,0,0.6);
+                color: #fff;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 3px 9px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+
+        .facility-page .capacity-badge {
+            background: #1877F2;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* New: row that holds status pill + capacity pill under the photo */
+        .facility-page .fac-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px 0 20px;
+        }
+
+        /* ===== Status pill ===== */
+        .facility-page .status-dot {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .facility-page .status-dot::before {
+                content: "";
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+        /* Active -> Available now (green) */
+        .facility-page .status-dot {
+            background: #E6F4EA;
+            color: #1E7E34;
+        }
+
+            .facility-page .status-dot::before {
+                background: #1E7E34;
+            }
+
+            /* UnderMaintenance -> Limited today (orange) */
+            .facility-page .status-dot.maintenance {
+                background: #FFF4E0;
+                color: #B7791F;
+            }
+
+                .facility-page .status-dot.maintenance::before {
+                    background: #B7791F;
+                }
+
+            /* Inactive (red/muted) */
+            .facility-page .status-dot.inactive {
+                background: #FDECEA;
+                color: #C0392B;
+            }
+
+                .facility-page .status-dot.inactive::before {
+                    background: #C0392B;
+                }
+
+        /* ===== View Schedule / View Details footer buttons ===== */
+        .facility-page .fac-card-footer {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 18px 20px;
+        }
+
+            .facility-page .fac-card-footer .btn-schedule,
+            .facility-page .fac-card-footer .btn-details {
+                flex: 1;
+                background: #1877F2;
+                border: none;
+                color: #fff;
+                font-weight: 700;
+                font-size: 13px;
+                padding: 10px 0;
+                border-radius: 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                cursor: pointer;
+            }
+
+                .facility-page .fac-card-footer .btn-schedule:hover,
+                .facility-page .fac-card-footer .btn-details:hover {
+                    background: #1360c9;
+                }
+
+        /* ===== Tags ===== */
+        .facility-page .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .facility-page .tag {
+            background: #F1F3F6;
+            color: #444;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .facility-page .facility-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+            .facility-page .facility-title-row .card-title {
+                margin: 0;
+            }
+
+        .facility-page .capacity-badge {
+            background: #EAF1FE;
+            color: #1877F2;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 999px;
+            display: inline-flex !important;
+            align-items: center;
+            gap: 4px;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transform: none !important;
+            flex-shrink: 0;
+        }
+</style>
+
 <div class="facility-page">
 
     <!-- Header -->
@@ -17,6 +235,13 @@
         </button>
     </div>
 
+    @* ---- LEGEND ---- *@
+    <div class="fac-legend">
+        <div><span class="dot dot-available"></span><strong>Available now</strong> &mdash; facility is Active</div>
+        <div><span class="dot dot-limited"></span><strong>Limited today</strong> &mdash; facility is Under maintenance</div>
+        <div><span class="dot dot-inactive"></span><strong>Inactive</strong> &mdash; facility is not in use</div>
+    </div>
+
     <!-- Cards Grid -->
     <div class="facility-grid">
 
@@ -24,26 +249,26 @@
         {
             var photos = item.Photos.Select(p => p.PhotoUrl).ToList();
             <!-- Parse types -->
-            var types = item.FacilityTypes;
 
 
             <!-- Status class -->
-            var statusClass = item.Status switch {
+            var statusClass = item.Status switch
+            {
                 Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "maintenance",
                 Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "inactive",
                 _ => ""
             };
 
-            var statusLabel = item.Status switch {
+            var statusLabel = item.Status switch
+            {
                 Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Active => "Available now",
-                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "Under maintenance",
+                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "Limited today",
                 Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "Inactive",
                 _ => "Unknown"
             };
 
             <div class="facility-card">
 
-                <!-- Photo Section -->
                 <!-- Photo Section -->
                 <div class="card-photo-wrapper">
                     @if (photos.Count > 0)
@@ -58,6 +283,8 @@
 
                             @if (photos.Count > 1)
                             {
+                                <span class="photo-count-badge"><i class="bi bi-images"></i> @photos.Count</span>
+
                                 <div class="carousel-dots">
                                     @for (int i = 0; i < Math.Min(photos.Count, 4); i++)
                                     {
@@ -74,50 +301,31 @@
                     {
                         <div class="no-photo">No photo available</div>
                     }
-                    <span class="capacity-badge">&#128100; @item.Capacity cap</span>
+                </div>
+
+
+                <div class="fac-card-top">
+                    <span class="status-dot @statusClass">@statusLabel</span>
                 </div>
 
                 <!-- Body -->
                 <div class="card-body-custom">
-                    <p class="card-title">@item.FacilityName</p>
-                    <p class="card-desc">@item.FacilityDescription</p>
 
-                    <!-- Type Tags -->
-                    @if (types.Count > 0)
-                    {
-                        <div class="tags">
-                            @foreach (var type in types)
-                            {
-                                var icon = type.Trim() switch
-                                {
-                                    "Basketball" => "🏀",
-                                    "OpenCourt" => "🏟️",
-                                    "Study" => "📚",
-                                    "MeetingRoom" => "🤝",
-                                    "EventHall" => "🎪",
-                                    "YouthActivities" => "⚡",
-                                    "Conference" => "💼",
-                                    "Library" => "📖",
-                                    "Music" => "🎵",
-                                    "PracticeRoom" => "🎤",
-                                    "ComputerLab" => "💻",
-                                    "Training" => "🧑‍💻",
-                                    "Chapel" => "🙏",
-                                    "Worship" => "✝️",
-                                    "Outdoor" => "🌿",
-                                    "EventSpace" => "🎉",
-                                    _ => "🏷️"  // fallback for anything new
-                                };
+                    <div class="facility-title-row">
 
-                                <span class="tag">@icon @type</span>
-                            }
-                        </div>
-                    }
+                        <p class="card-title">
+                            @item.FacilityName
+                        </p>
+
+            
+
+                    </div>
+       
+
                 </div>
 
                 <!-- Footer -->
                 <div class="card-footer-custom">
-                    <span class="status-dot @statusClass">@statusLabel</span>
 
                     <div class="card-actions">
                         <a href="#"
@@ -127,22 +335,22 @@
                             <i class="bi bi-pencil-square"></i>
                         </a>
 
-                        <a asp-action="Details"
-                           asp-route-facilityid="@item.FacilityId"
-                           class="details-btn"
-                           title="Details">
-                            <i class="bi bi-eye"></i>
+                        <a href="#"
+                           class="archive-btn"
+                           title="Archive"
+                           data-id="@item.FacilityId">
+                            <i class="bi bi-archive"></i>
                         </a>
-                      
-                   <a href="#"
-                   class="archive-btn"
-                   title="Archive"
-                   data-id="@item.FacilityId">
-                    <i class="bi bi-archive"></i>
-                </a>
                     </div>
                 </div>
 
+                <!-- View Schedule / View Details -->
+                <div class="fac-card-footer">
+                    <button type="button" class="btn-details"
+                            onclick="location.href='@Url.Action("Details", "Facilities", new { facilityid = item.FacilityId })'">
+                        <i class="bi bi-eye"></i> View Reservations & Details
+                    </button>
+                </div>
             </div>
         }
 
@@ -199,9 +407,6 @@
     </div>
 </div>
 
-
-
-
 <!-- Archive Modal Shell -->
 <div class="modal fade" id="appModal" tabindex="-1"
      aria-labelledby="appModalLabel" aria-hidden="true">
@@ -234,14 +439,14 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
- 
+
     <script src="~/js/admin/facilityPhotos.js" asp-append-version="true"></script>
     <script src="~/js/admin/ErrorModalHandler.js" asp-append-version="true"></script>
 
 
     @* CAROUSEL VIEW DOTS SCRIPT *@
-<script>
-    function goToSlide(dotClicked) {
+    <script>
+        function goToSlide(dotClicked) {
         var carousel = dotClicked.closest('.carousel');
         var photos = carousel.getAttribute('data-photos').split('|');
         var index = parseInt(dotClicked.getAttribute('data-index'));
@@ -249,11 +454,11 @@
         carousel.querySelector('.carousel-img').src = photos[index];
 
         carousel.querySelectorAll('.dot').forEach(function(d) {
-            d.classList.remove('active');
+        d.classList.remove('active');
         });
 
         dotClicked.classList.add('active');
-    }
+        }
 
         document.querySelectorAll('.edit-btn').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
@@ -266,7 +471,7 @@
         .then(response => response.text())
         .then(html => {
         document.querySelector('#editFacilityModal .modal-body').innerHTML = html;
-        initEditPhotoUpload(); 
+        initEditPhotoUpload();
 
 
         var modal = new bootstrap.Modal(document.getElementById('editFacilityModal'));
@@ -292,5 +497,5 @@
         });
         });
 
-</script>
+    </script>
 }

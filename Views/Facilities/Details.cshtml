@@ -164,11 +164,50 @@
                 </a>
             </div>
 
+        </div> <!-- closes fd-info-col -->
+    </div> <!-- closes fd-wrapper -->
+    <!-- Schedule -->
+    <div class="fd-schedule-card">
+        <div class="fd-schedule-header">
+            <i class="bi bi-calendar3"></i> Schedule
         </div>
-    </div>
 
-</div>
+        <div class="fd-schedule-subheader">
+            <span class="label">Upcoming Reservations</span>
+            <a asp-controller="Events" asp-action="Index">
+                View All <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
 
+        @if (!Model.UpcomingReservations.Any())
+        {
+            <p class="fd-schedule-empty">No events currently scheduled here.</p>
+        }
+        else
+        {
+            <table class="fd-schedule-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Event / Activity</th>
+                        <th>Group / Organization</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var res in Model.UpcomingReservations)
+                    {
+                        <tr>
+                            <td class="sched-date">@res.Date.ToString("MMM d, yyyy (ddd)")</td>
+                            <td>@res.EventTitle</td>
+                            <td>@(res.GroupName.Any() ? string.Join(", ", res.GroupName) : "N/A")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div> <!-- closes fd-schedule-card -->
+
+</div> <!-- closes facility-page -->
 <!-- Edit Facility Modal -->
 <div class="modal fade" id="editFacilityModal" tabindex="-1">
     <div class="modal-dialog modal-lg">

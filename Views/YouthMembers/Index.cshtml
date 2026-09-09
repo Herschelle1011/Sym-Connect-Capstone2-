@@ -25,11 +25,11 @@
             </p>
         </div>
 
-        <button type="button"
+        @* <button type="button"
                 class="btn-export">
             <i class="bi bi-upload"></i>
             Export
-        </button>
+        </button> *@
 
     </div>
 
@@ -147,23 +147,23 @@
 
 
             <!-- Date -->
-            <button type="button"
+            @* <button type="button"
                     class="btn-filter">
 
                 <i class="bi bi-calendar3"></i>
                 Modified dates
 
-            </button>
+            </button> *@
 
 
             <!-- Sort -->
-            <button type="button"
+            @* <button type="button"
                     class="btn-filter">
 
                 <i class="bi bi-funnel"></i>
                 Sort
 
-            </button>
+            </button> *@
 
         </div>
 
@@ -195,8 +195,6 @@
 
                         <th>Status</th>
 
-                        <th>Action</th>
-
                     </tr>
                 </thead>
 
@@ -217,80 +215,32 @@
                     {
                         foreach (var item in Model.Members)
                         {
-                            <tr data-status="@item.Status.ToLower()">
+                            <tr class="open-modal"
+                                data-status="@item.Status.ToLower()"
+                                data-url="@Url.Action(
+                                                "Profile",
+                                                "YouthMembers",
+                                                new { area = "Admin", id = item.MemberId })"
+                                data-title="Member Profile">
 
-                                <td>
-                                    @item.MemberId.ToString("D4")
-                                </td>
-
-
-                                <td>
-                                    @item.FirstName
-                                </td>
-
-
+                                <td>@item.MemberId.ToString("D4")</td>
+                                <td>@item.FirstName</td>
                                 <td>
                                     @(string.IsNullOrWhiteSpace(item.MiddleName)
                                         ? "-"
                                         : item.MiddleName)
                                 </td>
-
-
+                                <td>@item.LastName</td>
                                 <td>
-                                    @item.LastName
+                                    @(item.GroupDetailsVM.FirstOrDefault()?.GroupName ?? "N/A")
                                 </td>
-
-
-                           <td>
-    @(item.GroupDetailsVM.FirstOrDefault()?.GroupName ?? "N/A")
-</td>
-
-
+                                <td>@item.Role</td>
+                                <td>@item.Email</td>
                                 <td>
-                                    @item.Role
-                                </td>
-
-
-                                <td>
-                                    @item.Email
-                                </td>
-
-
-                                <td>
-
-                                    <span class="
-                                        badge-status
-                                        @(item.Status == "Active"
-                                              ? "badge-active"
-                                              : "badge-inactive")">
-
+                                    <span class="badge-status @(item.Status == "Active" ? "badge-active" : "badge-inactive")">
                                         @item.Status
-
                                     </span>
-
                                 </td>
-
-
-                                <td>
-
-                                    <button type="button"
-                                            class="btn-icon open-modal"
-                                            data-url="@Url.Action(
-                                                                                            "Profile",
-                                                                                            "YouthMembers",
-                                                                                            new
-                                                                                            {
-                                                                                                area = "Admin",
-                                                                                                id = item.MemberId
-                                                                                            })"
-                                            data-title="Member Profile">
-
-                                        <i class="bi bi-box-arrow-up-right"></i>
-
-                                    </button>
-
-                                </td>
-
                             </tr>
                         }
                     }
@@ -364,22 +314,22 @@
             </div>
 
 
-            <button type="button"
+          @*   <button type="button"
                     class="btn-filter">
 
                 <i class="bi bi-calendar3"></i>
                 Modified dates
 
-            </button>
+            </button> *@
 
 
-            <button type="button"
+            @* <button type="button"
                     class="btn-filter">
 
                 <i class="bi bi-funnel"></i>
                 Sort
 
-            </button>
+            </button> *@
 
         </div>
 

@@ -25,10 +25,6 @@
     <link rel="stylesheet" href="~/css/notification-dropdown.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/eventRequest.css" />
     <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true" />
-
-
-
-
     <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
 
 
@@ -121,11 +117,7 @@
                 <span class="nav-label">Announcements</span>
             </a>
 
-            <a asp-controller="Notifications" asp-action="Index"
-               class="nav-item @(controller == "Notifications" ? "active" : "")">
-                <i class="bi bi-bell"></i>
-                <span class="nav-label">Notifications</span>
-            </a>
+        
 
             <a asp-controller="Admin" asp-action="Dashboard"
                class="nav-item @(controller == "Home" ? "active" : "")">
@@ -210,26 +202,18 @@
 
         <!-- Bottom links -->
         <div class="sidebar-bottom">
+            <form asp-controller="Admin"
+                  asp-action="Logout"
+                  method="post"
+                  onsubmit="return confirm('Are you sure you want to logout?')">
 
-            @* <a asp-controller="Settings" asp-action="Index"
-               class="nav-item @(controller == "Settings" ? "active" : "")">
-                <i class="bi bi-gear"></i>
-                <span class="nav-label">Settings</span>
-            </a> *@
+                <button type="submit" class="nav-item logout-button">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="nav-label">Logout</span>
+                </button>
 
-            @* <a asp-controller="Help" asp-action="Index"
-               class="nav-item @(controller == "Help" ? "active" : "")">
-                <i class="bi bi-question-circle"></i>
-                <span class="nav-label">Help</span>
-            </a> *@
+            </form>
 
-            <a asp-controller="Account" asp-action="Login" asp-area="Identity"
-               asp-route-returnUrl="@Url.Action("Account", "Login")"
-               class="nav-item"
-               onclick="return confirm('Are you sure you want to logout?')">
-                <i class="bi bi-box-arrow-right"></i>
-                <span class="nav-label">Logout</span>
-            </a>
 
         </div>
 

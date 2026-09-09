@@ -1,13 +1,15 @@
 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 using System.Runtime.Intrinsics.X86;
-using Sym_Connect__Capstone2_.Services.Interfaces;
-using Microsoft.AspNetCore.Identity;
 
+[Authorize(Roles = "Admin")]
 public class EvaluationsController : Controller
 {
     private readonly IEvaluationService _evaluationservice;
@@ -37,6 +39,11 @@ public class EvaluationsController : Controller
 
         var isAdmin =
             await _userManager.IsInRoleAsync(user, "Admin");
+
+        if (!isAdmin)
+        {
+            return Forbid();
+        }
 
         var Evaluations = await _evaluationservice.GetAvailableEvaluationsAsync(user.MemberId.Value, isAdmin);
         var evaluation = Evaluations.Select(e => new ListEvaluationViewModel

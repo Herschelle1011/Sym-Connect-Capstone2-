@@ -4,7 +4,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Dashboard
 {
     public class DashboardViewModel
     {
-        public VisibleAnnouncementViewModel? PinnedAnnouncement { get; set; }
+        public List<VisibleAnnouncementViewModel?> PinnedAnnouncement { get; set; }
         public List<VisibleAnnouncementViewModel> Announcements { get; set; } = new();
     }
 }

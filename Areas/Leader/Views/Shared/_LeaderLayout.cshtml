@@ -22,6 +22,8 @@
     <link rel="stylesheet" href="~/Sym_Connect__Capstone2_.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/leader/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/MediaAndDocuments.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/announcement.css" asp-append-version="true" />
+
     <link rel="stylesheet"
           href="~/css/notification-dropdown.css"
           asp-append-version="true" />
@@ -124,24 +126,10 @@
                 <span class="nav-label">Announcements</span>
             </a>
 
-            <a asp-controller="Notifications" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
-                <i class="bi bi-bell"></i>
-                <span class="nav-label">Notifications</span>
-            </a>
-
-      
-
             <a asp-controller="Dashboard" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
                 <i class="bi bi-grid"></i>
                 <span class="nav-label">Dashboard</span>
-            </a>
-
-            <a asp-controller="Evaluation" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluation" ? "active" : "")">
-                <i class="bi bi-star-half"></i>
-                <span class="nav-label">Evaluations</span>
             </a>
 
             <a asp-area="Leader"
@@ -155,7 +143,7 @@
             <a asp-area="Leader"
                asp-controller="Evaluations"
                asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluation" ? "active" : "")">
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations" ? "active" : "")">
                 <i class="bi bi-star-half"></i>
                 <span class="nav-label">Evaluation</span>
             </a>
@@ -227,6 +215,8 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script src="~/js/admin/notification.js" asp-append-version="true"></script>
+    <script src="~/js/admin/announcement.js" asp-append-version="true"></script>
+
 
 @await RenderSectionAsync("Scripts", required: false)
 

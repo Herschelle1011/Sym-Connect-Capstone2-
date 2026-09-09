@@ -1,9 +1,9 @@
-﻿
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Announcement;
 
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
@@ -18,7 +18,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
 
 
-        public AnnouncementFeedController(IAnnouncementService announcementService, 
+        public AnnouncementFeedController(IAnnouncementService announcementService,
                              IGroupService groupService, UserManager<User> userManager)
         {
             _announcementService = announcementService;
@@ -49,7 +49,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                     "Login",
                     "Account",
                     new { area = "Identity" }
-                ); 
+                );
 
             bool isLeader =
                 await _groupService.IsMemberALeaderAsync(memberId);
@@ -60,12 +60,80 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             if (!isLeader)
                 return Forbid();
 
+            if (leaderGroup == null)
+                return Forbid();
+
             int groupId = leaderGroup.GroupId;
 
-                     
+
             var announcements = await _announcementService.GetVisibleAnnouncementsAsync(memberId.Value, true, groupId);
 
             return View(announcements);
+        }
+
+        //==== HTTP GET ==== CREATE
+        // Leader form has no audience/group picker — it's always the leader's own group,
+        // enforced server-side in AnnouncementService.CreateAsync.
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            var leaderGroup = await GetCurrentLeaderGroupAsync();
+            if (leaderGroup == null) return Forbid();
+
+            var vm = new AnnouncementViewModel();
+            return PartialView("_AnnouncementFormCreate", vm);
+        }
+
+        //==== HTTP POST ==== CREATE
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(AnnouncementViewModel vm)
+        {
+            var leaderGroup = await GetCurrentLeaderGroupAsync();
+            if (leaderGroup == null) return Forbid();
+
+            if (!ModelState.IsValid)
+            {
+                return PartialView("_AnnouncementFormCreate", vm);
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var result = await _announcementService.CreateAsync(vm, user.Id);
+
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+        //==== HTTP GET ==== EDIT
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var leaderGroup = await GetCurrentLeaderGroupAsync();
+            if (leaderGroup == null) return Forbid();
+
+            var vm = await _announcementService.GetEditFormForLeaderAsync(id, leaderGroup.GroupId);
+            if (vm == null) return NotFound();
+
+            return PartialView("_AnnouncementFormEdit", vm);
+        }
+
+        //==== HTTP POST ==== EDIT
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(AnnouncementViewModel vm)
+        {
+            var leaderGroup = await GetCurrentLeaderGroupAsync();
+            if (leaderGroup == null) return Forbid();
+
+            if (!ModelState.IsValid)
+            {
+                return PartialView("_AnnouncementFormEdit", vm);
+            }
+
+            var result = await _announcementService.UpdateLeaderAnnouncementAsync(vm, leaderGroup.GroupId);
+
+            return Json(new { success = result.Success, message = result.Message });
         }
     }
 }

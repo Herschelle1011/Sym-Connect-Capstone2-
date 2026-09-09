@@ -45,6 +45,8 @@ namespace Sym_Connect__Capstone2_.Models.AnnouncementModels
         public bool IsArchived { get; set; }
         public DateTime? ArchiveDate { get; set; }
 
+        public AnnouncementPinScope PinScope { get; set; }
+
 
     }
 }

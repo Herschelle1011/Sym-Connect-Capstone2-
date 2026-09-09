@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.PartyList.Positions;
 
+
+[Authorize(Roles = "Admin")]
 public class PositionController : Controller
 {
     private readonly IPositionService _positionService;

@@ -238,6 +238,9 @@
         white-space: normal;
         line-height: 1.35;
     }
+    .members-table tbody tr.open-modal {
+        cursor: pointer;
+    }
 
 .badge-status {
     display: inline-block;

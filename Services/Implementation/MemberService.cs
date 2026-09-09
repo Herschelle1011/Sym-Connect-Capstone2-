@@ -292,6 +292,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             await _context.SaveChangesAsync();
+            if (!await _userManager.IsInRoleAsync(applicant.User, "Member"))
+            {
+                await _userManager.AddToRoleAsync(applicant.User, "Member");
+            }
 
             await _emailService.SendMembershipStatusEmailAsync(
                 applicant.User.Email,

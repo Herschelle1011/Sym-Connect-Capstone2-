@@ -14,7 +14,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
-    [Authorize]
+    [Authorize(Roles = "Member")]
     public class ElectionsController : Controller
     {
         private readonly IElectionService _electionService;

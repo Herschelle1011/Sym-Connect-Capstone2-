@@ -42,6 +42,8 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Services.Implementation
 
                     PublishOption = a.PublishOption,
 
+                    CreatedByPhotoUrl = a.User != null ? a.User.ProfilePictureUrl : "",
+
                     CreatedBy = a.User != null
                         ? a.User.DisplayName
                         : "Unknown",

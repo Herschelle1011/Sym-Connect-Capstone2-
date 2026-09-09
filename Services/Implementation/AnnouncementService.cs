@@ -50,10 +50,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     PublishOption = a.PublishOption,
 
                     IsPinned = a.IsPinned,
+                    CreatedByPhotoUrl = a.User != null ? a.User.ProfilePictureUrl : "",
 
                     CreatedBy = a.User != null && a.User.DisplayName != null
                         ? a.User.DisplayName
-                        : "Unknown",
+                        : "Admin",
                     Status =
                         a.ExpirationDate.HasValue &&
                         a.ExpirationDate.Value <= now
@@ -66,8 +67,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     PublishDate = a.PublishDate
                 })
                 .ToListAsync();
-
-
 
         }
 
@@ -95,22 +94,56 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<OperationalResult> CreateAsync(AnnouncementViewModel vm, string? createdByLeaderId)
         {
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == createdByLeaderId);
+
+            if (user == null || user.MemberId == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Leader account was not found."
+                };
+            }
+            var leaderGroup = await _context.Groups
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g =>
+                    g.LeaderId == user.MemberId &&
+                    g.IsArchived == false);
+
+            if (leaderGroup == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "You are not assigned as a leader of a group."
+                };
+            }
+
             if (vm.IsPinned)
             {
-                bool isTherePinnedAnnouncement =
-                    await _context.Announcements
-                        .AnyAsync(a =>
-                            a.IsPinned &&
-                            !a.IsArchived);
+                bool groupAlreadyHasPinned = await _context.Announcements
+                    .AnyAsync(a =>
+                        a.IsPinned &&
+                        !a.IsArchived &&
+                        a.PinScope == AnnouncementPinScope.Leader &&
+                        a.GroupId == leaderGroup.GroupId);
 
-                if (isTherePinnedAnnouncement)
+                if (groupAlreadyHasPinned)
                 {
                     return new OperationalResult
                     {
                         Success = false,
-                        Message = "Please unpin the current pinned announcement first."
+                        Message = "Your group already has a pinned announcement. Please unpin it first."
                     };
                 }
+            }
+            if (user == null || user.MemberId == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Leader account was not found."
+                };
             }
 
             var NewAnnouncement = new Announcement
@@ -124,12 +157,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 ExpirationOption = vm.ExpirationOption,
                 ExpirationDate = ResolveExpirationDate(vm),
                 IsPinned = vm.IsPinned == true,
+                PinScope = vm.IsPinned == true ? AnnouncementPinScope.Leader : AnnouncementPinScope.None,
                 CreatedDate = DateTime.Now,
                 CreatedByUserId = createdByLeaderId,
                 IsArchived = false,
-            };
-
-         
+            };       
 
             _context.Announcements.Add(NewAnnouncement);
             await _context.SaveChangesAsync();
@@ -138,6 +170,63 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (NewAnnouncement.PublishDate <= DateTime.Now)
             {
                 await SendAnnouncementNotificationsAsync(NewAnnouncement);
+            }
+
+            return new OperationalResult { Success = true, Message = "Announcement created successfully" };
+        }
+
+        public async Task<OperationalResult> CreateAdminAnnouncementAsync(AnnouncementViewModel vm,string adminUserId)
+        {
+            if (vm.TargetAudience == TargetAudience.SpecificGroup && vm.GroupId == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Please select a group."
+                };
+            }
+
+            if (vm.IsPinned)
+            {
+                bool adminAlreadyHasPinned = await _context.Announcements
+                    .AnyAsync(a =>
+                        a.IsPinned &&
+                        !a.IsArchived &&
+                        a.PinScope == AnnouncementPinScope.Admin);
+
+                if (adminAlreadyHasPinned)
+                {
+                    return new OperationalResult
+                    {
+                        Success = false,
+                        Message = "There is already a pinned announcement. Please unpin it first."
+                    };
+                }
+            }
+
+            var newAnnouncement = new Announcement
+            {
+                Title = vm.Title,
+                Content = vm.Content,
+                TargetAudience = vm.TargetAudience,
+                GroupId = vm.TargetAudience == TargetAudience.SpecificGroup ? vm.GroupId : null,
+                PublishOption = vm.PublishOption,
+                PublishDate = ResolvePublishDate(vm),
+                ExpirationOption = vm.ExpirationOption,
+                ExpirationDate = ResolveExpirationDate(vm),
+                IsPinned = vm.IsPinned,
+                PinScope = vm.IsPinned ? AnnouncementPinScope.Admin : AnnouncementPinScope.None,
+                CreatedDate = DateTime.Now,
+                CreatedByUserId = adminUserId,
+                IsArchived = false
+            };
+
+            _context.Announcements.Add(newAnnouncement);
+            await _context.SaveChangesAsync();
+
+            if (newAnnouncement.PublishDate <= DateTime.Now)
+            {
+                await SendAnnouncementNotificationsAsync(newAnnouncement);
             }
 
             return new OperationalResult { Success = true, Message = "Announcement created successfully" };
@@ -169,6 +258,101 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return existing;
         }
 
+
+        public async Task<AnnouncementViewModel?> GetEditFormForLeaderAsync(int announcementId, int leaderGroupId)
+        {
+            if (announcementId == 0) return null;
+
+            var existing = await _context.Announcements
+                .Where(a =>
+                    a.AnnouncementId == announcementId &&
+                    !a.IsArchived &&
+                    a.TargetAudience == TargetAudience.SpecificGroup &&
+                    a.GroupId == leaderGroupId &&
+                    a.PinScope == AnnouncementPinScope.Leader)
+                .Select(a => new AnnouncementViewModel
+                {
+                    AnnouncementId = a.AnnouncementId,
+                    Title = a.Title,
+                    Content = a.Content,
+                    TargetAudience = a.TargetAudience,
+                    GroupId = a.GroupId,
+                    PublishOption = a.PublishOption,
+                    PublishDate = a.PublishOption == PublishOption.Scheduled ? a.PublishDate : null,
+                    ExpirationOption = a.ExpirationOption,
+                    IsPinned = a.IsPinned,
+                    CustomExpirationDate = a.ExpirationOption == ExpirationOption.Custom ? a.ExpirationDate : null,
+                })
+                .FirstOrDefaultAsync();
+
+            
+            return existing;
+        }
+
+
+        public async Task<OperationalResult> UpdateLeaderAnnouncementAsync(AnnouncementViewModel vm, int leaderGroupId)
+        {
+            var existing = await _context.Announcements
+                .FirstOrDefaultAsync(a =>
+                    a.AnnouncementId == vm.AnnouncementId &&
+                    a.TargetAudience == TargetAudience.SpecificGroup &&
+                    a.GroupId == leaderGroupId &&
+                    a.PinScope == AnnouncementPinScope.Leader);
+
+            if (existing == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Announcement not found."
+                };
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (vm.IsPinned == true)
+            {
+                bool groupAlreadyHasOtherPinned = await _context.Announcements
+                    .AnyAsync(a =>
+                        a.IsPinned &&
+                        !a.IsArchived &&
+                        a.PinScope == AnnouncementPinScope.Leader &&
+                        a.GroupId == leaderGroupId &&
+                        a.AnnouncementId != vm.AnnouncementId);
+
+                if (groupAlreadyHasOtherPinned)
+                {
+                    return new OperationalResult
+                    {
+                        Success = false,
+                        Message = "Your group already has a pinned announcement. Please unpin it first."
+                    };
+                }
+            }
+
+            existing.Title = vm.Title;
+            existing.Content = vm.Content;
+            existing.PublishOption = vm.PublishOption;
+            existing.PublishDate = ResolvePublishDate(vm);
+            existing.ExpirationOption = vm.ExpirationOption;
+            existing.ExpirationDate = ResolveExpirationDate(vm);
+            existing.IsPinned = vm.IsPinned == true;
+            existing.PinScope = existing.IsPinned ? AnnouncementPinScope.Leader : AnnouncementPinScope.None;
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = $"Announcement \"{existing.Title}\" updated successfully"
+            };
+        }
+
+
+
+
+
         public async Task<OperationalResult> UpdateAsync(AnnouncementViewModel vm)
         {
             // fetch-first, never overwrite untracked fields
@@ -179,9 +363,23 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             using var transaction = await _context.Database.BeginTransactionAsync();
             if (vm.IsPinned == true)
             {
-                await _context.Announcements
-                    .Where(a => a.IsPinned == true && a.AnnouncementId != vm.AnnouncementId)
-                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsPinned, false));
+                if (existing.PinScope == AnnouncementPinScope.Admin)
+                {
+                    await _context.Announcements
+                        .Where(a => a.IsPinned && a.PinScope == AnnouncementPinScope.Admin
+                                    && a.AnnouncementId != vm.AnnouncementId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsPinned, false)
+                                                   .SetProperty(a => a.PinScope, AnnouncementPinScope.None));
+                }
+                else if (existing.PinScope == AnnouncementPinScope.Leader)
+                {
+                    await _context.Announcements
+                        .Where(a => a.IsPinned && a.PinScope == AnnouncementPinScope.Leader
+                                    && a.GroupId == existing.GroupId
+                                    && a.AnnouncementId != vm.AnnouncementId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsPinned, false)
+                                                   .SetProperty(a => a.PinScope, AnnouncementPinScope.None));
+                }
             }
 
 
@@ -192,6 +390,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             existing.PublishOption = vm.PublishOption;
             existing.PublishDate = ResolvePublishDate(vm);
             existing.IsPinned = vm.IsPinned == true;
+            if (!existing.IsPinned) existing.PinScope = AnnouncementPinScope.None;
             existing.ExpirationOption = vm.ExpirationOption;
             existing.ExpirationDate = ResolveExpirationDate(vm);
 
@@ -236,34 +435,69 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
         //============ PINNED TO DASHBOARD =========== 
-        public async Task<VisibleAnnouncementViewModel?> GetPinnedAnnouncementAsync(bool isLeader, int? groupId)
+        public async Task<List<VisibleAnnouncementViewModel>> GetPinnedAnnouncementsAsync(bool isLeader, int? groupId)
         {
             var now = DateTime.Now;
-       
-            return await _context.Announcements.AsNoTracking()
-                    .Where(a => !a.IsArchived)
-                    .Where(a => a.IsPinned == true)
-                    .Where(a => a.PublishDate <= now)
-                    .Where(a => a.ExpirationDate == null || a.ExpirationDate > now)
-                    .Where(a =>
-                            a.TargetAudience == TargetAudience.Everyone ||
-                            (a.TargetAudience == TargetAudience.AllLeaders && isLeader) ||
-                            a.TargetAudience == TargetAudience.AllMembers && !isLeader ||
-                            (a.TargetAudience == TargetAudience.SpecificGroup && a.GroupId == groupId))
+
+            var baseQuery = _context.Announcements.AsNoTracking()
+                .Where(a => !a.IsArchived)
+                .Where(a => a.IsPinned == true)
+                .Where(a => a.PublishDate <= now)
+                .Where(a => a.ExpirationDate == null || a.ExpirationDate > now);
+
+            // Admin pin: scoped globally, audience-filtered same as before
+            var adminPinQuery = baseQuery
+                .Where(a => a.PinScope == AnnouncementPinScope.Admin)
+                .Where(a =>
+                    a.TargetAudience == TargetAudience.Everyone ||
+                    (a.TargetAudience == TargetAudience.AllLeaders && isLeader) ||
+                    (a.TargetAudience == TargetAudience.AllMembers && !isLeader) ||
+                    (a.TargetAudience == TargetAudience.SpecificGroup && a.GroupId == groupId));
+
+            // Leader pin: only the one belonging to this member's own group
+            var leaderPinQuery = baseQuery
+                .Where(a => a.PinScope == AnnouncementPinScope.Leader)
+                .Where(a => a.TargetAudience == TargetAudience.SpecificGroup && a.GroupId == groupId);
+
+            var adminPin = await adminPinQuery
+                .OrderByDescending(a => a.PublishDate)
+                .Select(a => new VisibleAnnouncementViewModel
+                {
+                    AnnouncementId = a.AnnouncementId,
+                    Title = a.Title,
+                    PhotoUrl = a.User != null ? a.User.ProfilePictureUrl : "null",
+                    Content = a.Content,
+                    PublishedAt = a.PublishDate,
+                    ExpiresAt = a.ExpirationDate,
+                    TargetType = a.TargetAudience,
+                    PostedByName = a.User.DisplayName ?? "Unknown",
+                    GroupName = a.Group != null ? a.Group.GroupName : null
+                })
+                .FirstOrDefaultAsync();
+
+            var leaderPin = groupId.HasValue
+                ? await leaderPinQuery
                     .OrderByDescending(a => a.PublishDate)
                     .Select(a => new VisibleAnnouncementViewModel
                     {
                         AnnouncementId = a.AnnouncementId,
                         Title = a.Title,
-                        PhotoUrl= a.User != null ? a.User.ProfilePictureUrl : "null",
+                        PhotoUrl = a.User != null ? a.User.ProfilePictureUrl : "null",
                         Content = a.Content,
                         PublishedAt = a.PublishDate,
                         ExpiresAt = a.ExpirationDate,
                         TargetType = a.TargetAudience,
                         PostedByName = a.User.DisplayName ?? "Unknown",
-                        GroupName = a.Group.GroupName
+                        GroupName = a.Group != null ? a.Group.GroupName : null
                     })
-                    .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync()
+                : null;
+
+            var results = new List<VisibleAnnouncementViewModel>();
+            if (adminPin != null) results.Add(adminPin);
+            if (leaderPin != null) results.Add(leaderPin);
+
+            return results;
         }
 
 

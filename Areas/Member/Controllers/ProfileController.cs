@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -6,6 +7,7 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
+    [Authorize(Roles = "Member")]
     public class ProfileController : Controller
     {
 

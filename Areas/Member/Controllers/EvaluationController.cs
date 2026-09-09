@@ -8,7 +8,7 @@ using Sym_Connect__Capstone2_.Models;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
-    [Authorize]
+    [Authorize(Roles = "Member")]
     public class EvaluationController : Controller
     {
         private readonly IEvaluationService _evaluationService;
