@@ -137,8 +137,8 @@ body {
    ══════════════════════════════════════ */
 #sidebar {
     width: var(--sidebar-width);
-    min-height: 100vh;
-    min-height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
     background: var(--sidebar-bg);
     border-right: 1px solid var(--sidebar-border);
     display: flex;
@@ -149,8 +149,9 @@ body {
     z-index: 200;
     transform: translateX(-100%);
     transition: transform var(--transition);
-    overflow: hidden;
     box-shadow: 4px 0 24px rgba(15, 20, 35, 0.08);
+    /* Important */
+    overflow: hidden;
 }
 
     #sidebar.show {
@@ -203,18 +204,25 @@ body {
 /* ── Nav items ── */
 .sidebar-nav {
     flex: 1;
+    min-height: 0;
     padding: 10px 0;
     overflow-y: auto;
     overflow-x: hidden;
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
 }
 
     .sidebar-nav::-webkit-scrollbar {
-        width: 3px;
+        width: 4px;
     }
 
     .sidebar-nav::-webkit-scrollbar-thumb {
         background: #dde1ea;
-        border-radius: 3px;
+        border-radius: 4px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+        background: transparent;
     }
 
 .nav-item {

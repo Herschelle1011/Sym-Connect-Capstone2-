@@ -6,30 +6,49 @@
 
 <div class="login-page-wrapper">
     <div class="login-card">
-        <h2>Login</h2>
+        <div class="login-heading">
+            <h2>Login</h2>
+            <p>Enter your account details.</p>
+        </div>
 
         <form id="account" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
             <!-- Email -->
             <div class="input-group-custom">
-                <i class="bi bi-envelope input-icon"></i>          <!-- ✅ added input-icon class -->
-                <input asp-for="Input.Email"
-                       type="email"
-                       autocomplete="username"
-                       aria-required="true"
-                       placeholder="Enter your email" />
+                <label asp-for="Input.Email">Email</label>
+
+                <div class="input-wrapper">
+                    <input asp-for="Input.Email"
+                           type="email"
+                           autocomplete="username"
+                           aria-required="true"
+                           placeholder="Enter your email" />
+                </div>
+
                 <span asp-validation-for="Input.Email" class="text-danger"></span>
             </div>
 
             <!-- Password -->
-            <div class="input-group-custom">
-                <i class="bi bi-lock input-icon"></i>               <!-- ✅ added input-icon class -->
-                <input asp-for="Input.Password"
-                       type="password"
-                       autocomplete="current-password"
-                       aria-required="true"
-                       placeholder="Enter your password" />
+            <div class="input-group-custom password-group">
+                <label asp-for="Input.Password">Password</label>
+
+                <div class="input-wrapper">
+                    <input asp-for="Input.Password"
+                           type="password"
+                           autocomplete="current-password"
+                           aria-required="true"
+                           placeholder="Enter your password"
+                           id="passwordInput" />
+
+                    <button type="button"
+                            class="password-toggle"
+                            id="togglePassword"
+                            aria-label="Show password">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+
                 <span asp-validation-for="Input.Password" class="text-danger"></span>
             </div>
 
@@ -95,4 +114,33 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/membership-registration.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const passwordInput = document.getElementById("passwordInput");
+            const togglePassword = document.getElementById("togglePassword");
+
+            if (passwordInput && togglePassword) {
+                togglePassword.addEventListener("click", function() {
+                    const icon = this.querySelector("i");
+
+                    if (passwordInput.type === "password") {
+                        passwordInput.type = "text";
+
+                        icon.classList.remove("bi-eye");
+                        icon.classList.add("bi-eye-slash");
+
+                        this.setAttribute("aria-label", "Hide password");
+                    } else {
+                        passwordInput.type = "password";
+
+                        icon.classList.remove("bi-eye-slash");
+                        icon.classList.add("bi-eye");
+
+                        this.setAttribute("aria-label", "Show password");
+                    }
+                });
+            }
+        });
+    </script>
 }

@@ -160,17 +160,17 @@
                 <span class="nav-label">Profile</span>
             </a>
 
-            <a asp-controller="Points" asp-action="Index"
+            @* <a asp-controller="Points" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Points" ? "active" : "")">
                 <i class="bi bi-person-check"></i>
                 <span class="nav-label">Points</span>
-            </a>
+            </a> *@
 
-            <a asp-controller="Help" asp-action="Index"
+            @* <a asp-controller="Help" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Help" ? "active" : "")">
                 <i class="bi bi-question-circle"></i>
                 <span class="nav-label">Help</span>
-            </a>
+            </a> *@
 
             <a asp-controller="Account" asp-action="Login" asp-area="Identity"
                asp-route-returnUrl="@Url.Action("Account", "Login")"
