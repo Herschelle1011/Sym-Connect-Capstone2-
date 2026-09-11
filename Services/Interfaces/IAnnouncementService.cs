@@ -13,8 +13,9 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<OperationalResult> CreateAsync(AnnouncementViewModel vm, string? createdByLeaderId); 
         Task<OperationalResult> UpdateAsync(AnnouncementViewModel vm);
 
-        Task ArchiveAsync(int id);
-        Task RestoreAsync(int id);
+        Task<OperationalResult> ArchiveAnnouncementAsync(
+                   int announcementId);
+            Task RestoreAsync(int id);
         Task<AnnouncementViewModel?> GetEditForm(int announcementId);
 
         Task<List<VisibleAnnouncementViewModel>> GetPinnedAnnouncementsAsync(bool isLeader, int? groupId);
@@ -24,7 +25,14 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<OperationalResult> CreateAdminAnnouncementAsync(AnnouncementViewModel vm, string adminUserId);
 
-        Task<AnnouncementViewModel?> GetEditFormForLeaderAsync(int announcementId, int leaderGroupId);
-        Task<OperationalResult> UpdateLeaderAnnouncementAsync(AnnouncementViewModel vm, int leaderGroupId);
+        Task<AnnouncementViewModel?> GetEditFormForLeaderAsync(int announcementId, string leaderId, int leaderGroupId);
+      
+        Task<OperationalResult> UpdateLeaderAnnouncementAsync(AnnouncementViewModel vm, string leaderId ,int leaderGroupId);
+
+        Task<OperationalResult> ArchiveLeaderAnnouncementAsync(int id, string leaderId, int leaderGroupId);
+
+        //get
+        Task<ArchiveAnnouncementViewModel?> GetArchivePreviewAsync(int announcementId);
+
     }
 }

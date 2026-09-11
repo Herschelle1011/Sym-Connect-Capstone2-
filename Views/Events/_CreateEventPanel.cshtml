@@ -11,7 +11,15 @@
         <form asp-action="Create"
               asp-controller="@(ViewBag.FormController ?? "Events")"
               asp-area="@(ViewBag.FormArea ?? "")"
-              method="post" id="createEventForm">
+              method="post"
+              id="createEventForm"
+              data-scanner-modal-url="@Url.Action(
+                        "GetScannerTimeModal",
+                        ViewBag.FormController as string ?? "Events",
+                        new
+                        {
+                            area = ViewBag.FormArea as string ?? ""
+                        })">
             @Html.AntiForgeryToken()
 
 

@@ -8,7 +8,7 @@ using Sym_Connect__Capstone2_.ViewModels.Announcement;
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
     [Area("Leader")]
-    [Authorize]
+    [Authorize(Roles = "Leader")]
     public class AnnouncementFeedController : Controller
     {
         private readonly IAnnouncementService _announcementService;
@@ -64,7 +64,8 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 return Forbid();
 
             int groupId = leaderGroup.GroupId;
-
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.CurrentUserId = user?.Id;
 
             var announcements = await _announcementService.GetVisibleAnnouncementsAsync(memberId.Value, true, groupId);
 
@@ -112,7 +113,13 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             var leaderGroup = await GetCurrentLeaderGroupAsync();
             if (leaderGroup == null) return Forbid();
 
-            var vm = await _announcementService.GetEditFormForLeaderAsync(id, leaderGroup.GroupId);
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+
+
+
+            var vm = await _announcementService.GetEditFormForLeaderAsync(id, user.Id, leaderGroup.GroupId);
             if (vm == null) return NotFound();
 
             return PartialView("_AnnouncementFormEdit", vm);
@@ -124,6 +131,11 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         public async Task<IActionResult> Edit(AnnouncementViewModel vm)
         {
             var leaderGroup = await GetCurrentLeaderGroupAsync();
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Unauthorized();
             if (leaderGroup == null) return Forbid();
 
             if (!ModelState.IsValid)
@@ -131,9 +143,44 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 return PartialView("_AnnouncementFormEdit", vm);
             }
 
-            var result = await _announcementService.UpdateLeaderAnnouncementAsync(vm, leaderGroup.GroupId);
+            var result = await _announcementService.UpdateLeaderAnnouncementAsync(vm, user.Id,leaderGroup.GroupId);
 
             return Json(new { success = result.Success, message = result.Message });
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetArchive(int announcementId)
+        {
+
+            var leaderGroup = await GetCurrentLeaderGroupAsync();
+            if (leaderGroup == null) return Forbid();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var vm = await _announcementService.GetArchivePreviewAsync(announcementId);
+            if (vm == null) return NotFound();
+
+            return PartialView("_ArchiveAnnouncementModal", vm);
+        }
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Archive(int id)
+        {
+            var leaderGroup = await GetCurrentLeaderGroupAsync();
+            if (leaderGroup == null) return Forbid();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var result = await _announcementService.ArchiveLeaderAnnouncementAsync(id, user.Id, leaderGroup.GroupId);
+            return Json(new { success = result.Success, message = result.Message });
+        }
+
+
     }
 }

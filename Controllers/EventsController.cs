@@ -274,7 +274,8 @@ public class EventsController : Controller
     [HttpGet]
     public IActionResult GetScannerTimeModal()
     {
-        return PartialView("_ScannerTimeModal");
+        return PartialView(
+            "~/Views/Shared/_ScannerTimeModal.cshtml");
     }
 
 

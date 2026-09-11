@@ -325,9 +325,10 @@
         ViewBag.FormArea = "Leader";
         var createVm = ViewBag.FailedCreateVm as CreateEventViewModel ?? new CreateEventViewModel();
     }
-    <script src="~/js/admin/OpenScannerTime.js"></script>
-    <script src="~/js/admin/EditScannerTime.js"></script>
+
     @await Html.PartialAsync("~/Views/Events/_CreateEventPanel.cshtml", createVm)
+    <script src="~/js/OpenScannerTime.js"></script>
+    <script src="~/js/EditScannerTime.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

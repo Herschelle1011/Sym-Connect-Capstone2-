@@ -3,217 +3,115 @@
 @{
     ViewData["Title"] = "Announcements";
     Layout = "_LeaderLayout";
+    string? currentUserId = ViewBag.CurrentUserId as string;
 }
 
-<div class="announcement-feed">
-    <div class="announcement-feed-header">
-        <h2 class="announcement-feed-title">Announcements</h2>
-        <button type="button" class="btn-create-announcement" id="openCreateAnnouncementBtn">
+<div class="announcement-page">
+    <div class="page-header">
+        <div>
+            <div class="page-eyebrow">Communication</div>
+            <h2>Announcements</h2>
+            <p class="page-subtitle">Announcements for your group and all leaders.</p>
+        </div>
+        <button type="button" class="btn btn-primary" id="openCreateAnnouncementBtn">
             <span>&#43;</span> New Announcement
         </button>
     </div>
 
-    @if (Model == null || !Model.Any())
-    {
-        <p class="text-muted">No announcements right now.</p>
-    }
-    else
-    {
-        foreach (var a in Model)
+    <div class="ann-card-list" id="announcementListBody">
+        @if (Model == null || !Model.Any())
         {
-            var avatarSrc = string.IsNullOrWhiteSpace(a.PhotoUrl) ? "/images/default.png" : a.PhotoUrl;
-
-            <div class="announcement-card">
-                <div class="announcement-card-header">
-                    <img class="announcement-avatar" src="@avatarSrc" alt="@a.PostedByName" onerror="this.onerror=null;this.src='/images/default.png';" />
-                    <div class="announcement-header-text">
-                        <div class="announcement-title-row">
-                            <h3>@a.Title</h3>
-                            @if (a.TargetType == TargetAudience.SpecificGroup && a.GroupName != null)
-                            {
-                                <span class="badge badge-group">@a.GroupName</span>
-                            }
-                            else if (a.TargetType == TargetAudience.AllLeaders)
-                            {
-                                <span class="badge badge-leaders">Leaders</span>
-                            }
-                            else if (a.TargetType == TargetAudience.AllMembers)
-                            {
-                                <span class="badge badge-members">Members</span>
-                            }
-                            else if (a.TargetType == TargetAudience.Everyone)
-                            {
-                                <span class="badge badge-everyone">Everyone</span>
-                            }
-                        </div>
-                        <div class="announcement-posted-by">
-                            Posted by @a.PostedByName
-                            @if (!string.IsNullOrWhiteSpace(a.GroupName))
-                            {
-                                <span> - @a.GroupName</span>
-                            }
-                        </div>
-                        <div class="announcement-meta">
-                            @(a.PublishedAt.HasValue ? a.PublishedAt.Value.ToString("MMM d, yyyy h:mm tt") : "")
-                        </div>
-                    </div>
-                </div>
-
-                <p class="announcement-content">@a.Content</p>
+            <div class="empty-state">
+                <div>No announcements right now.</div>
             </div>
         }
-    }
+        else
+        {
+            foreach (var a in Model.OrderByDescending(x => x.TargetType == TargetAudience.SpecificGroup)
+                                    .ThenByDescending(x => x.PublishedAt))
+            {
+                bool isOwner = currentUserId != null && a.CreatedByUserId == currentUserId;
+                var avatarSrc = string.IsNullOrWhiteSpace(a.PhotoUrl) ? "/images/default.png" : a.PhotoUrl;
+
+                var audiencePillClass = a.TargetType switch
+                {
+                    TargetAudience.Everyone => "pill-audience-everyone",
+                    TargetAudience.AllLeaders => "pill-audience-leaders",
+                    TargetAudience.SpecificGroup => "pill-audience-group",
+                    _ => "pill-audience"
+                };
+
+                <div class="ann-card" data-id="@a.AnnouncementId">
+                    <div class="ann-card-header">
+                        <img class="ann-avatar" src="@avatarSrc" alt="@a.PostedByName"
+                             onerror="this.onerror=null;this.src='/images/default.png';" />
+
+                        <div class="ann-card-headtext">
+                            <div class="ann-card-title-row">
+                                <h3 class="ann-card-title">@a.Title</h3>
+
+                                @if (isOwner)
+                                {
+                                    <div class="ann-card-menu-wrapper">
+                                        <button type="button" class="btn-icon btn-more" data-id="@a.AnnouncementId" title="More">
+                                            <i class="ti ti-dots-vertical"></i>
+                                        </button>
+                                        <div class="ann-dropdown-menu" hidden>
+                                            <button type="button" class="dropdown-item btnEditAnnouncement" data-id="@a.AnnouncementId">
+                                                <i class="ti ti-pencil"></i> Edit
+                                            </button>
+                                            <button type="button" class="dropdown-item dropdown-item-danger btnArchiveAnnouncement" data-id="@a.AnnouncementId">
+                                                <i class="ti ti-trash"></i> Archive
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="ann-card-meta">
+                                <span class="pill pill-posted-by">Posted by @a.PostedByName</span>
+
+                                <span class="pill @audiencePillClass">@a.TargetType</span>
+
+                                @if (!string.IsNullOrEmpty(a.GroupName))
+                                {
+                                    <span class="ann-meta-plain">@a.GroupName</span>
+                                }
+
+                                <span class="ann-meta-plain">
+                                    @(a.PublishedAt.HasValue ? a.PublishedAt.Value.ToString("MMM d, yyyy h:mm tt") : "")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ann-card-body">
+                        <p class="ann-card-desc">@a.Content</p>
+                    </div>
+
+                    @if (a.ExpiresAt.HasValue)
+                    {
+                        <div class="ann-card-footer">
+                            Expires @a.ExpiresAt.Value.ToString("MMM d, yyyy") at @a.ExpiresAt.Value.ToString("h:mm tt")
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
 </div>
 
-<style>
-    .announcement-feed {
-        max-width: 780px;
-        margin: 0 auto;
-        padding: 24px 16px 48px;
-    }
-
-    .announcement-feed-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .announcement-feed-title {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #1a1a2e;
-        margin: 0;
-    }
-
-    .btn-create-announcement {
-        background: #2f6fed;
-        border: none;
-        color: #fff;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 9px 18px;
-        border-radius: 10px;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-        flex-shrink: 0;
-    }
-
-        .btn-create-announcement:hover {
-            background: #2560d4;
-        }
-
-    .announcement-card {
-        display: block;
-        position: relative;
-        background: #fff;
-        border-radius: 14px;
-        padding: 20px 24px 22px;
-        margin-bottom: 22px;
-        box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
-        border: 1px solid #eef0f4;
-        overflow: hidden;
-    }
-
-        .announcement-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #2f6fed, #4f8dfd);
-        }
-
-    .announcement-card-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-
-    .announcement-avatar {
-        flex-shrink: 0;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-        background: #eef0f4;
-        border: 1px solid #eef0f4;
-    }
-
-    .announcement-header-text {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .announcement-title-row {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-        .announcement-title-row h3 {
-            margin: 0;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-
-    .announcement-posted-by {
-        font-size: 0.8rem;
-        color: #8a90a2;
-        margin-top: 2px;
-    }
-
-    .announcement-meta {
-        font-size: 0.72rem;
-        color: #b3b8c5;
-        margin-top: 1px;
-    }
-
-    .announcement-content {
-        margin: 12px 0 0;
-        color: #3c4257;
-        font-size: 0.95rem;
-        line-height: 1.55;
-        white-space: pre-line;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 2px 10px;
-        border-radius: 999px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        line-height: 1.6;
-    }
-
-    .badge-group {
-        background: #e8f0fe;
-        color: #2f6fed;
-    }
-
-    .badge-leaders {
-        background: #fff1e6;
-        color: #e8722a;
-    }
-
-    .badge-members {
-        background: #e6f4f4;
-        color: #2e8b8b;
-    }
-
-    .badge-everyone {
-        background: #e6f4ea;
-        color: #2e8b57;
-    }
-</style>
-
+<div class="modal fade" id="appModal" tabindex="-1" aria-labelledby="appModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="appModalLabel">New Announcement</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="appModalBody"></div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
@@ -229,43 +127,67 @@
                     if (!publishSelect || !scheduleField) return;
                     scheduleField.style.display = publishSelect.value === "Scheduled" ? "block" : "none";
                 }
-
                 function updateExpirationField() {
                     if (!expirationSelect || !customExpirationField) return;
                     customExpirationField.style.display = expirationSelect.value === "Custom" ? "block" : "none";
                 }
 
-                if (publishSelect) {
-                    publishSelect.addEventListener("change", updatePublishField);
-                }
+                publishSelect?.addEventListener("change", updatePublishField);
+                expirationSelect?.addEventListener("change", updateExpirationField);
 
-                if (expirationSelect) {
-                    expirationSelect.addEventListener("change", updateExpirationField);
-                }
-
-                // Run immediately when modal opens
                 updatePublishField();
                 updateExpirationField();
             }
 
-            // ==============================
-            // OPEN CREATE MODAL
-            // ==============================
             document.getElementById("openCreateAnnouncementBtn").addEventListener("click", async function () {
                 const response = await fetch("/Leader/AnnouncementFeed/Create");
                 const html = await response.text();
-
                 document.getElementById("appModalLabel").textContent = "New Announcement";
                 document.getElementById("appModalBody").innerHTML = html;
-
                 bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal")).show();
-
                 initializeAnnouncementForm();
             });
 
-            // ==============================
-            // SUBMIT (event delegation, since the form loads dynamically)
-            // ==============================
+            // Dropdown toggle (event delegation, cards are server-rendered but menu is per-card)
+            document.getElementById("announcementListBody").addEventListener("click", function (e) {
+                const moreBtn = e.target.closest(".btn-more");
+                document.querySelectorAll(".ann-dropdown-menu").forEach(menu => {
+                    if (!moreBtn || menu !== moreBtn.nextElementSibling) menu.hidden = true;
+                });
+                if (moreBtn) {
+                    const menu = moreBtn.nextElementSibling;
+                    menu.hidden = !menu.hidden;
+                }
+            });
+            document.addEventListener("click", function (e) {
+                if (!e.target.closest(".ann-card-menu-wrapper")) {
+                    document.querySelectorAll(".ann-dropdown-menu").forEach(menu => menu.hidden = true);
+                }
+            });
+
+            // Open Edit modal — server already refuses this for non-owned posts (NotFound),
+            // but the button only renders for isOwner anyway.
+            document.getElementById("announcementListBody").addEventListener("click", async function (e) {
+                const editBtn = e.target.closest(".btnEditAnnouncement");
+                if (!editBtn) return;
+
+                const id = editBtn.dataset.id;
+                const response = await fetch(`/Leader/AnnouncementFeed/Edit/${id}`);
+
+                
+        console.log("Status:", response.status);
+        console.log("OK:", response.ok);
+                if (!response.ok) {
+                    showAlertDialog("You can't edit this announcement.", "error", "Not allowed");
+                    return;
+                }
+                const html = await response.text();
+                document.getElementById("appModalLabel").textContent = "Edit Announcement";
+                document.getElementById("appModalBody").innerHTML = html;
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal")).show();
+                initializeAnnouncementForm();
+            });
+
             document.getElementById("appModalBody").addEventListener("submit", async function (e) {
                 const form = e.target.closest("#announcementForm");
                 if (!form) return;
@@ -283,6 +205,42 @@
                 }
             });
 
+
+                    document.getElementById("announcementTableBody").addEventListener("click", async function (e) {
+            const archiveBtn = e.target.closest(".btnArchiveAnnouncement");
+            if (!archiveBtn) return;
+
+            const id = archiveBtn.dataset.id;
+
+            const response = await fetch(`/Leader/AnnouncementFeedController/GetArchive?announcementId=${id}`);
+            if (!response.ok) {
+                showAlertDialog("Unable to load this announcement.", "error", "Failed");
+                return;
+            }
+            const html = await response.text();
+
+            document.getElementById("appModalLabel").textContent = "Archive Announcement";
+            document.getElementById("appModalBody").innerHTML = html;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal")).show();
+        });
+
+        // Submit handler for the archive confirm form (loaded dynamically into the modal)
+        document.getElementById("appModalBody").addEventListener("submit", async function (e) {
+            const form = e.target.closest("form[asp-action='Archive']") || e.target.closest("form");
+            if (!form || !form.action.includes("/Archive")) return;
+            e.preventDefault();
+
+            const response = await fetch(form.action, { method: "POST", body: new FormData(form) });
+            const result = await response.json();
+
+            if (result.success) {
+                bootstrap.Modal.getInstance(document.getElementById("appModal")).hide();
+                showAlertDialog(result.message || "Announcement archived.", "success", "Success");
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showAlertDialog(result.message || "Unable to archive announcement.", "error", "Failed");
+            }
+        });
         });
     </script>
 }

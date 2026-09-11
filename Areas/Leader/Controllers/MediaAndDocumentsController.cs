@@ -6,7 +6,7 @@ using Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments;
 
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Leader")]
     [Area("Leader")]
     public class MediaAndDocumentsController : Controller
     {

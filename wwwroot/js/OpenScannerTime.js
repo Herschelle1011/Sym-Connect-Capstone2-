@@ -153,9 +153,39 @@
     // 5. LOAD SCANNER TIME MODAL
     // ==============================
 
+    const scannerModalUrl =
+        form.dataset.scannerModalUrl;
+
+    if (!scannerModalUrl) {
+        console.error("Scanner modal URL is missing.");
+
+        showAlertDialog(
+            "Unable to load scanner settings.",
+            "Error"
+        );
+
+        return;
+    }
+
+    const scannerResponse =
+        await fetch(scannerModalUrl);
+
+    if (!scannerResponse.ok) {
+        console.error(
+            "Scanner modal request failed:",
+            scannerResponse.status
+        );
+
+        showAlertDialog(
+            "Unable to load scanner settings.",
+            "Error"
+        );
+
+        return;
+    }
+
     const html =
-        await fetch('/Events/GetScannerTimeModal')
-            .then(r => r.text());
+        await scannerResponse.text();
 
 
     document.getElementById('appModalBody').innerHTML =
@@ -169,6 +199,28 @@
     const allDayNotice = document.getElementById('allDayScannerNotice');
     const scannerFields = document.getElementById('scannerTimeFields');
     const defaultsHint = document.getElementById('scannerDefaultsHint');
+
+    if (
+        !allDayNotice ||
+        !scannerFields ||
+        !defaultsHint
+    ) {
+        console.error(
+            "Required scanner elements are missing:",
+            {
+                allDayNotice,
+                scannerFields,
+                defaultsHint
+            }
+        );
+
+        showAlertDialog(
+            "Scanner time form could not be loaded correctly.",
+            "Error"
+        );
+
+        return;
+    }
 
     if (isAllDay) {
         // All-day: hide the time inputs, show the notice, skip defaults entirely
@@ -359,3 +411,9 @@
     };
 
 });
+
+
+
+
+
+

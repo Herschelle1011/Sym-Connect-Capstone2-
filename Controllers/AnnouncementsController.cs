@@ -113,7 +113,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Archive(int id)
         {
-            await _announcementService.ArchiveAsync(id);
+            await _announcementService.ArchiveAnnouncementAsync(id);
             return Json(new { success = true, message = "Announcement archived successfully"});
         }
 
@@ -138,5 +138,8 @@ namespace Sym_Connect__Capstone2_.Controllers
                 Text = g.GroupName
             }).ToList();
         }
+
+
+
     }
 }

@@ -6,7 +6,7 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
     [Area("Leader")]
-    [Authorize]
+    [Authorize(Roles = "Leader")]
     public class DashboardController : Controller
     {
         private readonly IAnnouncementService _announcementService;

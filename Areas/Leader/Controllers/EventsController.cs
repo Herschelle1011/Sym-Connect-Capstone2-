@@ -10,7 +10,7 @@ using Sym_Connect__Capstone2_.ViewModels.Event;
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
     [Area("Leader")]
-    [Authorize]
+    [Authorize(Roles = "Leader")]
     public class EventsController : Controller
     {
 
@@ -157,12 +157,65 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             return Json(new { success = result.Success, message = result.Message });
         }
 
-        
-            // GET: /Leader/LeaderEvent/Create
-            [HttpGet]
+
+        // GET: /Leader/LeaderEvent/Create
+        [HttpGet]
         public async Task<IActionResult> Create()
-        {           
-            return PartialView("~/Views/Events/_CreateEventPanel.cshtml", new CreateEventViewModel());
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            // Get the group this leader manages
+            var leaderGroup =
+                await _groupService.GetGroupLedByMemberAsync(
+                    user.MemberId.Value);
+
+            if (leaderGroup == null)
+            {
+                return Forbid();
+            }
+
+            // Data needed by the shared Create Event partial
+            ViewBag.Facilities =
+                await _facilityService.GetAllFacilitiesAsync();
+
+            ViewBag.Groups =
+                await _groupService.GetAllGroupsAsync();
+
+            // Tells the shared partial:
+            // "This form belongs to the Leader Area"
+            ViewBag.FormArea = "Leader";
+
+            ViewBag.FormController = "Events";
+
+            // Leader can only create an event for their own group
+            ViewBag.LeaderGroupId =
+                leaderGroup.GroupId;
+
+            ViewBag.LeaderGroupName =
+                leaderGroup.GroupName;
+
+            var vm = new CreateEventViewModel();
+
+            return PartialView(
+                "~/Views/Events/_CreateEventPanel.cshtml",
+                vm);
+        }
+
+        [HttpGet]
+        public IActionResult GetScannerTimeModal()
+        {
+            return PartialView(
+                "~/Views/Shared/_ScannerTimeModal.cshtml");
         }
 
         [HttpGet]

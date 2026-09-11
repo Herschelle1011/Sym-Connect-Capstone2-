@@ -21,5 +21,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Announcement
         public string PostedByName { get; set; } = string.Empty;
 
         public string PhotoUrl { get; set; } = string.Empty;
+
+        public string? CreatedByUserId { get; set; }
     }
 }

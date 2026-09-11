@@ -8,17 +8,20 @@ using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 using Sym_Connect__Capstone2_.ViewModels.Member;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using Microsoft.AspNetCore.Identity;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class GroupService : IGroupService
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<User> _userManager;
 
-        public GroupService(AppDbContext context)
+
+        public GroupService(AppDbContext context, UserManager<User> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         //GET ALL GROUPS
@@ -88,6 +91,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             };
             _context.Groups.Add(newGroup);
             await _context.SaveChangesAsync();
+
+            if (vm.LeaderId.HasValue)
+            {
+                await AddLeaderRoleAsync(vm.LeaderId.Value);
+            }
+
+
+
             return new OperationalResult { Success = true, Message = $"{newGroup.GroupName} created" };
 
         }
@@ -100,12 +111,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 return new OperationalResult { Success = false, Message = "Group not existed" };
             }
+
+            // Save the old leader before changing it
+            int? oldLeaderId = ExistingGroup.LeaderId;
+
+            // New leader from the edit form
+            int? newLeaderId = vm.LeaderId;
+
+
             ExistingGroup.GroupName = vm.GroupName;
             ExistingGroup.Description = vm.Description;
             ExistingGroup.Status = vm.Status;
             ExistingGroup.LeaderId = vm.LeaderId;
 
             await _context.SaveChangesAsync();
+
+            if (oldLeaderId.HasValue &&
+             oldLeaderId != newLeaderId)
+            {
+                await RemoveLeaderRoleIfNeededAsync(
+                    oldLeaderId.Value);
+            }
+
+            if (newLeaderId.HasValue)
+            {
+                await AddLeaderRoleAsync(
+                    newLeaderId.Value);
+            }
+
+
             return new OperationalResult { Success = true, Message = $"{ExistingGroup.GroupName} Updated" };
 
         }
@@ -115,6 +149,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             var getGroup = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == id);
             if (getGroup == null) return new OperationalResult { Success = false, Message = "Group not found" };
+
+            int? oldLeaderId = getGroup.LeaderId;
+
 
             var groupMembers = await _context.GroupDetails.Where(gd => gd.GroupId == id).ToListAsync();
             _context.GroupDetails.RemoveRange(groupMembers);
@@ -137,6 +174,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             _context.Groups.Remove(getGroup);
             await _context.SaveChangesAsync();
+
+            if (oldLeaderId.HasValue)
+            {
+                await RemoveLeaderRoleIfNeededAsync(
+                    oldLeaderId.Value);
+            }
             return new OperationalResult { Success = true, Message = $"{getGroup.GroupName} deleted" };
         }
 
@@ -270,6 +313,18 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<OperationalResult> ArchiveGroupAsync(int? id)
         {
             var group = await _context.Groups.FindAsync(id);
+
+            if (group == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Group does not exist"
+                };
+            }
+            int? oldLeaderId = group.LeaderId;
+
+
             if (group == null) return new OperationalResult { Success = false, Message = "Group not existed" };
             group.Status = "Inactive";
             group.IsArchived = true;
@@ -277,6 +332,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             group.Leader = null;
             group.LeaderId = null;
             await _context.SaveChangesAsync();
+
+            if (oldLeaderId.HasValue)
+            {
+                await RemoveLeaderRoleIfNeededAsync(
+                    oldLeaderId.Value);
+            }
             return new OperationalResult { Success = true, Message = "Group saved to archived" };
         }
 
@@ -348,5 +409,74 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.Groups.Where(g => g.IsArchived == false).CountAsync();
         }
+
+
+
+        private async Task AddLeaderRoleAsync(int memberId)
+        {
+            var member = await _context.Members
+                .Include(m => m.User)
+                .FirstOrDefaultAsync(m =>
+                    m.MemberId == memberId);
+
+            if (member == null || member.User == null)
+            {
+                return;
+            }
+
+            bool alreadyHasRole =
+                await _userManager.IsInRoleAsync(
+                    member.User,
+                    "Leader");
+
+            if (!alreadyHasRole)
+            {
+                await _userManager.AddToRoleAsync(
+                    member.User,
+                    "Leader");
+            }
+        }
+
+        private async Task RemoveLeaderRoleIfNeededAsync(int memberId)
+        {
+            // Check if this person still leads another active group
+            bool stillLeader =
+                await _context.Groups
+                    .AnyAsync(g =>
+                        g.LeaderId == memberId &&
+                        !g.IsArchived);
+
+            // Still leading another group?
+            // Keep the Leader role.
+            if (stillLeader)
+            {
+                return;
+            }
+
+            var member = await _context.Members
+                .Include(m => m.User)
+                .FirstOrDefaultAsync(m =>
+                    m.MemberId == memberId);
+
+            if (member == null || member.User == null)
+            {
+                return;
+            }
+
+            bool hasLeaderRole =
+                await _userManager.IsInRoleAsync(
+                    member.User,
+                    "Leader");
+
+            if (hasLeaderRole)
+            {
+                await _userManager.RemoveFromRoleAsync(
+                    member.User,
+                    "Leader");
+            }
+        }
+
+
+
     }
 }

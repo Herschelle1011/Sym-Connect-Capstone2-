@@ -9,7 +9,7 @@ using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 {
     [Area("Leader")]
-    [Authorize]
+    [Authorize(Roles = "Leader")]
     public class EvaluationsController : Controller
     {
         private readonly IEvaluationService _evaluationService;
@@ -28,7 +28,40 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         //GET
         public async Task<IActionResult> Index()
         {
+         
             var user = await _userManager.GetUserAsync(User);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+
+            bool isLeader =
+         await _groupService.IsMemberALeaderAsync(
+           user.MemberId.Value
+       );
+
+            if (!isLeader)
+            {
+                return Forbid();
+            }
+
+
+
+            Console.WriteLine("==============================");
+            Console.WriteLine($"USERNAME: {user.UserName}");
+            Console.WriteLine($"MEMBER ID: {user.MemberId}");
+            Console.WriteLine($"ROLES: {string.Join(", ", roles)}");
+            Console.WriteLine("==============================");
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+          
+
+            Console.WriteLine($"IS LEADER: {isLeader}");
+
+  
 
             if (user == null)
             {
@@ -37,16 +70,6 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
 
             if (user.MemberId == null)
-            {
-                return Forbid();
-            }
-
-            bool isLeader =
-         await _groupService.IsMemberALeaderAsync(
-           user.MemberId.Value
-       );
-
-            if (!isLeader)
             {
                 return Forbid();
             }

@@ -38,6 +38,7 @@
     <div class="form-group">
         <label asp-for="ExpirationOption">Expiration</label>
         <select asp-for="ExpirationOption" class="form-control" id="expirationOptionSelect">
+            <option value="@ExpirationOption.NoExpiration">No Expiration</option>
             <option value="@ExpirationOption.OneDay">One Day</option>
             <option value="@ExpirationOption.TwoDays">Two Days</option>
             <option value="@ExpirationOption.ThreeDays">Three Days</option>
