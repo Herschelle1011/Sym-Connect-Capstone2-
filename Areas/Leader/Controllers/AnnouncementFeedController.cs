@@ -149,8 +149,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         }
 
 
-        [HttpGet]
-        public async Task<IActionResult> GetArchive(int announcementId)
+        public async Task<IActionResult> GetArchive(int? announcementId)
         {
 
             var leaderGroup = await GetCurrentLeaderGroupAsync();
@@ -158,8 +157,9 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
+            if (announcementId == null) return NotFound();
 
-            var vm = await _announcementService.GetArchivePreviewAsync(announcementId);
+            var vm = await _announcementService.GetArchivePreviewAsync(announcementId.Value);
             if (vm == null) return NotFound();
 
             return PartialView("_ArchiveAnnouncementModal", vm);

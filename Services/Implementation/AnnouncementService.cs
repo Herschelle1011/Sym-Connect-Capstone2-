@@ -50,7 +50,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     PublishOption = a.PublishOption,
 
                     IsPinned = a.IsPinned,
-                    CreatedByPhotoUrl = a.User != null ? a.User.ProfilePictureUrl : "",
+                    CreatedByPhotoUrl = a.User != null ? a.User.ProfilePictureUrl : "~/images/default-png",
 
                     CreatedBy = a.User != null && a.User.DisplayName != null
                         ? a.User.DisplayName

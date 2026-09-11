@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
@@ -202,7 +203,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<List<MemberListViewModel>> GetAvailableLeadersAsync(string? search = null, int? currentGroupId = null ,int? excludeId = null)
         {
             var members = _context.Members.AsNoTracking()
-                .Where(m => m.Status == "Active");
+                .Where(m => m.ApplicationStatus == MembershipApplicationStatus.Approved && m.Status == "Active");
 
             var alreadyLeadingIds = await _context.Groups
                 .Where(g => !g.IsArchived && (currentGroupId == null || g.GroupId != currentGroupId))

@@ -101,18 +101,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="appModal" tabindex="-1" aria-labelledby="appModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title" id="appModalLabel">New Announcement</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="appModalBody"></div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -206,13 +194,13 @@
             });
 
 
-                    document.getElementById("announcementTableBody").addEventListener("click", async function (e) {
+            document.getElementById("announcementListBody").addEventListener("click", async function(e) {
             const archiveBtn = e.target.closest(".btnArchiveAnnouncement");
             if (!archiveBtn) return;
 
             const id = archiveBtn.dataset.id;
 
-            const response = await fetch(`/Leader/AnnouncementFeedController/GetArchive?announcementId=${id}`);
+                const response = await fetch(`/Leader/AnnouncementFeed/GetArchive?announcementId=${id}`);
             if (!response.ok) {
                 showAlertDialog("Unable to load this announcement.", "error", "Failed");
                 return;

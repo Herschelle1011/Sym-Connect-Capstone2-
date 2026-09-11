@@ -18,7 +18,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
             Task RestoreAsync(int id);
         Task<AnnouncementViewModel?> GetEditForm(int announcementId);
 
-        Task<List<VisibleAnnouncementViewModel>> GetPinnedAnnouncementsAsync(bool isLeader, int? groupId);
+        Task<List<VisibleAnnouncementViewModel?>> GetPinnedAnnouncementsAsync(bool isLeader, int? groupId);
         Task<List<ListAnnouncementViewModel>> GetAnnouncementsForLeaderAsync(int groupId);
 
         Task<List<VisibleAnnouncementViewModel>> GetVisibleAnnouncementsAsync(int memberId, bool isLeader, int? group);

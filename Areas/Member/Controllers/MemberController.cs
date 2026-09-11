@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
-using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.ViewModels.Announcement;
-using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Dashboard;
+using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models.AnnouncementModels;
+using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Announcement;
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
     [Area("Member")]
@@ -29,11 +30,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
             var (groupId, isLeader) = await _memberService.GetAnnouncementContextAsync(memberId.Value);
 
-            var model = new DashboardViewModel
+            var model = new DashboardViewModel();
+            if (groupId.HasValue) 
             {
-                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(isLeader, groupId.Value)
-            };
-
+                model.PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(isLeader, groupId.Value);
+            }
+         
             return View(model);
         }
         public async Task<IActionResult> Dashboard()
@@ -43,11 +45,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
                 return RedirectToAction("Login", "Account", new { area = "Identity" });
 
             var (groupId, isLeader) = await _memberService.GetAnnouncementContextAsync(memberId.Value);
+            var model = new DashboardViewModel();
 
-            var model = new DashboardViewModel
+            if (groupId.HasValue)
             {
-                PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(isLeader, groupId.Value)
-            };
+                model.PinnedAnnouncement = await _announcementService.GetPinnedAnnouncementsAsync(isLeader, groupId.Value);
+            }
 
             return View(model);
         }
