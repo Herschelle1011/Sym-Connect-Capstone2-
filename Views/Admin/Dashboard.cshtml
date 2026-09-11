@@ -4,6 +4,366 @@
     Layout = "_AdminLayout";
 }
 
+<style>
+    .dashboard-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+        .stat-icon.blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .stat-icon.pink {
+            background: #fce7f3;
+            color: #db2777;
+        }
+
+        .stat-icon.green {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .stat-icon.orange {
+            background: #ffedd5;
+            color: #ea580c;
+        }
+
+    .stat-number {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.2;
+        color: #0f172a;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #64748b;
+        margin: 0;
+    }
+
+    .card-icon-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .card-icon-badge {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+    }
+
+        .card-icon-badge.blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .view-all-link {
+        font-size: 12.5px;
+        color: #2563eb;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .view-all-link:hover {
+            text-decoration: underline;
+        }
+
+    .status-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .status-approved {
+        background: #dcfce7;
+        color: #15803d;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #997404;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .pending-approvals-card {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .pending-approvals-header {
+        background: linear-gradient(180deg, #fee2e2 0%, #fef2f2 100%);
+        padding: 18px 20px 14px;
+        position: relative;
+    }
+
+    .pending-total-badge {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        background: #dc2626;
+        color: #fff;
+        border-radius: 999px;
+        min-width: 26px;
+        height: 22px;
+        padding: 0 8px;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pending-approvals-badge-wrap {
+        display: none; /* badge is positioned absolutely inside the header instead */
+    }
+
+    .pending-approval-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f1f5f9;
+        text-decoration: none;
+        color: inherit;
+        transition: background .15s ease;
+    }
+
+        .pending-approval-row:last-child {
+            border-bottom: none;
+        }
+
+        .pending-approval-row:hover {
+            background: #f8fafc;
+        }
+
+    .pending-count-chip {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        background: #fee2e2;
+        color: #dc2626;
+        font-weight: 700;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .pending-icon-chip {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .pending-item-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .pending-item-desc {
+        font-size: 12px;
+        color: #94a3b8;
+    }
+
+    .pending-item-time {
+        font-size: 12px;
+        color: #94a3b8;
+        white-space: nowrap;
+    }
+
+    .pending-item-chevron {
+        color: #cbd5e1;
+        font-size: 14px;
+    }
+
+    /* Upcoming Events */
+    .event-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .event-row:last-child {
+            border-bottom: none;
+        }
+
+    .event-date-badge {
+        width: 46px;
+        text-align: center;
+        background: #eff6ff;
+        border-radius: 8px;
+        padding: 6px 4px;
+        flex-shrink: 0;
+    }
+
+        .event-date-badge .day {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2563eb;
+            line-height: 1.1;
+        }
+
+        .event-date-badge .month {
+            font-size: 10px;
+            font-weight: 600;
+            color: #2563eb;
+            text-transform: uppercase;
+        }
+
+    /* Recent Registrations */
+    .registration-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+        .registration-row:last-child {
+            border-bottom: none;
+        }
+
+    .registration-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .registration-avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .chart-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .period-select-btn {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 12.5px;
+        color: #475569;
+    }
+
+    .donut-chart-wrapper {
+        position: relative;
+        width: 160px;
+        height: 160px;
+        flex-shrink: 0;
+    }
+
+    .donut-center-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .donut-center-number {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .donut-center-caption {
+        font-size: 11px;
+        color: #94a3b8;
+    }
+
+    .chart-legend-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        font-size: 13px;
+        padding: 6px 0;
+        min-width: 180px;
+    }
+
+    .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+    }
+
+    .bar-chart-wrapper {
+        height: 260px;
+    }
+</style>
+
 <h2>Good afternoon, <span class="text-primary">@Model.AdminName</span>!</h2>
 <p class="text-muted">@Model.Today.ToString("dddd, MMMM d")</p>
 
@@ -32,106 +392,153 @@
             <div class="stat-icon green"><i class="bi bi-calendar-event"></i></div>
             <div>
                 <p class="stat-number">@Model.UpcomingActivitiesCount</p>
-                <p class="stat-label">Upcoming Activities</p>
+                <p class="stat-label">Upcoming Events</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="dashboard-card stat-card">
-            <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
-            <div>
-                <p class="stat-number">@Model.PendingApprovalsCount</p>
-                <p class="stat-label">Pending Approvals</p>
+        <a asp-controller="Events" asp-action="ViewEventsRequests" class="text-decoration-none text-dark">
+            <div class="dashboard-card stat-card">
+                <div class="stat-icon orange"><i class="bi bi-hourglass-split"></i></div>
+                <div>
+                    <p class="stat-number">@Model.PendingApprovalsCount</p>
+                    <p class="stat-label">Pending Approvals</p>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 </div>
 
-<!-- ═══════════════ TWO-COLUMN CONTENT ═══════════════ -->
+<!-- ═══════════════ TWO-COLUMN CONTENT: Weekly chart + Pending Approvals ═══════════════ -->
 <div class="row g-3">
 
-    <!-- Left column -->
     <div class="col-lg-7">
-
-        <div class="dashboard-card mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="card-icon-title">
-                    <span class="card-icon-badge blue"><i class="bi bi-calendar-check"></i></span>
-                    <div>
-                        <h5 class="section-title mb-0">Recent Event Requests</h5>
-                        <small class="text-muted">Latest event submissions</small>
-                    </div>
+        <div class="dashboard-card">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <h5 class="section-title mb-0">Weekly Activity Overview</h5>
+                    <small class="text-muted">Key activities and participation for the past 4 weeks</small>
                 </div>
-                <a asp-controller="Events" asp-action="ViewEventsRequests" class="view-all-link">View All</a>
             </div>
-
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Event Title</th>
-                        <th>Group</th>
-                        <th>Submitted By</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var evt in Model.RecentEventRequests)
-                    {
-                        <tr>
-                            <td>@evt.EventTitle</td>
-                            <td>@string.Join(", ", evt.GroupNames)</td>
-                            <td>@evt.SubmittedByName</td>
-                            <td>@evt.DateCreated.ToString("MMM d, yyyy")</td>
-                            <td>
-                                <span class="status-badge status-@evt.ApprovalStatus.ToString().ToLower()">
-                                    @evt.ApprovalStatus
-                                </span>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+            <div class="bar-chart-wrapper mt-3">
+                <canvas id="weeklyChart"></canvas>
+            </div>
         </div>
-
     </div>
 
-    <!-- Right column -->
     <div class="col-lg-5">
-
-        <div class="dashboard-card mb-3">
-            <h5>Upcoming Events</h5>
-            @foreach (var evt in Model.UpcomingEvents)
-            {
-                <div class="event-row">
-                    <div class="event-date-badge">
-                        <div class="day">@evt.Day</div>
-                        <div class="month">@evt.Month</div>
-                    </div>
+        <div class="dashboard-card pending-approvals-card h-100">
+            <div class="pending-approvals-header">
+                <div class="d-flex justify-content-between align-items-start">
                     <div>
-                        <div class="fw-semibold">@evt.Title</div>
-                        <small class="text-muted">@evt.Time &middot; @evt.Location</small>
+                        <h5 class="mb-1 fw-bold">Pending Approvals</h5>
+                        <small class="text-muted">Items that require your review and action</small>
                     </div>
                 </div>
-            }
-        </div>
+            </div>
 
-        <div class="dashboard-card">
-            <h5>Pending Actions</h5>
-            @foreach (var action in Model.PendingActions)
+            <div class="pending-approvals-badge-wrap">
+                <span class="pending-total-badge">@Model.PendingApprovalsCount</span>
+            </div>
+
+            @if (!Model.PendingApprovals.Any(p => p.Count > 0))
             {
-                <div class="pending-row">
-                    <span><span class="pending-dot"></span>@action.Label</span>
-                    <strong>@action.Count</strong>
-                </div>
+                <p class="text-muted small px-3 py-4 mb-0">Nothing needs your attention right now.</p>
+            }
+            else
+            {
+                @foreach (var item in Model.PendingApprovals.Where(p => p.Count > 0))
+                {
+                    <a href="@item.Url" class="pending-approval-row">
+                        <div class="pending-count-chip">@item.Count</div>
+                        <div class="pending-icon-chip">
+                            <i class="bi @item.IconClass"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="pending-item-title">@item.Label</div>
+                            <div class="pending-item-desc">@item.Description</div>
+                        </div>
+                        <div class="pending-item-time">
+                            @(item.LatestDate.HasValue ? item.LatestDate.Value.ToTimeAgo() : "")
+                        </div>
+                        <i class="bi bi-chevron-right pending-item-chevron"></i>
+                    </a>
+                }
             }
         </div>
-
     </div>
 
 </div>
 
-<!-- ═══════════════ EVENT STATUS (not part of the reference layout — kept as its own section) ═══════════════ -->
+<!-- ═══════════════ UPCOMING EVENTS + RECENT REGISTRATIONS ═══════════════ -->
+<div class="row g-3 mt-1">
+
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="section-title mb-0">Upcoming Events</h5>
+                <a asp-controller="Events" asp-action="Index" class="view-all-link">View All</a>
+            </div>
+
+            @if (!Model.UpcomingEvents.Any())
+            {
+                <p class="text-muted small mt-3 mb-0">No upcoming events.</p>
+            }
+            else
+            {
+                @foreach (var evt in Model.UpcomingEvents)
+                {
+                    <div class="event-row">
+                        <div class="event-date-badge">
+                            <div class="day">@evt.Day</div>
+                            <div class="month">@evt.Month</div>
+                        </div>
+                        <div>
+                            <div class="fw-semibold" style="font-size:13.5px;">@evt.Title</div>
+                            <small class="text-muted">@evt.Time &middot; @evt.Location</small>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h5 class="section-title mb-2">Recent Registrations</h5>
+
+            @if (!Model.RecentRegistrations.Any())
+            {
+                <p class="text-muted small mt-3 mb-0">No recent approvals.</p>
+            }
+            else
+            {
+                @foreach (var reg in Model.RecentRegistrations)
+                {
+                    var initials = string.Concat(reg.FullName.Split(' ').Where(s => s.Length > 0).Select(s => s[0])).ToUpper();
+
+                    <div class="registration-row">
+                        @if (!string.IsNullOrEmpty(reg.PhotoUrl))
+                        {
+                            <img src="@reg.PhotoUrl" class="registration-avatar" alt="@reg.FullName" />
+                        }
+                        else
+                        {
+                            <div class="registration-avatar-placeholder">@initials</div>
+                        }
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold" style="font-size:13px;">@reg.FullName</div>
+                        </div>
+                        <small class="text-muted">@reg.ApprovedDate.ToString("MMM d, yyyy")</small>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══════════════ EVENT STATUS ═══════════════ -->
 <div class="dashboard-card mt-3">
     <div class="chart-card-header">
         <div class="card-icon-title">
@@ -141,7 +548,6 @@
                 <small class="text-muted">Overview of event requests and approvals</small>
             </div>
         </div>
-        @* No backing controller action for period filtering exists yet, so this is display-only. *@
         <button type="button" class="period-select-btn" disabled>
             This Month <i class="bi bi-chevron-down"></i>
         </button>
@@ -173,11 +579,55 @@
     </div>
 </div>
 
+<!-- ═══════════════ RECENT EVENT REQUESTS TABLE ═══════════════ -->
 <div class="dashboard-card mt-3">
-    <h5 class="section-title mb-3">Weekly Summary</h5>
-    <div class="bar-chart-wrapper">
-        <canvas id="weeklyChart"></canvas>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="card-icon-title">
+            <span class="card-icon-badge blue"><i class="bi bi-calendar-check"></i></span>
+            <div>
+                <h5 class="section-title mb-0">Recent Event Requests</h5>
+                <small class="text-muted">Latest event submissions</small>
+            </div>
+        </div>
+        <a asp-controller="Events" asp-action="ViewEventsRequests" class="view-all-link">View All</a>
     </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Event Title</th>
+                <th>Group</th>
+                <th>Submitted By</th>
+                <th>Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.RecentEventRequests.Any())
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No recent event requests.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var evt in Model.RecentEventRequests)
+                {
+                    <tr>
+                        <td>@evt.EventTitle</td>
+                        <td>@string.Join(", ", evt.GroupNames)</td>
+                        <td>@evt.SubmittedByName</td>
+                        <td>@evt.DateCreated.ToString("MMM d, yyyy")</td>
+                        <td>
+                            <span class="status-badge status-@evt.ApprovalStatus.ToString().ToLower()">
+                                @evt.ApprovalStatus
+                            </span>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
 </div>
 
 @section Scripts {
@@ -187,30 +637,33 @@
         const values = @Html.Raw(Json.Serialize(Model.WeeklySummary.Select(w => w.Value)));
 
         new Chart(document.getElementById('weeklyChart'), {
-        type: 'bar',
-        data: {
-        labels: labels,
-        datasets: [{ data: values, backgroundColor: '#0d6efd' }]
-        },
-        options: {
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } }
-        }
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{ data: values, backgroundColor: '#2563eb', borderRadius: 4 }]
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
         });
 
         new Chart(document.getElementById('eventStatusChart'), {
-        type: 'doughnut',
-        data: {
-        labels: ['Approved', 'Pending', 'Rejected'],
-        datasets: [{
-        data: [@Model.EventsApprovedCount, @Model.EventsPendingCount, @Model.EventsRejectedCount],
-        backgroundColor: ['#16a34a', '#ea580c', '#dc2626']
-        }]
-        },
-        options: {
-        cutout: '72%',
-        plugins: { legend: { display: false } }
-        }
+            type: 'doughnut',
+            data: {
+                labels: ['Approved', 'Pending', 'Rejected'],
+                datasets: [{
+                    data: [@Model.EventsApprovedCount, @Model.EventsPendingCount, @Model.EventsRejectedCount],
+                    backgroundColor: ['#16a34a', '#ea580c', '#dc2626']
+                }]
+            },
+            options: {
+                cutout: '72%',
+                plugins: { legend: { display: false } }
+            }
         });
+
+      
     </script>
 }

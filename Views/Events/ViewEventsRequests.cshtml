@@ -174,6 +174,12 @@
         <script>
             document.addEventListener("DOMContentLoaded", function () {
 
+                @* //not working now *@
+                const params = new URLSearchParams(window.location.search);
+                const filterParam = params.get('filter');
+
+         
+            
                 const eventId = "@ViewBag.OpenEventId";
 
                 const eventRow = document.querySelector(
@@ -190,7 +196,18 @@
                         eventId
                     );
                 }
+
+                if (filterParam) {
+                    const targetTab = document.querySelector(`.filter-tabs [data-filter="${filterParam}"]`);
+                    if (targetTab) {
+                        targetTab.click(); // reuses your existing click handler — same as clicking it manually
+                    }
+                }
             });
+
+            
+        
+            
         </script>
     }
 }

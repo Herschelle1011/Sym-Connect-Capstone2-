@@ -102,7 +102,62 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
+        public async Task<(int Count, DateTime? LatestDate)> GetPendingMembershipApplicationsAsync()
+        {
+            var query = _context.Members
+                .Where(a => a.ApplicationStatus == MembershipApplicationStatus.Pending);
 
-       
+            var count = await query.CountAsync();
+            var latest = await query.OrderByDescending(a => a.DateApplied)
+                .Select(a => (DateTime?)a.DateRegistered)
+                .FirstOrDefaultAsync();
+
+            return (count, latest);
+        }
+
+        public async Task<(int Count, DateTime? LatestDate)> GetPendingEventRequestsAsync()
+        {
+            var query = _context.Events.Where(e => e.ApprovalStatus == ApprovalStatus.Pending && !e.IsArchived);
+
+            var count = await query.CountAsync();
+            var latest = await query.OrderByDescending(e => e.DateCreated)
+                .Select(e => (DateTime?)e.DateCreated)
+                .FirstOrDefaultAsync();
+
+            return (count, latest);
+        }
+
+        // TODO: Media/Documents module isn't built yet — placeholder returning 0
+        // until that feature exists. Wire this up to the real entity once it's ready.
+        public async Task<(int Count, DateTime? LatestDate)> GetPendingMediaFilesAsync()
+        {
+            var query = _context.MediaFiles.Where(m => m.MediaFileStatus == MediaFileStatus.Pending);
+
+            var count = await query.CountAsync();
+            var latest = await query.OrderByDescending(m => m.UploadDate)
+                .Select(m => (DateTime?)m.UploadDate)
+                .FirstOrDefaultAsync();
+
+            return (count, latest);
+        }
+
+        public async Task<List<RecentRegistrationViewModel>> GetRecentApprovedMembersAsync(int take = 5)
+        {
+            return await _context.Members
+                .Where(a => a.ApplicationStatus == MembershipApplicationStatus.Approved)
+                .OrderByDescending(a => a.DateApplied)
+                .Take(take)
+                .Select(a => new RecentRegistrationViewModel
+                {
+                    MemberId = a.MemberId,
+                    FullName = a.FirstName + " " + a.LastName,
+                    PhotoUrl = a.User.ProfilePictureUrl,
+                    ApprovedDate = a.DateApplied ?? a.DateRegistered
+                })
+                .ToListAsync();
+        }
+
+
+
     }
 }

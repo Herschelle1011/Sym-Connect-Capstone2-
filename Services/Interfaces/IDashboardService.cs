@@ -11,5 +11,11 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<int> GetActivitiesCountThisWeekAsync(DateTime start, DateTime end);
         Task<int> GetAttendanceCountThisWeekAsync(DateTime start, DateTime end);
 
+        // NEW
+        Task<(int Count, DateTime? LatestDate)> GetPendingMembershipApplicationsAsync();
+        Task<(int Count, DateTime? LatestDate)> GetPendingEventRequestsAsync();
+        Task<(int Count, DateTime? LatestDate)> GetPendingMediaFilesAsync();
+        Task<List<RecentRegistrationViewModel>> GetRecentApprovedMembersAsync(int take = 5);
+
     }
 }

@@ -40,6 +40,20 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             var pendingCount = await _context.Events
                 .CountAsync(e => e.ApprovalStatus == ApprovalStatus.Pending);
+            return pendingCount;
+        }
+        public async Task<int> GetApprovedCountAsync()
+        {
+            var pendingCount = await _context.Events
+                .CountAsync(e => e.ApprovalStatus == ApprovalStatus.Approved);
+
+            return pendingCount;
+        }
+
+        public async Task<int> GetRejectedCountAsync()
+        {
+            var pendingCount = await _context.Events
+                .CountAsync(e => e.ApprovalStatus == ApprovalStatus.Rejected);
 
             return pendingCount;
         }

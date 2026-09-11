@@ -66,6 +66,10 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<bool> LeaderOwnsEventsAsync(int eventId, int LeaderMemberId);
 
         Task<int> GetUpcomingCountAsync();
+        Task<int> GetApprovedCountAsync();
+
+        Task<int> GetRejectedCountAsync();
+
 
         Task<List<EventListItemViewModel>> GetAllEventForEvaluationAsync(int currentUserId, bool IsAdmin);
 

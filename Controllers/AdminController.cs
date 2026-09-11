@@ -85,85 +85,61 @@ namespace Sym_Connect__Capstone2_.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            var today = DateTime.Now;
+            var startOfWeek = today.Date.AddDays(-(int)today.DayOfWeek);
+            var endOfWeek = startOfWeek.AddDays(7);
+            int count = await _eventService.GetPendingRequestCountAsync();
 
             var vm = new AdminDashboardViewModel
             {
-                AdminName = currentUser?.Member?.FirstName ?? "Admin",
-                Today = DateTime.Today,
+                AdminName = User.Identity?.Name ?? "Admin",
+                Today = today,
 
-                TotalMembers = await _memberService.GetTotalCountAsync(),
-                TotalGroups = await _groupService.GetTotalCountAsync(),
-                UpcomingActivitiesCount = await _eventService.GetUpcomingCountAsync(),
-            };
-            var eventSummary = await _eventService.GetEventsSummaryForAdminAsync();
-            vm.TotalEventsThisPeriod = eventSummary.TotalRequests;
+                TotalMembers = await _memberService.GetTotalCountAsync(), // adjust to your real method name
+                TotalGroups = await _groupService.GetTotalCountAsync(),   // adjust to your real method name
 
-            vm.EventsApprovedCount = eventSummary.ApprovedCount;
+                UpcomingEvents = await _dashboardService.GetUpcomingEventsAsync(),
+                UpcomingActivitiesCount = await _dashboardService.GetActivitiesCountThisWeekAsync(startOfWeek, endOfWeek),
 
-            vm.EventsPendingCount = eventSummary.PendingCount;
-
-            vm.EventsRejectedCount = eventSummary.RejectedCount;
-
-            vm.RecentEventRequests = eventSummary.Events
-            .OrderByDescending(e => e.DateCreated)
-            .Take(5)
-            .ToList();
-
-
-            vm.PendingActions = new List<PendingActionViewModel>
-            {
-                new PendingActionViewModel
-                {
-                    Label = "Event Requests",
-                    Count = await _eventService.GetPendingRequestCountAsync()
-                },
-                new PendingActionViewModel
-                {
-                    Label = "Documents & Media",
-                    Count = await _mediaService.GetPendingFilesCountAsync()
-                }
+                EventsApprovedCount = await _eventService.GetApprovedCountAsync(),  // TODO: wire to real count
+                EventsPendingCount = await _eventService.GetPendingRequestCountAsync(),  // TODO: wire to real count
+                EventsRejectedCount = await _eventService.GetRejectedCountAsync(),  // TODO: wire to real count
             };
 
+            var (membershipCount, membershipLatest) = await _dashboardService.GetPendingMembershipApplicationsAsync();
+            var (eventCount, eventLatest) = await _dashboardService.GetPendingEventRequestsAsync();
+            var (mediaCount, mediaLatest) = await _dashboardService.GetPendingMediaFilesAsync();
 
-            vm.PendingApprovalsCount = vm.PendingActions.Sum(p => p.Count);
-            vm.UpcomingEvents = await _dashboardService.GetUpcomingEventsAsync();
+            vm.PendingApprovals = new List<PendingApprovalItemViewModel>
+                {
+                    new() {
+                        Type = "Membership", Label = "Membership Applications",
+                        Description = "New member registrations",
+                        Count = membershipCount, LatestDate = membershipLatest,
+                        IconClass = "bi-person",
+                        Url = Url.Action("Index", "Members")
+                    },
+                    new() {
+                        Type = "EventRequest", Label = "Event Requests",
+                        Description = "Pending event approvals",
+                        Count = eventCount, LatestDate = eventLatest,
+                        IconClass = "bi-calendar-event",
+                        Url = Url.Action("ViewEventsRequests", "Events")
+                    },
+                    new() {
+                        Type = "Media", Label = "Media Files",
+                        Description = "Files waiting for approval",
+                        Count = mediaCount, LatestDate = mediaLatest,
+                        IconClass = "bi-file-earmark",
+                        Url = Url.Action("PendingFiles", "MediaAndDocuments")
+                    }
+                };
 
-            var today = DateTime.Today;
-            var startOfWeek = today.AddDays(-(int)today.DayOfWeek);
-            var endOfWeek = startOfWeek.AddDays(7);
+            vm.PendingApprovalsCount = membershipCount + eventCount + mediaCount;
+            vm.RecentRegistrations = await _dashboardService.GetRecentApprovedMembersAsync();
 
-            vm.WeeklySummary = new List<ChartPointViewModel>
-            {
-                new ChartPointViewModel
-                {
-                    Label = "Activities",
-                    Value = await _dashboardService.GetActivitiesCountThisWeekAsync(startOfWeek, endOfWeek)
-                },
-                new ChartPointViewModel
-                {
-                    Label = "Attendance",
-                    Value = await _dashboardService.GetAttendanceCountThisWeekAsync(startOfWeek, endOfWeek)
-                },
-                new ChartPointViewModel
-                {
-                    Label = "Participation",
-                    Value = await _dashboardService.GetParticipationPointsThisWeekAsync(startOfWeek, endOfWeek)
-                },
-                new ChartPointViewModel
-                {
-                    Label = "Evaluation",
-                    Value = await _dashboardService.GetEvaluationCountThisWeekAsync(startOfWeek, endOfWeek)
-                },
-                new ChartPointViewModel
-                {
-                    Label = "Announcement",
-                    Value = await _dashboardService.GetAnnouncementCountThisWeekAsync(startOfWeek, endOfWeek)
-                }
-            };
             return View(vm);
         }
-
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
