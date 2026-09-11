@@ -169,7 +169,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Archive(int id)
+        public async Task<IActionResult> Archive(int AnnouncementId)
         {
             var leaderGroup = await GetCurrentLeaderGroupAsync();
             if (leaderGroup == null) return Forbid();
@@ -177,7 +177,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Unauthorized();
 
-            var result = await _announcementService.ArchiveLeaderAnnouncementAsync(id, user.Id, leaderGroup.GroupId);
+            var result = await _announcementService.ArchiveLeaderAnnouncementAsync(AnnouncementId, user.Id, leaderGroup.GroupId);
             return Json(new { success = result.Success, message = result.Message });
         }
 
