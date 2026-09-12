@@ -1,0 +1,351 @@
+﻿@using Sym_Connect__Capstone2_.Helpers
+@model List<Sym_Connect__Capstone2_.ViewModels.Event.EventListItemViewModel>
+@{
+    ViewData["Title"] = "Assigned Events";
+
+    string FormatTime(TimeSpan? t) => t.HasValue ? DateTime.Today.Add(t.Value).ToString("h:mm tt") : "";
+
+    (string Text, string BadgeClass) GetStatus(DateTime startDate, TimeSpan? startTime, DateTime? endDate, TimeSpan? endTime)
+    {
+        var start = startDate.Date + (startTime ?? TimeSpan.Zero);
+        var end = (endDate ?? startDate).Date + (endTime ?? TimeSpan.Zero);
+        var now = DateTime.Now;
+
+        if (now < start) return ("Upcoming", "bg-success-subtle text-success");
+        if (now <= end) return ("Ongoing", "bg-warning-subtle text-warning");
+        return ("Completed", "bg-secondary-subtle text-secondary");
+    }
+
+    // Distinct facility list for the Facility filter dropdown
+    var allFacilities = Model
+        .SelectMany(e => e.FacilityNames)
+        .Distinct()
+        .OrderBy(f => f)
+        .ToList();
+}
+
+<style>
+    .assigned-events-card {
+        border: 1px solid #eef1f5;
+        border-radius: 14px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        overflow: hidden;
+    }
+
+    .assigned-event-row {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background-color 0.15s ease;
+    }
+
+        .assigned-event-row:last-child {
+            border-bottom: none;
+        }
+
+        .assigned-event-row:hover {
+            background-color: #fafbfc;
+        }
+
+    .assigned-event-date-badge {
+        background-color: #eef2ff;
+        border-radius: 10px;
+        padding: 0.5rem 0.8rem;
+        min-width: 60px;
+    }
+
+    .assigned-event-month {
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: #4a6cf7;
+    }
+
+    .assigned-event-day {
+        font-size: 1.4rem;
+        font-weight: 700;
+        line-height: 1.15;
+        color: #1e293b;
+    }
+
+    .assigned-event-weekday {
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: #94a3b8;
+    }
+
+    .assigned-event-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .assigned-event-meta {
+        font-size: 0.82rem;
+        color: #94a3b8;
+    }
+
+        .assigned-event-meta i {
+            color: #b0b8c4;
+        }
+
+    .assigned-event-column-label {
+        font-size: 0.72rem;
+        color: #94a3b8;
+        margin-bottom: 0.35rem;
+    }
+
+    .assigned-event-group-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 0.32rem 0.7rem;
+    }
+
+    .assigned-event-status-badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.4rem 0.85rem;
+    }
+
+    .assigned-event-details-btn {
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 0.4rem 0.9rem;
+    }
+
+    .assigned-event-created-by {
+        font-size: 0.85rem;
+        color: #475569;
+    }
+
+    /* ============================
+           FILTER TOOLBAR
+           ============================ */
+
+    .assigned-events-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .assigned-search-box {
+        flex: 1;
+        min-width: 220px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: #9ca3af;
+    }
+
+        .assigned-search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #111827;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+    .assigned-filter-select {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        color: #374151;
+        padding: 8px 12px;
+        min-width: 170px;
+        font-size: 0.88rem;
+    }
+
+    .assigned-event-row.d-none {
+        display: none !important;
+    }
+</style>
+
+<div class="mb-3">
+    <h4 class="mb-1"><i class="bi bi-calendar-check me-2"></i>Assigned Events</h4>
+    <p class="text-muted mb-0">Events created by admins and assigned to your group.</p>
+</div>
+
+<div class="assigned-events-toolbar">
+    <div class="assigned-search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" id="assignedEventSearch" placeholder="Search event title or facility..." />
+    </div>
+
+    <select id="assignedDateFilter" class="assigned-filter-select">
+        <option value="all">All Dates</option>
+        <option value="today">Today</option>
+        <option value="week">This Week</option>
+        <option value="month">This Month</option>
+        <option value="upcoming">Upcoming</option>
+        <option value="past">Past</option>
+    </select>
+
+    <select id="assignedFacilityFilter" class="assigned-filter-select">
+        <option value="">All Facilities</option>
+        @foreach (var facility in allFacilities)
+        {
+            <option value="@facility">@facility</option>
+        }
+    </select>
+</div>
+
+<div class="assigned-events-card">
+    <div id="assignedEventsList">
+        @foreach (var ev in Model)
+        {
+            var status = GetStatus(ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime);
+            var facilityText = ev.FacilityNames.Any() ? string.Join(", ", ev.FacilityNames) : "-";
+            var searchBlob = $"{ev.EventTitle} {facilityText}".ToLowerInvariant();
+            var facilityAttr = string.Join("|", ev.FacilityNames);
+
+            <div class="assigned-event-row"
+                 data-search="@searchBlob"
+                 data-date="@ev.StartDate.ToString("yyyy-MM-dd")"
+                 data-facilities="@facilityAttr">
+                <div class="d-flex flex-wrap align-items-center gap-4">
+
+                    <!-- Date badge -->
+                    <div class="assigned-event-date-badge text-center flex-shrink-0">
+                        <div class="assigned-event-month">@ev.StartDate.ToString("MMM").ToUpper()</div>
+                        <div class="assigned-event-day">@ev.StartDate.Day</div>
+                        <div class="assigned-event-weekday">@ev.StartDate.ToString("ddd").ToUpper()</div>
+                    </div>
+
+                    <!-- Title + meta -->
+                    <div class="flex-grow-1" style="min-width:220px;">
+                        <div class="assigned-event-title">@ev.EventTitle</div>
+                        <div class="assigned-event-meta d-flex flex-wrap align-items-center gap-3 mt-1">
+                            <span>
+                                <i class="bi bi-clock me-1"></i>
+                                @(ev.StartTime.HasValue ? $"{FormatTime(ev.StartTime)} - {FormatTime(ev.EndTime)}" : "All Day")
+                            </span>
+                            <span><i class="bi bi-building me-1"></i>@facilityText</span>
+                        </div>
+                    </div>
+
+                    <!-- Groups -->
+                    <div style="min-width:150px;">
+                        <div class="assigned-event-column-label">Groups</div>
+                        <div class="d-flex flex-wrap gap-1">
+                            @foreach (var g in ev.GroupNames)
+                            {
+                                <span class="badge rounded-pill assigned-event-group-badge @UiColorHelper.GetBadgeClass(g)">@g</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Created by -->
+                    <div style="min-width:130px;">
+                        <div class="assigned-event-column-label">Created by</div>
+                        <div class="assigned-event-created-by"><i class="bi bi-person-circle me-1"></i>@ev.SubmittedByName</div>
+                    </div>
+
+                    <!-- Status + action -->
+                    <div class="text-md-end ms-md-auto d-flex flex-column align-items-md-end gap-2">
+                        <span class="badge rounded-pill assigned-event-status-badge @status.BadgeClass">@status.Text</span>
+                        <button type="button"
+                                class="btn btn-outline-primary assigned-event-details-btn view-event-details-btn"
+                                data-event-id="@ev.EventId">
+                            View Details <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="assigned-event-row text-center text-muted py-4">
+                No events have been assigned to your group yet.
+            </div>
+        }
+    </div>
+
+    <div id="assignedEventsNoResults" class="text-center text-muted py-4 d-none">
+        No events match your filters.
+    </div>
+</div>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById('assignedEventSearch');
+        const dateFilter = document.getElementById('assignedDateFilter');
+        const facilityFilter = document.getElementById('assignedFacilityFilter');
+        const rows = Array.from(document.querySelectorAll('#assignedEventsList .assigned-event-row[data-date]'));
+        const noResults = document.getElementById('assignedEventsNoResults');
+
+        function startOfDay(d) {
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        }
+
+        function matchesDateFilter(rowDate, filterValue) {
+            if (filterValue === 'all') return true;
+
+            const today = startOfDay(new Date());
+            const eventDate = startOfDay(rowDate);
+
+            if (filterValue === 'today') {
+                return eventDate.getTime() === today.getTime();
+            }
+
+            if (filterValue === 'week') {
+                const dayOfWeek = today.getDay(); // 0 = Sunday
+                const weekStart = new Date(today);
+                weekStart.setDate(today.getDate() - dayOfWeek);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                return eventDate >= weekStart && eventDate <= weekEnd;
+            }
+
+            if (filterValue === 'month') {
+                return eventDate.getFullYear() === today.getFullYear() &&
+                       eventDate.getMonth() === today.getMonth();
+            }
+
+            if (filterValue === 'upcoming') {
+                return eventDate.getTime() >= today.getTime();
+            }
+
+            if (filterValue === 'past') {
+                return eventDate.getTime() < today.getTime();
+            }
+
+            return true;
+        }
+
+        function applyFilters() {
+            const searchTerm = (searchInput.value || '').toLowerCase().trim();
+            const dateValue = dateFilter.value;
+            const facilityValue = facilityFilter.value;
+
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const searchBlob = row.dataset.search || '';
+                const rowDate = new Date(row.dataset.date + 'T00:00:00');
+                const rowFacilities = (row.dataset.facilities || '').split('|');
+
+                const matchesSearch = !searchTerm || searchBlob.includes(searchTerm);
+                const matchesDate = matchesDateFilter(rowDate, dateValue);
+                const matchesFacility = !facilityValue || rowFacilities.includes(facilityValue);
+
+                const show = matchesSearch && matchesDate && matchesFacility;
+                row.classList.toggle('d-none', !show);
+                if (show) visibleCount++;
+            });
+
+            noResults.classList.toggle('d-none', visibleCount > 0);
+        }
+
+        searchInput?.addEventListener('input', applyFilters);
+        dateFilter?.addEventListener('change', applyFilters);
+        facilityFilter?.addEventListener('change', applyFilters);
+    })();
+</script>

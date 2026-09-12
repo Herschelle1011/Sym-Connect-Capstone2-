@@ -44,7 +44,7 @@
             .Include(u => u.Member)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        var profilePicture = currentUser?.Member?.ProfilePictureUrl;
+        var profilePicture = currentUser?.Member?.User.ProfilePictureUrl;
 
         var userName = currentUser?.Member != null
             ? $"{currentUser.Member.FirstName} {currentUser.Member.LastName}"
@@ -132,12 +132,53 @@
                 <span class="nav-label">Dashboard</span>
             </a>
 
+            <div class="nav-item-group">
+                <a href="#leaderEventsSubmenu"
+                   class="nav-item nav-item-toggle @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")"
+                   data-bs-toggle="collapse"
+                   role="button"
+                   aria-expanded="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "true" : "false")"
+                   aria-controls="leaderEventsSubmenu">
+                    <i class="bi bi-calendar-event"></i>
+                    <span class="nav-label">Events</span>
+                    <i class="bi bi-chevron-down nav-toggle-caret"></i>
+                </a>
+
+                <div class="collapse @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "show" : "")"
+                     id="leaderEventsSubmenu">
+                    <div class="nav-submenu">
+                        <a asp-area="Leader" asp-controller="Events" asp-action="Index"
+                           class="nav-subitem @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <i class="bi bi-person-badge"></i>
+                            <span class="nav-label">My Events</span>
+                        </a>
+
+                        <a asp-area="Leader"
+                           asp-controller="Events"
+                           asp-action="AssignedEvents"
+                           class="nav-subitem @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" &&
+                                                   ViewContext.RouteData.Values["action"]?.ToString() == "AssignedEvents"
+                                                   ? "active" : "")">
+
+                            <i class="bi bi-calendar2-check"></i>
+                            <span class="nav-label">Assigned Events</span>
+                        </a>
+
+                        <a asp-area="Leader" asp-controller="Events" asp-action="AllEvents"
+                           class="nav-subitem @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" && ViewContext.RouteData.Values["action"]?.ToString() == "AllEvents" ? "active" : "")">
+                            <i class="bi bi-globe"></i>
+                            <span class="nav-label">All Events</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <a asp-area="Leader"
-               asp-controller="Events"
+               asp-controller="Group"
                asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "active" : "")">
-                <i class="bi bi-calendar-event"></i>
-                <span class="nav-label">Events</span>
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MyGroups" ? "active" : "")">
+                <i class="bi bi-people-fill"></i>
+                <span class="nav-label">My Groups</span>
             </a>
 
             <a asp-area="Leader"

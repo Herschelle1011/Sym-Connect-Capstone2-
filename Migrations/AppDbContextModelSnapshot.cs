@@ -960,6 +960,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<int>("ApplicationStatus")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("ArchiveDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Barangay")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -995,6 +998,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsArchive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()

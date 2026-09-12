@@ -23,6 +23,11 @@
                     <span class="count">@Model.TotalMembers</span>
                     <span class="label">members</span>
                 </div>
+                <div class="member-count-badge" style="background:#fff7ed; color:#c2410c;">
+                    <i class="ti ti-star"></i>
+                    <span class="count">@Model.TotalPoints</span>
+                    <span class="label">group points</span>
+                </div>
             </div>
         </div>
     </div>
@@ -30,9 +35,11 @@
     @* {{-- Leader Info --}} *@
     <div class="leader-section">
         <div class="leader-avatar">
-            @(Model.LeaderName.Length >= 2
-                        ? Model.LeaderName.Substring(0, 2).ToUpper()
-                        : Model.LeaderName.ToUpper())
+            <img src="@(string.IsNullOrWhiteSpace(Model.PhotoUrl)
+                         ? "/images/default-avatar.png"
+                         : Model.PhotoUrl)"
+                 alt="@Model.LeaderName"
+                 class="leader-profile-image" />
         </div>
 
         <div>
@@ -106,6 +113,7 @@
                     <th>Full Name</th>
                     <th>Email</th>
                     <th>Contact Number</th>
+                    <th class="text-center">Points</th>
                     <th class="text-center">Status</th>
                     <th>Joined Date</th>
                     <th class="text-center">Action</th>
@@ -149,15 +157,25 @@
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="avatar">
-                                        @(member.FullName.Length >= 2
-                                                                        ? member.FullName.Substring(0, 2).ToUpper()
-                                                                        : member.FullName.ToUpper())
+                                        <img src="@(string.IsNullOrWhiteSpace(member.PhotoUrl)
+                                                     ? "/images/default-avatar.png"
+                                                     : member.PhotoUrl)"
+                                             alt="@member.FullName"
+                                             class="member-profile-image" />
                                     </div>
                                     @member.FullName
                                 </div>
                             </td>
                             <td class="text-muted">@member.Email</td>
                             <td class="text-muted">@member.ContactNumber</td>
+                            <td class="text-center">
+                                <span style="font-weight:600;">@member.EarnedPoints</span>
+                                @if (member.IsTopContributor)
+                                {
+                                    <i class="ti ti-trophy" style="color:#d97706; margin-left:4px;" title="Outstanding member"></i>
+                                }
+                            </td>
+
                             <td class="text-center">
                                 @if (member.Status == "Active")
                                 {
@@ -189,6 +207,15 @@
                                        style="color:#dc2626;"
                                        title="Remove from group">
                                         <i class="ti ti-user-minus" style="font-size:16px;"></i>
+                                    </a>
+
+                                    <a href="javascript:void(0)"
+                                       class="open-modal"
+                                       data-url="@Url.Action("GetPromoteLeaderForm", "Groups", new { groupId = Model.GroupId, memberId = member.MemberId })"
+                                       data-title="Make leader"
+                                       style="color:#16a34a;"
+                                       title="Make group leader">
+                                        <i class="ti ti-crown" style="font-size:16px;"></i>
                                     </a>
                                 </div>
                             </td>

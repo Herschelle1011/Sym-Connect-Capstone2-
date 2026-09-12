@@ -142,7 +142,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             var members = await  _context.Members
                 .AsNoTracking()
-                .Where(m => m.ApplicationStatus == MembershipApplicationStatus.Approved)
+                .Where(m => m.ApplicationStatus == MembershipApplicationStatus.Approved && m.IsArchive == false)
                 .Select(m => new MemberListViewModel
             {
                 MemberId = m.MemberId,
@@ -150,9 +150,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 MiddleName = m.MiddleName ?? "",
                 LastName = m.LastName,
                 Email = m.User.Email,
-                    PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
+                    PhotoUrl = string.IsNullOrEmpty(m.User.ProfilePictureUrl)
                       ? "/images/default-avatar.png"
-                      : m.ProfilePictureUrl,
+                      : m.User.ProfilePictureUrl,
                     ContactNumber = m.ContactNumber,
                     Address = m.Address,
                     BirthDate = m.BirthDate,
@@ -189,6 +189,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     MemberId = e.MemberId,
                     FirstName = e.FirstName,
+                    LastName = e.LastName,
                     MiddleName = e.MiddleName,
                     GroupId = e.PreferredGroupId,
                     GroupName = e.PrefferedGroup!= null ? e.PrefferedGroup.GroupName : "",
@@ -270,28 +271,55 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             var applicant = await _context.Members
                 .Include(m => m.User)
-                .Where(e => e.MemberId == id
-                && e.ApplicationStatus == MembershipApplicationStatus.Pending).FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(e =>
+                    e.MemberId == id &&
+                    e.ApplicationStatus == MembershipApplicationStatus.Pending);
 
-            if (applicant == null) return new OperationalResult { Success = false, Message = "Applicant not found" };
+            if (applicant == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Applicant not found."
+                };
+            }
 
             if (applicant.User == null)
-                return new OperationalResult { Success = false, Message = "Applicant account is missing its linked user record. Please contact support." };
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Applicant account is missing its linked user record."
+                };
+            }
 
             applicant.ApplicationStatus = MembershipApplicationStatus.Approved;
 
+            // Approved members should start as not archived
+            applicant.IsArchive = false;
+            applicant.ArchiveDate = null;
+
             if (applicant.PreferredGroupId.HasValue)
             {
-                var groupDetail = new GroupDetails
-                {
-                    MemberId = applicant.MemberId,
-                    GroupId = applicant.PreferredGroupId.Value
-                };
+                bool alreadyAssigned = await _context.GroupDetails
+                    .AnyAsync(g =>
+                        g.MemberId == applicant.MemberId &&
+                        g.GroupId == applicant.PreferredGroupId.Value);
 
-                _context.GroupDetails.Add(groupDetail);
+                if (!alreadyAssigned)
+                {
+                    var groupDetail = new GroupDetails
+                    {
+                        MemberId = applicant.MemberId,
+                        GroupId = applicant.PreferredGroupId.Value
+                    };
+
+                    _context.GroupDetails.Add(groupDetail);
+                }
             }
 
             await _context.SaveChangesAsync();
+
             if (!await _userManager.IsInRoleAsync(applicant.User, "Member"))
             {
                 await _userManager.AddToRoleAsync(applicant.User, "Member");
@@ -303,7 +331,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 MembershipApplicationStatus.Approved
             );
 
-            return new OperationalResult { Success = true, Message = $"{applicant.FullName} has been successfully approved as a member of the Salesian Youth Movement." };
+            return new OperationalResult
+            {
+                Success = true,
+                Message = $"{applicant.FullName} has been successfully approved as a member of the Salesian Youth Movement."
+            };
         }
 
         public async Task<OperationalResult> RejectApplicantAsync(int id, string reason)
@@ -412,10 +444,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                    : false,
                     ContactNumber = m.ContactNumber,
                     Address = m.Address,
-                    PhotoUrl = string.IsNullOrEmpty(m.ProfilePictureUrl)
-                      ? "/images/default-avatar.png"
-                      : m.ProfilePictureUrl,              
-                     EventAttendedCount = attendanceCheck,
+                    PhotoUrl =
+                    m.User != null &&
+                    !string.IsNullOrEmpty(m.User.ProfilePictureUrl)
+                ? m.User.ProfilePictureUrl
+                : "/images/default-avatar.png",
+
+                    EventAttendedCount = attendanceCheck,
                     groupDetails = m.GroupDetails
                     .Select(g => new GroupDetailsViewModel
                     {
@@ -448,7 +483,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     ContactNumber = vm.ContactNumber,
                     Province = vm.Province,
                     Barangay = vm.Barangay,
-                    
+                    IsArchive = false,
+                    ArchiveDate = null,
                     City = vm.City,
                     Country = vm.Country,
                     Address = BuildAddress(vm.Barangay, vm.City, vm.Province, vm.Country),
@@ -491,13 +527,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
                     if (url != null)
                     {
-                        member.ProfilePictureUrl = url;
+                        member.User.ProfilePictureUrl = url;
                         await _context.SaveChangesAsync();
                     }
                 }
                 else if (!string.IsNullOrWhiteSpace(vm.PhotoUrl))
                 {
-                    member.ProfilePictureUrl = vm.PhotoUrl.Trim();
+                    member.User.ProfilePictureUrl = vm.PhotoUrl.Trim();
                     await _context.SaveChangesAsync();
                 }
 
@@ -543,13 +579,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 var url = await _cloudinary.UploadProfilePicture(photo, member.MemberId.ToString());
                 if (url != null)
                 {
-                    member.ProfilePictureUrl = url;
+                    member.User.ProfilePictureUrl = url;
                     await _context.SaveChangesAsync(); 
                 }
             }
             else if (!string.IsNullOrWhiteSpace(vm.PhotoUrl))
             {
-                member.ProfilePictureUrl = vm.PhotoUrl.Trim();
+                member.User.ProfilePictureUrl = vm.PhotoUrl.Trim();
                 await _context.SaveChangesAsync();
             }
         }
@@ -581,7 +617,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<List<Member>> GetMemberOptionsAsync(int groupId)
         {
             return await _context.Members
-                .Where(e => e.Status == "Active" &&
+                .Where(e => e.Status == "Active" && e.IsArchive == false &&
                             !_context.GroupDetails.Any(gd => gd.GroupId == groupId && gd.MemberId == e.MemberId))
                 .ToListAsync();
         }
@@ -623,11 +659,80 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<int> GetTotalCountAsync()
         {
-            return await _context.Members.Where(m => m.Status != "Inactive").CountAsync();
+            return await _context.Members.Where(m => m.Status != "Inactive" && m.IsArchive == false).CountAsync();
         }
 
-     
+        public async Task<ArchiveMemberViewModel?> GetArchiveMemberAsync(int id)
+        {
+            var member = await _context.Members
+                .AsNoTracking()
+                .Where(m =>
+                    m.MemberId == id &&
+                    m.ApplicationStatus == MembershipApplicationStatus.Approved &&
+                    m.IsArchive == false)
+                .Select(m => new ArchiveMemberViewModel
+                {
+                    MemberId = m.MemberId,
+                    FirstName = m.FirstName,
+                    MiddleName = m.MiddleName,
+                    LastName = m.LastName,
+                    EarnedPoints = m.EarnedPoints,
 
+                    GroupName = m.GroupDetails
+                        .Select(g => g.Group.GroupName)
+                        .FirstOrDefault() ?? "No Group"
+                })
+                .FirstOrDefaultAsync();
+
+            return member;
+        }
+
+
+
+        public async Task<OperationalResult> ArchiveMemberAsync(int memberId)
+        {
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.MemberId == memberId);
+
+            if (member == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Member was not found."
+                };
+            }
+
+            if (member.ApplicationStatus != MembershipApplicationStatus.Approved)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Only approved members can be archived."
+                };
+            }
+            var groupDetail = member.GroupDetails.FirstOrDefault();
+
+
+            if (groupDetail != null)
+            {
+                 _context.GroupDetails.Remove(groupDetail);
+            }
+
+            member.IsArchive = true;
+            member.ArchiveDate = DateTime.UtcNow;
+            member.Status = "Inactive";
+            member.EarnedPoints = 0;
+            member.PreferredGroupId = null;
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Member archived successfully."
+            };
+        }
 
     }
 }

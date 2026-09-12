@@ -13,5 +13,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Group
         public string LeaderEmail { get; set; } = string.Empty;
 
         public List<GroupMemberViewModel> Members { get; set; } = new();
+        public int MemberCount { get; set; }
     }
 }

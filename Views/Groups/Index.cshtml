@@ -318,20 +318,29 @@
 
                     <div class="group-card-actions">
                         <a onclick="event.stopPropagation(); openModal('Edit group', '@Url.Action("GetEditForm", "Groups", new { id = item.GroupId })')"
-                           style="color:#3860D6;">
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="top"
+                           title="Edit group"
+                           style="color:#3860D6; cursor:pointer;">
                             <i class="ti ti-edit"></i>
                         </a>
 
                         <a asp-action="Details"
                            asp-route-id="@item.GroupId"
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="top"
+                           title="View details"
                            style="color:#6b7280;"
                            onclick="event.stopPropagation()">
                             <i class="ti ti-eye"></i>
                         </a>
 
-                        <a onclick="event.stopPropagation(); openModal('Delete group', '@Url.Action("GetDeleteForm", "Groups", new { id = item.GroupId })')"
-                           style="color:#dc2626; cursor:pointer;">
-                            <i class="ti ti-trash"></i>
+                        <a onclick="event.stopPropagation(); openModal('Archive Group', '@Url.Action("GetArchivedModalGroups", "Groups", new { id = item.GroupId })', 'sm')"
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="top"
+                           title="Archive group"
+                           style="color:#d97706; cursor:pointer;">
+                            <i class="bi bi-archive"></i>
                         </a>
                     </div>
                 </div>
@@ -347,4 +356,22 @@
     }
 
         @await Html.PartialAsync("_LeaderPickerModal")
+
+        <script>
+                document.querySelectorAll(".archive-group-btn").forEach(function (button) {
+
+                    button.addEventListener("click", function (event) {
+
+                        event.stopPropagation();
+
+                        const url = this.dataset.url;
+                        const title = this.dataset.title;
+                        const size = this.dataset.modalSize;
+
+                        openModal(title, url, size);
+                    });
+
+                });                    
+
+        </script>
 }

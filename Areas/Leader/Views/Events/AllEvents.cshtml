@@ -1,0 +1,100 @@
+﻿@model List<AllEventsListItemViewModel>
+@{
+    ViewData["Title"] = "All Events";
+    string FormatTime(TimeSpan? t) => t.HasValue ? DateTime.Today.Add(t.Value).ToString("h:mm tt") : "";
+}
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+        <h4 class="mb-1"><i class="bi bi-calendar-week me-2"></i>All Events</h4>
+        <p class="text-muted mb-0">View all approved events across the organization. This is for reference only to check facility reservations.</p>
+    </div>
+    <div class="alert alert-success d-flex align-items-start gap-2 py-2 px-3 mb-0" style="max-width:320px;">
+        <i class="bi bi-info-circle-fill mt-1"></i>
+        <div>
+            <strong>Read Only</strong><br />
+            <small>You can view all events but cannot edit or manage them.</small>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body d-flex flex-wrap gap-2">
+        <input type="text" id="allEventsSearch" class="form-control" style="max-width:280px;"
+               placeholder="Search event title, group, or facility..." />
+
+        <select id="filterGroup" class="form-select" style="max-width:180px;">
+            <option value="">All Groups</option>
+            @foreach (var g in (ViewBag.Groups as List<Sym_Connect__Capstone2_.Models.Group>) ?? new())
+            {
+                <option value="@g.GroupName.ToLower()">@g.GroupName</option>
+            }
+        </select>
+
+        <select id="filterFacility" class="form-select" style="max-width:180px;">
+            <option value="">All Facilities</option>
+            @foreach (var f in (ViewBag.Facilities as List<Sym_Connect__Capstone2_.Models.FacilityModels.Facility>) ?? new())
+            {
+                <option value="@f.FacilityName.ToLower()">@f.FacilityName</option>
+            }
+        </select>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0" id="allEventsTable">
+            <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Event Title</th>
+                    <th>Group</th>
+                    <th>Facility</th>
+                    <th>Created By</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ev in Model)
+                {
+                    var groupText = ev.GroupNames.Any() ? string.Join(", ", ev.GroupNames) : "All Groups";
+                    var facilityText = ev.FacilityNames.Any() ? string.Join(", ", ev.FacilityNames) : "-";
+                    var searchBlob = $"{ev.EventTitle} {groupText} {facilityText}".ToLower();
+
+                    <tr class="all-events-row" role="button" data-event-id="@ev.EventId"
+                        data-search="@searchBlob"
+                        data-group="@groupText.ToLower()"
+                        data-facility="@facilityText.ToLower()">
+                        <td>
+                            <div class="fw-semibold">@ev.StartDate.ToString("MMM dd")</div>
+                            <small class="text-muted">
+                                @(ev.IsAllDay ? "All Day" : $"{FormatTime(ev.StartTime)} - {FormatTime(ev.EndTime)}")
+                            </small>
+                        </td>
+                        <td>@ev.EventTitle</td>
+                        <td>
+                            @foreach (var g in ev.GroupNames)
+                            {
+                                <span class="badge rounded-pill text-bg-light border me-1">@g</span>
+                            }
+                            @if (!ev.GroupNames.Any())
+                            {
+                                <span class="badge rounded-pill text-bg-light border">All Groups</span>
+                            }
+                        </td>
+                        <td>@facilityText</td>
+                        <td>
+                            @ev.CreatedByName
+                            <div><small class="text-muted">@ev.CreatedByRole</small></div>
+                        </td>
+                        <td><span class="badge bg-success-subtle text-success">Approved</span></td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">No approved events found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

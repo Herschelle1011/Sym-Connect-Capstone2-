@@ -64,7 +64,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Member
 
         public string Address { get; set; } = string.Empty;
 
-        public string ProfilePictureUrl { get; set; } = string.Empty;
+        public string? ProfilePictureUrl { get; set; } = string.Empty;
         public string GroupName { get; set; } = string.Empty;
 
         public DateTime? DateApplied { get; set; }

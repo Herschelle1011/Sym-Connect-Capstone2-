@@ -1,0 +1,41 @@
+﻿@model LeaderGroupViewModel
+
+@if (!Model.Members.Any())
+{
+    <tr>
+        <td colspan="5" style="text-align:center; padding:40px; color:#9aa3b8;">
+            No members found.
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var member in Model.Members)
+    {
+        <tr data-status="@member.Status"
+            data-photo="@member.PhotoUrl"
+            data-name="@member.DisplayName"
+            data-email="@member.Email"
+            data-contact="@member.ContactNumber"
+            data-status-value="@member.Status"
+            data-points="@member.EarnedPoints"
+            data-joined="@member.DateRegistered.ToString("MMMM dd, yyyy")">
+            <td>@member.RowNumber</td>
+            <td>@member.DisplayName</td>
+            <td>
+                @if (member.Status == "Active")
+                {
+                    <span class="leader-status-badge status-active">Active</span>
+                }
+                else
+                {
+                    <span class="leader-status-badge status-inactive">Inactive</span>
+                }
+            </td>
+            <td>@member.EarnedPoints</td>
+            <td class="text-end">
+                <i class="ti ti-info-circle leader-info-icon"></i>
+            </td>
+        </tr>
+    }
+}

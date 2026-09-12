@@ -38,7 +38,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     City = m.City,
                     Barangay = m.Barangay,
                     ContactNumber = m.ContactNumber,
-                    PhotoUrl = m.ProfilePictureUrl,
+                    PhotoUrl = m.User.ProfilePictureUrl,
                     Email = m.User.Email,
                     Birthdate = m.BirthDate,
                     GroupName = m.GroupDetails.Select(

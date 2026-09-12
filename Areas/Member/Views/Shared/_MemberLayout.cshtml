@@ -38,7 +38,7 @@
                         .Include(m => m.Member)
                         .FirstOrDefaultAsync(u => u.Id == userId);
 
-        var profilePicture = currentUser?.Member?.ProfilePictureUrl;
+        var profilePicture = currentUser?.Member?.User.ProfilePictureUrl;
     var userName = currentUser?.Member != null
         ? $"{currentUser.Member.FirstName} {currentUser.Member.LastName}"
         : "User";

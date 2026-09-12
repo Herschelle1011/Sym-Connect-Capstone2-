@@ -68,9 +68,9 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                             {
                                 CandidateId = c.CandidateId,
                                 MemberName = c.Member.FirstName + " " + c.Member.LastName,
-                                PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
+                                PhotoUrl = string.IsNullOrEmpty(c.Member.User.ProfilePictureUrl)
                             ? "/images/default-avatar.png"
-                            : c.Member.ProfilePictureUrl
+                            : c.Member.User.ProfilePictureUrl
                             }).ToList()
                         }).ToList()
                 }).ToList();

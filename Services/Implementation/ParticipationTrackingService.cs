@@ -205,7 +205,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     m.MemberId,
                     m.FirstName,
                     m.LastName,
-                    m.ProfilePictureUrl,
+                    m.User.ProfilePictureUrl,
                     m.EarnedPoints,
                     GroupId = groupId,
 

@@ -14,7 +14,12 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
     {
         Task<List<EventCalendarViewModel>> GetAllEventAsync(int year, int month);
         //Task<Event?>GetEventByIdAsync(int id);
-        Task<OperationalResult> RecordTimeInAsync(string qrToken, int eventId);
+      Task<OperationalResult> RecordTimeInAsync(
+                   string qrToken,
+                   int eventId,
+                   string scannedByUserId,
+                   int? scannedByMemberId,
+                   bool isAdmin);
 
         Task<ScannerViewModel> GetScannerStateAsync(int eventId);
         Task<DetailsEventViewModel?> GetDetailsByAsync(int id);
@@ -70,8 +75,11 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<int> GetRejectedCountAsync();
 
-
+        Task<List<AllEventsListItemViewModel>> GetAllApprovedEventsForOrgAsync();
         Task<List<EventListItemViewModel>> GetAllEventForEvaluationAsync(int currentUserId, bool IsAdmin);
+
+        Task<EventDetailsReadOnlyViewModel?> GetEventDetailsReadOnlyAsync(int id);
+        Task<List<EventListItemViewModel>> GetAssignedEventsForLeaderAsync(int leaderMemberId);
 
     }
 }

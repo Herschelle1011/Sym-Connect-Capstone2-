@@ -528,6 +528,124 @@ function showFieldError(
 
 
 /* =========================================================
+   PH MOBILE NUMBER CHECK
+   Accepts: 09XXXXXXXXX, +639XXXXXXXXX, 639XXXXXXXXX
+   (spaces / dashes / parentheses are stripped first)
+========================================================= */
+
+function isValidPhMobileNumber(value) {
+
+    if (!value) {
+        return false;
+    }
+
+    const cleaned =
+        value.replace(/[\s\-()]/g, "");
+
+    return /^(?:\+63\d{10}|63\d{10}|09\d{9})$/.test(
+        cleaned
+    );
+}
+
+
+/* =========================================================
+   PASSWORD STRENGTH CHECK
+   At least 8 characters, with a letter, a number, and a symbol
+   (matches the helper text shown under the Password field)
+========================================================= */
+
+function isStrongPassword(value) {
+
+    return /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,}$/.test(
+        value || ""
+    );
+}
+
+
+/* =========================================================
+   EMAIL / USERNAME AVAILABILITY CHECKS
+========================================================= */
+
+function getAntiForgeryToken() {
+
+    return registrationForm
+        ?.querySelector(
+            'input[name="__RequestVerificationToken"]'
+        )
+        ?.value;
+}
+
+
+async function checkEmailAvailability(email) {
+
+    const token = getAntiForgeryToken();
+
+    try {
+
+        const response =
+            await fetch(
+                "/Identity/Account/Register?handler=CheckEmail",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify({ email })
+                }
+            );
+
+        return await response.json();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Error checking email availability:",
+            error
+        );
+
+        // Fail open on network errors — the server re-checks on final submit anyway.
+        return { available: true };
+    }
+}
+
+
+async function checkUsernameAvailability(username) {
+
+    const token = getAntiForgeryToken();
+
+    try {
+
+        const response =
+            await fetch(
+                "/Identity/Account/Register?handler=CheckUsername",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    body: JSON.stringify({ username })
+                }
+            );
+
+        return await response.json();
+
+    }
+    catch (error) {
+
+        console.error(
+            "Error checking username availability:",
+            error
+        );
+
+        return { available: true };
+    }
+}
+
+
+/* =========================================================
    STEP 1 VALIDATION
 ========================================================= */
 
@@ -667,6 +785,15 @@ function validateStep1() {
 
         valid = false;
     }
+    else if (!isValidPhMobileNumber(contact.value.trim())) {
+
+        showFieldError(
+            contact,
+            "Enter a valid PH mobile number (e.g. 09XXXXXXXXX or +639XXXXXXXXX)."
+        );
+
+        valid = false;
+    }
 
 
     if (!province?.value) {
@@ -718,10 +845,10 @@ function validateStep1() {
 
 
 /* =========================================================
-   STEP 2 VALIDATION
+   STEP 2 VALIDATION (async — checks email/username availability)
 ========================================================= */
 
-function validateStep2() {
+async function validateStep2() {
 
     let valid = true;
 
@@ -799,6 +926,15 @@ function validateStep2() {
 
         valid = false;
     }
+    else if (!isStrongPassword(password.value)) {
+
+        showFieldError(
+            password,
+            "Use at least 8 characters with a letter, a number, and a symbol."
+        );
+
+        valid = false;
+    }
 
 
     if (!confirmPassword?.value) {
@@ -828,20 +964,78 @@ function validateStep2() {
     }
 
 
-    if (
-        valid &&
-        !emailVerified
-    ) {
+    if (!valid) {
 
-        alert(
-            "Please verify your email before continuing."
+        showAlertDialog(
+            "Please complete all required fields correctly before continuing.",
+            "error",
+            "Missing or Invalid Information"
         );
 
-        valid = false;
+        return false;
     }
 
 
-    return valid;
+    // Availability checks only run once the fields above are already valid,
+    // so we don't fire requests for obviously-incomplete input.
+
+    const emailCheck =
+        await checkEmailAvailability(
+            email.value.trim()
+        );
+
+    if (!emailCheck.available) {
+
+        showFieldError(
+            email,
+            emailCheck.message || "This email address is already registered."
+        );
+
+        showAlertDialog(
+            emailCheck.message || "This email address is already registered.",
+            "error",
+            "Email Unavailable"
+        );
+
+        return false;
+    }
+
+
+    const usernameCheck =
+        await checkUsernameAvailability(
+            username.value.trim()
+        );
+
+    if (!usernameCheck.available) {
+
+        showFieldError(
+            username,
+            usernameCheck.message || "This username is already taken."
+        );
+
+        showAlertDialog(
+            usernameCheck.message || "This username is already taken.",
+            "error",
+            "Username Unavailable"
+        );
+
+        return false;
+    }
+
+
+    if (!emailVerified) {
+
+        showAlertDialog(
+            "Please verify your email before continuing.",
+            "error",
+            "Email Not Verified"
+        );
+
+        return false;
+    }
+
+
+    return true;
 }
 
 
@@ -851,78 +1045,103 @@ function validateStep2() {
 
 nextButton?.addEventListener(
     "click",
-    function () {
+    async function () {
 
-        if (
-            currentRegistrationStep === 1
-        ) {
+        nextButton.disabled = true;
 
-            if (!validateStep1()) {
-                return;
+
+        try {
+
+            if (
+                currentRegistrationStep === 1
+            ) {
+
+                if (!validateStep1()) {
+
+                    showAlertDialog(
+                        "Please complete all required fields correctly before continuing.",
+                        "error",
+                        "Missing or Invalid Information"
+                    );
+
+                    return;
+                }
             }
-        }
 
 
-        if (
-            currentRegistrationStep === 2
-        ) {
+            if (
+                currentRegistrationStep === 2
+            ) {
 
-            if (!validateStep2()) {
-                return;
+                const stepTwoValid =
+                    await validateStep2();
+
+                if (!stepTwoValid) {
+                    return;
+                }
             }
-        }
 
 
-        if (
-            currentRegistrationStep === 3
-        ) {
+            if (
+                currentRegistrationStep === 3
+            ) {
 
-            const guidelines =
-                document.querySelector(
-                    '[name="AcceptedGuidelines"]'
-                );
+                const guidelines =
+                    document.querySelector(
+                        '[name="AcceptedGuidelines"]'
+                    );
 
 
-            if (!guidelines?.checked) {
+                if (!guidelines?.checked) {
 
-                alert(
-                    "Please read and accept the Membership Guidelines."
-                );
+                    showAlertDialog(
+                        "Please read and accept the Membership Guidelines.",
+                        "error",
+                        "Agreement Required"
+                    );
 
-                return;
+                    return;
+                }
             }
-        }
 
 
-        if (
-            currentRegistrationStep === 4
-        ) {
+            if (
+                currentRegistrationStep === 4
+            ) {
 
-            const privacy =
-                document.querySelector(
-                    '[name="AcceptedPrivacy"]'
-                );
+                const privacy =
+                    document.querySelector(
+                        '[name="AcceptedPrivacy"]'
+                    );
 
 
-            if (!privacy?.checked) {
+                if (!privacy?.checked) {
 
-                alert(
-                    "Please read and accept the Privacy Notice."
-                );
+                    showAlertDialog(
+                        "Please read and accept the Privacy Notice.",
+                        "error",
+                        "Agreement Required"
+                    );
 
-                return;
+                    return;
+                }
             }
+
+
+            if (
+                currentRegistrationStep <
+                totalRegistrationSteps
+            ) {
+
+                showRegistrationStep(
+                    currentRegistrationStep + 1
+                );
+            }
+
         }
+        finally {
 
-
-        if (
-            currentRegistrationStep <
-            totalRegistrationSteps
-        ) {
-
-            showRegistrationStep(
-                currentRegistrationStep + 1
-            );
+            nextButton.disabled = false;
         }
     }
 );
@@ -968,8 +1187,10 @@ sendCodeButton?.addEventListener(
 
         if (!email) {
 
-            alert(
-                "Please enter your email address first."
+            showAlertDialog(
+                "Please enter your email address first.",
+                "error",
+                "Email Required"
             );
 
             return;
@@ -981,8 +1202,10 @@ sendCodeButton?.addEventListener(
             !emailInput.checkValidity()
         ) {
 
-            alert(
-                "Please enter a valid email address."
+            showAlertDialog(
+                "Please enter a valid email address.",
+                "error",
+                "Invalid Email"
             );
 
             return;
@@ -1043,8 +1266,10 @@ sendCodeButton?.addEventListener(
                 await response.json();
 
 
-            alert(
-                result.message
+            showAlertDialog(
+                result.message,
+                result.success ? "success" : "error",
+                result.success ? "Code Sent" : "Unable to Send Code"
             );
 
 
@@ -1072,8 +1297,10 @@ sendCodeButton?.addEventListener(
             );
 
 
-            alert(
-                "Something went wrong while sending the verification code."
+            showAlertDialog(
+                "Something went wrong while sending the verification code.",
+                "error",
+                "Something Went Wrong"
             );
 
         }
@@ -1118,8 +1345,10 @@ verifyCodeButton?.addEventListener(
 
         if (!email) {
 
-            alert(
-                "Please enter your email address."
+            showAlertDialog(
+                "Please enter your email address.",
+                "error",
+                "Email Required"
             );
 
             return;
@@ -1128,8 +1357,10 @@ verifyCodeButton?.addEventListener(
 
         if (!code) {
 
-            alert(
-                "Please enter the verification code."
+            showAlertDialog(
+                "Please enter the verification code.",
+                "error",
+                "Code Required"
             );
 
             return;
@@ -1249,15 +1480,19 @@ verifyCodeButton?.addEventListener(
                 }
 
 
-                alert(
-                    result.message
+                showAlertDialog(
+                    result.message,
+                    "success",
+                    "Email Verified"
                 );
 
             }
             else {
 
-                alert(
-                    result.message
+                showAlertDialog(
+                    result.message,
+                    "error",
+                    "Verification Failed"
                 );
             }
 
@@ -1270,8 +1505,10 @@ verifyCodeButton?.addEventListener(
             );
 
 
-            alert(
-                "Something went wrong while verifying your email."
+            showAlertDialog(
+                "Something went wrong while verifying your email.",
+                "error",
+                "Something Went Wrong"
             );
 
         }
@@ -1368,8 +1605,10 @@ profilePhotoInput?.addEventListener(
             )
         ) {
 
-            alert(
-                "Please select a JPG or PNG image."
+            showAlertDialog(
+                "Please select a JPG or PNG image.",
+                "error",
+                "Invalid File Type"
             );
 
             this.value = "";
@@ -1386,8 +1625,10 @@ profilePhotoInput?.addEventListener(
             file.size > maxSize
         ) {
 
-            alert(
-                "Profile photo must not be larger than 2 MB."
+            showAlertDialog(
+                "Profile photo must not be larger than 2 MB.",
+                "error",
+                "File Too Large"
             );
 
             this.value = "";
@@ -1779,8 +2020,10 @@ registrationForm?.addEventListener(
 
         if (!emailVerified) {
 
-            alert(
-                "Please verify your email before submitting."
+            showAlertDialog(
+                "Please verify your email before submitting.",
+                "error",
+                "Email Not Verified"
             );
 
             return;
@@ -1797,8 +2040,10 @@ registrationForm?.addEventListener(
             !acceptedGuidelines?.checked
         ) {
 
-            alert(
-                "Please accept the Membership Guidelines."
+            showAlertDialog(
+                "Please accept the Membership Guidelines.",
+                "error",
+                "Agreement Required"
             );
 
             return;
@@ -1815,8 +2060,10 @@ registrationForm?.addEventListener(
             !acceptedPrivacy?.checked
         ) {
 
-            alert(
-                "Please accept the Privacy Notice."
+            showAlertDialog(
+                "Please accept the Privacy Notice.",
+                "error",
+                "Agreement Required"
             );
 
             return;
@@ -1854,8 +2101,10 @@ registrationForm?.addEventListener(
 
             if (result.success) {
 
-                alert(
-                    result.message
+                showAlertDialog(
+                    result.message,
+                    "success",
+                    "Application Submitted"
                 );
 
 
@@ -1877,8 +2126,10 @@ registrationForm?.addEventListener(
             }
             else {
 
-                alert(
-                    result.message
+                showAlertDialog(
+                    result.message,
+                    "error",
+                    "Submission Failed"
                 );
             }
 
@@ -1891,8 +2142,10 @@ registrationForm?.addEventListener(
             );
 
 
-            alert(
-                "Something went wrong while submitting your application."
+            showAlertDialog(
+                "Something went wrong while submitting your application.",
+                "error",
+                "Something Went Wrong"
             );
 
         }

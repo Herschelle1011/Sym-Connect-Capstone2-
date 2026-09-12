@@ -53,6 +53,72 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
         [BindProperty]
         public MembershipRegistrationViewModel Input { get; set; } = new();
 
+        // ---------------------------------------------------------------
+        // Email availability check (Step 2 — called before/without sending
+        // a verification code, so the modal can surface "already registered"
+        // immediately instead of waiting until final submit).
+        // ---------------------------------------------------------------
+        public async Task<IActionResult> OnPostCheckEmailAsync(
+            [FromBody] EmailVerificationRequestViewModel request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                return new JsonResult(new
+                {
+                    available = false,
+                    message = "Please enter your email address."
+                });
+            }
+
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+
+            if (existingUser != null)
+            {
+                return new JsonResult(new
+                {
+                    available = false,
+                    message = "This email address is already registered."
+                });
+            }
+
+            return new JsonResult(new
+            {
+                available = true
+            });
+        }
+
+        // ---------------------------------------------------------------
+        // Username availability check (Step 2).
+        // ---------------------------------------------------------------
+        public async Task<IActionResult> OnPostCheckUsernameAsync(
+            [FromBody] UsernameCheckRequestViewModel request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Username))
+            {
+                return new JsonResult(new
+                {
+                    available = false,
+                    message = "Please enter a username."
+                });
+            }
+
+            var existingUser = await _userManager.FindByNameAsync(request.Username);
+
+            if (existingUser != null)
+            {
+                return new JsonResult(new
+                {
+                    available = false,
+                    message = "This username is already taken."
+                });
+            }
+
+            return new JsonResult(new
+            {
+                available = true
+            });
+        }
+
         public async Task<IActionResult> OnPostSendCodeAsync(
      [FromBody] EmailVerificationRequestViewModel request)
         {
@@ -153,8 +219,9 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
             });
         }
 
-        public async Task<IActionResult> OnPostAsync(MembershipRegistrationViewModel registration, IFormFile? ProfilePhoto)
+        public async Task<IActionResult> OnPostAsync(MembershipRegistrationViewModel registration, IFormFile? profilePhoto)
         {
+            
             if (!ModelState.IsValid)
             {
                 return new JsonResult(new
@@ -217,7 +284,8 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 DisplayName =
                     $"{registration.FirstName} {registration.LastName}",
 
-                EmailConfirmed = true
+                EmailConfirmed = true,
+                ProfilePictureUrl = registration.PhotoUrl
             };
 
 
@@ -242,14 +310,14 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
             }
 
             // Optional profile photo
-            if (ProfilePhoto != null &&
-                ProfilePhoto.Length > 0)
+            if (profilePhoto != null &&
+                profilePhoto.Length > 0)
             {
                 var allowedExtensions =
                     new[] { ".jpg", ".jpeg", ".png" };
 
                 var extension =
-                    Path.GetExtension(ProfilePhoto.FileName)
+                    Path.GetExtension(profilePhoto.FileName)
                         .ToLowerInvariant();
 
                 if (!allowedExtensions.Contains(extension))
@@ -267,7 +335,7 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 const long maxFileSize =
                     2 * 1024 * 1024;
 
-                if (ProfilePhoto.Length > maxFileSize)
+                if (profilePhoto.Length > maxFileSize)
                 {
                     await _userManager.DeleteAsync(user);
 
@@ -282,7 +350,7 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 var profilePictureUrl =
                     await _cloudinaryService
                         .UploadProfilePicture(
-                            ProfilePhoto,
+                            profilePhoto,
                             user.Id
                         );
 
@@ -303,7 +371,23 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 user.ProfilePictureUrl =
                     profilePictureUrl;
 
-                await _userManager.UpdateAsync(user);
+               var updateResult = await _userManager.UpdateAsync(user);
+
+                if (!updateResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        updateResult.Errors.Select(e => e.Description)
+                    );
+
+                    return new JsonResult(new
+                    {
+                        success = false,
+                        message = $"Failed to save profile picture URL: {errors}"
+                    });
+                }
+
+
             }
 
             // 6. Create Member
@@ -336,7 +420,6 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 DateApplied = DateTime.Now
 
             };
-
 
             _context.Members.Add(member);
 
@@ -408,6 +491,11 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
             public string Email { get; set; } = string.Empty;
 
             public string Code { get; set; } = string.Empty;
+        }
+
+        public class UsernameCheckRequestViewModel
+        {
+            public string Username { get; set; } = string.Empty;
         }
     }
 }

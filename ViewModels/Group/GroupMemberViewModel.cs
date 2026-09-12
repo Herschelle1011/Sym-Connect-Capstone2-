@@ -13,5 +13,11 @@
         public string Status { get; set; } = string.Empty;
 
         public DateTime DateRegistered { get; set; }
+
+        public string? PhotoUrl { get; set; }
+
+        public int EarnedPoints { get; set; }
+
+        public bool IsTopContributor { get; set; } = false;
     }
 }

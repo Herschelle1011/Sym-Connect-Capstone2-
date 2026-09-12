@@ -1,8 +1,10 @@
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.EventModels;
 using Sym_Connect__Capstone2_.Services.Implementation;
@@ -15,12 +17,14 @@ public class EventsController : Controller
     private readonly IEventService _eventService;
     private readonly IFacilityService _facilityService;
     private readonly IGroupService _groupService;
+    private readonly UserManager<User> _userManager;
 
-    public EventsController(IEventService eventService, IFacilityService facilityService, IGroupService groupService)
+    public EventsController(IEventService eventService, IFacilityService facilityService, IGroupService groupService, UserManager<User> userManager)
     {
         _eventService = eventService;
         _facilityService = facilityService;
         _groupService = groupService;
+        _userManager = userManager;
     }
 
 
@@ -28,10 +32,19 @@ public class EventsController : Controller
     [HttpPost]
     public async Task<IActionResult> ScanTimeIn([FromBody] ScanAttendanceRequest request)
     {
-        var result = await _eventService.RecordTimeInAsync(request.QrToken, request.EventId);
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Json(new { success = false, message = "Session expired. Please log in again." });
+
+        var result = await _eventService.RecordTimeInAsync(
+            request.QrToken,
+            request.EventId,
+            user.Id,
+            user.MemberId,
+            isAdmin: true);
+
         return Json(new { success = result.Success, message = result.Message });
     }
-
     public async Task<IActionResult> ScannerForTimeIn(int eventId)
     {
         var eventEntity = await _eventService.GetEventByIdAsync(eventId);

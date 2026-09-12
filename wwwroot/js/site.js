@@ -18,16 +18,6 @@
 
 // ── Modal opener (data-attribute buttons, e.g. "Create Partylist") ──
 
-//FINDS ALL class = .open-modal
-document.querySelectorAll(".open-modal").forEach(button => {
-    button.addEventListener("click", function () {
-        const url = this.getAttribute("data-url"); //GET ALL URL NOT DATA ACTION 
-        const title = this.getAttribute("data-title"); //get all data title in a button
-        openModal(title, url); //open modal with data-url to get the get action in controller
-    });
-});
-
-
 document.addEventListener("submit", async function (e) {
 
     if (!e.target.classList.contains("modal-ajax-form")) {
@@ -992,3 +982,55 @@ window.addEventListener("pageshow", function () {
 });
 
 
+
+// Open read-only event details modal from the All Events list
+document.addEventListener('click', function (e) {
+    const row = e.target.closest('.all-events-row');
+    if (!row) return;
+
+    const eventId = row.dataset.eventId;
+    fetch(`/Leader/Events/AllEventsDetails/${eventId}`)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('appModalBody').innerHTML = html;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal')).show();
+        });
+});
+
+// Client-side filtering for the All Events table
+function filterAllEventsTable() {
+    const search = (document.getElementById('allEventsSearch')?.value || '').toLowerCase();
+    const group = document.getElementById('filterGroup')?.value || '';
+    const facility = document.getElementById('filterFacility')?.value || '';
+
+    document.querySelectorAll('#allEventsTable .all-events-row').forEach(row => {
+        const matchesSearch = !search || row.dataset.search.includes(search);
+        const matchesGroup = !group || row.dataset.group.includes(group);
+        const matchesFacility = !facility || row.dataset.facility.includes(facility);
+        row.style.display = (matchesSearch && matchesGroup && matchesFacility) ? '' : 'none';
+    });
+}
+
+document.addEventListener('input', e => {
+    if (e.target.id === 'allEventsSearch') filterAllEventsTable();
+});
+document.addEventListener('change', e => {
+    if (e.target.id === 'filterGroup' || e.target.id === 'filterFacility') filterAllEventsTable();
+});
+
+
+
+
+
+document.addEventListener('click', function (e) {
+    const trigger = e.target.closest('.all-events-row, .view-event-details-btn');
+    if (!trigger) return;
+
+    const eventId = trigger.dataset.eventId;
+    fetch(`/Leader/Events/AllEventsDetails/${eventId}`)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('appModalBody').innerHTML = html;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal')).show();
+        });
+});

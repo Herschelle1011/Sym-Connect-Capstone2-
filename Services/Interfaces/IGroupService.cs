@@ -34,5 +34,15 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<Group?> GetGroupByLeaderIdAsync(int memberId);
 
         Task<int> GetTotalCountAsync();
+
+        //ARCHIVED
+        Task<List<GroupListViewModel>> GetArchivedGroupsAsync();
+        Task<OperationalResult> RestoreGroupAsync(int id, int leaderId);
+
+        Task<GroupListViewModel?> GetArchivedModalGroups(int id);
+
+        Task<OperationalResult> PromoteMemberToLeaderAsync(int groupId, int newLeaderId);
+
+        Task<LeaderGroupViewModel?> GetGroupForLeaderAsync(int leaderId, string? search = null, string? sort = "points_desc");
     }
 }

@@ -89,10 +89,12 @@ namespace Sym_Connect__Capstone2_.Controllers
             var startOfWeek = today.Date.AddDays(-(int)today.DayOfWeek);
             var endOfWeek = startOfWeek.AddDays(7);
             int count = await _eventService.GetPendingRequestCountAsync();
+            var user = await _userManager.GetUserAsync(User);
+
 
             var vm = new AdminDashboardViewModel
             {
-                AdminName = User.Identity?.Name ?? "Admin",
+                AdminName = user.DisplayName ?? "Admin",
                 Today = today,
 
                 TotalMembers = await _memberService.GetTotalCountAsync(), // adjust to your real method name
@@ -117,7 +119,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                         Description = "New member registrations",
                         Count = membershipCount, LatestDate = membershipLatest,
                         IconClass = "bi-person",
-                        Url = Url.Action("Index", "Members")
+                        Url = Url.Action("Index", "YouthMembers")
                     },
                     new() {
                         Type = "EventRequest", Label = "Event Requests",
@@ -137,6 +139,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             vm.PendingApprovalsCount = membershipCount + eventCount + mediaCount;
             vm.RecentRegistrations = await _dashboardService.GetRecentApprovedMembersAsync();
+            vm.RecentEventRequests = await _dashboardService.GetRecentEventRequestsAsync();
 
             return View(vm);
         }

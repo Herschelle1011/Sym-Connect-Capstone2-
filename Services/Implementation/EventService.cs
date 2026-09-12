@@ -1,6 +1,5 @@
 ﻿using Humanizer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
@@ -14,10 +13,6 @@ using Sym_Connect__Capstone2_.ViewModels.Event;
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 using Sym_Connect__Capstone2_.ViewModels.Group;
 using Sym_Connect__Capstone2_.ViewModels.Notification;
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection.Metadata;
-using System.Runtime.Intrinsics.X86;
-using System.Text.RegularExpressions;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -524,6 +519,44 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
               );
             }
 
+            //NOTIFICATION -> Notify all assigned group members (including their leader) that an event was created for them
+            string creatorLabel = "Admin";
+            if (!isAdminCreated && createByUserId.HasValue)
+            {
+                var creator = await _context.Members
+                    .Where(m => m.MemberId == createByUserId.Value)
+                    .Select(m => new { m.FirstName, m.LastName })
+                    .FirstOrDefaultAsync();
+
+                if (creator != null)
+                    creatorLabel = $"{creator.FirstName} {creator.LastName}";
+            }
+
+            var groupMemberUserIds = await _context.GroupDetails
+                .Where(gd => vm.SelectedGroupIds.Contains(gd.GroupId)
+                          && gd.Member.User != null
+                          && gd.Member.User.Id != null)
+                .Select(gd => gd.Member.User.Id)
+                .Distinct()
+                .ToListAsync();
+
+            foreach (var userId in groupMemberUserIds)
+            {
+                await _notificationService.NotifyUserAsync(
+                    userId,
+                    isAdminCreated ? "New Event Assigned" : "New Event Created",
+                    isAdminCreated
+                        ? $"Admin created a new event \"{newEvent.EventTitle}\" for your group. Click here to view."
+                        : $"{creatorLabel} created a new event \"{newEvent.EventTitle}\" for your group. Click here to view.",
+                    $"/Events/Details/{newEvent.EventId}"
+                );
+            }
+
+
+
+
+
+
 
             return EventResult.Ok();
         }
@@ -879,7 +912,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     MemberId = a.MemberId.Value,
                     FullName = a.Member.FullName,
-                    PhotoUrl = a.Member.ProfilePictureUrl,
+                    PhotoUrl = a.Member.User.ProfilePictureUrl,
                     GroupName = a.Member.GroupDetails
                          .Where(gd => _context.Events
                             .Where(e => e.EventId == eventId)
@@ -904,76 +937,182 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-
-
-
-
-
-
-
-        public async Task<OperationalResult> RecordTimeInAsync(string qrToken, int eventId)
+        private async Task<Group?> GetGroupLedByMemberAsync(int? memberId)
         {
+            return await _context.Groups
+                .AsNoTracking()
+                .FirstOrDefaultAsync(g =>
+                    g.LeaderId == memberId &&
+                    !g.IsArchived);
+        }
+
+        public async Task<OperationalResult> RecordTimeInAsync(
+           string qrToken,
+           int eventId,
+           string scannedByUserId,
+           int? scannedByMemberId,
+           bool isAdmin)
+        {
+            // Find QR owner
             var member = await _context.Members
                 .FirstOrDefaultAsync(m => m.QRToken == qrToken);
+
             if (member == null)
             {
                 return new OperationalResult { Success = false, Message = "QR code not recognized." };
             }
 
-            var EventExists = await _context.Events.AnyAsync(e => e.EventId == eventId);
-            if (!EventExists)
-            {
-                return new OperationalResult { Success = false, Message = "Event not found." };
-            }
-
-            var ExistingRecord = await _context.Attendances.FirstOrDefaultAsync(m => m.MemberId == member.MemberId
-            && m.EventId == eventId);
-
-
-            if (ExistingRecord != null)
-            {
-                return new OperationalResult { Success = false, Message = $"{member.FirstName} {member.LastName} already Checked In" };
-            }
-
-            var expectedGroupIds = await _context.Events
-          .AsNoTracking()
-          .Where(e => e.EventId == eventId)
-          .SelectMany(e => e.ExpectedGroups)
-          .Select(eg => eg.GroupId)
-          .ToListAsync();
-
+            // Event must exist and be approved
             var eventEntity = await _context.Events
-            .AsNoTracking()
-            .Where(e => e.EventId == eventId)
-            .Select(e => new { e.Points })
-            .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(e =>
+                    e.EventId == eventId &&
+                    !e.IsArchived &&
+                    e.ApprovalStatus == ApprovalStatus.Approved);
 
+            if (eventEntity == null)
+            {
+                return new OperationalResult { Success = false, Message = "Event is unavailable or has not been approved." };
+            }
 
-            var memberGroupIds = await _context.GroupDetails
-            .Where(gd => gd.MemberId == member.MemberId)
-            .Select(gd => gd.GroupId)
-            .ToListAsync();
+            // Prevent duplicate attendance
+            bool alreadyCheckedIn = await _context.Attendances
+                .AnyAsync(a => a.MemberId == member.MemberId && a.EventId == eventId);
 
-            if (memberGroupIds == null) return new OperationalResult { Success = false, Message = "Event not found." };
+            if (alreadyCheckedIn)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = $"{member.FirstName} {member.LastName} already checked in."
+                };
+            }
 
-            bool isExpected = expectedGroupIds.Any(id => memberGroupIds.Contains(id));
+            // ============================
+            // ADMIN
+            // ============================
+            if (isAdmin)
+            {
+                bool memberIsExpected = await _context.EventGroups
+                    .AnyAsync(eg =>
+                        eg.EventId == eventId &&
+                        eg.Group.GroupDetails.Any(gd => gd.MemberId == member.MemberId));
 
-            if (!isExpected)
-                return new OperationalResult { Success = false, Message = $"{member.FirstName} is not part of the expected groups for this event." };
+                if (!memberIsExpected)
+                {
+                    return new OperationalResult
+                    {
+                        Success = false,
+                        Message = $"{member.FirstName} is not part of the expected groups for this event."
+                    };
+                }
 
+                _context.Attendances.Add(new Attendance
+                {
+                    MemberId = member.MemberId,
+                    EventId = eventId,
+                    TimeIn = DateTime.Now,
+                    TimeOut = null,
+                    Status = "Pending",
+                    ScannedByUserId = scannedByUserId
+                });
 
-            _context.Attendances.Add(new Models.Attendance
+                await _context.SaveChangesAsync();
+
+                return new OperationalResult { Success = true, Message = $"{member.FirstName} checked in successfully." };
+            }
+
+            // ============================
+            // LEADER
+            // ============================
+            if (scannedByMemberId == null)
+            {
+                return new OperationalResult { Success = false, Message = "Leader identity could not be resolved." };
+            }
+
+            var leaderGroup = await GetGroupLedByMemberAsync(scannedByMemberId);
+
+            if (leaderGroup == null)
+            {
+                return new OperationalResult { Success = false, Message = "You are not currently leading a group." };
+            }
+
+            // Leader's group must be assigned to this event
+            bool groupIsExpected = await _context.EventGroups
+                .AnyAsync(eg => eg.EventId == eventId && eg.GroupId == leaderGroup.GroupId);
+
+            if (!groupIsExpected)
+            {
+                return new OperationalResult { Success = false, Message = "Your group is not assigned to this event." };
+            }
+
+            // Leader can only scan their own members
+            bool memberInLeaderGroup = await _context.GroupDetails
+                .AnyAsync(gd => gd.GroupId == leaderGroup.GroupId && gd.MemberId == member.MemberId);
+
+            if (!memberInLeaderGroup)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = $"{member.FirstName} is not a member of your group."
+                };
+            }
+
+            _context.Attendances.Add(new Attendance
             {
                 MemberId = member.MemberId,
                 EventId = eventId,
                 TimeIn = DateTime.Now,
                 TimeOut = null,
-                Status = "Pending"
+                Status = "Pending",
+                ScannedByUserId = scannedByUserId
             });
+
+            // First scan of this event by this leader → auto-mark them present
+            bool leaderAlreadyRecorded = await _context.Attendances
+                .AnyAsync(a => a.MemberId == scannedByMemberId && a.EventId == eventId);
+
+            if (!leaderAlreadyRecorded)
+            {
+                var leaderMember = await _context.Members.FindAsync(scannedByMemberId.Value);
+                if (leaderMember != null)
+                {
+                    var scanTime = DateTime.Now;
+
+                    string leaderStatus = "Present";
+                    int leaderPoints = eventEntity.Points;
+
+                    if (eventEntity.StartTime.HasValue)
+                    {
+                        var eventStartDateTime = eventEntity.StartDate.Date + eventEntity.StartTime.Value;
+                        var lateCutoff = eventStartDateTime + TimeSpan.FromMinutes(15);
+
+                        if (scanTime > lateCutoff)
+                        {
+                            leaderStatus = "Late";
+                            leaderPoints = eventEntity.Points - 2;
+                        }
+                    }
+                    // eventEntity.StartTime == null (all-day) → falls through, stays "Present" with full points
+
+                    _context.Attendances.Add(new Attendance
+                    {
+                        MemberId = scannedByMemberId.Value,
+                        EventId = eventId,
+                        TimeIn = scanTime,
+                        TimeOut = scanTime,
+                        Status = leaderStatus,
+                        Points = leaderPoints,
+                        ScannedByUserId = scannedByUserId
+                    });
+
+                    leaderMember.EarnedPoints += leaderPoints;
+                }
+            }
 
             await _context.SaveChangesAsync();
 
-            return new OperationalResult { Success = true, Message = $"{member.FirstName} Checked in Successfully." };
+            return new OperationalResult { Success = true, Message = $"{member.FirstName} time in successfully." };
         }
 
 
@@ -1113,7 +1252,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     MemberId = a.MemberId,
                     FullName = a.Member.FullName,
-                    PhotoUrl = a.Member.ProfilePictureUrl,
+                    PhotoUrl = a.Member.User.ProfilePictureUrl,
                     Points = a.Points,
                     GroupName = a.Member.GroupDetails.Select(gd => gd.Group.GroupName).FirstOrDefault() ?? "-",
                     TimeIn = a.TimeIn,
@@ -1453,7 +1592,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     gd.MemberId,
                     FullName = gd.Member.FirstName + " " + gd.Member.LastName,
-                    gd.Member.ProfilePictureUrl
+                    gd.Member.User.ProfilePictureUrl
                 })
                 .ToListAsync();
 
@@ -1519,6 +1658,90 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                          && (e.StartDate.Date > now.Date ||
                              (e.StartTime == null || e.StartTime.Value >= now.TimeOfDay)))
                 .CountAsync();
+        }
+
+
+        //==== ALL EVENTS (READ-ONLY, ALL LEADERS) ====
+        public async Task<List<AllEventsListItemViewModel>> GetAllApprovedEventsForOrgAsync()
+        {
+            return await _context.Events
+                .AsNoTracking()
+                .Where(e => !e.IsArchived && e.ApprovalStatus == ApprovalStatus.Approved)
+                .OrderBy(e => e.StartDate)
+                .ThenBy(e => e.StartTime)
+                .Select(e => new AllEventsListItemViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    IsAllDay = e.IsAllDay,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList(),
+                    FacilityNames = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
+                    CreatedByName = e.CreatedByUser != null
+                        ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName
+                        : "Admin",
+                    CreatedByRole = e.CreatedByUser != null ? "Group Leader" : "Admin",
+                    ApprovalStatus = e.ApprovalStatus
+                }).ToListAsync();
+        }
+
+        public async Task<EventDetailsReadOnlyViewModel?> GetEventDetailsReadOnlyAsync(int id)
+        {
+            return await _context.Events
+                .AsNoTracking()
+                .Where(e => e.EventId == id && !e.IsArchived)
+                .Select(e => new EventDetailsReadOnlyViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    EventDescription = e.EventDescription,
+                    ApprovalStatus = e.ApprovalStatus,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    IsAllDay = e.IsAllDay,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    FacilityNames = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
+                    FacilityPhotoUrl = e.ExpectedFacilities
+                        .SelectMany(f => f.Facility.FacilityPhotos)
+                        .Select(p => p.PhotoUrl)
+                        .FirstOrDefault(),
+                    GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList(),
+                    CreatedByName = e.CreatedByUser != null
+                        ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName
+                        : "Admin",
+                    CreatedByRole = e.CreatedByUser != null ? "Group Leader" : "Admin"
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+        // Events an admin created and assigned to this leader's group — not events the leader created themselves
+        public async Task<List<EventListItemViewModel>> GetAssignedEventsForLeaderAsync(int leaderMemberId)
+        {
+            return await _context.Events
+                .Where(e => !e.IsArchived
+                         && e.ApprovalStatus == ApprovalStatus.Approved
+                         && e.CreatedByUserId != leaderMemberId
+                         && e.ExpectedGroups.Any(eg => eg.Group.LeaderId == leaderMemberId))
+                .OrderByDescending(e => e.StartDate)
+                .Select(e => new EventListItemViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    StartDate = e.StartDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    ApprovalStatus = e.ApprovalStatus,
+                    DateCreated = e.DateCreated,
+                    ApprovedDate = e.ApprovedDate,
+                    SubmittedByName = "Admin",
+                    FacilityNames = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
+                    GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList()
+                }).ToListAsync();
         }
 
     }

@@ -71,9 +71,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 PositionId = c.positionId,
                 PositionName = c.Position.PositionName,
                 FullName = c.Member.FirstName + " " + c.Member.LastName,
-                PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
+                PhotoUrl = string.IsNullOrEmpty(c.Member.User.ProfilePictureUrl)
                     ? "/images/default-avatar.png"
-                    : c.Member.ProfilePictureUrl
+                    : c.Member.User.ProfilePictureUrl
             }).ToList()
         })
       .FirstOrDefaultAsync();
@@ -114,9 +114,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             PositionName = p.PositionName,
                             FullName = c.Member.FullName,
                             MemberId = c.MemberId,
-                            PhotoUrl = string.IsNullOrEmpty(c.Member.ProfilePictureUrl)
+                            PhotoUrl = string.IsNullOrEmpty(c.Member.User.ProfilePictureUrl)
                               ? "/images/default-avatar.png"
-                              : c.Member.ProfilePictureUrl
+                              : c.Member.User.ProfilePictureUrl
                         }
                     }).ToList();
     
@@ -364,7 +364,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     MemberId = x.Member.MemberId,
                     FullName = x.Member.FirstName + " " + x.Member.LastName,
-                    PhotoUrl = x.Member.ProfilePictureUrl
+                    PhotoUrl = x.Member.User.ProfilePictureUrl
                 })
                 .ToListAsync();
         }

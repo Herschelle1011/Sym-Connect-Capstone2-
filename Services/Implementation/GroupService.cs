@@ -17,12 +17,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     {
         private readonly AppDbContext _context;
         private readonly UserManager<User> _userManager;
+        private readonly INotificationService _notificationService;
 
 
-        public GroupService(AppDbContext context, UserManager<User> userManager)
+        public GroupService(AppDbContext context, UserManager<User> userManager, INotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
+            _notificationService = notificationService;
         }
 
         //GET ALL GROUPS
@@ -61,9 +63,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Description = g.Description,
                     Status = g.Status,
                     LeaderId = g.LeaderId,
+                    PhotoUrl = g.Leader.User != null && !string.IsNullOrEmpty(g.Leader.User.ProfilePictureUrl)
+                        ? g.Leader.User.ProfilePictureUrl
+                        : "/images/default-avatar.png",
                     LeaderEmail = g.Leader != null ? g.Leader.User.Email : "Unverified",
                     LeaderName = g.Leader != null ? g.Leader.FirstName + " " + g.Leader.LastName : "No Leader Assigned",
                     LeaderContact = g.Leader != null ? g.Leader.ContactNumber : "N/A",
+
+                    TotalPoints = g.GroupDetails
+                .Where(gd => gd.MemberId != null)
+                .Sum(gd => (int?)gd.Member!.EarnedPoints) ?? 0,
+
 
                     Members = g.GroupDetails.Where(m => m.MemberId != null)
                     .Select(gd => new GroupMemberViewModel
@@ -71,14 +81,89 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         MemberId = gd.MemberId ?? 0,
                         FullName = gd.Member!.FullName,
                         Email = gd.Member.User.Email,
+                        PhotoUrl = !string.IsNullOrEmpty(gd.Member.User.ProfilePictureUrl)
+                        ? gd.Member.User.ProfilePictureUrl
+                        : "/images/default-avatar.png",
                         ContactNumber = gd.Member.ContactNumber,
+                        EarnedPoints = gd.Member.EarnedPoints,
                         Status = gd.Member.Status,
                         DateRegistered = gd.Member.DateRegistered
                     }).ToList()
                 }).FirstOrDefaultAsync();
 
+            if (group?.Members?.Any() == true)
+            {
+                var topPoints = group.Members.Max(m => m.EarnedPoints);
+                foreach (var m in group.Members.Where(m => m.EarnedPoints == topPoints))
+                {
+                    m.IsTopContributor = true;
+                }
+            }
+
             return group;
         }
+
+        //PROMOTE FROM MEMBER TO LEADER
+        public async Task<OperationalResult> PromoteMemberToLeaderAsync(int groupId, int newLeaderId)
+        {
+            var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == groupId && !g.IsArchived);
+            if (group == null)
+            {
+                return new OperationalResult { Success = false, Message = "Group not found" };
+            }
+
+            var groupDetail = await _context.GroupDetails
+                .FirstOrDefaultAsync(gd => gd.GroupId == groupId && gd.MemberId == newLeaderId);
+            if (groupDetail == null)
+            {
+                return new OperationalResult { Success = false, Message = "Member is not part of this group" };
+            }
+
+            var newLeader = await _context.Members.FindAsync(newLeaderId);
+            if (newLeader == null)
+            {
+                return new OperationalResult { Success = false, Message = "Member not found" };
+            }
+
+            int? oldLeaderId = group.LeaderId;
+
+            // New leader steps up: remove from GroupDetails (leaders aren't tracked there), assign as LeaderId
+            _context.GroupDetails.Remove(groupDetail);
+            group.LeaderId = newLeaderId;
+
+            // Old leader steps down into the member list
+            if (oldLeaderId.HasValue && oldLeaderId != newLeaderId)
+            {
+                _context.GroupDetails.Add(new GroupDetails
+                {
+                    GroupId = groupId,
+                    MemberId = oldLeaderId.Value
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            await AddLeaderRoleAsync(newLeaderId);
+            if (oldLeaderId.HasValue && oldLeaderId != newLeaderId)
+            {
+                await RemoveLeaderRoleIfNeededAsync(oldLeaderId.Value);
+            }
+
+            // Notify the newly promoted leader
+            if (!string.IsNullOrEmpty(newLeader.UserId))
+            {
+                await _notificationService.NotifyUserAsync(
+                    newLeader.UserId,
+                    "You're now a group leader",
+                    $"You have been promoted to leader of {group.GroupName}.",
+                   $"Leader/Groups/Details/{group.GroupId}"
+                );
+            }
+
+            return new OperationalResult { Success = true, Message = $"{newLeader.FullName} is now the leader of {group.GroupName}" };
+        }
+
+
 
         //CREATE GROUP
         public async Task<OperationalResult> CreateGroupAsync(GroupCreateViewModel vm)
@@ -124,6 +209,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             ExistingGroup.Description = vm.Description;
             ExistingGroup.Status = vm.Status;
             ExistingGroup.LeaderId = vm.LeaderId;
+            
 
             await _context.SaveChangesAsync();
 
@@ -238,7 +324,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     LastName = m.LastName,
                     Email = m.User != null ? (m.User.Email ?? "Unverified") : "Unverified",
                     Points = m.EarnedPoints,
-                    PhotoUrl = m.ProfilePictureUrl
+                    PhotoUrl = m.User != null ? m.User.ProfilePictureUrl : ""
                 }).ToListAsync();
 
         }
@@ -310,38 +396,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.Groups.AnyAsync(e => e.GroupName == name && e.IsArchived == false && (excludeId == null || e.GroupId != excludeId.Value));
         }
-
-        public async Task<OperationalResult> ArchiveGroupAsync(int? id)
-        {
-            var group = await _context.Groups.FindAsync(id);
-
-            if (group == null)
-            {
-                return new OperationalResult
-                {
-                    Success = false,
-                    Message = "Group does not exist"
-                };
-            }
-            int? oldLeaderId = group.LeaderId;
-
-
-            if (group == null) return new OperationalResult { Success = false, Message = "Group not existed" };
-            group.Status = "Inactive";
-            group.IsArchived = true;
-            group.ArchivedDate = DateTime.Now;
-            group.Leader = null;
-            group.LeaderId = null;
-            await _context.SaveChangesAsync();
-
-            if (oldLeaderId.HasValue)
-            {
-                await RemoveLeaderRoleIfNeededAsync(
-                    oldLeaderId.Value);
-            }
-            return new OperationalResult { Success = true, Message = "Group saved to archived" };
-        }
-
 
         public async Task<OperationalResult> RemoveMemberFromGroupAsync(int groupId, int memberId)
         {
@@ -477,6 +531,178 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
         }
 
+        // GET ARCHIVED GROUPS
+        public async Task<GroupListViewModel?> GetArchivedModalGroups(int id)
+        {
+            return await _context.Groups
+                .AsNoTracking()
+                .Where(g => g.IsArchived == false && g.GroupId == id)
+                .Select(g => new GroupListViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+                    LeaderName = g.Leader != null ? g.Leader.FullName : "",
+                    LeaderEmail = g.Leader.User != null ? g.Leader.User.Email : "",
+                    Status = g.Status,
+                    Members = new List<GroupMemberViewModel>(),
+                    MemberCount = _context.GroupDetails
+                   .Count(gd => gd.GroupId == g.GroupId)
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        // ARCHIVE GROUP POST
+        public async Task<OperationalResult> ArchiveGroupAsync(int? id)
+        {
+            var group = await _context.Groups.FindAsync(id);
+            if (group == null)
+            {
+                return new OperationalResult { Success = false, Message = "Group does not exist" };
+            }
+
+            int? oldLeaderId = group.LeaderId;
+
+            var groupMembers = await _context.GroupDetails
+                .Where(gd => gd.GroupId == id)
+                .ToListAsync();
+            _context.GroupDetails.RemoveRange(groupMembers);
+
+            group.Status = "Inactive";
+            group.IsArchived = true;
+            group.ArchivedDate = DateTime.Now;
+            group.Leader = null;
+            group.LeaderId = null;
+
+            await _context.SaveChangesAsync();
+
+            if (oldLeaderId.HasValue)
+            {
+                await RemoveLeaderRoleIfNeededAsync(oldLeaderId.Value);
+            }
+
+            return new OperationalResult { Success = true, Message = "Group archived" };
+        }
+
+        // GET ARCHIVED GROUPS
+        public async Task<List<GroupListViewModel>> GetArchivedGroupsAsync()
+        {
+            return await _context.Groups
+                .AsNoTracking()
+                .Where(g => g.IsArchived)
+                .OrderByDescending(g => g.ArchivedDate)
+                .Select(g => new GroupListViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+                    LeaderName = "N/A", // always true post-archive
+                    LeaderEmail = "N/A",
+                    Status = g.Status,
+                    Members = new List<GroupMemberViewModel>() 
+                }).ToListAsync();
+        }
+
+        // RESTORE GROUP — leader is mandatory, not optional
+        public async Task<OperationalResult> RestoreGroupAsync(int id, int leaderId)
+        {
+            var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == id);
+            if (group == null || !group.IsArchived)
+            {
+                return new OperationalResult { Success = false, Message = "Archived group not found" };
+            }
+
+            var leader = await _context.Members
+                .FirstOrDefaultAsync(m => m.MemberId == leaderId
+                    && m.ApplicationStatus == MembershipApplicationStatus.Approved
+                    && m.Status == "Active");
+            if (leader == null)
+            {
+                return new OperationalResult { Success = false, Message = "Selected leader is not eligible" };
+            }
+
+            bool alreadyLeadsElsewhere = await _context.Groups
+                .AnyAsync(g => g.LeaderId == leaderId && !g.IsArchived);
+            bool alreadyInAnotherGroup = await _context.GroupDetails
+                .AnyAsync(gd => gd.MemberId == leaderId);
+            if (alreadyLeadsElsewhere || alreadyInAnotherGroup)
+            {
+                return new OperationalResult { Success = false, Message = "This member is already assigned to another group" };
+            }
+            group.IsArchived = false;
+            group.ArchivedDate = null;
+            group.Status = "Active";
+            group.LeaderId = leaderId;
+            await _context.SaveChangesAsync();
+            await AddLeaderRoleAsync(leaderId);
+            return new OperationalResult { Success = true, Message = $"{group.GroupName} restored" };
+        }
+
+
+
+
+
+
+
+        //== LEADERS VIEW ===== 
+        // GET GROUP FOR LEADER — view-only, scoped to the group this member leads
+        public async Task<LeaderGroupViewModel?> GetGroupForLeaderAsync(int leaderId, string? search = null, string? sort = "points_desc")
+        {
+            var query = _context.Groups
+                .AsNoTracking()
+                .Where(g => g.LeaderId == leaderId && !g.IsArchived);
+
+            var group = await query
+                .Select(g => new LeaderGroupViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+                    TotalMembers = g.GroupDetails.Count(gd => gd.MemberId != null),
+                    Members = g.GroupDetails
+                        .Where(gd => gd.MemberId != null)
+                        .Select(gd => new LeaderGroupMemberViewModel
+                        {
+                            MemberId = gd.MemberId ?? 0,
+                            LastName = gd.Member!.LastName,
+                            FirstName = gd.Member.FirstName,
+                            MiddleName = gd.Member.MiddleName,
+                            Status = gd.Member.Status,
+                            EarnedPoints = gd.Member.EarnedPoints,
+                            Email = gd.Member.User.Email,
+                            ContactNumber = gd.Member.ContactNumber,
+                            PhotoUrl = !string.IsNullOrEmpty(gd.Member.User.ProfilePictureUrl)
+                            ? gd.Member.User.ProfilePictureUrl
+                            : "/images/default-avatar.png",
+                            DateRegistered = gd.Member.DateRegistered
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (group == null) return null;
+
+            // Search filter (name only — this is a view screen, keep it simple)
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                group.Members = group.Members
+                    .Where(m => $"{m.FirstName} {m.LastName}".Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            // Sort
+            group.Members = sort switch
+            {
+                "points_asc" => group.Members.OrderBy(m => m.EarnedPoints).ToList(),
+                "name_asc" => group.Members.OrderBy(m => m.LastName).ToList(),
+                "name_desc" => group.Members.OrderByDescending(m => m.LastName).ToList(),
+                _ => group.Members.OrderByDescending(m => m.EarnedPoints).ToList() // "points_desc" default
+            };
+
+            // Row numbers for the "Id no." column — display order, not MemberId
+            for (int i = 0; i < group.Members.Count; i++)
+            {
+                group.Members[i].RowNumber = i + 1;
+            }
+
+            return group;
+        }
 
 
     }

@@ -1,0 +1,34 @@
+﻿@model PromoteLeaderViewModel
+
+<form id="promoteLeaderForm"
+      class="modal-ajax-form"
+      asp-action="PromoteToLeader"
+      asp-controller="Groups"
+      method="post">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="GroupId" />
+    <input type="hidden" asp-for="MemberId" />
+
+    <p>
+        Make <strong>@Model.MemberName</strong> the leader of
+        <strong>@Model.GroupName</strong>?
+    </p>
+
+    <p class="text-muted" style="font-size:13px;">
+        @Model.CurrentLeaderName will be moved back into the members list.
+    </p>
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn-outline-sm" onclick="closeModal()">
+            Cancel
+        </button>
+
+        <button type="submit" class="btn-add-member">
+            Confirm
+        </button>
+    </div>
+</form>
+
+

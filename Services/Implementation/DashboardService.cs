@@ -4,6 +4,7 @@ using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Dashboard;
+using Sym_Connect__Capstone2_.ViewModels.Event;
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
@@ -157,6 +158,24 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
         }
 
+
+        public async Task<List<EventListItemViewModel>> GetRecentEventRequestsAsync(int take = 5)
+        {
+            return await _context.Events
+                .AsNoTracking()
+                .Where(e => !e.IsArchived)
+                .OrderByDescending(e => e.DateCreated)
+                .Take(take)
+                .Select(e => new EventListItemViewModel
+                {
+                    EventTitle = e.EventTitle,
+                    GroupNames = e.ExpectedGroups.Select(g => g.Group.GroupName).ToList(), 
+                    SubmittedByName = e.CreatedByUser.FullName ?? "",           
+                    DateCreated = e.DateCreated,
+                    ApprovalStatus = e.ApprovalStatus
+                })
+                .ToListAsync();
+        }
 
 
     }

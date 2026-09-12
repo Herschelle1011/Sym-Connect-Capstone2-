@@ -195,6 +195,8 @@
 
                         <th>Status</th>
 
+                        <th class="text-center">Action</th>
+
                     </tr>
                 </thead>
 
@@ -221,7 +223,7 @@
                                                 "Profile",
                                                 "YouthMembers",
                                                 new { area = "Admin", id = item.MemberId })"
-                                data-title="Member Profile">
+                                data-title="Member Profile" data-modal-size="lg">
 
                                 <td>@item.MemberId.ToString("D4")</td>
                                 <td>@item.FirstName</td>
@@ -241,6 +243,35 @@
                                         @item.Status
                                     </span>
                                 </td>
+
+                                <td class="member-actions-cell">
+
+                                    @if (item.Status == "Active")
+                                    {
+                                        <button type="button"
+                                                class="member-action-btn archive-member-btn"
+                                                data-url="@Url.Action(
+                                                                    "ArchiveModal",
+                                                                    "YouthMembers",
+                                                                    new
+                                                                    {
+                                                                        area = "Admin",
+                                                                        id = item.MemberId
+                                                                    })"
+                                                data-title="Archive Member"
+                                                data-modal-size="sm"
+                                                data-bs-toggle="tooltip"
+                                                data-bs-placement="top"
+                                                title="Archive member">
+
+                                            <i class="bi bi-archive"></i>
+
+                                        </button>
+                                    }
+
+                                </td>
+
+
                             </tr>
                         }
                     }
@@ -396,7 +427,8 @@
                                                                         area = "Admin",
                                                                         id = item.MemberId
                                                                     })"
-                                data-title="Applicant Information">
+                                data-title="Applicant Information" 
+                                data-modal-size="lg">
 
 
                                 <td>
@@ -483,6 +515,13 @@
     <script src="~/js/admin/membersTable.js"></script>
 
     <script>
+        const tooltipTriggerList =
+        document.querySelectorAll('[data-bs-toggle="tooltip"]');
+
+        tooltipTriggerList.forEach(function (element) {
+        new bootstrap.Tooltip(element);
+        });
+
 
         document.addEventListener("DOMContentLoaded", function () {
 
@@ -598,6 +637,47 @@
                 }
             })();
 
+
+
+        document.querySelectorAll(".archive-member-btn").forEach(function (button) {
+
+        button.addEventListener("click", async function (event) {
+
+        // Prevent the member profile row from opening
+        event.stopPropagation();
+
+        const url = this.dataset.url;
+        const title = this.dataset.title;
+
+        try {
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+        throw new Error("Unable to load archive modal.");
+        }
+
+        const html = await response.text();
+
+        const modalElement = document.getElementById("appModal");
+        const modalTitle = modalElement.querySelector(".modal-title");
+        const modalBody = modalElement.querySelector(".modal-body");
+
+        modalTitle.textContent = title;
+        modalBody.innerHTML = html;
+
+        const modal =
+        bootstrap.Modal.getOrCreateInstance(modalElement);
+
+        modal.show();
+
+        }
+        catch (error) {
+        console.error("Unable to open archive modal:", error);
+        }
+        });
+
+        });
         });
 
     </script>

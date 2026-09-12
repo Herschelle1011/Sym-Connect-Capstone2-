@@ -127,8 +127,18 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             var guard = await AuthorizeEvent(req.EventId);
             if (guard != null) return guard;
 
-            var result = await _eventService.RecordTimeInAsync(req.QrToken, req.EventId);
-            return Json(new { sucess = result.Success, message = result.Message });
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Json(new { success = false, message = "Session expired. Please verify your identity again." });
+
+            var result = await _eventService.RecordTimeInAsync(
+                req.QrToken,
+                req.EventId,
+                user.Id,
+                user.MemberId,
+                isAdmin: false);
+
+            return Json(new { success = result.Success, message = result.Message });
         }
 
 
@@ -307,6 +317,50 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
             return PartialView("_GroupAttendanceModal", groupAttendanceDetails); // reuse the partial too
         }
+
+
+        // GET: /Leader/Events/AllEvents
+        [HttpGet]
+        public async Task<IActionResult> AllEvents()
+        {
+            var events = await _eventService.GetAllApprovedEventsForOrgAsync();
+
+            ViewBag.Groups = await _groupService.GetAllGroupsAsync();
+            ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
+
+            return View(events);
+        }
+
+        // GET: /Leader/Events/AllEventsDetails/5
+        // Separate from the existing Details action so the modal can hide
+        // Edit/Approve/Reject controls that only make sense for the owning leader.
+        [HttpGet]
+        public async Task<IActionResult> AllEventsDetails(int id)
+        {
+            var eventDetails = await _eventService.GetEventDetailsReadOnlyAsync(id);
+            if (eventDetails == null) return NotFound();
+
+            return PartialView("_AllEventsDetailsModal", eventDetails);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AssignedEvents()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.MemberId == null) return Unauthorized();
+
+            bool isLeader = await _groupService.IsMemberALeaderAsync(user.MemberId);
+            if (!isLeader) return Forbid();
+
+            var events = await _eventService.GetAssignedEventsForLeaderAsync(user.MemberId.Value);
+
+            ViewBag.FormController = "Events";
+            ViewBag.FormArea = "Leader";
+
+            return View(events);
+        }
+
+
     }
 
 

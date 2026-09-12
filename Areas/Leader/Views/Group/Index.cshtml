@@ -1,0 +1,277 @@
+﻿@model LeaderGroupViewModel
+@{
+    ViewData["Title"] = Model.GroupName;
+    Layout = "_LeaderLayout";
+}
+
+<style>
+    .leader-group-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 1.5rem 0 1rem;
+    }
+
+    .leader-group-title {
+        font-size: 26px;
+        font-weight: 800;
+        color: #1a1f2b;
+        margin: 0;
+    }
+
+    .leader-member-count {
+        text-align: right;
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a1f2b;
+        line-height: 1.1;
+    }
+
+        .leader-member-count .label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #9aa3b8;
+        }
+
+    .leader-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .leader-tab-group {
+        display: inline-flex;
+        background: #f3f4f6;
+        border-radius: 10px;
+        padding: 4px;
+        gap: 2px;
+    }
+
+    .leader-tab-btn {
+        border: none;
+        background: transparent;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #6b7280;
+        cursor: pointer;
+    }
+
+        .leader-tab-btn.active {
+            background: #3860D6;
+            color: #fff;
+        }
+
+    .leader-search-sort {
+        display: flex;
+        gap: 10px;
+    }
+
+    .leader-search-box {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 9px 14px;
+        min-width: 260px;
+        background: #fff;
+    }
+
+        .leader-search-box input {
+            border: none;
+            outline: none;
+            font-size: 13.5px;
+            width: 100%;
+        }
+
+    .leader-sort-select {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 9px 14px;
+        font-size: 13.5px;
+        color: #374151;
+        background: #fff;
+    }
+
+    .leader-table-card {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid #eef0f5;
+    }
+
+    .leader-members-table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+        .leader-members-table thead th {
+            background: #3860D6;
+            color: #fff;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 14px 20px;
+            border: none;
+        }
+
+        .leader-members-table tbody td {
+            padding: 14px 20px;
+            font-size: 13.5px;
+            color: #374151;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .leader-members-table tbody tr {
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+
+            .leader-members-table tbody tr:hover {
+                background: #f8faff;
+            }
+
+    .leader-status-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        border-radius: 999px;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .leader-info-icon {
+        color: #9aa3b8;
+        font-size: 17px;
+    }
+</style>
+
+<div class="leader-group-header">
+    <h1 class="leader-group-title">@Model.GroupName</h1>
+    <div class="leader-member-count">
+        @Model.TotalMembers
+        <span class="label">Members</span>
+    </div>
+</div>
+
+<div class="leader-toolbar">
+    <div class="leader-tab-group">
+        <button class="leader-tab-btn active" onclick="filterStatus('all', this)">All</button>
+        <button class="leader-tab-btn" onclick="filterStatus('Active', this)">Active</button>
+        <button class="leader-tab-btn" onclick="filterStatus('Inactive', this)">Inactive</button>
+    </div>
+
+    <div class="leader-search-sort">
+        <div class="leader-search-box">
+            <i class="ti ti-search" style="color:#9ca3af;"></i>
+            <input id="memberSearchInput" type="text" placeholder="Search your members" oninput="debouncedSearch()" />
+        </div>
+        <select id="sortSelect" class="leader-sort-select" onchange="applySort()">
+            <option value="points_desc">Sort: Highest points</option>
+            <option value="points_asc">Sort: Lowest points</option>
+            <option value="name_asc">Sort: Name A–Z</option>
+            <option value="name_desc">Sort: Name Z–A</option>
+        </select>
+    </div>
+</div>
+
+<div class="leader-table-card">
+    <table class="leader-members-table">
+        <thead>
+            <tr>
+                <th>Id no.</th>
+                <th>Member</th>
+                <th>Status</th>
+                <th>Points</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="membersTableBody">
+            @await Html.PartialAsync("_LeaderMembersTable", Model)
+        </tbody>
+    </table>
+</div>
+
+@await Html.PartialAsync("_MemberProfileModal")
+
+@section Scripts {
+    <script>
+        let searchTimer;
+        function debouncedSearch() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(refreshMembers, 300);
+        }
+
+        function applySort() {
+            refreshMembers();
+        }
+
+        let currentStatusFilter = "all";
+        function filterStatus(status, btn) {
+            currentStatusFilter = status;
+            document.querySelectorAll(".leader-tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            refreshMembers();
+        }
+
+        function refreshMembers() {
+            const search = document.getElementById("memberSearchInput").value;
+            const sort = document.getElementById("sortSelect").value;
+
+            fetch(`@Url.Action("RefreshMembers", "Group")?search=${encodeURIComponent(search)}&sort=${sort}`)
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById("membersTableBody").innerHTML = html;
+                    applyStatusFilter();
+                    bindRowClicks();
+                });
+        }
+
+        function applyStatusFilter() {
+            document.querySelectorAll("#membersTableBody tr").forEach(row => {
+                if (currentStatusFilter === "all" || row.dataset.status === currentStatusFilter) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        function bindRowClicks() {
+            document.querySelectorAll("#membersTableBody tr").forEach(row => {
+                row.addEventListener("click", function () {
+                    showMemberProfile(this.dataset);
+                });
+            });
+        }
+
+        function showMemberProfile(data) {
+            document.getElementById("profilePhoto").src = data.photo;
+            document.getElementById("profileName").textContent = data.name;
+            document.getElementById("profileEmail").textContent = data.email;
+            document.getElementById("profileContact").textContent = data.contact;
+            document.getElementById("profileStatus").textContent = data.status;
+            document.getElementById("profileStatus").className = "leader-status-badge " +
+                (data.status === "Active" ? "status-active" : "status-inactive");
+            document.getElementById("profilePoints").textContent = data.points;
+            document.getElementById("profileJoined").textContent = data.joined;
+
+            new bootstrap.Modal(document.getElementById("memberProfileModal")).show();
+        }
+
+        document.addEventListener("DOMContentLoaded", bindRowClicks);
+    </script>
+}

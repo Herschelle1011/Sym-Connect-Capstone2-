@@ -125,11 +125,10 @@ namespace Sym_Connect__Capstone2_.Seed
                 ContactNumber = contactNumber,
                 Gender = gender,
                 Status = "Active",
-                ProfilePictureUrl = photoUrl,
                 DateRegistered = DateTime.Now,
                 ApplicationStatus = MembershipApplicationStatus.Approved
             };
-
+            member.User.ProfilePictureUrl = photoUrl;
             context.Members.Add(member);
             await context.SaveChangesAsync();
 

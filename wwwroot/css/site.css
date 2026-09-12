@@ -252,18 +252,404 @@ body {
     font-weight: 500;
 }
 
-/* Default — small confirmations like Archive */
+/* =========================================
+   GLOBAL APP MODAL SIZES
+   ========================================= */
+
 #appModal .app-modal-dialog {
+    width: calc(100% - 32px);
     max-width: 480px;
 }
 
-    /* Medium — forms like Create/Edit Announcement */
-    #appModal .app-modal-dialog.modal-size-md {
+    /* Bootstrap modal-md/custom medium */
+    #appModal .app-modal-dialog.modal-md {
         max-width: 640px;
     }
 
-    /* Large — content that genuinely needs the room (photo uploads, multi-column forms) */
-    #appModal .app-modal-dialog.modal-size-lg {
+    /* Large modal */
+    #appModal .app-modal-dialog.modal-lg {
         max-width: 880px;
-        width: calc(100% - 32px);
     }
+
+    /* Extra large */
+    #appModal .app-modal-dialog.modal-xl {
+        max-width: 1100px;
+    }
+
+#appModal .modal-content {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   APPLICANT DETAILS MODAL
+========================================================= */
+
+.applicant-details-wrapper {
+    width: 100%;
+    padding: 4px;
+    background: #ffffff;
+}
+
+
+/* =========================================================
+   MAIN SECTION BOX
+========================================================= */
+
+.applicant-details-section {
+    border: 1px solid #d8dde3;
+    border-radius: 7px;
+    background: #ffffff;
+    padding: 8px 10px 13px;
+    margin-bottom: 9px;
+}
+
+
+/* =========================================================
+   LIGHT BLUE SECTION HEADER
+========================================================= */
+
+.applicant-section-title {
+    width: 100%;
+    min-height: 29px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 11px;
+    border-radius: 6px;
+    background: #d8f0fb;
+    color: #1289c5;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+    .applicant-section-title i {
+        font-size: 14px;
+    }
+
+
+/* =========================================================
+   TOP APPLICANT SUMMARY
+========================================================= */
+
+.applicant-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 11px 7px 10px;
+}
+
+
+/* LEFT SIDE */
+
+.applicant-summary-left {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-width: 0;
+}
+
+.applicant-profile-image {
+    width: 57px;
+    height: 57px;
+    flex: 0 0 57px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e7ebef;
+}
+
+.applicant-summary-text {
+    min-width: 0;
+}
+
+.applicant-full-name {
+    margin-bottom: 2px;
+    color: #474c52;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.applicant-status {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 12px;
+    background: #fff3a8;
+    color: #8f7907;
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.applicant-applied-date {
+    margin-top: 4px;
+    color: #a1a8b0;
+    font-size: 7.5px;
+}
+
+
+/* =========================================================
+   GROUP BOX
+========================================================= */
+
+.applicant-group-box {
+    width: 205px;
+    min-height: 47px;
+    flex: 0 0 205px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border: 1px solid #e0e3e7;
+    border-radius: 7px;
+    background: #fafafa;
+}
+
+.applicant-group-icon {
+    color: #62b5df;
+    font-size: 20px;
+}
+
+.applicant-group-label {
+    color: #9b9fa5;
+    font-size: 8px;
+    line-height: 1.2;
+}
+
+.applicant-group-name {
+    margin-top: 2px;
+    color: #555a60;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+
+/* =========================================================
+   DIVIDER
+========================================================= */
+
+.applicant-divider {
+    width: calc(100% - 12px);
+    margin: 0 auto 13px;
+    border-top: 1px solid #e5e9ed;
+}
+
+
+/* =========================================================
+   DETAILS GRID
+========================================================= */
+
+.applicant-information-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 65px;
+    row-gap: 12px;
+    padding: 0 42px;
+}
+
+.applicant-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+}
+
+.applicant-info-icon {
+    width: 14px;
+    flex: 0 0 14px;
+    padding-top: 1px;
+    color: #6bbce4;
+    font-size: 11px;
+}
+
+.applicant-info-label {
+    margin-bottom: 2px;
+    color: #7f878f;
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+.applicant-info-value {
+    color: #3f4449;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   MEMBERSHIP APPLICATION DETAILS
+========================================================= */
+
+.application-details-section {
+    padding-bottom: 8px;
+}
+
+.application-status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+    padding: 9px 40px 1px;
+}
+
+.application-status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.application-check {
+    width: 19px;
+    height: 19px;
+    flex: 0 0 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+    .application-check.success {
+        background: #10b925;
+    }
+
+    .application-check.failed {
+        background: #dc3545;
+    }
+
+.application-status-text {
+    color: #44494e;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.applicant-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 12px 7px 3px;
+}
+
+.applicant-action-btn {
+    min-width: 101px;
+    height: 33px;
+    padding: 0 20px;
+    border: none;
+    border-radius: 9px;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .applicant-action-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .applicant-action-btn:active {
+        transform: translateY(0);
+    }
+
+
+/* Reject */
+
+.reject-btn {
+    background: #c90e0e;
+}
+
+    .reject-btn:hover {
+        background: #ad0c0c;
+    }
+
+
+/* Approve */
+
+.approve-btn {
+    background: #078acb;
+}
+
+    .approve-btn:hover {
+        background: #0678b1;
+    }
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .applicant-summary-row {
+        flex-direction: column;
+    }
+
+    .applicant-group-box {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    .applicant-information-grid {
+        grid-template-columns: 1fr;
+        padding: 0 15px;
+        column-gap: 0;
+    }
+
+    .application-status-grid {
+        grid-template-columns: 1fr;
+        padding: 10px 15px 2px;
+        gap: 12px;
+    }
+
+    .applicant-modal-actions {
+        width: 100%;
+    }
+
+    .applicant-action-btn {
+        flex: 1;
+    }
+}
+
+#globalModal .modal-dialog {
+    max-width: 820px;
+}
+
+.member-actions-cell {
+    width: 70px;
+    text-align: center;
+}
+
+.member-action-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+    .member-action-btn i {
+        font-size: 15px;
+    }
+
+.archive-member-btn:hover {
+    background: #fff7ed;
+    color: #b45309;
+}

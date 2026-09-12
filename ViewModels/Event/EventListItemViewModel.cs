@@ -16,7 +16,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string Description { get; set; } = string.Empty;
 
         public ApprovalStatus ApprovalStatus { get; set; }
-        public DateTime DateCreated { get; set; }
+        public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public DateTime? ApprovedDate { get; set; }
         public string? RejectionReason { get; set; }
         public string? ApproveByName { get; set; }

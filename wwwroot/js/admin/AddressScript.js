@@ -10,7 +10,7 @@
 // DELEGATED EVENT LISTENERS
 // =========================
 
-
+let addressInitialized = false;
 
 document.addEventListener(
     "change",
@@ -92,16 +92,37 @@ function handleBarangayChange(
 // MODAL OPEN
 // =========================
 
-document.addEventListener('shown.bs.modal', function () {
+document.addEventListener(
+    "shown.bs.modal",
+    async function (e) {
 
-    const provinceSelect =
-        document.getElementById('provinceSelect');
+        if (
+            e.target.id !==
+            "membershipRegistrationModal"
+        ) {
+            return;
+        }
 
-    if (provinceSelect) {
-        initializeAddress(provinceSelect);
+        if (addressInitialized) {
+            return;
+        }
+
+        const provinceSelect =
+            document.getElementById(
+                "provinceSelect"
+            );
+
+        if (!provinceSelect) {
+            return;
+        }
+
+        await initializeAddress(
+            provinceSelect
+        );
+
+        addressInitialized = true;
     }
-
-});
+);
 
 
 // =========================

@@ -459,3 +459,47 @@ body {
 .nav-dropdown.open .dropdown-arrow {
     transform: rotate(180deg);
 }
+
+
+.nav-item-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-toggle-caret {
+    margin-left: auto;
+    font-size: 0.75rem;
+    transition: transform 0.2s ease;
+}
+
+.nav-item-toggle[aria-expanded="true"] .nav-toggle-caret {
+    transform: rotate(180deg);
+}
+
+.nav-submenu {
+    display: flex;
+    flex-direction: column;
+    padding-left: 1.75rem;
+}
+
+.nav-subitem {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.9rem;
+    color: inherit;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+    .nav-subitem:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .nav-subitem.active {
+        background-color: rgba(74, 108, 247, 0.1);
+        color: #4a6cf7;
+        font-weight: 500;
+    }

@@ -1,0 +1,69 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Event.EventDetailsReadOnlyViewModel
+@{
+    string FormatTime(TimeSpan? t) => t.HasValue ? DateTime.Today.Add(t.Value).ToString("h:mm tt") : "";
+    var organizedBy = Model.GroupNames.Any() ? string.Join(", ", Model.GroupNames) : "All Groups";
+    var facilityText = Model.FacilityNames.Any() ? string.Join(", ", Model.FacilityNames) : "-";
+    var fallbackPhoto = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.EventTitle)}&background=e9ecef&color=6c757d&size=400";
+}
+
+<div class="event-details-readonly-modal">
+    <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title d-flex align-items-center gap-2 mb-0">
+            <i class="bi bi-calendar-event"></i> Event Details
+        </h5>
+    </div>
+
+    <div class="modal-body pt-2">
+        <img src="@(string.IsNullOrEmpty(Model.FacilityPhotoUrl) ? fallbackPhoto : Model.FacilityPhotoUrl)"
+             class="img-fluid rounded mb-3 w-100"
+             style="max-height:180px; object-fit:cover;"
+             alt="@facilityText" />
+
+        <div class="d-flex justify-content-between align-items-start mb-1">
+            <div>
+                <h5 class="mb-0">@Model.EventTitle</h5>
+                <small class="text-muted">Organized by @organizedBy</small>
+            </div>
+            <span class="badge bg-success-subtle text-success">@Model.ApprovalStatus</span>
+        </div>
+
+        <hr />
+
+        <ul class="list-unstyled mb-3">
+            <li class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-calendar3 text-muted"></i>
+                <span>@Model.StartDate.ToString("dddd, MMMM d, yyyy")</span>
+            </li>
+            <li class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-clock text-muted"></i>
+                <span>@(Model.IsAllDay ? "All Day" : $"{FormatTime(Model.StartTime)} \u2013 {FormatTime(Model.EndTime)}")</span>
+            </li>
+            <li class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-geo-alt text-muted"></i>
+                <span>@facilityText</span>
+            </li>
+            <li class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-people text-muted"></i>
+                <span>@organizedBy</span>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+                <i class="bi bi-person text-muted mt-1"></i>
+                <span>
+                    Created by: @Model.CreatedByName
+                    <div><small class="text-muted">@Model.CreatedByRole</small></div>
+                </span>
+            </li>
+        </ul>
+
+        <hr />
+
+        <div>
+            <h6 class="d-flex align-items-center gap-2">
+                <i class="bi bi-file-text"></i> Description
+            </h6>
+            <p class="text-muted mb-0">
+                @(string.IsNullOrWhiteSpace(Model.EventDescription) ? "No description provided." : Model.EventDescription)
+            </p>
+        </div>
+    </div>
+</div>

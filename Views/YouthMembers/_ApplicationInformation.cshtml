@@ -1,174 +1,222 @@
 ﻿@model Sym_Connect__Capstone2_.ViewModels.Member.MembershipApplicantDetailsViewModel
 
-<div class="applicant-info-modal">
+@{
+    int? age = null;
 
-    <!-- Applicant Information -->
-    <div class="card mb-3">
-        <div class="card-header bg-light-blue">
-            <i class="bi bi-person-circle"></i>
-            Applicant Information
+    if (Model.DateOfBirth.HasValue)
+    {
+        var birthDate = Model.DateOfBirth.Value;
+        var today = DateTime.Today;
+
+        age = today.Year - birthDate.Year;
+
+        if (birthDate.Date > today.AddYears(-age.Value))
+        {
+            age--;
+        }
+    }
+
+    var fullName = $"{Model.FirstName} {Model.MiddleName} {Model.LastName}".Trim();
+}
+
+<div class="applicant-details-wrapper">
+
+    <!-- =====================================================
+         APPLICANT INFORMATION
+    ====================================================== -->
+    <div class="applicant-details-section">
+
+        <div class="applicant-section-title">
+            <i class="bi bi-person-fill"></i>
+            <span>Applicant Information</span>
         </div>
 
-        <div class="card-body d-flex justify-content-between align-items-start">
+        <!-- TOP ROW -->
+        <div class="applicant-summary-row">
 
-            <div class="d-flex align-items-center gap-3">
+            <!-- Applicant -->
+            <div class="applicant-summary-left">
 
-                <img src="@(Model.ProfilePictureUrl ?? "/images/default-avatar.png")"
-                     class="rounded-circle"
-                     width="60"
-                     height="60" />
+                <img src="@(string.IsNullOrWhiteSpace(Model.ProfilePictureUrl)
+                                                 ? "/images/default-avatar.png"
+                                                 : Model.ProfilePictureUrl)"
+                     alt="@fullName"
+                     class="applicant-profile-image" />
 
-                <div>
+                <div class="applicant-summary-text">
 
-                    <h5 class="mb-1">
-                        @Model.FirstName
-                        @Model.MiddleName
-                        @Model.LastName
-                    </h5>
+                    <div class="applicant-full-name">
+                        @fullName
+                    </div>
 
-                    <span class="badge bg-warning text-dark">
+                    <span class="applicant-status">
                         Pending
                     </span>
 
                     @if (Model.DateApplied.HasValue)
                     {
-                        <small class="text-muted d-block mt-1">
-                            Applied on
-                            @Model.DateApplied.Value.ToString(
-                                "MMMM d, yyyy - h:mm tt"
-                            )
-                        </small>
+                        <div class="applicant-applied-date">
+                            Applied on @Model.DateApplied.Value.ToString("MMMM d, yyyy - h:mm tt")
+                        </div>
                     }
 
                 </div>
-
             </div>
 
-            <div class="text-end d-flex align-items-center gap-2">
 
-                <i class="bi bi-people-fill text-primary fs-4"></i>
+            <!-- Group Preference -->
+            <div class="applicant-group-box">
 
-                <div class="text-start">
+                <div class="applicant-group-icon">
+                    <i class="bi bi-people"></i>
+                </div>
 
-                    <small class="text-muted d-block">
+                <div>
+                    <div class="applicant-group-label">
                         Group Preference
-                    </small>
+                    </div>
 
-                    <strong>
-                        @Model.GroupName
-                    </strong>
-
+                    <div class="applicant-group-name">
+                        @(string.IsNullOrWhiteSpace(Model.GroupName)
+                            ? "No group selected"
+                            : Model.GroupName)
+                    </div>
                 </div>
 
             </div>
 
         </div>
-    </div>
 
 
-    <!-- Contact / Personal Details -->
-    <div class="card mb-3">
+        <div class="applicant-divider"></div>
 
-        <div class="card-body row">
 
-            <div class="col-md-6 mb-2 d-flex align-items-start gap-2">
-                <i class="bi bi-envelope text-primary"></i>
+        <!-- INFORMATION GRID -->
+        <div class="applicant-information-grid">
+
+            <!-- EMAIL -->
+            <div class="applicant-info-item">
+
+                <div class="applicant-info-icon">
+                    <i class="bi bi-envelope"></i>
+                </div>
 
                 <div>
-                    <small class="text-muted d-block">
+                    <div class="applicant-info-label">
                         Email Address
-                    </small>
+                    </div>
 
-                    <strong>
-                        @Model.Email
-                    </strong>
+                    <div class="applicant-info-value">
+                        @(string.IsNullOrWhiteSpace(Model.Email)
+                            ? "N/A"
+                            : Model.Email)
+                    </div>
                 </div>
+
             </div>
 
 
-            <div class="col-md-6 mb-2 d-flex align-items-start gap-2">
+            <!-- CONTACT -->
+            <div class="applicant-info-item">
 
-                <i class="bi bi-telephone text-primary"></i>
+                <div class="applicant-info-icon">
+                    <i class="bi bi-telephone"></i>
+                </div>
 
                 <div>
-                    <small class="text-muted d-block">
+                    <div class="applicant-info-label">
                         Contact Number
-                    </small>
+                    </div>
 
-                    <strong>
-                        @Model.ContactNumber
-                    </strong>
+                    <div class="applicant-info-value">
+                        @(string.IsNullOrWhiteSpace(Model.ContactNumber)
+                            ? "N/A"
+                            : Model.ContactNumber)
+                    </div>
                 </div>
 
             </div>
 
 
-            <div class="col-md-6 mb-2 d-flex align-items-start gap-2">
+            <!-- DATE OF BIRTH -->
+            <div class="applicant-info-item">
 
-                <i class="bi bi-calendar-event text-primary"></i>
+                <div class="applicant-info-icon">
+                    <i class="bi bi-calendar3"></i>
+                </div>
 
                 <div>
-                    <small class="text-muted d-block">
+                    <div class="applicant-info-label">
                         Date of Birth
-                    </small>
+                    </div>
 
-                    <strong>
+                    <div class="applicant-info-value">
                         @(Model.DateOfBirth?.ToString("MMMM d, yyyy") ?? "N/A")
-                    </strong>
+                    </div>
                 </div>
 
             </div>
 
 
-            <div class="col-md-6 mb-2 d-flex align-items-start gap-2">
+            <!-- GENDER -->
+            <div class="applicant-info-item">
 
-                <i class="bi bi-gender-ambiguous text-primary"></i>
+                <div class="applicant-info-icon">
+                    <i class="bi bi-gender-ambiguous"></i>
+                </div>
 
                 <div>
-                    <small class="text-muted d-block">
+                    <div class="applicant-info-label">
                         Gender
-                    </small>
+                    </div>
 
-                    <strong>
-                        @Model.Gender
-                    </strong>
+                    <div class="applicant-info-value">
+                        @(string.IsNullOrWhiteSpace(Model.Gender)
+                            ? "N/A"
+                            : Model.Gender)
+                    </div>
                 </div>
 
             </div>
 
 
-            <div class="col-md-6 mb-2 d-flex align-items-start gap-2">
+            <!-- ADDRESS -->
+            <div class="applicant-info-item">
 
-                <i class="bi bi-geo-alt text-primary"></i>
+                <div class="applicant-info-icon">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
 
                 <div>
-                    <small class="text-muted d-block">
+                    <div class="applicant-info-label">
                         Address
-                    </small>
+                    </div>
 
-                    <strong>
-                        @Model.Address
-                    </strong>
+                    <div class="applicant-info-value">
+                        @(string.IsNullOrWhiteSpace(Model.Address)
+                            ? "N/A"
+                            : Model.Address)
+                    </div>
                 </div>
 
             </div>
 
 
-            <div class="col-md-6 mb-2 d-flex align-items-start gap-2">
+            <!-- AGE -->
+            <div class="applicant-info-item">
 
-                <i class="bi bi-person-badge text-primary"></i>
+                <div class="applicant-info-icon">
+                    <i class="bi bi-person"></i>
+                </div>
 
                 <div>
-                    <small class="text-muted d-block">
+                    <div class="applicant-info-label">
                         Age
-                    </small>
+                    </div>
 
-                    <strong>
-                        @(Model.DateOfBirth.HasValue
-                            ? (DateTime.Today.Year
-                                - Model.DateOfBirth.Value.Year).ToString()
-                            : "N/A")
-                    </strong>
+                    <div class="applicant-info-value">
+                        @(age?.ToString() ?? "N/A")
+                    </div>
                 </div>
 
             </div>
@@ -178,34 +226,62 @@
     </div>
 
 
-    <!-- Membership Application Details -->
-    <div class="card mb-3">
+    <!-- =====================================================
+         MEMBERSHIP APPLICATION DETAILS
+    ====================================================== -->
+    <div class="applicant-details-section application-details-section">
 
-        <div class="card-header bg-light-blue">
-            <i class="bi bi-file-earmark-text"></i>
-            Membership Application Details
+        <div class="applicant-section-title">
+            <i class="bi bi-file-earmark-text-fill"></i>
+            <span>Membership Application Details</span>
         </div>
 
-        <div class="card-body d-flex justify-content-between">
 
-            <div>
+        <div class="application-status-grid">
+
+            <!-- Guidelines -->
+            <div class="application-status-item">
+
                 @if (Model.AcceptedGuidelines)
                 {
-                    <span class="text-success">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Membership Guidelines
+                    <span class="application-check success">
+                        <i class="bi bi-check-lg"></i>
                     </span>
                 }
+                else
+                {
+                    <span class="application-check failed">
+                        <i class="bi bi-x-lg"></i>
+                    </span>
+                }
+
+                <span class="application-status-text">
+                    Membership Guidelines
+                </span>
+
             </div>
 
-            <div>
+
+            <!-- Privacy -->
+            <div class="application-status-item">
+
                 @if (Model.AcceptedPrivacy)
                 {
-                    <span class="text-success">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Data Privacy & Consent
+                    <span class="application-check success">
+                        <i class="bi bi-check-lg"></i>
                     </span>
                 }
+                else
+                {
+                    <span class="application-check failed">
+                        <i class="bi bi-x-lg"></i>
+                    </span>
+                }
+
+                <span class="application-status-text">
+                    Data Privacy & Consent
+                </span>
+
             </div>
 
         </div>
@@ -213,32 +289,23 @@
     </div>
 
 
-    <!-- BUTTONS -->
-    <div class="d-flex justify-content-end gap-2 mt-3">
+    <!-- =====================================================
+         BUTTONS
+    ====================================================== -->
+    <div class="applicant-modal-actions">
 
         <button type="button"
-                class="btn btn-secondary open-modal"
-                data-url="@Url.Action(
-                                    "RejectModal",
-                                    "YouthMembers",
-                                    new { id = Model.MemberId })"
+                class="applicant-action-btn reject-btn open-modal"
+                data-url="@Url.Action("RejectModal", "YouthMembers", new { id = Model.MemberId })"
                 data-title="Reject Membership Application">
-
             Reject
-
         </button>
 
-
         <button type="button"
-                class="btn btn-primary open-modal"
-                data-url="@Url.Action(
-                                    "ApproveModal",
-                                    "YouthMembers",
-                                    new { id = Model.MemberId })"
+                class="applicant-action-btn approve-btn open-modal"
+                data-url="@Url.Action("ApproveModal", "YouthMembers", new { id = Model.MemberId })"
                 data-title="Approve Membership">
-
             Approve
-
         </button>
 
     </div>

@@ -229,7 +229,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                                     {
                                         CandidateId = cg.Key,
                                         Name = cg.First().Candidate.Member.FullName,      
-                                        PhotoUrl = cg.First().Candidate.Member.ProfilePictureUrl,
+                                        PhotoUrl = cg.First().Candidate.Member.User.ProfilePictureUrl,
                                         PartyName = cg.First().Candidate.PartyList.PartyName, 
                                         Votes = cg.Count()
                                     })

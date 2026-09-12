@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Group;
@@ -96,8 +97,10 @@ namespace Sym_Connect__Capstone2_.Controllers
                 GroupName = group.GroupName,
                 Description = group.Description,
                 Status = group.Status,
-                LeaderId = group.LeaderId
-           
+                LeaderId = group.LeaderId,
+                CurrentLeaderName = group.LeaderName,
+                CurrentLeaderEmail = group.LeaderEmail,
+                CurrentLeaderPoints = group.Members.Select(e => e.EarnedPoints).FirstOrDefault()
             };
 
             return PartialView("_EditGroupForm", vm);
@@ -307,5 +310,74 @@ namespace Sym_Connect__Capstone2_.Controllers
             var result = await _groupService.RemoveMemberFromGroupAsync(vm.groupId, vm.memberId);
             return Json(result);
         }
+
+
+        // GET: Archived Group details for modal
+        [HttpGet]
+        public async Task<IActionResult> GetArchivedModalGroups(int id)
+        {
+
+            var group = await _groupService.GetArchivedModalGroups(id);
+
+            if (group == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_ArchiveGroupModal" ,group);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ArchiveGroup(int groupId)
+        {
+            var result = await _groupService.ArchiveGroupAsync(groupId);
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
+        }
+
+
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetPromoteLeaderForm(int groupId, int memberId)
+        {
+            if (groupId == 0 || memberId == 0) return NotFound();
+
+            var group = await _groupService.GetGroupByIdAsync(groupId);
+            if (group == null) return NotFound();
+
+            var member = group.Members.FirstOrDefault(m => m.MemberId == memberId);
+            if (member == null) return NotFound();
+
+            var vm = new PromoteLeaderViewModel
+            {
+                GroupId = groupId,
+                MemberId = memberId,
+                MemberName = member.FullName,
+                GroupName = group.GroupName,
+                CurrentLeaderName = group.LeaderName
+            };
+
+            return PartialView("_PromoteLeaderForm", vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PromoteToLeader(PromoteLeaderViewModel vm)
+        {
+            if (vm.GroupId == 0 || vm.MemberId == 0) return BadRequest();
+
+            var result = await _groupService.PromoteMemberToLeaderAsync(vm.GroupId, vm.MemberId);
+            return Json(result);
+        }
+
     }
 }

@@ -377,7 +377,7 @@ namespace Sym_Connect__Capstone2_.Controllers
                 BirthDate = member.BirthDate,
                 Gender = member.Gender,
                 Status = member.Status,
-                PhotoUrl = member.ProfilePictureUrl,
+                PhotoUrl = member.User.ProfilePictureUrl,
             };
             return PartialView("_EditMemberForm", vm);
         }
@@ -472,6 +472,35 @@ namespace Sym_Connect__Capstone2_.Controllers
         {
             var member = await _memberService.GetMemberDetailsByIdAsync(id);
             return PartialView("_ProfileModal", member);
+        }
+
+
+        // GET: 
+        public async Task<IActionResult> ArchiveModal(int id)
+        {
+            var member = await _memberService.GetArchiveMemberAsync(id);
+
+            if (member == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_ArchiveMemberModal", member);
+        }
+
+
+        // POST: Archives the member
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ArchiveMember(int memberId)
+        {
+            var result = await _memberService.ArchiveMemberAsync(memberId);
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
         }
     }
 }

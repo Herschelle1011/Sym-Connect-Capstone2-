@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Models;
+using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Member;
 namespace Sym_Connect__Capstone2_.Services.Interfaces
@@ -37,10 +39,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<RejectMembershipViewModel?> GetMemberForRejectionAsync(int memberId);
 
-
-
-
-        ////LOAD ALL Members dropDown
-        //Task<List<Member>> GetMemberOptionsAsync(int groupId);
+        Task<ArchiveMemberViewModel> GetArchiveMemberAsync(int memberId);
+        Task<OperationalResult> ArchiveMemberAsync(int memberId);
+       
     }
 }

@@ -46,13 +46,16 @@ namespace Sym_Connect__Capstone2_.Models
         
         [Required]
         public string Status { get; set; } = "Active";
+        public bool? IsArchive { get; set; }
+        public DateTime? ArchiveDate { get; set; }
+
 
         public DateTime DateRegistered { get; set; } = DateTime.Now;
 
   
         public ICollection<GroupDetails> GroupDetails { get; set; } = new List<GroupDetails>();
 
-        public string? ProfilePictureUrl { get; set; }
+        //public string? ProfilePictureUrl { get; set; }
 
         public int EarnedPoints { get; set; }
 

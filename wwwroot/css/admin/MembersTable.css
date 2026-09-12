@@ -502,7 +502,6 @@
 
 .applicant-info-modal .card-header.bg-light-blue {
     background: #eaf3fc;
-    color: #0d6efd;
     font-weight: 600;
     border-bottom: 1px solid #d7e9fa;
 }
@@ -522,3 +521,20 @@
         background: #a5322a;
         border-color: #a5322a;
     }
+
+.applicant-info-modal .card-body strong {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.applicant-info-modal .card-body .col-md-6 {
+    min-width: 0;
+}
+
+.applicant-info-modal .applicant-value {
+    overflow-wrap: anywhere;
+}
+
+.applicant-info-modal .min-w-0 {
+    min-width: 0;
+}

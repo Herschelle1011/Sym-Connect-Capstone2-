@@ -80,5 +80,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Membership
             ErrorMessage = "You must accept the Privacy Notice."
         )]
         public bool AcceptedPrivacy { get; set; }
+
+        public string PhotoUrl { get; set; } = string.Empty;
+
     }
 }
