@@ -1,15 +1,18 @@
 ﻿@model Sym_Connect__Capstone2_.Areas.Leader.ViewModels.Dashboard.DashboardViewModel
 @using Sym_Connect__Capstone2_.Models.Enums.AnnouncementEnums
+@using System.Security.Claims
 
 @{
     Layout = "_LeaderLayout";
     ViewData["Title"] = "Dashboard";
 
-    string AccentColor(TargetAudience t) => t switch
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+    string AccentColor(AnnouncementPinScope scope) => scope switch
     {
-        TargetAudience.SpecificGroup => "#f0a34e",
-        TargetAudience.AllLeaders => "#f0a34e",
-        _ => "#4a7fd6"
+        AnnouncementPinScope.Leader => "#f0a34e",
+        AnnouncementPinScope.Admin => "#4a7fd6",
+        _ => "#9ca3af"
     };
 
     string Initials(string name) =>
@@ -17,53 +20,471 @@
         string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
                            .Take(2)
                            .Select(w => char.ToUpper(w[0])));
+
+    string StatusBadgeClass(string status) => status switch
+    {
+        "Approved" => "badge-approved",
+        "Pending" => "badge-pending",
+        "Rejected" => "badge-rejected",
+        "Expired" => "badge-expired",
+        _ => "badge-default"
+    };
 }
 
+<div class="dashboard-page">
 
-<h1>Leaders Dashboard</h1>
+    <h1 class="dashboard-greeting">
+        Good afternoon, <span class="text-accent">@(ViewBag.LeaderName ?? "Leader")!</span>
+    </h1>
 
-@if (Model?.PinnedAnnouncement != null && Model.PinnedAnnouncement.Any(a => a != null))
-{
-    <div class="announcement-panel">
-        <div class="announcement-panel-header">
-            <i class="bi bi-star-fill"></i>
-            <span>Pinned Announcement@(Model.PinnedAnnouncement.Count(a => a != null) > 1 ? "s" : "")</span>
+    <!-- Stat Cards -->
+    <div class="stat-cards-row">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="stat-number">@Model.TotalMembers</div>
+                <div class="stat-label">Total Members</div>
+            </div>
         </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="stat-number">@Model.ParticipationPoints</div>
+                <div class="stat-label">Participation Points</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="stat-number">@Model.UpcomingActivitiesCount</div>
+                <div class="stat-label">Upcoming Activities</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div>
+                <div class="stat-number">@Model.PendingRequestCount</div>
+                <div class="stat-label">Pending Request</div>
+            </div>
+        </div>
+    </div>
 
-        @foreach (var item in Model.PinnedAnnouncement)
-        {
-            if (item == null) continue;
+    <div class="dashboard-grid">
 
-            <div class="announcement-card" style="--accent: @AccentColor(item.TargetType)">
-                <div class="announcement-avatar">
-                    @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
-                    {
-                        <img src="@item.PhotoUrl" alt="@item.PostedByName" />
-                    }
-                    else
-                    {
-                        <span>@Initials(item.PostedByName)</span>
-                    }
-                </div>
+        <!-- Pinned Announcements -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <i class="bi bi-star-fill" style="color:#f0a34e;"></i>
+                <span>Pinned Announcement@(Model.PinnedAnnouncement.Count(a => a != null) > 1 ? "s" : "")</span>
+            </div>
 
-                <div class="announcement-body">
-                    <div class="announcement-title">@item.Title</div>
-                    <div class="announcement-meta">
-                        <span>Posted by @item.PostedByName</span>
-                        <span class="dot">&bull;</span>
-                        <span>
-                            @(item.PublishedAt.HasValue
-                                ? item.PublishedAt.Value.ToString("MMM d, yyyy")
-                                : "&mdash;")
-                        </span>
-                        @if (item.PublishedAt.HasValue)
+            @if (Model.PinnedAnnouncement == null || !Model.PinnedAnnouncement.Any(a => a != null))
+            {
+                <p class="empty-state">No pinned announcements right now.</p>
+            }
+
+            @foreach (var item in Model.PinnedAnnouncement)
+            {
+                if (item == null) continue;
+
+                var postedByLabel = item.CreatedByUserId == currentUserId
+                    ? "Posted by You"
+                    : $"Posted by {item.PostedByName}";
+
+                <div class="announcement-card" style="--accent: @AccentColor(item.PinScope)">
+                    <div class="announcement-avatar">
+                        @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
                         {
-                            <span>@item.PublishedAt.Value.ToString("h:mm tt")</span>
+                            <img src="@item.PhotoUrl" alt="@item.PostedByName" />
+                        }
+                        else
+                        {
+                            <span>@Initials(item.PostedByName)</span>
                         }
                     </div>
-                    <p class="announcement-content">@item.Content</p>
+                    <div class="announcement-body">
+                        <div class="announcement-title">@item.Title</div>
+                        <div class="announcement-meta">
+                            <span>@postedByLabel</span>
+                            <span class="dot">&bull;</span>
+                            <span>@(item.PublishedAt?.ToString("MMM d, yyyy") ?? "—")</span>
+                        </div>
+                        <p class="announcement-content">@item.Content</p>
+                    </div>
                 </div>
+            }
+
+            <a asp-controller="Announcements" asp-action="Index" class="dash-card-link">View all announcements</a>
+        </div>
+
+        <!-- Upcoming Events -->
+        <div class="dash-card">
+            <div class="dash-card-header-row">
+                <div class="dash-card-header"><span>Upcoming Events</span></div>
+                <a asp-controller="Events" asp-action="Index" class="dash-card-link">See more Schedule</a>
             </div>
-        }
+
+            @if (!Model.UpcomingEvents.Any())
+            {
+                <p class="empty-state">Nothing scheduled yet.</p>
+            }
+
+            @foreach (var evt in Model.UpcomingEvents)
+            {
+                <div class="event-row">
+                    <div class="event-date-badge">
+                        <div class="event-date-month">@evt.StartDate.ToString("MMM")</div>
+                        <div class="event-date-day">@evt.StartDate.Day</div>
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">@evt.EventTitle</div>
+                        <div class="event-meta">
+                            <i class="bi bi-clock"></i>
+                            @(evt.StartTime.HasValue ? DateTime.Today.Add(evt.StartTime.Value).ToString("h:mm tt") : "All day")
+                            @if (evt.FacilityNames.Any())
+                            {
+                                <span>&middot; <i class="bi bi-geo-alt"></i> @string.Join(", ", evt.FacilityNames)</span>
+                            }
+                        </div>
+                        <div class="event-by">By @(evt.CreatedByName ?? "Admin")</div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Group Attendance Chart -->
+        <div class="dash-card">
+            <div class="dash-card-header"><span>Group Attendance</span></div>
+
+            @if (!Model.GroupAttendanceChart.Any())
+            {
+                <p class="empty-state">No completed events yet to chart.</p>
+            }
+            else
+            {
+                <canvas id="attendanceChart" height="180"></canvas>
+            }
+
+            <a asp-controller="Attendance" asp-action="Index" class="dash-card-link">View all attendance</a>
+        </div>
+
+        <!-- Submission Status -->
+        <div class="dash-card">
+            <div class="dash-card-header-row">
+                <div class="dash-card-header"><span>Submission Status</span></div>
+                <a asp-controller="Events" asp-action="MyRequests" class="dash-card-link">View All</a>
+            </div>
+
+            @if (!Model.SubmissionStatuses.Any())
+            {
+                <p class="empty-state">No submissions yet.</p>
+            }
+
+            @foreach (var sub in Model.SubmissionStatuses)
+            {
+                <div class="submission-row">
+                    <span class="submission-dot"></span>
+                    <span class="submission-name">@sub.Name</span>
+                    <span class="badge-pill @StatusBadgeClass(sub.Status)">@sub.Status.ToUpper()</span>
+                </div>
+            }
+        </div>
+
     </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    @if (Model.GroupAttendanceChart.Any())
+    {
+        <script>
+            const ctx = document.getElementById('attendanceChart');
+            new Chart(ctx, {
+            type: 'bar',
+            data: {
+            labels: @Html.Raw(Json.Serialize(Model.GroupAttendanceChart.Select(g => g.EventTitle))),
+            datasets: [{
+            data: @Html.Raw(Json.Serialize(Model.GroupAttendanceChart.Select(g => g.PresentCount))),
+            backgroundColor: '#1877F2',
+            borderRadius: 6,
+            maxBarThickness: 40
+            }]
+            },
+            options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 10 } } }
+            }
+            });
+        </script>
+    }
 }
+
+<style>
+    .dashboard-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    }
+
+    .dashboard-greeting {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    }
+
+    .text-accent {
+    color: #1877F2;
+    }
+
+    /* ---- Stat Cards ---- */
+    .stat-cards-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+    }
+
+    .stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #EAF1FE;
+    color: #1877F2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    }
+
+    .stat-number {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+    }
+
+    .stat-label {
+    font-size: 13px;
+    color: #6b7280;
+    }
+
+    /* ---- Dashboard grid ---- */
+    .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    }
+
+    .dash-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .dash-card-header {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    }
+
+    .dash-card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    }
+
+    .dash-card-link {
+    font-size: 13px;
+    color: #1877F2;
+    text-decoration: none;
+    display: block;
+    margin-top: 10px;
+    }
+
+    .empty-state {
+    font-size: 13px;
+    color: #9ca3af;
+    padding: 12px 0;
+    text-align: center;
+    }
+
+    /* ---- Pinned Announcement card (Admin=blue, Leader=orange via --accent) ---- */
+    .announcement-card {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-left: 4px solid var(--accent, #9ca3af);
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    }
+
+    .announcement-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    flex-shrink: 0;
+    overflow: hidden;
+    }
+
+    .announcement-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    }
+
+    .announcement-title {
+    font-weight: 600;
+    font-size: 14px;
+    }
+
+    .announcement-meta {
+    font-size: 11px;
+    color: #6b7280;
+    display: flex;
+    gap: 6px;
+    margin: 2px 0 4px 0;
+    }
+
+    .announcement-content {
+    font-size: 13px;
+    color: #374151;
+    margin: 0;
+    }
+
+    /* ---- Upcoming Events ---- */
+    .event-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f6;
+    }
+
+    .event-row:last-child {
+    border-bottom: none;
+    }
+
+    .event-date-badge {
+    min-width: 48px;
+    height: 48px;
+    background: #EAF1FE;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    }
+
+    .event-date-month {
+    font-size: 10px;
+    color: #1877F2;
+    font-weight: 600;
+    }
+
+    .event-date-day {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1877F2;
+    }
+
+    .event-title {
+    font-weight: 600;
+    font-size: 14px;
+    }
+
+    .event-meta {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 2px 0;
+    }
+
+    .event-by {
+    font-size: 11px;
+    color: #9ca3af;
+    }
+
+    /* ---- Submission Status ---- */
+    .submission-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    }
+
+    .submission-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1877F2;
+    flex-shrink: 0;
+    }
+
+    .submission-name {
+    flex: 1;
+    font-size: 13px;
+    }
+
+    .badge-pill {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    }
+
+    .badge-approved {
+    background: #E6F4EA;
+    color: #1E7E34;
+    }
+
+    .badge-pending {
+    background: #FFF4E0;
+    color: #B7791F;
+    }
+
+    .badge-rejected {
+    background: #FDECEA;
+    color: #C0392B;
+    }
+
+    .badge-expired {
+    background: #F1F3F6;
+    color: #6b7280;
+    }
+
+    .badge-default {
+    background: #F1F3F6;
+    color: #6b7280;
+    }
+
+    @@media (max-width: 900px) {
+    .stat-cards-row {
+    grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-grid {
+    grid-template-columns: 1fr;
+    }
+    }
+</style>

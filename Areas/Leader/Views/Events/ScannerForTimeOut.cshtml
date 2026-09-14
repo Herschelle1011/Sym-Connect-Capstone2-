@@ -327,7 +327,7 @@
     }
 
     function refreshScannerState() {
-    fetch(`/Events/GetScannerState?eventId=${eventId}`)
+    fetch(`/Leader/Events/GetScannerState?eventId=${eventId}`)
     .then(res => res.json())
     .then(data => {
     document.getElementById('presentCount').innerText = data.presentCount;
@@ -361,7 +361,7 @@
     if (isProcessing) return;
     isProcessing = true;
 
-    fetch('/Events/ScanTimeOut', {
+    fetch('/Leader/Events/ScanTimeOut', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ qrToken: decodedText, eventId: eventId })

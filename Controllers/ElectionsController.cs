@@ -83,32 +83,137 @@ public class ElectionsController : Controller
         return RedirectToAction(nameof(Index));
     }
     // GET: ELECTIONS/Edit/5
+    [HttpGet]
     public async Task<IActionResult> Edit(int? id)
     {
-        if (id == null) return NotFound();
+        if (id == null)
+        {
+            return NotFound();
+        }
 
-        var editModel = await _electionService.GetEditElectionByIdAsync(id.Value);
-        if (editModel == null) return NotFound();
+        var model = await _electionService
+            .GetEditElectionByIdAsync(id.Value);
 
-        return View(editModel);
+        if (model == null)
+        {
+            return NotFound();
+        }
+
+        var now = DateTime.Now;
+
+        var electionStart =
+            model.StartDate.Date +
+            model.StartTime;
+
+        var electionEnd =
+            model.EndDate.Date +
+            model.EndTime;
+
+
+        // Election is currently open
+        if (now >= electionStart &&
+            now <= electionEnd)
+        {
+            TempData["ElectionEditBlocked"] =
+                "This election is currently open for voting and can no longer be edited.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        // Election is already completed
+        if (now > electionEnd)
+        {
+            TempData["ElectionEditBlocked"] =
+                "This election has already been completed and can no longer be edited.";
+
+            return RedirectToAction(nameof(Index));
+        }
+
+
+        return View(model);
     }
 
-    // POST: ELECTIONS/Edit/5
+
+    // POST: Elections/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, EditElectionViewModel model)
+    public async Task<IActionResult> Edit(
+        int id,
+        EditElectionViewModel model)
     {
-        if (id != model.ElectionId) return NotFound();
+        if (id != model.ElectionId)
+        {
+            return NotFound();
+        }
+
+
+        // Exactly two PartyLists are required.
+        if (model.SelectedPartyListIds == null ||
+            model.SelectedPartyListIds.Count != 2)
+        {
+            ModelState.AddModelError(
+                nameof(model.SelectedPartyListIds),
+                "Please select exactly 2 PartyLists."
+            );
+        }
+
 
         if (!ModelState.IsValid)
         {
+            // Reload everything required by the page.
+            var reloadModel =
+                await _electionService
+                    .GetEditElectionByIdAsync(
+                        model.ElectionId);
+
+
+            if (reloadModel != null)
+            {
+                model.AvailablePartyLists =
+                    reloadModel.AvailablePartyLists;
+            }
+
             return View(model);
         }
 
-        await _electionService.EditElectionAsync(model);
-        return RedirectToAction(nameof(Index));
-    }
 
+        var result =
+            await _electionService
+                .EditElectionAsync(model);
+
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                result.Message);
+
+
+            var reloadModel =
+                await _electionService
+                    .GetEditElectionByIdAsync(
+                        model.ElectionId);
+
+
+            if (reloadModel != null)
+            {
+                model.AvailablePartyLists =
+                    reloadModel.AvailablePartyLists;
+            }
+
+
+            return View(model);
+        }
+
+
+        TempData["SuccessMessage"] =
+            result.Message;
+
+
+        return RedirectToAction(
+            nameof(Index));
+    }
     // ---------------- Archive ----------------\
 
 

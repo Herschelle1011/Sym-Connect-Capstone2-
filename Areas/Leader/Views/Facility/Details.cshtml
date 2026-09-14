@@ -1,0 +1,180 @@
+﻿@model FacilityDetailsViewModel
+
+@{
+    ViewData["Title"] = "Facility Details";
+    Layout = "_LeaderLayout";
+
+    var types = Model.FacilityType.ToList();
+    var photoUrls = Model.Photos?.Select(p => p.PhotoUrl).ToList() ?? new List<string>();
+}
+
+<div class="facility-page">
+
+    <div class="facility-header">
+        <h1>Facility Details</h1>
+        <a asp-action="Index" asp-controller="Facility" asp-area="Leader" class="btn-back-list">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="fd-wrapper">
+
+        <!-- LEFT: Photo carousel -->
+        <div class="fd-photo-col">
+            @if (photoUrls.Count > 0)
+            {
+                <div class="fd-carousel" id="fdCarousel" data-photos="@string.Join("|", photoUrls)">
+                    <img id="fdMainImg" class="fd-main-img" src="@photoUrls[0]" alt="@Model.FacilityName" />
+
+                    @if (photoUrls.Count > 1)
+                    {
+                        <div class="fd-dots">
+                            @for (int i = 0; i < Math.Min(photoUrls.Count, 6); i++)
+                            {
+                                <span class="fd-dot @(i == 0 ? "active" : "")"
+                                      data-index="@i"
+                                      onclick="fdGoTo(this)"></span>
+                            }
+                        </div>
+
+                        <div class="fd-thumbs">
+                            @for (int i = 0; i < Math.Min(photoUrls.Count, 5); i++)
+                            {
+                                <img class="fd-thumb @(i == 0 ? "active" : "")"
+                                     src="@photoUrls[i]"
+                                     data-index="@i"
+                                     alt="Photo @(i + 1)"
+                                     onclick="fdGoToIndex(@i)" />
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="fd-no-photo">
+                    <i class="bi bi-image" style="font-size:2.5rem;"></i>
+                    <span>No photos available</span>
+                </div>
+            }
+        </div>
+
+        <!-- RIGHT: Info panel — no edit/archive buttons -->
+        <div class="fd-info-col">
+
+            <div class="fd-title-row">
+                <h2 class="fd-name">@Model.FacilityName</h2>
+                <span class="fd-status-pill @Model.StatusClass">
+                    <span class="fd-status-dot"></span>
+                    @Model.StatusLabel
+                </span>
+            </div>
+
+            <div class="fd-capacity-row">
+                <span class="fd-capacity-badge">
+                    <i class="bi bi-people-fill"></i> @Model.Capacity cap
+                </span>
+            </div>
+
+            <p class="fd-desc">@Model.FacilityDescription</p>
+
+            <div class="fd-divider"></div>
+
+            @if (types.Count > 0)
+            {
+                <div class="fd-section-label">Facility types</div>
+                <div class="tags fd-tags">
+                    @foreach (var type in types)
+                    {
+                        <span class="tag">@type</span>
+                    }
+                </div>
+            }
+
+            <div class="fd-divider"></div>
+
+            <div class="fd-meta-grid">
+                <div class="fd-meta-item">
+                    <span class="fd-meta-label"><i class="bi bi-people"></i> Capacity</span>
+                    <span class="fd-meta-value">@Model.Capacity persons</span>
+                </div>
+                <div class="fd-meta-item">
+                    <span class="fd-meta-label">Status</span>
+                    <span class="fd-meta-value">@Model.StatusLabel</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Schedule -->
+    <div class="fd-schedule-card">
+        <div class="fd-schedule-header">
+            <i class="bi bi-calendar3"></i> Schedule
+        </div>
+
+        <div class="fd-schedule-subheader">
+            <span class="label">Upcoming Reservations</span>
+        </div>
+
+        @if (!Model.UpcomingReservations.Any())
+        {
+            <p class="fd-schedule-empty">No events currently scheduled here.</p>
+        }
+        else
+        {
+            <table class="fd-schedule-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Event / Activity</th>
+                        <th>Group / Organization</th>
+                        <th>Status</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var res in Model.UpcomingReservations)
+                    {
+                        <tr>
+                            <td class="sched-date">@res.Date.ToString("MMM d, yyyy (ddd)")</td>
+                            <td>@res.EventTitle</td>
+                            <td>@(res.GroupName.Any() ? string.Join(", ", res.GroupName) : "N/A")</td>
+                            <td>
+                                <span class="sched-status-badge">@res.Status</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        function fdGoTo(dot) {
+            var carousel = document.getElementById('fdCarousel');
+            var photos = carousel.getAttribute('data-photos').split('|');
+            var idx = parseInt(dot.getAttribute('data-index'));
+            fdSetIndex(idx, photos);
+        }
+
+        function fdGoToIndex(idx) {
+            var carousel = document.getElementById('fdCarousel');
+            var photos = carousel.getAttribute('data-photos').split('|');
+            fdSetIndex(idx, photos);
+        }
+
+        function fdSetIndex(idx, photos) {
+            document.getElementById('fdMainImg').src = photos[idx];
+            document.querySelectorAll('.fd-dot').forEach(function (d) {
+                d.classList.toggle('active', parseInt(d.getAttribute('data-index')) === idx);
+            });
+            document.querySelectorAll('.fd-thumb').forEach(function (t) {
+                t.classList.toggle('active', parseInt(t.getAttribute('data-index')) === idx);
+            });
+        }
+    </script>
+}

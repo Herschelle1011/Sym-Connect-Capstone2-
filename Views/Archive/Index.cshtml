@@ -1,0 +1,179 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Archive.ArchiveItemViewModel>
+@using Sym_Connect__Capstone2_.Models.Enums
+
+@{
+    ViewData["Title"] = "Archive";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="archive-page mx-auto" style="max-width:900px;">
+
+    <h1 class="mb-3">Archive</h1>
+
+    <!-- Tabs -->
+    <div class="archive-tabs d-flex gap-2 flex-wrap mb-3 p-2" style="background:#f1f3f6; border-radius:999px; width:fit-content;">
+        <button type="button" class="btn btn-sm rounded-pill archive-tab-btn active" data-filter="All">All</button>
+        @foreach (var category in Enum.GetValues<ArchiveCategory>())
+        {
+            <button type="button" class="btn btn-sm rounded-pill archive-tab-btn" data-filter="@category">@category</button>
+        }
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+        <table class="table mb-0">
+            <thead style="background:#f8f9fa;">
+                <tr>
+                    <th>Items</th>
+                    <th>Category</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody id="archiveTableBody">
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="3" class="text-center text-muted py-4">Nothing archived.</td></tr>
+                }
+
+                @foreach (var item in Model)
+                {
+                    var badgeClass = item.Category switch
+                    {
+                        ArchiveCategory.Group => "bg-primary-subtle text-primary",
+                        ArchiveCategory.Member => "bg-success-subtle text-success",
+                        ArchiveCategory.Evaluation => "bg-info-subtle text-info",
+                        ArchiveCategory.Facility => "bg-warning-subtle text-warning",
+                        ArchiveCategory.PartyList => "bg-secondary-subtle text-secondary",
+                        ArchiveCategory.Election => "bg-danger-subtle text-danger",
+                        _ => "bg-light text-dark"
+                    };
+
+                    <tr class="archive-row" data-category="@item.Category">
+                        <td>@item.ItemName</td>
+                        <td><span class="badge rounded-pill @badgeClass">@item.Category</span></td>
+                        <td class="text-end">
+                            <a href="#"
+                               class="archive-view-btn"
+                               data-id="@item.Id"
+                               data-category="@item.Category">
+                                View
+                            </a>
+
+                            <button type="button" class="btn btn-sm btn-link text-success open-modal"
+                                    data-url="@Url.Action("ConfirmationRestore", "Archive", new { id = item.Id, category = item.Category, itemName = item.ItemName })"
+                                    data-title="Restore Item">
+                                Restore
+                            </button>
+
+                            <button type="button" class="btn btn-sm btn-link text-danger open-modal"
+                                    data-url="@Url.Action("ConfirmationHardDelete", "Archive", new { id = item.Id, category = item.Category, itemName = item.ItemName })"
+                                    data-title="Delete Permanently">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade"
+     id="archiveDetailsModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content"
+             style="border-radius:16px; border:none; overflow:hidden;">
+
+            <div class="modal-header border-0 pb-0">
+
+                <h5 class="modal-title fw-bold">
+                    Archived Item Details
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body"
+                 id="archiveDetailsModalBody">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // Tab filtering — scoped to this page's own class names so it
+        // doesn't collide with the Event Requests filter tabs in site.js.
+        document.querySelectorAll('.archive-tab-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.archive-tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.dataset.filter;
+                document.querySelectorAll('.archive-row').forEach(function (row) {
+                    const show = filter === 'All' || row.dataset.category === filter;
+                    row.classList.toggle('d-none', !show);
+                });
+            });
+        });
+
+         document.querySelectorAll('.archive-view-btn')
+        .forEach(function (button) {
+
+            button.addEventListener('click', async function (e) {
+
+                e.preventDefault();
+
+                const id = this.dataset.id;
+                const category = this.dataset.category;
+
+                try {
+
+                    const response = await fetch(
+                        `/Archive/ViewDetails?id=${id}&category=${category}`
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Unable to load archive details.");
+                    }
+
+                    const html = await response.text();
+
+                    document.getElementById(
+                        'archiveDetailsModalBody'
+                    ).innerHTML = html;
+
+                    const modal =
+                        bootstrap.Modal.getOrCreateInstance(
+                            document.getElementById(
+                                'archiveDetailsModal'
+                            )
+                        );
+
+                    modal.show();
+
+                }
+                catch (error) {
+
+                    console.error(error);
+
+                    showAlertDialog(
+                        "Unable to load archived item details.",
+                        "error",
+                        "Archive Details"
+                    );
+                }
+            });
+        });
+    </script>
+}

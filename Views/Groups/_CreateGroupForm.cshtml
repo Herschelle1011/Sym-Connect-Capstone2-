@@ -87,7 +87,7 @@
     }
 </style>
 
-<form id="createGroupForm" asp-action="Create" asp-controller="Groups" method="post">
+<form id="createGroupForm" class="modal-ajax-form" asp-action="Create" asp-controller="Groups" method="post">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 

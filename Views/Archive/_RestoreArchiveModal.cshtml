@@ -1,0 +1,14 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Archive.ArchiveConfirmationViewModel
+
+<form asp-action="Restore" asp-controller="Archive" method="post" class="modal-ajax-form">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <input type="hidden" name="category" value="@Model.Category" />
+
+    <p>Restore <strong>@Model.ItemName</strong> back to active?</p>
+
+    <div class="d-flex gap-2 justify-content-end mt-3">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
+        <button type="submit" class="btn btn-success">Restore</button>
+    </div>
+</form>

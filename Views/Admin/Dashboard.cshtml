@@ -17,6 +17,11 @@
         padding: 14px 16px;
     }
 
+    .status-expired {
+        background: #ffedd5;
+        color: #c2410c;
+    }
+
     .stat-card {
         display: flex;
         align-items: center;
@@ -659,7 +664,12 @@
                     <div class="donut-chart-wrapper">
                         <canvas id="eventStatusChart"></canvas>
                         <div class="donut-center-label">
-                            <div class="donut-center-number">@(Model.EventsApprovedCount + Model.EventsPendingCount + Model.EventsRejectedCount)</div>
+                            <div class="donut-center-number">
+                                @(Model.EventsApprovedCount +
+                                  Model.EventsPendingCount +
+                                  Model.EventsRejectedCount +
+                                  Model.EventsExpiredCount)
+                            </div>
                             <div class="donut-center-caption">Total Events</div>
                         </div>
                     </div>
@@ -676,6 +686,14 @@
                         <div class="chart-legend-item">
                             <span><span class="legend-dot" style="background:#dc2626"></span>Rejected</span>
                             <strong>@Model.EventsRejectedCount</strong>
+                        </div>
+                        <div class="chart-legend-item">
+                            <span>
+                                <span class="legend-dot" style="background:#f59e0b"></span>
+                                Expired
+                            </span>
+                            <strong>@Model.EventsExpiredCount</strong>
+
                         </div>
                     </div>
                 </div>
@@ -762,10 +780,10 @@
         new Chart(document.getElementById('eventStatusChart'), {
         type: 'doughnut',
         data: {
-        labels: ['Approved', 'Pending', 'Rejected'],
+        labels: ['Approved', 'Pending', 'Rejected', 'Expired'],
         datasets: [{
-        data: [@Model.EventsApprovedCount, @Model.EventsPendingCount, @Model.EventsRejectedCount],
-        backgroundColor: ['#16a34a', '#ea580c', '#dc2626']
+        data: [@Model.EventsApprovedCount, @Model.EventsPendingCount, @Model.EventsRejectedCount, @Model.EventsExpiredCount],
+        backgroundColor: ['#16a34a', '#ea580c', '#dc2626', '#f59e0b']
         }]
         },
         options: {

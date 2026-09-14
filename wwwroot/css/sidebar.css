@@ -272,25 +272,6 @@ body {
         color: var(--nav-text-color);
     }
 
-    /* ── Hover state ── */
-    .nav-item:not(.active):hover {
-        background: var(--nav-active-bg);
-        color: var(--nav-active-color);
-    }
-
-        .nav-item:not(.active):hover i,
-        .nav-item:not(.active):hover .nav-label {
-            color: var(--nav-active-color);
-        }
-
-    .nav-item.active {
-        background: var(--nav-active-bg);
-    }
-
-        .nav-item.active i,
-        .nav-item.active .nav-label {
-            color: var(--nav-active-color);
-        }
 
 /* ── Divider ── */
 .sidebar-divider {

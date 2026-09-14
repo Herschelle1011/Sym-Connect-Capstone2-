@@ -20,7 +20,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
                int id,
                int currentMemberId,
                bool isAdmin);
-         Task DeleteEvaluationAsync(int id);
+        Task<OperationalResult> DeleteEvaluationAsync(int id);
         Task<ArchiveEvaluationViewModel?> GetArchiveEvaluationConfirmation(int id, int currentMemberId, bool isAdmin);
 
         Task<List<EvaluationQuestion>> GetAllQuestionsAsync();

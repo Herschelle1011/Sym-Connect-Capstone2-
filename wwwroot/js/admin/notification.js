@@ -2,8 +2,15 @@
 
     const bell = document.getElementById("notifBell");
     const panel = document.getElementById("notifDropdownPanel");
-    const countBadge =
-        document.getElementById("notifCount");
+    const countBadge = document.getElementById("notifCount");
+
+    if (!bell || !panel || !countBadge) {
+        return;
+    }
+
+    const dropdownUrl = bell.dataset.dropdownUrl;
+    const countUrl = bell.dataset.countUrl;
+    const markReadUrl = bell.dataset.markReadUrl;
 
     let hideTimer = null;
     let loaded = false;
@@ -16,9 +23,8 @@
         if (!panel) return;
 
         try {
-            const response = await fetch("/Notifications/Dropdown");
+            const response = await fetch(dropdownUrl);
 
-            // Check if ASP.NET redirected us somewhere
             if (response.redirected) {
                 console.error(
                     "Notification request was redirected to:",
@@ -79,9 +85,9 @@
 
         panel.classList.add("show");
 
-        if (!loaded) {
+   
             refreshNotificationDropdown();
-        }
+        
     }
 
 
@@ -95,28 +101,32 @@
     }
 
 
-    if (bell && panel) {
+    const notificationWrapper =
+        document.getElementById("notificationWrapper");
 
-        bell.addEventListener(
-            "mouseenter",
-            showPanel
-        );
+    if (notificationWrapper) {
 
-        bell.addEventListener(
-            "mouseleave",
-            scheduleHide
-        );
-
-        panel.addEventListener(
+        notificationWrapper.addEventListener(
             "mouseenter",
             function () {
                 clearTimeout(hideTimer);
+
+                panel.classList.add("show");
+
+                refreshNotificationDropdown();
             }
         );
 
-        panel.addEventListener(
+        notificationWrapper.addEventListener(
             "mouseleave",
-            scheduleHide
+            function () {
+
+                hideTimer = setTimeout(function () {
+
+                    panel.classList.remove("show");
+
+                }, 200);
+            }
         );
     }
 
@@ -131,7 +141,7 @@
 
         try {
             const response =
-                await fetch("/Notifications/UnreadCount");
+                await fetch(countUrl);
 
             if (!response.ok) {
                 console.error(
@@ -283,7 +293,7 @@
 
             const response =
                 await fetch(
-                    "/Notifications/MarkAsRead",
+                    markReadUrl,
                     {
                         method: "POST",
                         body: formData

@@ -7,6 +7,8 @@
     var approvedCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Approved);
     var pendingCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Pending);
     var rejectedCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Rejected);
+    var expiredCount = Model.Count(e => e.ApprovalStatus == ApprovalStatus.Expired);
+
 
     // Distinct facility/group names across all events, for the filter dropdown checkboxes
     var allFacilities = Model.SelectMany(e => e.FacilityNames).Distinct().OrderBy(f => f).ToList();
@@ -40,6 +42,8 @@
             <button class="btn btn-pill btn-outline-secondary" data-filter="Approved">Approved (@approvedCount)</button>
             <button class="btn btn-pill btn-outline-secondary" data-filter="Pending">Pending (@pendingCount)</button>
             <button class="btn btn-pill btn-outline-secondary" data-filter="Rejected">Rejected (@rejectedCount)</button>
+            <button class="btn btn-pill btn-outline-secondary" data-filter="Expired">Expired (@expiredCount)</button>
+
         </div>
 
         <!-- Search + Filter + actions -->
@@ -201,10 +205,17 @@
                                     </span>
                                 }
 
-                                else
+                                else if (ev.ApprovalStatus == ApprovalStatus.Rejected)
                                 {
                                     <span class="text-muted">
                                         Declined by Admin,
+                                        @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">
+                                        Request Expired,
                                         @TimeAgo(ev.ApprovedDate ?? ev.DateCreated)
                                     </span>
                                 }
@@ -244,9 +255,15 @@
                             {
                                 <span class="badge rounded-pill bg-warning-subtle text-warning px-3 py-2">Pending</span>
                             }
-                            else
+                            else if(ev.ApprovalStatus == ApprovalStatus.Rejected)
                             {
                                 <span class="badge rounded-pill bg-danger-subtle text-danger px-3 py-2">Rejected</span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill status-expired px-3 py-2">
+                                    Expired
+                                </span>
                             }
 
                             @if (ev.ApprovalStatus == ApprovalStatus.Approved)

@@ -13,8 +13,13 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
         public DateTime EndDate { get; set; }
 
+        public bool IsCancelled { get; set; } = false;
+        public DateTime? CancelledDate { get; set; }
+        public string? CancellationReason { get; set; } = string.Empty;
+
         public string Description { get; set; } = string.Empty;
 
+        public DateTime? ExpiredDate { get; set; }
         public ApprovalStatus ApprovalStatus { get; set; }
         public DateTime DateCreated { get; set; } = DateTime.UtcNow;
         public DateTime? ApprovedDate { get; set; }
@@ -26,6 +31,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
 
         public string? SubmittedByName { get; set; }
 
-   
+        public string? CreatedByName { get; set; }
+
+
     }
 }

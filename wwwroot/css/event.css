@@ -1,23 +1,30 @@
-﻿/* Blur the calendar behind the panel, instead of Bootstrap's flat dark overlay */
+﻿/* ============================================================
+   ROOT VARIABLES
+   ============================================================ */
+:root {
+    --brand-blue: #1447E6;
+}
+
+/* ============================================================
+   OFFCANVAS / EVENT PANEL
+   ============================================================ */
 .offcanvas-backdrop.show {
     backdrop-filter: blur(4px);
     background-color: rgba(0, 0, 0, 0.25);
 }
 
-.event-panel .nav-tabs .nav-link {
-    color: #6b7280;
-    border: none;
+/* Merged — was defined twice with conflicting styles (grey/no-border, then blue/bordered).
+   Kept the active-tab-style version since it was declared second and would have won anyway. */
+.event-panel .nav-tabs {
+    color: #2563eb;
+    font-weight: 500;
     font-size: 14px;
+    border: none;
+    border-bottom: 2px solid #2563eb;
+    background: none;
     padding: 10px 4px;
     margin-right: 24px;
 }
-
-    .event-panel .nav-tabs .nav-link.active {
-        color: #2563eb;
-        font-weight: 500;
-        border-bottom: 2px solid #2563eb;
-        background: none;
-    }
 
 .event-panel .form-label {
     font-size: 13px;
@@ -30,7 +37,6 @@
     font-size: 14px;
 }
 
-/* Matches the blue dot next to "SYM Main Calendar" */
 .calendar-dot {
     width: 8px;
     height: 8px;
@@ -39,21 +45,14 @@
     display: inline-block;
 }
 
-.day-cell.day-cell-selected {
-    outline: 2px solid #3b82f6;
-    outline-offset: -2px;
-    background: #eff6ff;
-}
-
 .event-container {
     max-height: 90px;
     overflow-y: auto;
 }
 
-:root {
-    --brand-blue: #1447E6;
-}
-
+/* ============================================================
+   CALENDAR PAGE
+   ============================================================ */
 .calendar-wrapper {
     max-width: 1120px;
 }
@@ -195,14 +194,13 @@
         background: #fafafa;
     }
 
-
-
     .day-cell.is-today {
         background: #eff6ff;
         outline: 2px solid #3b82f6;
         outline-offset: -2px;
     }
 
+    /* Merged — was declared twice identically */
     .day-cell.day-cell-selected {
         outline: 2px solid #3b82f6;
         outline-offset: -2px;
@@ -247,21 +245,20 @@
     color: #111827;
 }
 
+/* Merged — pointer-events rule was declared twice; kept both effects in one block */
 .is-past {
     opacity: 0.5;
-    pointer-events: none;
     cursor: not-allowed;
-}
-
-.is-past {
-    pointer-events: none; /* ① blocks clicks on the WHOLE cell, including empty space */
+    pointer-events: none; /* blocks clicks on the whole cell, including empty space */
 }
 
     .is-past .event-pill {
-        pointer-events: auto; /* ② re-enables clicks ONLY on pills inside that cell */
+        pointer-events: auto; /* re-enables clicks only on pills inside that cell */
     }
 
-
+/* ============================================================
+   EVALUATION SUMMARY
+   ============================================================ */
 .evaluation-summary-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
@@ -408,12 +405,9 @@
     margin: 0;
 }
 
-
-
-:root {
-    --brand-blue: #1447E6;
-}
-
+/* ============================================================
+   EVENT DETAILS PAGE
+   ============================================================ */
 .details-wrapper {
     max-width: 1200px;
 }
@@ -490,23 +484,38 @@
 
 .details-tabs {
     border-bottom: 1px solid #e5e7eb;
+    background: transparent !important;
+    color: #6b7280 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
 }
 
     .details-tabs .nav-link {
-        border: none;
-        border-bottom: 2px solid transparent;
-        border-radius: 0;
+        border: none !important;
+        border-bottom: 2px solid transparent !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: #6b7280 !important;
         font-size: 13px;
         font-weight: 500;
-        color: #6b7280;
         padding: 10px 4px;
         margin-right: 24px;
+        box-shadow: none !important;
     }
 
+        .details-tabs .nav-link:focus,
+        .details-tabs .nav-link:active,
+        .details-tabs .nav-link:focus-visible {
+            background: transparent !important;
+            box-shadow: none !important;
+            outline: none !important;
+        }
+
         .details-tabs .nav-link.active {
-            color: var(--brand-blue);
-            border-bottom-color: var(--brand-blue);
-            background: none;
+            background: transparent !important;
+            border-bottom: 2px solid var(--brand-blue) !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
         }
 
 .info-list .info-row {
@@ -705,10 +714,9 @@
     color: #6b7280;
 }
 
-/* =========================================================
-   EVENTS PAGE HEADER
-   ========================================================= */
-
+/* ============================================================
+   EVENTS PAGE HEADER / TOOLBAR
+   ============================================================ */
 .events-header {
     width: 100%;
     padding: 0 0 14px;
@@ -721,11 +729,6 @@
     color: #1f2937;
 }
 
-
-/* =========================================================
-   TOOLBAR
-   ========================================================= */
-
 .events-toolbar {
     display: flex;
     align-items: center;
@@ -733,11 +736,6 @@
     gap: 18px;
     width: 100%;
 }
-
-
-/* =========================================================
-   MONTH / YEAR / TODAY BUTTONS
-   ========================================================= */
 
 .calendar-view-buttons {
     display: flex;
@@ -771,11 +769,6 @@
         background: #0788d1;
         color: #fff;
     }
-
-
-/* =========================================================
-   MONTH NAVIGATION
-   ========================================================= */
 
 .month-navigation {
     display: flex;
@@ -816,11 +809,6 @@
     color: #008bd2;
 }
 
-
-/* =========================================================
-   RIGHT SIDE ACTIONS
-   ========================================================= */
-
 .events-actions {
     display: flex;
     align-items: center;
@@ -828,8 +816,6 @@
     margin-left: auto;
 }
 
-
-/* Search */
 .event-search-btn {
     width: 155px;
     height: 30px;
@@ -850,8 +836,6 @@
         color: #4b5563;
     }
 
-
-/* Secondary buttons */
 .event-action-btn {
     height: 30px;
     display: inline-flex;
@@ -880,8 +864,6 @@
         text-decoration: none;
     }
 
-
-/* Create Event */
 .create-event-btn {
     height: 30px;
     border: none;
@@ -909,13 +891,7 @@
         color: #fff;
     }
 
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
 @media (max-width: 1000px) {
-
     .events-toolbar {
         flex-wrap: wrap;
     }
@@ -928,7 +904,6 @@
 }
 
 @media (max-width: 650px) {
-
     .events-title {
         margin-bottom: 20px;
     }
@@ -950,4 +925,454 @@
         flex: 1;
         min-width: 120px;
     }
+}
+
+/* ============================================================
+   MEMBERS CARD (Group Members mini-table)
+   ============================================================ */
+.members-card {
+    background: #fff;
+    border: 1px solid #e8edf3;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.members-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1rem 0.9rem;
+}
+
+.members-title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #172033;
+    white-space: nowrap;
+}
+
+    .members-title i {
+        color: #3057e0;
+        font-size: 1rem;
+    }
+
+.aov-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    flex: 1;
+}
+
+.aov-search-box {
+    position: relative;
+    width: 230px;
+    flex: 0 0 230px;
+}
+
+    .aov-search-box i {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+    }
+
+    .aov-search-box .form-control {
+        height: 42px;
+        width: 100%;
+        padding-left: 2.3rem;
+        border: 1px solid #dfe5ec;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        background: #fff;
+    }
+
+        .aov-search-box .form-control:focus {
+            border-color: #3057e0;
+            box-shadow: 0 0 0 3px rgba(48, 87, 224, 0.1);
+        }
+
+.aov-status-filter {
+    width: 150px;
+    height: 42px;
+    border: 1px solid #dfe5ec;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    background-color: #fff;
+}
+
+.members-table-wrap {
+    border-top: 1px solid #eef1f5;
+    overflow-x: auto;
+}
+
+/* ── Added: blue header for the members/aov table.
+   This table previously had no header color rules at all,
+   so it was falling back to Bootstrap's plain default header. ── */
+.aov-table {
+    margin: 0;
+    min-width: 720px;
+}
+
+    .aov-table thead {
+        background: #3057e0;
+    }
+
+        .aov-table thead th {
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border: none;
+            padding: 0.75rem 1rem;
+            white-space: nowrap;
+        }
+
+    .aov-table tbody td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #eef1f5;
+        font-size: 0.85rem;
+    }
+
+    .aov-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .aov-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+/* ============================================================
+   RESPONSIVE — members card
+   ============================================================ */
+@media (max-width: 768px) {
+    .members-card-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .aov-toolbar {
+        width: 100%;
+    }
+
+    .aov-search-box {
+        flex: 1 1 auto;
+        width: auto;
+    }
+
+    .aov-status-filter {
+        width: 145px;
+    }
+}
+
+@media (max-width: 576px) {
+    .aov-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .aov-search-box,
+    .aov-status-filter {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+}
+
+
+/* ============================
+   ATTENDANCE ROW ACTIONS: Scanned-by popover
+   ============================ */
+
+.attendance-actions-cell {
+    position: relative;
+}
+
+.action-chevron-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+    .action-chevron-btn:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+    .action-chevron-btn.open {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+
+        .action-chevron-btn.open i {
+            transform: rotate(180deg);
+        }
+
+    .action-chevron-btn i {
+        transition: transform 0.15s ease;
+    }
+
+.attendance-details-popover {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 50;
+    min-width: 180px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 10px 12px;
+    text-align: left;
+    white-space: normal;
+}
+
+.attendance-details-row {
+    font-size: 12.5px;
+    color: #374151;
+}
+
+/* ============================
+   ATTENDANCE TABLE — header + row styling to match admin table pattern
+   ============================ */
+
+.attendance-table-wrap {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+
+.attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+    .attendance-table thead th {
+        text-align: left;
+        font-size: .72rem;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #ffffff;
+        background: #2563eb;
+        padding: 14px 16px;
+        border: none;
+        white-space: nowrap;
+    }
+
+    .attendance-table tbody tr {
+        border-bottom: 1px solid #f1f2f6;
+        transition: background .15s ease;
+    }
+
+        .attendance-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .attendance-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+    .attendance-table td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        border: none;
+    }
+
+/* ============================
+   STATUS PILL — outline style to match "Active" badge in reference
+   ============================ */
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 13px;
+    border-radius: 20px;
+    font-size: .8rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+    .status-pill .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+.status-pill-present {
+    background: #f0fdf4;
+    color: #16a34a;
+    border-color: rgba(22,163,74,.25);
+}
+
+    .status-pill-present .dot {
+        background: #16a34a;
+    }
+
+.status-pill-absent {
+    background: #fef2f2;
+    color: #dc2626;
+    border-color: rgba(220,38,38,.25);
+}
+
+    .status-pill-absent .dot {
+        background: #dc2626;
+    }
+
+.status-pill-pending {
+    background: #fffbeb;
+    color: #d97706;
+    border-color: rgba(217,119,6,.25);
+}
+
+    .status-pill-pending .dot {
+        background: #d97706;
+    }
+
+/* Action chevron: center it like the archive icon in the reference table */
+.attendance-actions-cell {
+    text-align: center;
+}
+
+
+/* ============================
+   ATTENDANCE TOOLBAR — search + status filter
+   ============================ */
+
+.attendance-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+    .attendance-toolbar .search-box {
+        position: relative;
+        flex: 1 1 220px;
+        max-width: 260px;
+    }
+
+        .attendance-toolbar .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .attendance-toolbar .search-box .form-control {
+            height: 36px;
+            width: 100%;
+            padding-left: 32px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+            .attendance-toolbar .search-box .form-control:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+            }
+
+    .attendance-toolbar #statusFilter {
+        flex: 0 0 130px;
+        height: 36px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 13px;
+        padding: 0 10px;
+    }
+
+        .attendance-toolbar #statusFilter:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+            outline: none;
+        }
+
+@media (max-width: 480px) {
+    .attendance-toolbar .search-box {
+        max-width: none;
+        flex: 1 1 100%;
+    }
+
+    .attendance-toolbar #statusFilter {
+        flex: 1 1 100%;
+    }
+}
+
+
+/* ============================
+   ATTENDANCE TABLE — pagination
+   ============================ */
+
+.attendance-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 4px 0;
+    flex-wrap: wrap;
+}
+
+.pagination-info {
+    font-size: 12.5px;
+    color: #6b7280;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.pagination-btn {
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #f3f4f6;
+        border-color: #cbd5e1;
+        color: #111827;
+    }
+
+    .pagination-btn:disabled {
+        opacity: .45;
+        cursor: not-allowed;
+    }
+
+.attendance-table tbody tr.pagination-hidden {
+    display: none;
+}
+
+
+.status-expired {
+    background-color: #ffedd5;
+    color: #c2410c;
 }

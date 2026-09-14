@@ -1,0 +1,291 @@
+﻿@model IEnumerable<FacilityListViewModel>
+
+@{
+    ViewData["Title"] = "Facility";
+    Layout = "_LeaderLayout";
+}
+
+<style>
+    .facility-page {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+        .facility-page .fac-legend {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #fff;
+            border: 1px solid var(--border-color, #EEE);
+            border-radius: 12px;
+            padding: 12px 18px;
+            margin: 14px 0 22px 0;
+            font-size: 13px;
+            color: var(--text-secondary, #5B6472);
+        }
+
+            .facility-page .fac-legend .dot {
+                display: inline-block;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                margin-right: 6px;
+            }
+
+            .facility-page .fac-legend strong {
+                color: #000;
+            }
+
+        .facility-page .dot-available {
+            background: #1E7E34;
+        }
+
+        .facility-page .dot-limited {
+            background: #B7791F;
+        }
+
+        .facility-page .dot-inactive {
+            background: #C0392B;
+        }
+
+        .facility-page .card-photo-wrapper {
+            position: relative;
+            border-radius: 14px 14px 0 0;
+            overflow: hidden;
+        }
+
+            .facility-page .card-photo-wrapper .carousel-img,
+            .facility-page .card-photo-wrapper .no-photo {
+                border-radius: 14px 14px 0 0;
+            }
+
+            .facility-page .card-photo-wrapper .photo-count-badge {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                background: rgba(0,0,0,0.6);
+                color: #fff;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 3px 9px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+        .facility-page .fac-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px 0 20px;
+        }
+
+        .facility-page .status-dot {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #E6F4EA;
+            color: #1E7E34;
+        }
+
+            .facility-page .status-dot::before {
+                content: "";
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                display: inline-block;
+                background: #1E7E34;
+            }
+
+            .facility-page .status-dot.maintenance {
+                background: #FFF4E0;
+                color: #B7791F;
+            }
+
+                .facility-page .status-dot.maintenance::before {
+                    background: #B7791F;
+                }
+
+            .facility-page .status-dot.inactive {
+                background: #FDECEA;
+                color: #C0392B;
+            }
+
+                .facility-page .status-dot.inactive::before {
+                    background: #C0392B;
+                }
+
+        .facility-page .capacity-badge {
+            background: #EAF1FE;
+            color: #1877F2;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .facility-page .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .facility-page .tag {
+            background: #F1F3F6;
+            color: #444;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 999px;
+        }
+
+        .facility-page .fac-card-footer {
+            display: flex;
+            gap: 10px;
+            padding: 0 20px 18px 20px;
+        }
+
+            .facility-page .fac-card-footer .btn-details {
+                flex: 1;
+                background: #1877F2;
+                border: none;
+                color: #fff;
+                font-weight: 700;
+                font-size: 13px;
+                padding: 10px 0;
+                border-radius: 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                cursor: pointer;
+            }
+
+                .facility-page .fac-card-footer .btn-details:hover {
+                    background: #1360c9;
+                }
+</style>
+
+<div class="facility-page">
+
+    <div class="facility-header">
+        <h1>Facilities</h1>
+    </div>
+
+    @* ---- LEGEND ---- *@
+    <div class="fac-legend">
+        <div>
+            <span class="dot dot-available"></span>
+            <strong>Available now</strong> &mdash; Active, no reservations today
+        </div>
+
+        <div>
+            <span class="dot dot-limited"></span>
+            <strong>Limited today</strong> &mdash; Active, has reservations today
+        </div>
+
+        <div>
+            <span class="dot dot-inactive"></span>
+            <strong>Inactive</strong> &mdash; Currently not available for use
+        </div>
+
+        <div>
+            <span class="dot .status-dot.maintenance"></span>
+            <strong>Under maintenance</strong> &mdash; Temporarily unavailable due to maintenance
+        </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="facility-grid">
+
+        @foreach (var item in Model)
+        {
+            var photos = item.Photos.Select(p => p.PhotoUrl).ToList();
+
+            <div class="facility-card">
+
+                <!-- Photo Section -->
+                <div class="card-photo-wrapper">
+                    @if (photos.Count > 0)
+                    {
+                        <div class="carousel" data-photos="@string.Join("|", photos)">
+                            <img class="carousel-img" src="@photos[0]" alt="@item.FacilityName" />
+
+                            @if (photos.Count > 1)
+                            {
+                                <span class="photo-count-badge"><i class="bi bi-images"></i> @photos.Count</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-photo">No photo available</div>
+                    }
+                </div>
+
+                <div class="fac-card-top">
+                    <span class="status-dot @item.StatusClass">@item.StatusLabel</span>
+                    <span class="capacity-badge">
+                        <i class="bi bi-person-fill"></i> @item.Capacity cap
+                    </span>
+                </div>
+
+                <div class="card-body-custom">
+                    <div class="facility-title-row">
+                        <p class="card-title">@item.FacilityName</p>
+                    </div>
+
+                    @if (item.FacilityTypes != null && item.FacilityTypes.Count > 0)
+                    {
+                        <div class="tags">
+                            @foreach (var type in item.FacilityTypes)
+                            {
+                                <span class="tag">@type</span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- View Details only — no edit/archive actions for Leaders -->
+                <div class="fac-card-footer">
+                    <button type="button" class="btn-details"
+                            onclick="location.href='@Url.Action("Details", "Facility", new { area = "Leader", facilityid = item.FacilityId })'">
+                        <i class="bi bi-eye"></i> View Reservations & Details
+                    </button>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@section Scripts {
+    @* Only the carousel script survives — no facilityPhotos.js (that's the
+       Create/Edit photo-upload widget, irrelevant here) and no edit/archive
+       fetch listeners, since those buttons don't exist on this page. *@
+    <script>
+        function goToSlide(dotClicked) {
+            var carousel = dotClicked.closest('.carousel');
+            var photos = carousel.getAttribute('data-photos').split('|');
+            var index = parseInt(dotClicked.getAttribute('data-index'));
+
+            carousel.querySelector('.carousel-img').src = photos[index];
+
+            carousel.querySelectorAll('.dot').forEach(function (d) {
+                d.classList.remove('active');
+            });
+
+            dotClicked.classList.add('active');
+        }
+    </script>
+}

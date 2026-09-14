@@ -62,8 +62,18 @@ namespace Sym_Connect__Capstone2_.Models.EventModels
         public int? ApprovedByUserId { get; set; }
         public Member? ApprovedByUser { get; set; }
 
+        public bool IsCancelled { get; set; }
+        public DateTime? CancelledDate { get; set; }
+        public string? CancellationReason { get; set; }
 
 
+        public DateTime? ThreeDayReminderSentAt { get; set; }
+
+        public DateTime? OneDayReminderSentAt { get; set; }
+
+        public DateTime? OneHourReminderSentAt { get; set; }
+
+        public DateTime? ExpiredDate { get; set; }
 
         public ICollection<EventFacility> ExpectedFacilities { get; set; } = new List<EventFacility>();
         public ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();

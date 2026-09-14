@@ -6,7 +6,7 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 
 namespace Sym_Connect__Capstone2_.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class NotificationsController : Controller
     {
         private readonly INotificationService _notificationService;

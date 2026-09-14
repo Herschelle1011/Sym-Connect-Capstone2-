@@ -1,5 +1,6 @@
 ﻿@model GroupAttendanceDetailsViewModel
 
+
 <div class="attendance-header d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div class="d-flex align-items-center gap-2">
         <div class="group-icon-circle">
@@ -49,9 +50,13 @@
                 <div>
                     <small class="text-muted d-block">Time</small>
                     <span>
-                        @(Model.StartTime.HasValue ? Model.StartTime.Value.ToString("hh\\:mm") : "—")
+                        @(Model.StartTime.HasValue
+                            ? DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt")
+                            : "—")
                         –
-                        @(Model.EndTime.HasValue ? Model.EndTime.Value.ToString("hh\\:mm") : "—")
+                        @(Model.EndTime.HasValue
+                            ? DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt")
+                            : "—")
                     </span>
                 </div>
             </div>
@@ -104,12 +109,12 @@
 
     <!-- Right panel -->
     <div class="col-12 col-md-8 attendance-main">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center mb-3 gap-2">
+        <div class="attendance-toolbar mb-3">
             <div class="search-box">
                 <i class="bi bi-search"></i>
                 <input type="text" id="memberSearch" class="form-control" placeholder="Search member...">
             </div>
-            <select id="statusFilter" class="form-select w-100 w-sm-auto">
+            <select id="statusFilter" class="form-select">
                 <option value="all">All Status</option>
                 <option value="Present">Present</option>
                 <option value="Pending">Pending</option>
@@ -126,13 +131,15 @@
                         <th>Time In</th>
                         <th>Time Out</th>
                         <th>Remarks</th>
-                        <th></th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
+
                 <tbody>
                     @foreach (var row in Model.attendanceRowViewModels)
                     {
                         <tr data-status="@row.Status" data-name="@row.FullName.ToLower()">
+
                             <td>
                                 <div class="d-flex align-items-center gap-2">
                                     <div class="avatar-circle">
@@ -145,6 +152,7 @@
                                             <span>@row.FullName.Substring(0, 1).ToUpper()</span>
                                         }
                                     </div>
+
                                     <div class="member-name-wrap">
                                         <div class="text-truncate">@row.FullName</div>
                                         @if (row.FullName == Model.GroupLeader)
@@ -154,19 +162,53 @@
                                     </div>
                                 </div>
                             </td>
+
                             <td>
                                 <span class="status-pill status-pill-@row.Status.ToLower()">
-                                    <span class="dot"></span> @row.Status
+                                    <span class="dot"></span>
+                                    @row.Status
                                 </span>
                             </td>
+
                             <td>@(row.TimeIn.HasValue ? row.TimeIn.Value.ToString(@"hh\:mm") : "—")</td>
+
                             <td>@(row.TimeOut.HasValue ? row.TimeOut.Value.ToString(@"hh\:mm") : "—")</td>
-                            <td class="text-muted text-truncate" style="max-width:160px;">@row.Remarks</td>
-                            <td><i class="bi bi-chevron-down text-muted"></i></td>
+
+                            <td class="text-muted text-truncate" style="max-width:160px;">
+                                @row.Remarks
+                            </td>
+
+                            <!-- ACTIONS: chevron toggles a popover with Scanned By info -->
+                            <td class="text-center attendance-actions-cell">
+                                <button type="button" class="action-chevron-btn attendance-details-toggle">
+                                    <i class="bi bi-chevron-down"></i>
+                                </button>
+
+                                <div class="attendance-details-popover d-none">
+                                    @if (!string.IsNullOrWhiteSpace(row.ScanByName) && row.ScanByName != "N/A")
+                                    {
+                                        <div class="attendance-details-row">
+                                            <span class="text-muted">Scanned by:</span> @row.ScanByName
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="attendance-details-row text-muted">Not yet scanned</div>
+                                    }
+                                </div>
+                            </td>
                         </tr>
                     }
                 </tbody>
             </table>
+        </div>
+
+        <div class="attendance-pagination" id="attendancePagination">
+            <span class="pagination-info" id="paginationInfo"></span>
+            <div class="pagination-controls">
+                <button type="button" class="pagination-btn" id="paginationFirstBtn">First</button>
+                <button type="button" class="pagination-btn" id="paginationNextBtn">Next</button>
+            </div>
         </div>
     </div>
 

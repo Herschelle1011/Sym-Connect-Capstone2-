@@ -4,7 +4,11 @@
     ViewData["Title"] = "Log in";
 }
 
+
 <div class="login-page-wrapper">
+    <div class="login-logo-panel">
+        <img src="/images/logosym.png" alt="Salesian Youth Movement" class="login-logo-img" />
+    </div>
     <div class="login-card">
         <div class="login-heading">
             <h2>Login</h2>
@@ -15,10 +19,12 @@
             <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
             <!-- Email -->
+            <!-- Email -->
             <div class="input-group-custom">
                 <label asp-for="Input.Email">Email</label>
 
                 <div class="input-wrapper">
+                    <i class="bi bi-envelope input-icon"></i>
                     <input asp-for="Input.Email"
                            type="email"
                            autocomplete="username"
@@ -34,6 +40,8 @@
                 <label asp-for="Input.Password">Password</label>
 
                 <div class="input-wrapper">
+                    <i class="bi bi-lock input-icon"></i>
+
                     <input asp-for="Input.Password"
                            type="password"
                            autocomplete="current-password"

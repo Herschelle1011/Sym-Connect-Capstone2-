@@ -545,5 +545,161 @@
                 sorted.forEach(card => evalGrid.appendChild(card));
             }
         }
+
+             (function () {
+            const searchInput = document.getElementById('eventSearchInput');
+
+            // ── Filter rows by title as the user types ──
+            function filterEventRows() {
+                if (!searchInput) return;
+                const term = searchInput.value.trim().toLowerCase();
+
+                document.querySelectorAll('.event-candidate-row').forEach(row => {
+                    const title = (row.dataset.eventTitle || '').toLowerCase();
+                    row.style.display = !term || title.includes(term) ? '' : 'none';
+                });
+            }
+
+            searchInput?.addEventListener('input', filterEventRows);
+
+            // ── Select an event: fill the underlying form, then close the modal ──
+            document.addEventListener('click', function (e) {
+                const row = e.target.closest('.event-candidate-row');
+                if (!row) return;
+
+                const eventId = row.dataset.eventId;
+                const eventTitle = row.dataset.eventTitle;
+
+                // TODO: adjust these two lines to match the actual field IDs
+                // on your Evaluation Create/Edit form.
+                const hiddenInput = document.getElementById('selectedEventId');
+                const displayField = document.getElementById('selectedEventTitle');
+
+                if (hiddenInput) hiddenInput.value = eventId;
+                if (displayField) displayField.textContent = eventTitle;
+
+                const modalEl = document.getElementById('appModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            });
+        })();
+
+
+                document.addEventListener('submit', async function (e) {
+
+            const form = e.target.closest('.evaluation-archive-form');
+
+            if (!form) {
+                return;
+            }
+
+            e.preventDefault();
+
+            const submitBtn =
+                form.querySelector('.archive-evaluation-btn');
+
+            if (!submitBtn) {
+                console.error('Archive submit button was not found.');
+                return;
+            }
+
+            const normalContent =
+                submitBtn.querySelector('.archive-normal');
+
+            const loadingContent =
+                submitBtn.querySelector('.archive-loading');
+
+
+            submitBtn.disabled = true;
+
+            if (normalContent) {
+                normalContent.classList.add('d-none');
+            }
+
+            if (loadingContent) {
+                loadingContent.classList.remove('d-none');
+            }
+
+
+            try {
+
+                const formData = new FormData(form);
+
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+
+                if (result.success) {
+
+                    const modalElement =
+                        document.getElementById('appModal');
+
+                    if (modalElement) {
+
+                        const modal =
+                            bootstrap.Modal.getInstance(modalElement);
+
+                        if (modal) {
+                            modal.hide();
+                        }
+                    }
+
+
+                    showAlertDialog(
+                        result.message || "Evaluation archived successfully.",
+                        "success",
+                        "Evaluation Archived"
+                    );
+
+
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 1200);
+                }
+                else {
+
+                    showAlertDialog(
+                        result.message || "Unable to archive evaluation.",
+                        "error",
+                        "Archive Failed"
+                    );
+
+                    submitBtn.disabled = false;
+
+                    if (normalContent) {
+                        normalContent.classList.remove('d-none');
+                    }
+
+                    if (loadingContent) {
+                        loadingContent.classList.add('d-none');
+                    }
+                }
+
+            }
+            catch (error) {
+
+                console.error(error);
+
+                showAlertDialog(
+                    "Something went wrong while archiving the evaluation.",
+                    "error",
+                    "Archive Error"
+                );
+
+                submitBtn.disabled = false;
+
+                if (normalContent) {
+                    normalContent.classList.remove('d-none');
+                }
+
+                if (loadingContent) {
+                    loadingContent.classList.add('d-none');
+                }
+            }
+        });
     </script>
 }

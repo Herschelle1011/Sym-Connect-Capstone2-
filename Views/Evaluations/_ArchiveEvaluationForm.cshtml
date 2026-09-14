@@ -54,11 +54,12 @@
         </div>
     </div>
 
-    <!-- Form -->
     <form asp-action="Archive"
           asp-controller="Evaluations"
-          asp-route-evaluationid="@Model.EvaluationId"
-          method="post">
+          asp-route-id="@Model.EvaluationId"
+          method="post"
+          class="evaluation-archive-form">
+
         @Html.AntiForgeryToken()
 
         <div style="display:flex; gap:10px;">
@@ -74,12 +75,28 @@
             </button>
 
             <button type="submit"
-                    class="btn w-50"
+                    class="btn w-50 archive-evaluation-btn"
                     style="font-size:13px; font-weight:600;
                 border-radius:8px; padding:9px;
                 background:#b45309; color:#fff; border:none;
                 transition:background .15s;">
-                <i class="bi bi-archive" style="margin-right:5px;"></i>Archive
+
+                <!-- Normal state -->
+                <span class="archive-normal">
+                    <i class="bi bi-archive" style="margin-right:5px;"></i>
+                    Archive
+                </span>
+
+                <!-- Loading state -->
+                <span class="archive-loading d-none">
+                    <span class="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                          style="width:13px; height:13px; margin-right:5px;">
+                    </span>
+                    Archiving...
+                </span>
+
             </button>
 
         </div>

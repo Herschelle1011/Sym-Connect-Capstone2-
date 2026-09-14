@@ -91,9 +91,68 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                        <a class="dropdown-item text-danger" asp-action="ConfirmationArchive" asp-route-eventid="@Model.EventId">
-                            <i class="ti ti-archive me-1"></i> Archive Event
-                        </a>
+                        @{
+                            var nowForCancel = DateTime.Now;
+
+                            DateTime eventStartForCancel;
+
+                            if (Model.IsAllDay)
+                            {
+                                eventStartForCancel = Model.StartDate.Date;
+                            }
+                            else
+                            {
+                                eventStartForCancel =
+                                    Model.StartDate.Date +
+                                    (Model.StartTime ?? TimeSpan.Zero);
+                            }
+
+                            bool canCancelEvent =
+                              Model.Status != EventStatus.Cancelled &&
+                              Model.Status != EventStatus.Ongoing &&
+                              Model.Status != EventStatus.Completed &&
+                              eventStartForCancel > nowForCancel;
+                        }
+
+
+                        <div class="dropdown">
+
+                            <button class="btn btn-outline-secondary btn-sm"
+                                    type="button"
+                                    data-bs-toggle="dropdown">
+
+                                <i class="ti ti-dots"></i>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end">
+
+                                <li>
+                                    @if (canCancelEvent)
+                                    {
+                                        <a class="dropdown-item text-danger"
+                                           asp-action="ConfirmationCancel"
+                                           asp-controller="Events"
+                                           asp-route-eventid="@Model.EventId">
+
+                                            <i class="ti ti-calendar-cancel me-1"></i>
+                                            Cancel Event
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <button type="button"
+                                                class="dropdown-item text-muted"
+                                                disabled
+                                                title="Only upcoming events can be cancelled.">
+
+                                            <i class="ti ti-calendar-cancel me-1"></i>
+                                            Cancel Event
+                                        </button>
+                                    }
+                                </li>
+
+                            </ul>
+                        </div>
                     </li>
                 </ul>
             </div>
@@ -427,7 +486,9 @@
                             </div>
                         }
 
-                        <button type="button" class="btn btn-outline-secondary w-100 mt-2">
+                        <button type="button" class="btn btn-outline-secondary send-reminder-btn w-100 mt-2"
+                                data-event-id="@Model.EventId"
+                                data-reminder-type="TimeIn">
                             <i class="ti ti-bell"></i> Send Reminder
                         </button>
                     </div>
@@ -497,7 +558,9 @@
                             </div>
                         }
 
-                        <button type="button" class="btn btn-outline-secondary w-100 mt-2">
+                        <button type="button" class="btn btn-outline-secondary send-reminder-btn w-100 mt-2"
+                         data-event-id="@Model.EventId"
+                              data-reminder-type="TimeOut">
                             <i class="ti ti-bell"></i> Send Reminder
                         </button>
                     </div>

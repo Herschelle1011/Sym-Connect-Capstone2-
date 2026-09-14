@@ -610,6 +610,12 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime?>("ArchiveDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CancelledDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int?>("CreatedByUserId")
                         .HasColumnType("int");
 
@@ -629,11 +635,23 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("ExpiredDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsAllDay")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsArchived")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("IsCancelled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("OneDayReminderSentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("OneHourReminderSentAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Points")
                         .HasColumnType("int");
@@ -649,6 +667,9 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("ThreeDayReminderSentAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<TimeSpan?>("TimeInScannerClosesOffset")
                         .HasColumnType("time");
@@ -1011,9 +1032,6 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     b.Property<int?>("PreferredGroupId")
                         .HasColumnType("int");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Province")
                         .IsRequired()

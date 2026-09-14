@@ -1,0 +1,48 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Event.RestoreEventViewModel
+
+<form asp-action="RestoreEvent" asp-controller="Events" method="post" class="modal-ajax-form">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="eventId" value="@Model.EventId" />
+
+    <p>
+        Restore <strong>@Model.EventTitle</strong>, originally scheduled for
+        @Model.StartDate.ToString("MMM d, yyyy")
+        @(Model.StartTime.HasValue
+            ? " at " + DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt")
+            : "")?
+    </p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.CancellationReason))
+    {
+        <div class="mb-2" style="font-size:13px; color:#6b7280;">
+            <strong>Cancelled:</strong> @Model.CancellationReason
+            @if (Model.CancelledDate.HasValue)
+            {
+                <span> on @Model.CancelledDate.Value.ToString("MMM d, yyyy")</span>
+            }
+        </div>
+    }
+
+    @if (!Model.CanRestore)
+    {
+        <div class="alert alert-warning py-2 px-3" style="font-size:13px;">
+            This event's original date has already passed, so it can't be restored
+            as-is. Please edit it with new dates first, then restore it.
+        </div>
+    }
+
+    <div class="d-flex gap-2 justify-content-end mt-3">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Back</button>
+
+        @if (Model.CanRestore)
+        {
+            <button type="submit" class="btn btn-success">Restore Event</button>
+        }
+        else
+        {
+            <button type="button" class="btn btn-primary edit-cancelled-event-btn" data-event-id="@Model.EventId">
+                Edit Dates First
+            </button>
+        }
+    </div>
+</form>

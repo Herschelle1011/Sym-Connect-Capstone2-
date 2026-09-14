@@ -15,5 +15,8 @@
 
 
         public string Status { get; set; } = string.Empty;
+
+        public string ScanByName { get; set; }
+        public string ScanByUserId { get; set; }
     }
 }

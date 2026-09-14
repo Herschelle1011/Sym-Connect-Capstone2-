@@ -22,12 +22,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _cloudinaryService = cloudinaryService;
         }
 
+        private static (string Label, string CssClass) GetStatusDisplay(FacilityStatus status, bool hasUpcomingReservations)
+        {
+            return status switch
+            {
+                FacilityStatus.Active => hasUpcomingReservations
+                    ? ("Limited today", "maintenance")
+                    : ("Available now", ""),
+                FacilityStatus.UnderMaintenance => ("Inactive", "inactive"),
+                FacilityStatus.Inactive => ("Under maintenance", "maintenance"),
+                _ => ("Unknown", "")
+            };
+        }
+
         public async Task<List<FacilityListViewModel>> GetAllFacilitiesAsync()
         {
             var now = DateTime.Now;
-            return await _context.Facilities
-                .AsNoTracking().
-                Where(f => f.IsArchived == false)
+            var facilities = await _context.Facilities
+                .AsNoTracking()
+                .Where(f => f.IsArchived == false)
                 .Select(f => new FacilityListViewModel
                 {
                     FacilityId = f.FacilityId,
@@ -42,37 +55,48 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         PhotoUrl = p.PhotoUrl
                     }).ToList(),
                     UpcomingReservations = _context.EventFacilities
-                     .Where(ef =>
-                    ef.FacilityId == f.FacilityId &&
-                    !ef.Event.IsArchived &&
-                    (
-                        ef.Event.EndDate > now.Date ||
-                        (
-                            ef.Event.EndDate == now.Date &&
-                            ef.Event.EndTime >= now.TimeOfDay
+                        .Where(ef =>
+                            ef.FacilityId == f.FacilityId &&
+                            !ef.Event.IsArchived &&
+                            (
+                                ef.Event.EndDate > now.Date ||
+                                (
+                                    ef.Event.EndDate == now.Date &&
+                                    ef.Event.EndTime >= now.TimeOfDay
+                                )
+                            )
                         )
-                    )
-                )
-                .OrderBy(ef => ef.Event.StartDate)
-                .ThenBy(ef => ef.Event.StartTime)
-                .Take(3)
-                .Select(ef => new FacilityReservationViewModel
-                {
-                    Date = ef.Event.StartDate,
-                    StartTime = ef.Event.StartTime,
-                    EndTime = ef.Event.EndTime,
-                    EventTitle = ef.Event.EventTitle,
-
-                    GroupName = ef.Event.ExpectedGroups
-                        .Select(g => g.Group.GroupName)
-                        .ToList()
-                })
-                .ToList(),
+                        .OrderBy(ef => ef.Event.StartDate)
+                        .ThenBy(ef => ef.Event.StartTime)
+                        .Take(3)
+                        .Select(ef => new FacilityReservationViewModel
+                        {
+                            Date = ef.Event.StartDate,
+                            StartTime = ef.Event.StartTime,
+                            EndTime = ef.Event.EndTime,
+                            EventTitle = ef.Event.EventTitle,
+                            
+                            GroupName = ef.Event.ExpectedGroups
+                                .Select(g => g.Group.GroupName)
+                                .ToList()
+                        })
+                        .ToList(),
                 }).ToListAsync();
+
+            // Post-process: compute display status now that reservations are loaded
+            foreach (var facility in facilities)
+            {
+                var (label, cssClass) = GetStatusDisplay(facility.Status, facility.UpcomingReservations.Any());
+                facility.StatusLabel = label;
+                facility.StatusClass = cssClass;
+            }
+
+            return facilities;
         }
 
         public async Task<List<FacilityListViewModel>> GetAllFacilitiesForEventsAsync()
         {
+          
             return await _context.Facilities
                 .AsNoTracking().
                 Where(f => f.IsArchived == false && f.Status == FacilityStatus.Active)
@@ -104,15 +128,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Select(f => new FacilityDetailsViewModel
                 {
                     FacilityId = f.FacilityId,
-
                     FacilityName = f.FacilityName,
-
                     FacilityDescription = f.FacilityDescription,
-
                     Status = f.Status,
-
                     Capacity = f.Capacity,
-
                     Photos = f.FacilityPhotos
                         .Select(p => new ExistingPhotoViewModel
                         {
@@ -146,18 +165,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Select(ef => new FacilityReservationViewModel
                 {
                     Date = ef.Event.StartDate,
-
                     StartTime = ef.Event.StartTime,
-
                     EndTime = ef.Event.EndTime,
-
                     EventTitle = ef.Event.EventTitle,
-
+                    Status = ef.Event.ApprovalStatus,
                     GroupName = ef.Event.ExpectedGroups
                         .Select(eg => eg.Group.GroupName)
                         .ToList()
                 })
                 .ToListAsync();
+
+            var (label, cssClass) = GetStatusDisplay(existingFacility.Status, existingFacility.UpcomingReservations.Any());
+            existingFacility.StatusLabel = label;
+            existingFacility.StatusClass = cssClass;
 
             return existingFacility;
         }
@@ -266,12 +286,57 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<OperationalResult> ArchiveFacilityAsync(int id)
         {
-            var facility = await _context.Facilities.FirstOrDefaultAsync(e => e.FacilityId == id);
-            if (facility == null) return new OperationalResult { Success = false, Message = "Facility not found." };
+            var facility = await _context.Facilities
+                .FirstOrDefaultAsync(f => f.FacilityId == id);
+
+            if (facility == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Facility not found."
+                };
+            }
+
+            var now = DateTime.Now;
+
+            var hasActiveReservation = await _context.EventFacilities
+                .AnyAsync(ef =>
+                    ef.FacilityId == id &&
+
+                    !ef.Event.IsArchived &&
+
+                    ef.Event.ApprovalStatus == ApprovalStatus.Approved &&
+
+                    (
+                        ef.Event.EndDate.Date > now.Date ||
+
+                        (
+                            ef.Event.EndDate.Date == now.Date &&
+                            (ef.Event.EndTime ?? TimeSpan.MaxValue) >= now.TimeOfDay
+                        )
+                    )
+                );
+
+            if (hasActiveReservation)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "This facility cannot be archived because it has an upcoming or ongoing approved reservation."
+                };
+            }
+
             facility.IsArchived = true;
             facility.ArchiveDate = DateTime.Now;
+
             await _context.SaveChangesAsync();
-            return new OperationalResult { Success = true, Message = "Facility successfully saved to archived." };
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Facility successfully archived."
+            };
         }
 
         public async Task <bool> FacilityNameExist(string name, int? excludeId = null)
@@ -290,6 +355,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _context.SaveChangesAsync();
             return new OperationalResult { Success = true, Message = "Facility photo removed." };
 
+        }
+
+
+        public async Task<ArchivedFacilityDetailsViewModel?> GetArchivedDetailsAsync(int id)
+        {
+            var facility = await _context.Facilities
+                .AsNoTracking()
+                .Where(f =>
+                    f.FacilityId == id &&
+                    f.IsArchived == true)
+                .Select(f => new ArchivedFacilityDetailsViewModel
+                {
+                    FacilityId = f.FacilityId,
+
+                    FacilityName = f.FacilityName,
+
+                    Description = f.FacilityDescription,
+
+                    Capacity = f.Capacity,
+
+                    Status = f.IsArchived == true
+                        ? "Archived"
+                        : "Active",
+
+                    ArchiveDate = f.ArchiveDate
+                })
+                .FirstOrDefaultAsync();
+
+            return facility;
         }
     }
 }

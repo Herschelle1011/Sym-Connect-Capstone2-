@@ -102,6 +102,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
                 UpcomingEvents = await _dashboardService.GetUpcomingEventsAsync(),
                 UpcomingActivitiesCount = await _dashboardService.GetActivitiesCountThisWeekAsync(startOfWeek, endOfWeek),
+                EventsExpiredCount = await _dashboardService.GetExpiredEventCountAsync(),
 
                 EventsApprovedCount = await _eventService.GetApprovedCountAsync(),  // TODO: wire to real count
                 EventsPendingCount = await _eventService.GetPendingRequestCountAsync(),  // TODO: wire to real count

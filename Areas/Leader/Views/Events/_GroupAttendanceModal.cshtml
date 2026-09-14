@@ -1,178 +1,228 @@
 ﻿@model GroupAttendanceDetailsViewModel
 
+<link rel="stylesheet" href="~/css/ViewAttendanceGroupDetails.css" asp-append-version="true" />
 
-<div class="attendance-header d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
-    <div class="d-flex align-items-center gap-2">
-        <div class="group-icon-circle">
-            <i class="bi bi-people-fill"></i>
-        </div>
-        <div>
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <h5 class="mb-0">@Model.GroupName</h5>
-                <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
-                    @(Model.GroupAttendanceStatus switch
-                    {
-                        GroupAttendanceStatus.FullyPresent => "Fully Present",
-                        GroupAttendanceStatus.PartiallyPresent => "Partially Present",
-                        GroupAttendanceStatus.Absent => "Absent"
-                    })
-                </span>
-            </div>
-            <small class="text-muted">
-                @Model.attendanceRowViewModels.Count(r => r.Status == "Present") of @Model.TotalMembers members attended
-                (@(Model.TotalMembers > 0 ? (Model.attendanceRowViewModels.Count(r => r.Status == "Present") * 100 / Model.TotalMembers) : 0)%)
-            </small>
-        </div>
+
+<div class="d-flex align-items-center gap-2 mb-3">
+    <div style="width:40px;height:40px;border-radius:10px;background:#eef4ff;display:flex;align-items:center;justify-content:center;">
+        <i class="bi bi-people-fill" style="color:#4a6cf7;"></i>
     </div>
-</div>
-
-<div class="row g-3 g-md-0">
-
-    <!-- Left panel -->
-    <div class="col-12 col-md-4 attendance-sidebar">
-        <div class="info-card">
-            <div class="info-row">
-                <i class="bi bi-calendar-event text-primary"></i>
-                <div>
-                    <small class="text-muted d-block">Event</small>
-                    <span>@Model.eventTitle</span>
-                </div>
-            </div>
-            <div class="info-row">
-                <i class="bi bi-calendar3 text-primary"></i>
-                <div>
-                    <small class="text-muted d-block">Date</small>
-                    <span>@Model.EventDate.ToString("MMMM d, yyyy") @(Model.EventDate.Date == DateTime.Today ? "(Today)" : "")</span>
-                </div>
-            </div>
-            <div class="info-row">
-                <i class="bi bi-clock text-primary"></i>
-                <div>
-                    <small class="text-muted d-block">Time</small>
-                    <span>
-                        @(Model.StartTime.HasValue ? Model.StartTime.Value.ToString("hh\\:mm") : "—")
-                        –
-                        @(Model.EndTime.HasValue ? Model.EndTime.Value.ToString("hh\\:mm") : "—")
-                    </span>
-                </div>
-            </div>
-            <div class="info-row">
-                <i class="bi bi-person text-primary"></i>
-                <div>
-                    <small class="text-muted d-block">Group Leader</small>
-                    <span>@Model.GroupLeader</span>
-                </div>
-            </div>
-            <div class="info-row">
-                <i class="bi bi-people text-primary"></i>
-                <div>
-                    <small class="text-muted d-block">Total Members</small>
-                    <span>@Model.TotalMembers</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="info-card">
-            <h6>Status</h6>
+    <div>
+        <h4 class="mb-0 fw-bold">@Model.eventTitle</h4>
+        <div class="d-flex align-items-center gap-2">
+            <span class="fw-semibold">@Model.GroupName</span>
             <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
-                @Model.GroupAttendanceStatus
+                @(Model.GroupAttendanceStatus switch
+                {
+                    GroupAttendanceStatus.FullyPresent => "Fully Present",
+                    GroupAttendanceStatus.PartiallyPresent => "Partially Present",
+                    _ => "Absent"
+                })
             </span>
-            <p class="text-muted small mt-2 mb-0">
-                @(Model.GroupAttendanceStatus == GroupAttendanceStatus.FullyPresent
-                    ? "All members of this group have attended the event."
-                    : Model.GroupAttendanceStatus == GroupAttendanceStatus.PartiallyPresent
-                        ? "Some members of this group have not attended yet."
-                        : "No members of this group have attended.")
-            </p>
         </div>
+        <div class="text-muted small">
+            @Model.PresentCount of @Model.TotalMembers members attended (@Model.AttendancePercentage%)
+        </div>
+    </div>
+</div>
 
-        <div class="info-card mb-0">
-            <h6>Summary</h6>
-            <div class="summary-row">
-                <span class="dot dot-present"></span> Present
-                <span class="ms-auto fw-semibold">@Model.attendanceRowViewModels.Count(r => r.Status == "Present")</span>
+<div class="row g-3">
+    <!-- LEFT: Group Status only (Event Information card removed) -->
+    <div class="col-lg-4">
+        <div class="details-card">
+            <div class="details-card-title">Group Status</div>
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width:70px;height:70px;border-radius:50%;border:6px solid #4a6cf7;display:flex;align-items:center;justify-content:center;font-weight:700;">
+                    @Model.AttendancePercentage%
+                </div>
+                <div>
+                    <span class="badge status-badge status-@Model.GroupAttendanceStatus.ToString().ToLower()">
+                        @(Model.GroupAttendanceStatus switch
+                        {
+                            GroupAttendanceStatus.FullyPresent => "Fully Present",
+                            GroupAttendanceStatus.PartiallyPresent => "Partially Present",
+                            _ => "Absent"
+                        })
+                    </span>
+                    <div class="text-muted small mt-1">Some members of this group have not attended yet.</div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="dot dot-pending"></span> Pending
-                <span class="ms-auto fw-semibold">@Model.attendanceRowViewModels.Count(r => r.Status == "Pending")</span>
-            </div>
-            <div class="summary-row">
-                <span class="dot dot-absent"></span> Absent
-                <span class="ms-auto fw-semibold">@Model.attendanceRowViewModels.Count(r => r.Status == "Absent")</span>
+            <div class="d-flex gap-2">
+                <div class="flex-fill text-center p-2" style="background:#eafbf1;border-radius:8px;">
+                    <div class="fw-bold" style="color:#15803d;">@Model.PresentCount</div>
+                    <div class="small text-muted">Present</div>
+                </div>
+                <div class="flex-fill text-center p-2" style="background:#fef7e6;border-radius:8px;">
+                    <div class="fw-bold" style="color:#b45309;">@Model.PendingCount</div>
+                    <div class="small text-muted">Pending</div>
+                </div>
+                <div class="flex-fill text-center p-2" style="background:#fdecec;border-radius:8px;">
+                    <div class="fw-bold" style="color:#b91c1c;">@Model.AbsentCount</div>
+                    <div class="small text-muted">Absent</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Right panel -->
-    <div class="col-12 col-md-8 attendance-main">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-stretch align-items-sm-center mb-3 gap-2">
-            <div class="search-box">
-                <i class="bi bi-search"></i>
-                <input type="text" id="memberSearch" class="form-control" placeholder="Search member...">
-            </div>
-            <select id="statusFilter" class="form-select w-100 w-sm-auto">
-                <option value="all">All Status</option>
-                <option value="Present">Present</option>
-                <option value="Pending">Pending</option>
-                <option value="Absent">Absent</option>
-            </select>
-        </div>
+    <!-- RIGHT: Members table -->
+    <div class="col-lg-8">
+        <div class="members-card">
 
-        <div class="table-responsive attendance-table-wrap">
-            <table class="table attendance-table mb-0" id="attendanceTable">
-                <thead>
-                    <tr>
-                        <th>Member</th>
-                        <th>Status</th>
-                        <th>Time In</th>
-                        <th>Time Out</th>
-                        <th>Remarks</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var row in Model.attendanceRowViewModels)
-                    {
-                        <tr data-status="@row.Status" data-name="@row.FullName.ToLower()">
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-circle">
-                                        @if (!string.IsNullOrEmpty(row.PhotoUrl))
-                                        {
-                                            <img src="@row.PhotoUrl" alt="@row.FullName" style="width:100%; height:100%; object-fit:cover;" />
-                                        }
-                                        else
-                                        {
-                                            <span>@row.FullName.Substring(0, 1).ToUpper()</span>
-                                        }
-                                    </div>
-                                    <div class="member-name-wrap">
-                                        <div class="text-truncate">@row.FullName</div>
-                                        @if (row.FullName == Model.GroupLeader)
-                                        {
-                                            <small class="text-primary">Group Leader</small>
-                                        }
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="status-pill status-pill-@row.Status.ToLower()">
-                                    <span class="dot"></span> @row.Status
-                                </span>
-                            </td>
-                            <td>@(row.TimeIn.HasValue ? row.TimeIn.Value.ToString(@"hh\:mm") : "—")</td>
-                            <td>@(row.TimeOut.HasValue ? row.TimeOut.Value.ToString(@"hh\:mm") : "—")</td>
-                            <td class="text-muted text-truncate" style="max-width:160px;">@row.Remarks</td>
-                            <td><i class="bi bi-chevron-down text-muted"></i></td>
+            <div class="members-card-header">
+                <div class="members-title">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Group Members (@Model.TotalMembers)</span>
+                </div>
+
+                <div class="aov-toolbar">
+
+                    <div class="aov-search-box">
+                        <i class="bi bi-search"></i>
+
+                        <input type="text"
+                               id="memberSearch"
+                               class="form-control"
+                               placeholder="Search member..." />
+                    </div>
+
+                    <select id="statusFilter" class="form-select aov-status-filter">
+                        <option value="all">All Status</option>
+                        <option value="Present">Present</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Absent">Absent</option>
+                    </select>
+
+                </div>
+            </div>
+
+            <div class="table-responsive members-table-wrap">
+                <table class="table aov-table mb-0"
+                       id="attendanceTable">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Member</th>
+                            <th>Status</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Remarks</th>
+                            <th>Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+
+                    <tbody>
+                        @{
+                            int rowNum = 1;
+                        }
+
+                        @foreach (var row in Model.attendanceRowViewModels)
+                        {
+                            <tr data-status="@row.Status"
+                                data-name="@row.FullName.ToLower()">
+
+                                <td>@(rowNum++)</td>
+
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+
+                                        <div class="aov-avatar-circle">
+                                            @if (!string.IsNullOrEmpty(row.PhotoUrl))
+                                            {
+                                                <img src="@row.PhotoUrl"
+                                                     alt="@row.FullName" />
+                                            }
+                                            else
+                                            {
+                                                <span>
+                                                    @row.FullName.Substring(0, 1).ToUpper()
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <div>
+                                            @row.FullName
+
+                                            @if (row.FullName == Model.GroupLeader)
+                                            {
+                                                <br />
+                                                <small class="text-primary">
+                                                    Group Leader
+                                                </small>
+                                            }
+                                        </div>
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="aov-status-pill aov-status-pill-@row.Status.ToLower()">
+                                        <span class="dot"></span>
+                                        @row.Status
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @(row.TimeIn.HasValue
+                                        ? row.TimeIn.Value.ToString("h:mm tt")
+                                        : "—")
+                                </td>
+
+                                <td>
+                                    @(row.TimeOut.HasValue
+                                        ? row.TimeOut.Value.ToString("h:mm tt")
+                                        : "—")
+                                </td>
+
+                                <td class="text-muted">
+                                    @row.Remarks
+                                </td>
+
+                                <td>
+                                    <div class="dropdown">
+
+                                        <button class="btn btn-sm btn-light rounded-circle"
+                                                data-bs-toggle="dropdown">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </button>
+
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <span class="dropdown-item-text small text-muted">
+                                                    Scanned by: @row.ScanByName
+                                                </span>
+                                            </li>
+                                        </ul>
+
+                                    </div>
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+
         </div>
-    </div>
-
 </div>
 
-<div class="d-flex justify-content-end mt-3">
-    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
-</div>
+<script>
+    (function () {
+        var searchInput = document.getElementById('memberSearch');
+        var statusFilter = document.getElementById('statusFilter');
+
+        function applyFilters() {
+            var query = searchInput.value.trim().toLowerCase();
+            var status = statusFilter.value;
+            document.querySelectorAll('#attendanceTable tbody tr').forEach(function (row) {
+                var matchesStatus = status === 'all' || row.dataset.status === status;
+                var matchesSearch = !query || row.dataset.name.indexOf(query) !== -1;
+                row.style.display = (matchesStatus && matchesSearch) ? '' : 'none';
+            });
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+    })();
+</script>

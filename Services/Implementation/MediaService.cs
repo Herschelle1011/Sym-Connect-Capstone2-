@@ -774,5 +774,58 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return existingFile;
         }
 
+
+        public async Task<ArchivedMediaDetailsViewModel?> GetArchivedDetailsAsync(int id)
+        {
+            var folder = await _context.MediaFolders
+                .AsNoTracking()
+                .Where(f =>
+                    f.MediaFolderId == id &&
+                    f.isArchived == true)
+                .Select(f => new ArchivedMediaDetailsViewModel
+                {
+                    MediaFolderId = f.MediaFolderId,
+
+                    FolderName = f.FolderName,
+
+                    IsPrivate = f.IsPrivate,
+
+                    CreatedDate = f.CreatedDate,
+
+                    ArchiveDate = f.ArchiveDate,
+
+                    CreatedBy = f.Member != null
+                        ? f.Member.FullName
+                        : "Unknown",
+
+                    FileCount = _context.MediaFiles
+                        .Count(file =>
+                            file.MediaFolderId == f.MediaFolderId),
+
+                    Files = _context.MediaFiles
+                        .Where(file =>
+                            file.MediaFolderId == f.MediaFolderId)
+                        .Select(file => new ArchivedMediaFileViewModel
+                        {
+                            MediaFileId = file.MediaFileId,
+
+                            FileName = file.FileName,
+
+                            FileExtension = file.FileExtension ?? "",
+
+                            FileUrl = file.FileUrl,
+
+                            UploadDate = file.UploadDate,
+
+                            UploadedBy = file.Member != null
+                                ? file.Member.FullName
+                                : "Unknown"
+                        })
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            return folder;
+        }
     }
 }

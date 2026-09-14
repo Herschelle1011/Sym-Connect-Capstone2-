@@ -15,6 +15,13 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string GroupLeader { get; set; } = string.Empty;
         public int TotalMembers { get; set; }
 
+        public string EventFacility { get; set; }
+        public string? EventPhotoUrl { get; set; }
+        public int PresentCount { get; set; }
+        public int PendingCount { get; set; }
+        public int AbsentCount { get; set; }
+        public int AttendancePercentage { get; set; }
+
 
         public GroupAttendanceStatus GroupAttendanceStatus { get; set; }
 

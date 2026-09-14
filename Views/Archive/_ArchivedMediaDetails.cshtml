@@ -1,0 +1,236 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.ArchivedMediaDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+
+        <div style="
+            width:58px;
+            height:58px;
+            border-radius:14px;
+            background:#eff6ff;
+            display:flex;
+            align-items:center;
+            justify-content:center;">
+
+            <i class="bi bi-folder-fill"
+               style="font-size:26px; color:#2563eb;">
+            </i>
+        </div>
+
+        <div>
+
+            <h4 style="
+                margin:0;
+                font-size:20px;
+                font-weight:700;
+                color:#111827;">
+                @Model.FolderName
+            </h4>
+
+            <span class="badge bg-info-subtle text-info mt-2">
+                Media Folder
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Details -->
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <div class="small text-muted">
+                Visibility
+            </div>
+
+            <div class="fw-semibold">
+                @(Model.IsPrivate ? "Private" : "Public")
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="small text-muted">
+                Total Files
+            </div>
+
+            <div class="fw-semibold">
+                @Model.FileCount
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="small text-muted">
+                Created By
+            </div>
+
+            <div class="fw-semibold">
+                @Model.CreatedBy
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="small text-muted">
+                Date Created
+            </div>
+
+            <div class="fw-semibold">
+                @Model.CreatedDate.ToString(
+                    "MMM dd, yyyy • hh:mm tt")
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <!-- Files -->
+    <div class="d-flex align-items-center
+        justify-content-between mb-3">
+
+        <h6 class="fw-bold mb-0">
+            Files
+        </h6>
+
+        <span class="text-muted small">
+            @Model.FileCount file@(Model.FileCount == 1 ? "" : "s")
+        </span>
+
+    </div>
+
+
+    @if (Model.Files != null && Model.Files.Any())
+    {
+        <div style="
+            border:1px solid #e5e7eb;
+            border-radius:12px;
+            overflow:hidden;">
+
+            @foreach (var file in Model.Files)
+            {
+                <div class="d-flex
+                    align-items-center
+                    justify-content-between
+                    gap-3 p-3"
+                     style="
+                    border-bottom:1px solid #f1f5f9;">
+
+                    <div class="d-flex
+                        align-items-center
+                        gap-3">
+
+                        <div style="
+                            width:40px;
+                            height:40px;
+                            border-radius:10px;
+                            background:#f3f4f6;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;">
+
+                            <i class="bi bi-file-earmark"
+                               style="
+                                font-size:18px;
+                                color:#6b7280;">
+                            </i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="fw-semibold"
+                                 style="font-size:14px;">
+                                @file.FileName
+                            </div>
+
+                            <div class="text-muted small">
+                                @file.FileExtension?.ToUpper()
+                                &nbsp;•&nbsp;
+                                @file.UploadedBy
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="text-end">
+
+                        <div class="small text-muted">
+                            @file.UploadDate
+                            .ToString("MMM dd, yyyy")
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(file.FileUrl))
+                        {
+                            <a href="@file.FileUrl"
+                               target="_blank"
+                               class="small text-primary"
+                               style="text-decoration:none;">
+                                View file
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div style="
+            padding:30px;
+            text-align:center;
+            background:#f9fafb;
+            border-radius:12px;">
+
+            <i class="bi bi-folder2-open"
+               style="
+                font-size:28px;
+                color:#9ca3af;">
+            </i>
+
+            <div class="text-muted mt-2">
+                No files found in this folder.
+            </div>
+
+        </div>
+    }
+
+
+    <!-- Archive Date -->
+    <div class="mt-4 p-3"
+         style="
+        background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold"
+             style="color:#c2410c;">
+
+            <i class="bi bi-archive me-1"></i>
+            Archived
+
+        </div>
+
+        <div class="small text-muted mt-1">
+
+            @(Model.ArchiveDate?.ToString(
+                "MMM dd, yyyy • hh:mm tt")
+              ?? "Archive date unavailable")
+
+        </div>
+
+    </div>
+
+</div>

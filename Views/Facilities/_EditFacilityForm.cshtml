@@ -1,6 +1,7 @@
 ﻿@model EditFacilityViewModel
 
 <form id="editFacilityForm"
+      class="modal-ajax-form"
       asp-action="Edit"
       asp-controller="Facilities"
       method="post"
@@ -56,8 +57,11 @@
     @* {{!-- Facility Types --}} *@
     <div class="mb-3">
         <div class="form-floating">
-            <input asp-for="FacilityTypes" class="form-control" placeholder="e.g. Gym,Basketball" />
-            <label asp-for="FacilityTypes">Facility Types (comma-separated)</label>
+            <input name="FacilityTypes"
+                   class="form-control"
+                   value="@(Model.FacilityTypes != null ? string.Join(", ", Model.FacilityTypes) : "")"
+                   placeholder="e.g. Gym,Basketball" />
+            <label>Facility Types (comma-separated)</label>
             <span asp-validation-for="FacilityTypes" class="text-danger small"></span>
         </div>
     </div>

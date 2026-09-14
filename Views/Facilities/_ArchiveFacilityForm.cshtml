@@ -67,9 +67,12 @@
     </div>
 
     <!-- Form -->
-    <form asp-action="Archived"
+    <form asp-controller="Facilities"
+          asp-action="Archived"
           asp-route-id="@Model.facilityId"
-          method="post">
+          method="post"
+          class="archive-facility-form">
+
         @Html.AntiForgeryToken()
 
         <div style="display:flex; gap:10px;">
@@ -79,21 +82,27 @@
                     data-bs-dismiss="modal"
                     style="font-size:13px; font-weight:500;
                 border:1px solid #e5e7eb; border-radius:8px;
-                padding:9px; background:#fff; color:#374151;
-                transition:background .15s;">
+                padding:9px; background:#fff; color:#374151;">
                 Cancel
             </button>
 
             <button type="submit"
-                    class="btn w-50"
+                    class="btn w-50 archive-submit-btn"
                     style="font-size:13px; font-weight:600;
                 border-radius:8px; padding:9px;
-                background:#b45309; color:#fff; border:none;
-                transition:background .15s;">
-                <i class="bi bi-archive" style="margin-right:5px;"></i>Archive
+                background:#b45309; color:#fff; border:none;">
+
+                <span class="archive-btn-content">
+                    <i class="bi bi-archive" style="margin-right:5px;"></i>
+                    Archive
+                </span>
+
+                <span class="archive-btn-loading d-none">
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Archiving...
+                </span>
             </button>
 
         </div>
     </form>
-
 </div>

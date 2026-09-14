@@ -160,11 +160,52 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         [HttpPost]
         public async Task<IActionResult> ScanTimeOut([FromBody] ScanAttendanceRequest req)
         {
+            // Keep your existing event authorization check.
             var guard = await AuthorizeEvent(req.EventId);
-            if (guard != null) return guard;
 
-            var result = await _eventService.RecordTimeOutAsync(req.QrToken, req.EventId); 
-            return Json(new { success = result.Success, message = result.Message });
+            if (guard != null)
+            {
+                return guard;
+            }
+
+
+            // Get the currently logged-in user.
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Unable to identify the logged-in user."
+                });
+            }
+
+
+            // Check whether the scanner is an Admin.
+            bool isAdmin =
+                await _userManager.IsInRoleAsync(
+                    user,
+                    "Admin"
+                );
+
+
+            // Pass the scanner information to the service.
+            var result =
+                await _eventService.RecordTimeOutAsync(
+                    req.QrToken,
+                    req.EventId,
+                    user.Id,
+                    user.MemberId,
+                    isAdmin
+                );
+
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
         }
 
 
@@ -360,6 +401,38 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             return View(events);
         }
 
+
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> ViewAllFacilitiesModal(int id)
+        {
+            var guard = await AuthorizeEvent(id);
+            if (guard != null) return guard;
+
+            var facilities = await _eventService.GetFacilitiesForModalAsync(id);
+            return PartialView("~/Views/Events/_AllFacilitiesModal.cshtml", facilities);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ViewAllGroupsModal(int id)
+        {
+            var guard = await AuthorizeEvent(id);
+            if (guard != null) return guard;
+
+            var groups = await _eventService.GetGroupsForModalAsync(id);
+            return PartialView("~/Views/Events/_AllGroupsModal.cshtml", groups);
+        }
+
+        public async Task<IActionResult> CancelledDetails(int id)
+        {
+            var vm = await _eventService.GetCancelledEventDetailsAsync(id);
+            if (vm == null) return NotFound();
+
+            return View(vm);
+        }
 
     }
 

@@ -1,0 +1,38 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Event.EventListItemViewModel>
+
+<div class="offcanvas offcanvas-end event-panel" tabindex="-1" id="upcomingEventsPanel" style="width: 420px;">
+
+    <div class="offcanvas-header border-bottom pb-2">
+        <h5 class="offcanvas-title fw-medium">Upcoming Events</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+        @if (!Model.Any())
+        {
+            <p class="text-muted text-center py-4">No upcoming events.</p>
+        }
+
+        @foreach (var evt in Model)
+        {
+            <div class="d-flex justify-content-between align-items-start py-3" style="border-bottom:1px solid #e5e7eb;">
+                <div>
+                    <div class="fw-medium">@evt.EventTitle</div>
+                    <div style="font-size:12px; color:#6b7280;">
+                        @evt.StartDate.ToString("MMM d, yyyy")
+                        @(evt.StartTime.HasValue
+                            ? " • " + DateTime.Today.Add(evt.StartTime.Value).ToString("h:mm tt")
+                            : " • All day")
+                    </div>
+                </div>
+
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger open-modal"
+                        data-url="@Url.Action("GetCancelForm", "Events", new { eventid = evt.EventId })"
+                        data-title="Cancel Event">
+                    Cancel
+                </button>
+            </div>
+        }
+    </div>
+</div>

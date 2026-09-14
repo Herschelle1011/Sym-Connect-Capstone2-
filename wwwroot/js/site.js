@@ -75,36 +75,17 @@ document.addEventListener("submit", async function (e) {
             console.log("Modal form result:", result);
 
             if (result.success) {
-
-                const modalElement =
-                    document.getElementById("appModal");
-
-                const modal =
-                    bootstrap.Modal.getInstance(modalElement);
+                const modalElement = form.closest(".modal");
+                const modal = modalElement ? bootstrap.Modal.getInstance(modalElement) : null;
 
                 if (modal) {
                     modal.hide();
                 }
 
-                showAlertDialog(
-                    result.message || "Saved successfully.",
-                    "success",
-                    "Success"
-                );
-
-                setTimeout(() => {
-                    location.reload();
-                }, 1200);
-
+                showAlertDialog(result.message || "Saved successfully.", "success", "Success");
+                setTimeout(() => location.reload(), 1200);
             } else {
-
-                showAlertDialog(
-                    result.message || "Unable to save.",
-                    "error",
-                    "Failed"
-                );
-
-                // Restore button
+                showAlertDialog(result.message || "Unable to save.", "error", "Failed");
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = originalButtonHtml;
@@ -304,7 +285,7 @@ document.addEventListener("click", function (e) {
 
 document.addEventListener("submit", async function (e) {
     //EXISTING GLOBAL MODAL SUBMIT FORMS
-    const modalFormIds = ["createGroupForm", "removeMemberForm", "transferMemberForm", "editGroupForm"];
+    const modalFormIds = [ "removeMemberForm", "transferMemberForm"];
     if (!modalFormIds.includes(e.target.id)) return;
 
     e.preventDefault();
@@ -983,20 +964,6 @@ window.addEventListener("pageshow", function () {
 
 
 
-// Open read-only event details modal from the All Events list
-document.addEventListener('click', function (e) {
-    const row = e.target.closest('.all-events-row');
-    if (!row) return;
-
-    const eventId = row.dataset.eventId;
-    fetch(`/Leader/Events/AllEventsDetails/${eventId}`)
-        .then(res => res.text())
-        .then(html => {
-            document.getElementById('appModalBody').innerHTML = html;
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal')).show();
-        });
-});
-
 // Client-side filtering for the All Events table
 function filterAllEventsTable() {
     const search = (document.getElementById('allEventsSearch')?.value || '').toLowerCase();
@@ -1020,17 +987,210 @@ document.addEventListener('change', e => {
 
 
 
-
-
+// ═══════════════ READ-ONLY EVENT DETAILS MODAL (All Events / Assigned Events) ═══════════════
 document.addEventListener('click', function (e) {
     const trigger = e.target.closest('.all-events-row, .view-event-details-btn');
     if (!trigger) return;
 
     const eventId = trigger.dataset.eventId;
-    fetch(`/Leader/Events/AllEventsDetails/${eventId}`)
+
+
+    document.getElementById('appModalLabel').innerText = '';
+    document.getElementById('appModalIcon').classList.add('d-none');
+    document.getElementById('appModalSubtitle').classList.add('d-none');
+
+    fetch(`/Leader/Events/AllEventsDetails/${eventId}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
         .then(res => res.text())
         .then(html => {
             document.getElementById('appModalBody').innerHTML = html;
             bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal')).show();
+        })
+        .catch(err => {
+            console.error(err);
+            showAlertDialog('Unable to load event details. Please try again.', 'error');
+        });
+});
+
+
+// ═══════════════ ATTENDANCE ROW: toggle "Scanned by" popover ═══════════════
+document.addEventListener('click', function (e) {
+    const toggleBtn = e.target.closest('.attendance-details-toggle');
+
+    // Clicked outside any toggle/popover — close everything
+    if (!toggleBtn) {
+        if (!e.target.closest('.attendance-details-popover')) {
+            closeAllAttendancePopovers();
+        }
+        return;
+    }
+
+    const cell = toggleBtn.closest('.attendance-actions-cell');
+    const popover = cell.querySelector('.attendance-details-popover');
+    const isOpen = !popover.classList.contains('d-none');
+
+    closeAllAttendancePopovers();
+
+    if (!isOpen) {
+        popover.classList.remove('d-none');
+        toggleBtn.classList.add('open');
+    }
+});
+
+function closeAllAttendancePopovers() {
+    document.querySelectorAll('.attendance-details-popover').forEach(p => p.classList.add('d-none'));
+    document.querySelectorAll('.attendance-details-toggle.open').forEach(b => b.classList.remove('open'));
+}
+
+
+
+
+// ═══════════════ ATTENDANCE TABLE: search + status filter + pagination ═══════════════
+(function () {
+    const PAGE_SIZE = 5;
+    let currentPage = 1;
+
+    function getAttendanceRows() {
+        return Array.from(document.querySelectorAll('#attendanceTable tbody tr[data-status]'));
+    }
+
+    function getFilteredRows() {
+        const searchInput = document.getElementById('memberSearch');
+        const statusSelect = document.getElementById('statusFilter');
+        const searchTerm = (searchInput?.value || '').toLowerCase().trim();
+        const statusValue = statusSelect?.value || 'all';
+
+        return getAttendanceRows().filter(row => {
+            const matchesSearch = !searchTerm || row.dataset.name.includes(searchTerm);
+            const matchesStatus = statusValue === 'all' || row.dataset.status === statusValue;
+            return matchesSearch && matchesStatus;
+        });
+    }
+
+    function renderAttendanceTable() {
+        const allRows = getAttendanceRows();
+        const filtered = getFilteredRows();
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const end = start + PAGE_SIZE;
+        const pageRows = filtered.slice(start, end);
+
+        allRows.forEach(row => row.classList.add('pagination-hidden'));
+        pageRows.forEach(row => row.classList.remove('pagination-hidden'));
+
+        const info = document.getElementById('paginationInfo');
+        const firstBtn = document.getElementById('paginationFirstBtn');
+        const nextBtn = document.getElementById('paginationNextBtn');
+
+        if (info) {
+            info.textContent = filtered.length === 0
+                ? 'No members found'
+                : `Showing ${start + 1}–${Math.min(end, filtered.length)} of ${filtered.length}`;
+        }
+
+        if (firstBtn) firstBtn.disabled = currentPage === 1;
+        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+    }
+
+    document.addEventListener('input', function (e) {
+        if (e.target.id !== 'memberSearch') return;
+        currentPage = 1;
+        renderAttendanceTable();
+    });
+
+    document.addEventListener('change', function (e) {
+        if (e.target.id !== 'statusFilter') return;
+        currentPage = 1;
+        renderAttendanceTable();
+    });
+
+    document.addEventListener('click', function (e) {
+        if (e.target.id === 'paginationFirstBtn') {
+            currentPage = 1;
+            renderAttendanceTable();
+        }
+        if (e.target.id === 'paginationNextBtn') {
+            currentPage += 1;
+            renderAttendanceTable();
+        }
+    });
+
+    // Run once on load, and again whenever this partial gets swapped into a modal/tab via AJAX
+    document.addEventListener('DOMContentLoaded', renderAttendanceTable);
+    document.addEventListener('shown.bs.tab', renderAttendanceTable);
+    document.addEventListener('shown.bs.modal', renderAttendanceTable);
+})();
+
+
+
+document.addEventListener('click', async function (e) {
+    const btn = e.target.closest('.send-reminder-btn');
+
+    if (!btn) return;
+
+    const eventId = btn.dataset.eventId;
+    const reminderType = btn.dataset.reminderType;
+
+    try {
+        btn.disabled = true;
+
+        const response = await fetch(
+            `/Events/SendAttendanceReminder?eventId=${eventId}&reminderType=${reminderType}`,
+            {
+                method: 'POST'
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.success) {
+            showAlertDialog(
+                data.message,
+                "success",
+                "Reminder Sent"
+            );
+        } else {
+            showAlertDialog(
+                data.message,
+                "error",
+                "Unable to Send Reminder"
+            );
+        }
+    }
+    catch (error) {
+        console.error(error);
+
+        showAlertDialog(
+            "Something went wrong while sending the attendance reminder.",
+            "error",
+            "Error"
+        );
+    }
+    finally {
+        btn.disabled = false;
+    }
+});
+
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.cancel-event-btn');
+    if (!btn) return;
+
+    e.preventDefault();
+    const eventId = btn.getAttribute('data-id');
+
+    fetch('/Events/GetCancelForm?eventId=' + eventId)
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('appModalLabel').textContent = 'Cancel Event';
+            document.getElementById('appModalBody').innerHTML = html;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('appModal')).show();
+        })
+        .catch(err => {
+            console.error(err);
+            showAlertDialog('Unable to load the cancel form. Please try again.', 'error');
         });
 });

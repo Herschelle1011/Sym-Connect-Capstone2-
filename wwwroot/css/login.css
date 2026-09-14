@@ -29,8 +29,25 @@ body {
 .login-page-wrapper {
     width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
+}
+
+
+/* ══════════════════════════════════════
+   LOGO PANEL (hidden on desktop — desktop
+   keeps the original side-by-side layout;
+   shown as the top half of the mobile
+   bottom-sheet layout below)
+   ══════════════════════════════════════ */
+
+.login-logo-panel {
+    display: none;
+}
+
+.login-logo-img {
+    display: block;
 }
 
 
@@ -94,13 +111,26 @@ body {
 
 
 /* ══════════════════════════════════════
-   INPUT WRAPPER
+   INPUT WRAPPER (icon slot lives here —
+   positioned at every breakpoint, styled
+   further for mobile below)
    ══════════════════════════════════════ */
 
 .input-wrapper {
     position: relative;
     width: 100%;
 }
+
+    .input-wrapper .input-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a5a5a5;
+        font-size: 13px;
+        pointer-events: none;
+        z-index: 2;
+    }
 
 
 /* ══════════════════════════════════════
@@ -110,7 +140,7 @@ body {
 .input-group-custom input {
     width: 100%;
     height: 32px;
-    padding: 7px 12px;
+    padding: 7px 12px 7px 34px; /* left padding reserved for .input-icon */
     background: #ffffff;
     border: none;
     border-radius: 6px;
@@ -118,7 +148,7 @@ body {
     font-size: 0.75rem;
     outline: none;
     box-sizing: border-box;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
     .input-group-custom input::placeholder {
@@ -271,6 +301,9 @@ body {
         font-weight: 700;
         text-decoration: none;
         vertical-align: baseline;
+        background: transparent;
+        border: none;
+        cursor: pointer;
     }
 
         .login-footer button:hover {
@@ -306,15 +339,11 @@ body {
         }
 
 
-/* ══════════════════════════════════════
-   RESPONSIVE
-   ══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — TABLET
+   ══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-
-    body {
-        background-position: center;
-    }
 
     .login-card {
         max-width: 350px;
@@ -323,14 +352,164 @@ body {
     }
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE — MOBILE (bottom-sheet layout, matches app mockup)
+   ══════════════════════════════════════════════════════════════ */
+
 @media (max-width: 480px) {
 
-    body {
-        background-position: 65% center;
+    html, body {
+        height: auto;
+        overflow-y: auto;
     }
 
-    .login-card {
-        max-width: 320px;
-        padding: 25px;
+    body {
+        background-image: none; /* photo only shows on desktop/tablet */
+        background-color: #0d1f3a;
+        align-items: flex-end; /* pins the card to the bottom of the viewport */
+        justify-content: center;
+        display: flex;
     }
+
+    .login-page-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+        min-height: 100vh;
+        min-height: 100dvh;
+    }
+
+    /* White top panel — logo is a separate transparent-background
+       PNG, centered with flexbox + object-fit so it's dead-center
+       regardless of the image's own internal proportions */
+    .login-logo-panel {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+
+    .login-logo-img {
+        display: block;
+        width: 65%; /* shrink/grow to match the mockup's logo size */
+        height: auto;
+        max-width: 280px;
+        max-height: 100%;
+        object-fit: contain;
+        background: transparent;
+        margin: 0 auto;
+    }
+
+    /* Dark rounded bottom sheet, matching the mockup */
+    .login-card {
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 32px 24px 28px;
+        background: #0d1f3a;
+        flex: 0 0 auto;
+        border-radius: 28px 28px 0 0;
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    .login-heading {
+        text-align: center;
+        margin-bottom: 22px;
+    }
+
+        .login-heading h2 {
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .login-heading p {
+            display: none; /* mockup shows just "Login" — subtitle hidden to match */
+        }
+
+    /* Pill-shaped, translucent-dark inputs with room for a left icon */
+    .input-group-custom label {
+        font-size: 0.78rem;
+        margin-bottom: 8px;
+    }
+
+    .input-group-custom input {
+        height: 44px;
+        padding: 10px 16px 10px 38px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        color: #ffffff;
+        font-size: 0.85rem;
+    }
+
+        .input-group-custom input::placeholder {
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .input-group-custom input:focus {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+        }
+
+    .input-wrapper .input-icon {
+        left: 16px;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 15px;
+    }
+
+    .password-group .input-wrapper input {
+        padding-right: 42px;
+    }
+
+    .password-toggle {
+        right: 12px;
+        color: rgba(255, 255, 255, 0.55);
+    }
+
+        .password-toggle:hover {
+            color: #ffffff;
+        }
+
+    .login-extras {
+        font-size: 0.75rem;
+        margin-bottom: 22px;
+    }
+
+        .login-extras input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+        }
+
+        .login-extras a {
+            font-size: 0.75rem;
+            color: #4fb3e8;
+        }
+
+    /* Big rounded blue Sign In button, matching mockup */
+    .btn-signin {
+        height: 48px;
+        border-radius: 999px;
+        background: #1c9bf0;
+        font-size: 0.95rem;
+        letter-spacing: 0.3px;
+    }
+
+        .btn-signin:hover {
+            background: #0f89dc;
+        }
+
+    .login-footer {
+        font-size: 0.78rem;
+        margin-top: 20px;
+    }
+
+        .login-footer button {
+            font-size: 0.78rem;
+            color: #4fb3e8;
+        }
 }

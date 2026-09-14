@@ -51,6 +51,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<int> GetPendingFilesCountAsync();
 
-        Task<FileInformationViewModel?> GetDeleteFile(int id); 
-     }
+        Task<FileInformationViewModel?> GetDeleteFile(int id);
+
+        Task<ArchivedMediaDetailsViewModel?> GetArchivedDetailsAsync(int id);
+    }
 }

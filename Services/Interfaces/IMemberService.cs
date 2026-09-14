@@ -41,6 +41,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<ArchiveMemberViewModel> GetArchiveMemberAsync(int memberId);
         Task<OperationalResult> ArchiveMemberAsync(int memberId);
-       
+
+        Task<ArchivedMemberDetailsViewModel?> GetArchivedDetailsAsync(int id);
+
     }
 }

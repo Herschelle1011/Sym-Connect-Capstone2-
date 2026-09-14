@@ -1,79 +1,502 @@
-@model Sym_Connect__Capstone2_.Models.ElectionModels.Election
+@model Sym_Connect__Capstone2_.ViewModels.Election.EditElectionViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Election";
+    Layout = "_AdminLayout";
 }
 
-<h1>Edit</h1>
+<style>
 
-<h4>Election</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="ElectionId" />
-            <div class="form-group">
-                <label asp-for="ElectionName" class="control-label"></label>
-                <input asp-for="ElectionName" class="form-control" />
-                <span asp-validation-for="ElectionName" class="text-danger"></span>
+    .edit-election-page {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+
+    .edit-election-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    }
+
+    .edit-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+
+    .edit-subtitle {
+        margin-top: 5px;
+        margin-bottom: 28px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .field-label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .edit-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        font-size: 14px;
+        background: #fff;
+    }
+
+        .edit-input:focus {
+            outline: none;
+            border-color: #1877f2;
+            box-shadow: 0 0 0 3px rgba(24,119,242,.10);
+        }
+
+    .date-time-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .edit-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+        padding-top: 22px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .btn-cancel-election {
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: 1px solid #d1d5db;
+        background: #fff;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-save-election {
+        padding: 10px 22px;
+        border-radius: 999px;
+        border: none;
+        background: #1877f2;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+
+    .party-edit-card {
+        display: block;
+        width: 100%;
+        min-height: 100px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+
+        .party-edit-card:hover {
+            border-color: #93c5fd;
+            background: #f8fbff;
+        }
+
+        .party-edit-card.selected {
+            border-color: #1877f2;
+            background: #eff6ff;
+            box-shadow: 0 0 0 2px rgba(24,119,242,.08);
+        }
+
+    .party-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+    }
+
+    .party-description {
+        margin-top: 4px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #6b7280;
+    }
+
+    .party-checkbox {
+        margin-top: 3px;
+    }
+
+
+        .btn-save-election:disabled {
+            opacity: .65;
+        }
+
+    @@media (max-width: 650px) {
+
+        .date-time-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+</style>
+
+
+<div class="edit-election-page">
+
+    <div class="edit-election-card">
+
+        <h1 class="edit-title">
+            Edit Election
+        </h1>
+
+        <p class="edit-subtitle">
+            Update the election name and voting schedule.
+        </p>
+
+
+        <form asp-action="Edit"
+              asp-controller="Elections"
+              asp-route-id="@Model.ElectionId"
+              method="post"
+              id="editElectionForm">
+
+            @Html.AntiForgeryToken()
+
+
+            <input type="hidden"
+                   asp-for="ElectionId" />
+
+
+            <div asp-validation-summary="ModelOnly"
+                 class="alert alert-danger"
+                 style="@(ViewData.ModelState.ErrorCount > 0 ? "" : "display:none;")">
             </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
+
+
+            <!-- Election Name -->
+            <div class="mb-4">
+
+                <label asp-for="ElectionName"
+                       class="field-label">
+                    Election Name
+                </label>
+
+                <input asp-for="ElectionName"
+                       class="edit-input"
+                       placeholder="Enter election name" />
+
+                <span asp-validation-for="ElectionName"
+                      class="text-danger small">
+                </span>
+
             </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
+
+
+            <!-- Start -->
+            <div class="date-time-grid mb-4">
+
+                <div>
+
+                    <label asp-for="StartDate"
+                           class="field-label">
+                        Start Date
+                    </label>
+
+                    <input asp-for="StartDate"
+                           type="date"
+                           class="edit-input" />
+
+                    <span asp-validation-for="StartDate"
+                          class="text-danger small">
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <label asp-for="StartTime"
+                           class="field-label">
+                        Start Time
+                    </label>
+
+                    <input asp-for="StartTime"
+                           type="time"
+                           class="edit-input" />
+
+                    <span asp-validation-for="StartTime"
+                          class="text-danger small">
+                    </span>
+
+                </div>
+
             </div>
-            <div class="form-group">
-                <label asp-for="StartTime" class="control-label"></label>
-                <input asp-for="StartTime" class="form-control" />
-                <span asp-validation-for="StartTime" class="text-danger"></span>
+
+
+            <!-- End -->
+            <div class="date-time-grid">
+
+                <div>
+
+                    <label asp-for="EndDate"
+                           class="field-label">
+                        End Date
+                    </label>
+
+                    <input asp-for="EndDate"
+                           type="date"
+                           class="edit-input" />
+
+                    <span asp-validation-for="EndDate"
+                          class="text-danger small">
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <label asp-for="EndTime"
+                           class="field-label">
+                        End Time
+                    </label>
+
+                    <input asp-for="EndTime"
+                           type="time"
+                           class="edit-input" />
+
+                    <span asp-validation-for="EndTime"
+                          class="text-danger small">
+                    </span>
+
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="EndTime" class="control-label"></label>
-                <input asp-for="EndTime" class="form-control" />
-                <span asp-validation-for="EndTime" class="text-danger"></span>
+
+            <!-- PARTY LISTS -->
+            <div class="mt-4">
+
+                <div class="mb-3">
+                    <label class="field-label mb-1">
+                        Party Lists
+                    </label>
+
+                    <div style="font-size:12px; color:#6b7280;">
+                        Select exactly two PartyLists for this election.
+                    </div>
+                </div>
+
+
+                <div class="row g-3">
+
+                    @foreach (var party in Model.AvailablePartyLists)
+                    {
+                        bool isSelected =
+                            Model.SelectedPartyListIds
+                                .Contains(party.Id);
+
+
+                        <div class="col-12 col-md-6">
+
+                            <label class="party-edit-card @(isSelected ? "selected" : "")">
+
+                                <div class="d-flex align-items-start gap-3">
+
+                                    <input type="checkbox"
+                                           name="SelectedPartyListIds"
+                                           value="@party.Id"
+                                           class="form-check-input party-checkbox"
+                                    @(isSelected ? "checked" : null) />
+
+
+                                    <div>
+
+                                        <div class="party-name">
+                                            @party.PartyListName
+                                        </div>
+
+                                        <div class="party-description">
+                                            @(string.IsNullOrWhiteSpace(
+                                                party.PartyListDescription)
+                                                ? "No description"
+                                                : party.PartyListDescription)
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </label>
+
+                        </div>
+                    }
+
+                </div>
+
+
+                <span asp-validation-for="SelectedPartyListIds"
+                      class="text-danger small d-block mt-2">
+                </span>
+
             </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
+
+
+            <div class="edit-actions">
+
+                <a asp-action="Index"
+                   asp-controller="Elections"
+                   class="btn-cancel-election">
+                    Cancel
+                </a>
+
+                <button type="submit"
+                        id="saveElectionBtn"
+                        class="btn-save-election">
+
+                    <span id="saveElectionText">
+                        Save Changes
+                    </span>
+
+                    <span id="saveElectionLoading"
+                          class="d-none">
+
+                        <span class="spinner-border spinner-border-sm me-1">
+                        </span>
+
+                        Saving...
+
+                    </span>
+
+                </button>
+
             </div>
-            <div class="form-group">
-                <label asp-for="partyLists" class="control-label"></label>
-                <input asp-for="partyLists" class="form-control" />
-                <span asp-validation-for="partyLists" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="IsArchived" class="control-label"></label>
-                <input asp-for="IsArchived" class="form-check-input" />
-                <span asp-validation-for="IsArchived" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="UpdatedAt" class="control-label"></label>
-                <input asp-for="UpdatedAt" class="form-control" />
-                <span asp-validation-for="UpdatedAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ArchivedDate" class="control-label"></label>
-                <input asp-for="ArchivedDate" class="form-control" />
-                <span asp-validation-for="ArchivedDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
+
         </form>
+
     </div>
+
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    @{
+        await Html.RenderPartialAsync(
+            "_ValidationScriptsPartial");
+    }
+
+
+    <script>
+
+        const form =
+            document.getElementById(
+                'editElectionForm'
+            );
+
+
+        form.addEventListener(
+            'submit',
+            function () {
+
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+
+                const button =
+                    document.getElementById(
+                        'saveElectionBtn'
+                    );
+
+                const text =
+                    document.getElementById(
+                        'saveElectionText'
+                    );
+
+                const loading =
+                    document.getElementById(
+                        'saveElectionLoading'
+                    );
+
+
+                button.disabled = true;
+
+                text.classList.add('d-none');
+
+                loading.classList.remove('d-none');
+
+            }
+        );
+
+
+                const partyCheckboxes =
+            document.querySelectorAll(
+                '.party-checkbox'
+            );
+
+
+        function updatePartyCards() {
+
+            const checked =
+                document.querySelectorAll(
+                    '.party-checkbox:checked'
+                );
+
+
+            partyCheckboxes.forEach(function (checkbox) {
+
+                const card =
+                    checkbox.closest(
+                        '.party-edit-card'
+                    );
+
+
+                if (checkbox.checked) {
+
+                    card.classList.add(
+                        'selected'
+                    );
+
+                }
+                else {
+
+                    card.classList.remove(
+                        'selected'
+                    );
+
+                }
+
+
+                // Once 2 are selected,
+                // disable the unchecked options.
+                checkbox.disabled =
+                    checked.length >= 2 &&
+                    !checkbox.checked;
+            });
+        }
+
+
+        partyCheckboxes.forEach(
+            function (checkbox) {
+
+                checkbox.addEventListener(
+                    'change',
+                    updatePartyCards
+                );
+
+            }
+        );
+
+
+        updatePartyCards();
+
+    </script>
 }

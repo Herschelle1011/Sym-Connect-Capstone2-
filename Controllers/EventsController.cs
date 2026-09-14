@@ -83,9 +83,43 @@ public class EventsController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> ScanTimeOut([FromBody] ScanAttendanceRequest request)
+    public async Task<IActionResult> ScanTimeOut(
+     [FromBody] ScanAttendanceRequest request)
     {
-        var result = await _eventService.RecordTimeOutAsync(request.QrToken, request.EventId);
+        // Get the currently logged-in user.
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Unable to identify the logged-in user."
+            });
+        }
+
+        // Check if the scanner is an Admin.
+        bool isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+
+        var result = await _eventService.RecordTimeOutAsync(
+            request.QrToken,
+            request.EventId,
+            user.Id,
+            user.MemberId,
+            isAdmin
+        );
+
+        return Json(new
+        {
+            success = result.Success,
+            message = result.Message
+        });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SendAttendanceReminder(int eventId, string reminderType)
+    {
+        var result = await _eventService.SendAttendanceReminderAsync(eventId, reminderType);
         return Json(new { success = result.Success, message = result.Message });
     }
 
@@ -94,15 +128,17 @@ public class EventsController : Controller
 
 
     // --------GET: EVENTS--------------
-    public async Task<IActionResult> Index(int? year, int? month)    
+    public async Task<IActionResult> Index(int? year, int? month)
     {
-        ViewBag.PendingRequestCount = await _eventService.GetPendingRequestCountAsync(); 
+        ViewBag.PendingRequestCount = await _eventService.GetPendingRequestCountAsync();
         ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
         ViewBag.Groups = await _groupService.GetAllGroupsAsync();
-        //set default values 
+
+        ViewBag.UpcomingEvents = await _eventService.GetUpcomingEventsAsync(isAdmin: true, currentUserId: null);
+        ViewBag.CancelledEvents = await _eventService.GetCancelledEventsAsync(isAdmin: true, currentUserId: null);
+
         var targetYear = year ?? DateTime.Now.Year;
         var targetMonth = month ?? DateTime.Now.Month;
-
 
         var vm = new EventListViewModel
         {
@@ -299,11 +335,11 @@ public class EventsController : Controller
         return PartialView("_EditScannerTimeModal");
     }
 
-    public async Task<IActionResult> AvailableFacilities()
-    {
-        var facilities = await _eventService.GetAvailableFacilitiesAsync();
-        return View(facilities);
-    }
+    //public async Task<IActionResult> AvailableFacilities()
+    //{
+    //    var facilities = await _eventService.GetAvailableFacilitiesAsync();
+    //    return View(facilities);
+    //}
 
 
     [HttpGet]
@@ -321,16 +357,14 @@ public class EventsController : Controller
     //EVENT REQUEST CLICK CARD ==============
     public async Task<IActionResult> ViewEventsRequests(int? id,int? openEventId)
     {
+        await _eventService.ExpirePendingEventRequestsAsync();
+
         var events = await _eventService.GetEventsSummaryForAdminAsync();
 
         ViewBag.OpenEventId = openEventId ?? id;
 
         return View(events);
     }
-
-
-
-
 
 
 
@@ -389,5 +423,87 @@ public class EventsController : Controller
         
         return PartialView("_GroupAttendanceModal", groupAttendanceDetails);
     }
+
+
+    // GET: EVENTS/UpcomingPanel
+    [HttpGet]
+    public async Task<IActionResult> UpcomingPanel()
+    {
+        var events = await _eventService.GetUpcomingEventsAsync(isAdmin: true, currentUserId: null);
+        return PartialView("_UpcomingEventsPanel", events);
+    }
+
+    // GET: EVENTS/CancelledPanel
+    [HttpGet]
+    public async Task<IActionResult> CancelledPanel()
+    {
+        var events = await _eventService.GetCancelledEventsAsync(isAdmin: true, currentUserId: null);
+        return PartialView("_CancelledEventsPanel", events);
+    }
+
+    // GET: Events/GetCancelForm/5 — loads the modal
+    [HttpGet]
+    public async Task<IActionResult> GetCancelForm(int eventId)
+    {
+        var vm = await _eventService.GetEventForCancelAsync(eventId);
+        if (vm == null) return NotFound();
+
+        return PartialView("_CancelEventModal", vm);
+    }
+
+    // POST: Events/CancelEvent
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CancelEvent(int eventId, string? reason)
+    {
+        var result = await _eventService.CancelEventAsync(eventId, reason);
+        return Json(new { success = result.Success, message = result.ErrorMessage });
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> ConfirmationRestore(int? eventid)
+    {
+        if (eventid == null) return NotFound();
+
+        var confirmationVm = await _eventService.ConfirmationRestoreAsync(eventid);
+        if (confirmationVm == null) return NotFound();
+
+        return PartialView("_RestoreEventModal", confirmationVm);
+    }
+
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreEvent(int? eventid)
+    {
+        if (eventid == null)
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Event ID is required."
+            });
+        }
+
+        var result =
+            await _eventService.RestoreCancelledEventAsync(eventid.Value);
+
+        if (!result.Success)
+        {
+            return Json(new
+            {
+                success = false,
+                message = result.ErrorMessage
+            });
+        }
+
+        return Json(new
+        {
+            success = true,
+            message = result.ErrorMessage
+        });
+    }
+
 
 }

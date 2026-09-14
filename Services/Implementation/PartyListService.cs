@@ -4,6 +4,7 @@ using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Election;
 using Sym_Connect__Capstone2_.ViewModels.PartyList;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
@@ -81,9 +82,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task<GetPartyListPositionViewModel> GetPositionsForPartyListAsync(int partyListId)
+        public async Task<GetPartyListPositionViewModel?> GetPositionsForPartyListAsync(int partyListId)
         {
             var partyList = await _context.PartyLists.FindAsync(partyListId);
+            if (partyList == null)
+            {
+                return null;
+            }
 
             var positions = await _context.positions
                 .Where(p => p.IsActive)
@@ -93,6 +98,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var candidates = await _context.Candidates
                 .Where(c => c.PartyId == partyListId)
                 .Include(m => m.Member)
+                        .ThenInclude(m => m.User)
                 .ToListAsync();
 
 
@@ -112,7 +118,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             CandidateId = c.CandidateId,
                             PositionId = c.positionId,
                             PositionName = p.PositionName,
-                            FullName = c.Member.FullName,
+                            FullName = c.Member.FullName ?? "Unknown Member",
                             MemberId = c.MemberId,
                             PhotoUrl = string.IsNullOrEmpty(c.Member.User.ProfilePictureUrl)
                               ? "/images/default-avatar.png"
@@ -317,27 +323,58 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task ArchivePartyListAsync(int id)
         {
-            var candidates = await _context.Candidates.Where(c => c.PartyId == id).ToListAsync();
-
-            var candidateIds = candidates.Select(c => c.CandidateId).ToList();
-
-            var vote = await _context.Votes.Where(v => candidateIds.Contains(v.CandidateId)).ToListAsync();
-
-            _context.Votes.RemoveRange(vote); //remove connected fk first
-            _context.Candidates.RemoveRange(candidates);
-            await _context.SaveChangesAsync();
-
             var existingPartyList = await _context.PartyLists.FindAsync(id);
             if (existingPartyList == null) return;
-            if(existingPartyList != null)
-            {
-                existingPartyList.isArchived = true;
-                existingPartyList.ArchivedDate = DateTime.Now;
 
-                await _context.SaveChangesAsync();
-            }
-         
+            existingPartyList.isArchived = true;
+            existingPartyList.ArchivedDate = DateTime.Now;
+
+            await _context.SaveChangesAsync();
         }
+
+        public async Task<OperationalResult> RestorePartyListAsync(int id)
+        {
+            var existingPartyList = await _context.PartyLists.FirstOrDefaultAsync(p => p.PartyListId == id);
+            if (existingPartyList == null)
+                return new OperationalResult { Success = false, Message = "Party list not found." };
+
+            existingPartyList.isArchived = false;
+            existingPartyList.ArchivedDate = null;
+
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "Restored successfully." };
+        }
+
+        public async Task<OperationalResult> HardDeletePartyListAsync(int id)
+        {
+            var existingPartyList = await _context.PartyLists.FirstOrDefaultAsync(p => p.PartyListId == id);
+            if (existingPartyList == null)
+                return new OperationalResult { Success = false, Message = "Party list not found." };
+
+   
+            if (existingPartyList.ElectionId != null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "This party list is linked to an election and can't be permanently deleted. Archive it instead to preserve election history."
+                };
+            }
+
+
+            var candidates = await _context.Candidates.Where(c => c.PartyId == id).ToListAsync();
+            var candidateIds = candidates.Select(c => c.CandidateId).ToList();
+            var votes = await _context.Votes.Where(v => candidateIds.Contains(v.CandidateId)).ToListAsync();
+
+            _context.Votes.RemoveRange(votes);
+            _context.Candidates.RemoveRange(candidates);
+            _context.PartyLists.Remove(existingPartyList);
+
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "Permanently deleted." };
+        }
+
+
         public async Task<List<CandidateMemberSearchViewModel>> SearchActiveMembersAsync(string term, int partyListId)
         {
             if (string.IsNullOrWhiteSpace(term)) return new List<CandidateMemberSearchViewModel>();
@@ -351,7 +388,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return await _context.Members
                 .AsNoTracking()
-                .Where(m => m.Status == "Active" &&
+                .Where(m => m.Status == "Active" && m.ApplicationStatus == MembershipApplicationStatus.Approved && m.IsArchive == false &&
                             !_context.Candidates.Any(c => c.MemberId == m.MemberId && c.PartyList.ElectionId == currentElectionId))
                 .Select(m => new
                 {
@@ -367,6 +404,53 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     PhotoUrl = x.Member.User.ProfilePictureUrl
                 })
                 .ToListAsync();
+        }
+
+
+        public async Task<ArchivedPartyListDetailsViewModel?> GetArchivedDetailsAsync(int id)
+        {
+            var partyList = await _context.PartyLists
+                .AsNoTracking()
+                .Where(p =>
+                    p.PartyListId == id &&
+                    p.isArchived == true)
+                .Select(p => new ArchivedPartyListDetailsViewModel
+                {
+                    PartyListId = p.PartyListId,
+
+                    PartyName = p.PartyName,
+
+                    PartyListDescription = p.PartyListDescription,
+
+                    CandidateCount = p.candidates.Count(),
+
+                    Candidates = p.candidates
+                        .Select(c => new ArchivedPartyListCandidateViewModel
+                        {
+                            CandidateId = c.CandidateId,
+
+                            MemberName = c.Member != null
+                                ? c.Member.FullName
+                                : "Unknown Member",
+
+                            PositionName = c.Position != null
+                                ? c.Position.PositionName.ToString()
+                                : "No Position",
+
+                            PhotoUrl =
+                                c.Member != null &&
+                                c.Member.User != null &&
+                                !string.IsNullOrEmpty(c.Member.User.ProfilePictureUrl)
+                                    ? c.Member.User.ProfilePictureUrl
+                                    : "/images/default-avatar.png"
+                        })
+                        .ToList(),
+
+                    ArchiveDate = p.ArchivedDate
+                })
+                .FirstOrDefaultAsync();
+
+            return partyList;
         }
     }
 }

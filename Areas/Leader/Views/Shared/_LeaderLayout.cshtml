@@ -23,6 +23,10 @@
     <link rel="stylesheet" href="~/css/leader/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/MediaAndDocuments.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/announcement.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/ViewAttendanceGroupDetails.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/facility.css" asp-append-version="true" />
+
 
     <link rel="stylesheet"
           href="~/css/notification-dropdown.css"
@@ -68,26 +72,32 @@
 
     <div class="topbar-actions">
 
-        <a asp-controller="Notifications"
-           asp-action="Index"
-           asp-area=""
-           class="topbar-icon-btn"
-           id="notifBell"
-           title="Notifications">
+            <div class="notification-wrapper" id="notificationWrapper">
 
-                <i class="bi bi-bell"></i>
-                <span class="notif-count"
-                      id="notifCount"
-                      style="display:none;">
-                    0
-                </span>
+                <a asp-area="Leader"
+                   asp-controller="Notifications"
+                   asp-action="Index"
+                   class="topbar-icon-btn"
+                   id="notifBell"
+                   data-dropdown-url="@Url.Action("Dropdown", "Notifications", new { area = "Leader" })"
+                   data-count-url="@Url.Action("UnreadCount", "Notifications", new { area = "Leader" })"
+                   data-mark-read-url="@Url.Action("MarkAsRead", "Notifications", new { area = "Leader" })"
+                   title="Notifications">
 
-        </a>
+                    <i class="bi bi-bell"></i>
 
-        <div id="notifDropdownPanel"
-             class="notif-dropdown-panel">
-        </div>
+                    <span class="notif-count"
+                          id="notifCount"
+                          style="display:none;">
+                        0
+                    </span>
+                </a>
 
+                <div id="notifDropdownPanel"
+                     class="notif-dropdown-panel">
+                </div>
+
+            </div>
         <img class="topbar-avatar"
              src="@(string.IsNullOrEmpty(profilePicture)
                  ? fallbackAvatar
@@ -174,6 +184,14 @@
             </div>
 
             <a asp-area="Leader"
+               asp-controller="Facility"
+               asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Facility" ? "active" : "")">
+                <i class="bi bi-hospital"></i>
+                <span class="nav-label">Facility</span>
+            </a>
+
+            <a asp-area="Leader"
                asp-controller="Group"
                asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MyGroups" ? "active" : "")">
@@ -187,6 +205,14 @@
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations" ? "active" : "")">
                 <i class="bi bi-star-half"></i>
                 <span class="nav-label">Evaluation</span>
+            </a>
+
+            <a asp-area="Leader"
+               asp-controller="Election"
+               asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Election" ? "active" : "")">
+                <i class="bi bi-hand-index-thumb"></i>
+                <span class="nav-label">Election</span>
             </a>
 
 

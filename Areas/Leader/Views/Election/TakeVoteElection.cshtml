@@ -1,0 +1,540 @@
+﻿@model TakeVoteViewModel
+
+@{
+    ViewData["Title"] = "Cast Your Vote";
+    Layout = null;
+
+    var ballot = ViewBag.BallotLayout as List<PositionBallot>;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Cast Your Vote</title>
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                min-height: 100vh;
+                background: #f4f7fb;
+                font-family: Arial, sans-serif;
+                color: #111827;
+            }
+
+            .vote-page {
+                max-width: 1500px;
+                margin: 0 auto;
+                padding: 60px 70px;
+            }
+
+            .vote-header {
+                margin-bottom: 30px;
+            }
+
+            .vote-title {
+                font-size: 38px;
+                font-weight: 700;
+                margin-bottom: 4px;
+            }
+
+            .vote-subtitle {
+                color: #6b7280;
+                font-size: 16px;
+                margin: 0;
+            }
+
+            .ballot-card {
+                background: #ffffff;
+                border-radius: 20px;
+                min-height: 470px;
+                padding: 34px 30px 28px;
+                box-shadow: 0 2px 8px rgba(0,0,0,.08);
+            }
+
+            .position-counter {
+                text-align: center;
+                color: #6b7280;
+                font-size: 15px;
+                margin-bottom: 5px;
+            }
+
+            .position-title {
+                text-align: center;
+                font-weight: 700;
+                font-size: 22px;
+                margin-bottom: 34px;
+            }
+
+            .candidate-list {
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 40px;
+                flex-wrap: wrap;
+            }
+
+            .candidate-option {
+                cursor: pointer;
+                text-align: center;
+                min-width: 180px;
+            }
+
+            .candidate-photo-group {
+                display: flex;
+                gap: 8px;
+                justify-content: center;
+            }
+
+            .candidate-photo {
+                width: 160px;
+                height: 160px;
+                object-fit: cover;
+                border-radius: 50%;
+                border: 5px solid transparent;
+                transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+            }
+
+            .candidate-option:hover .candidate-photo {
+                transform: translateY(-3px);
+            }
+
+            .candidate-option:has(.candidate-radio:checked) .candidate-photo {
+                border-color: #1877f2;
+                box-shadow: 0 0 0 5px rgba(24,119,242,.12);
+            }
+
+            .candidate-name {
+                margin-top: 14px;
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .party-name {
+                color: #6b7280;
+                font-size: 14px;
+                margin-top: 3px;
+            }
+
+            .ballot-footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-top: 38px;
+            }
+
+            .step-text {
+                color: #6b7280;
+                font-size: 14px;
+            }
+
+            .vote-actions {
+                display: flex;
+                gap: 10px;
+            }
+
+            .vote-btn {
+                border-radius: 999px;
+                padding: 10px 26px;
+                font-weight: 600;
+                border: none;
+            }
+
+            .btn-next,
+            .btn-submit {
+                background: #1877f2;
+                color: white;
+            }
+
+                .btn-next:hover,
+                .btn-submit:hover {
+                    background: #1265d6;
+                    color: white;
+                }
+
+            .btn-back {
+                background: white;
+                color: #374151;
+                border: 1px solid #d1d5db;
+            }
+
+                .btn-back:hover {
+                    background: #f3f4f6;
+                }
+
+            .selection-note {
+                text-align: center;
+                font-size: 13px;
+                color: #9ca3af;
+                margin-top: 20px;
+            }
+
+            .validation-summary-errors {
+                max-width: 700px;
+                margin: 0 auto 20px;
+                padding: 12px 16px;
+                background: #fef2f2;
+                border: 1px solid #fecaca;
+                border-radius: 10px;
+                color: #b91c1c;
+                font-size: 14px;
+            }
+
+            @@media (max-width: 768px) {
+
+                .vote-page {
+                    padding: 30px 18px;
+                }
+
+                .vote-title {
+                    font-size: 30px;
+                }
+
+                .ballot-card {
+                    padding: 28px 18px 22px;
+                }
+
+                .candidate-list {
+                    gap: 25px;
+                }
+
+                .candidate-photo {
+                    width: 125px;
+                    height: 125px;
+                }
+
+                .ballot-footer {
+                    flex-direction: column;
+                    gap: 20px;
+                    align-items: stretch;
+                }
+
+                .vote-actions {
+                    justify-content: space-between;
+                }
+
+                .vote-btn {
+                    flex: 1;
+                }
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="vote-page">
+
+        <div class="vote-header">
+            <h1 class="vote-title">Cast Your Vote</h1>
+
+            <p class="vote-subtitle">
+                Vote for your future leaders
+            </p>
+        </div>
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
+        </div>
+
+        <form asp-area="Leader"
+              asp-controller="Election"
+              asp-action="TakeVoteElection"
+              method="post"
+              id="ballotForm">
+
+            @Html.AntiForgeryToken()
+
+            <input type="hidden"
+                   asp-for="electionId" />
+
+            <input type="hidden"
+                   asp-for="memberId" />
+
+            <div class="ballot-card">
+
+                @for (int i = 0; i < ballot.Count; i++)
+                {
+                    var position = ballot[i];
+
+                    <div class="ballot-slide"
+                         data-index="@i"
+                         style="display:@(i == 0 ? "block" : "none")">
+
+                        <div class="position-counter">
+                            Position @(i + 1) of @ballot.Count
+                        </div>
+
+                        <div class="position-title">
+                            @position.positionName.ToString().ToUpper()
+                        </div>
+
+                        <input type="hidden"
+                               asp-for="selectedVotes[i].positionId"
+                               value="@position.PositionId" />
+
+                        <div class="candidate-list">
+
+                            @foreach (var ticket in position.Tickets)
+                            {
+                                <label class="candidate-option">
+
+                                    <input type="radio"
+                                           name="selectedVotes[@i].CandidateId"
+                                           value="@ticket.candidates[0].CandidateId"
+                                           class="candidate-radio d-none" />
+
+                                    <div class="candidate-photo-group">
+
+                                        @foreach (var member in ticket.candidates)
+                                        {
+                                            <img src="@member.PhotoUrl"
+                                                 class="candidate-photo"
+                                                 alt="@member.MemberName" />
+                                        }
+
+                                    </div>
+
+                                    <div class="candidate-name">
+                                        @string.Join(
+                                            " & ",
+                                            ticket.candidates.Select(m => m.MemberName)
+                                        )
+                                    </div>
+
+                                    <div class="party-name">
+                                        @ticket.PartyListName
+                                    </div>
+
+                                </label>
+                            }
+
+                        </div>
+
+                        <div class="selection-note">
+                            Select one candidate before continuing.
+                        </div>
+
+                        <div class="ballot-footer">
+
+                            <span class="step-text">
+                                Step @(i + 1) of @ballot.Count
+                            </span>
+
+                            <div class="vote-actions">
+
+                                @if (i > 0)
+                                {
+                                    <button type="button"
+                                            class="vote-btn btn-back back-btn"
+                                            data-index="@i">
+                                        <i class="bi bi-arrow-left"></i>
+                                        Back
+                                    </button>
+                                }
+
+                                @if (i == ballot.Count - 1)
+                                {
+                                    <button type="submit"
+                                            class="vote-btn btn-submit"
+                                            id="submitBallotBtn"
+                                            style="display:none">
+
+                                        <span class="submit-text">
+                                            Submit Ballot
+                                        </span>
+
+                                        <span class="submit-loading d-none">
+                                            <span class="spinner-border spinner-border-sm me-1"></span>
+                                            Submitting...
+                                        </span>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button"
+                                            class="vote-btn btn-next next-btn"
+                                            data-index="@i"
+                                            style="display:none">
+
+                                        Next
+                                        <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <script>
+
+            const slides =
+                document.querySelectorAll('.ballot-slide');
+
+            let current = 0;
+
+
+            function toggleActionButton() {
+
+                const currentSlide = slides[current];
+
+                const answered =
+                    currentSlide.querySelector(
+                        '.candidate-radio:checked'
+                    ) !== null;
+
+                const isLast =
+                    current === slides.length - 1;
+
+
+                if (isLast) {
+
+                    const submitBtn =
+                        document.getElementById(
+                            'submitBallotBtn'
+                        );
+
+                    if (submitBtn) {
+
+                        submitBtn.style.display =
+                            answered
+                                ? 'inline-block'
+                                : 'none';
+                    }
+                }
+                else {
+
+                    const nextBtn =
+                        currentSlide.querySelector(
+                            '.next-btn'
+                        );
+
+                    if (nextBtn) {
+
+                        nextBtn.style.display =
+                            answered
+                                ? 'inline-block'
+                                : 'none';
+                    }
+                }
+            }
+
+
+            document
+                .querySelectorAll('.candidate-radio')
+                .forEach(function (radio) {
+
+                    radio.addEventListener(
+                        'change',
+                        function () {
+
+                            toggleActionButton();
+                        }
+                    );
+                });
+
+
+            document
+                .querySelectorAll('.next-btn')
+                .forEach(function (button) {
+
+                    button.addEventListener(
+                        'click',
+                        function () {
+
+                            const index =
+                                parseInt(
+                                    button.dataset.index
+                                );
+
+                            goToSlide(index + 1);
+                        }
+                    );
+                });
+
+
+            document
+                .querySelectorAll('.back-btn')
+                .forEach(function (button) {
+
+                    button.addEventListener(
+                        'click',
+                        function () {
+
+                            const index =
+                                parseInt(
+                                    button.dataset.index
+                                );
+
+                            goToSlide(index - 1);
+                        }
+                    );
+                });
+
+
+            function goToSlide(index) {
+
+                slides[current].style.display = 'none';
+
+                current = index;
+
+                slides[current].style.display = 'block';
+
+                toggleActionButton();
+            }
+
+
+            const ballotForm =
+                document.getElementById('ballotForm');
+
+
+            ballotForm.addEventListener(
+                'submit',
+                function () {
+
+                    const submitBtn =
+                        document.getElementById(
+                            'submitBallotBtn'
+                        );
+
+                    if (!submitBtn) {
+                        return;
+                    }
+
+                    submitBtn.disabled = true;
+
+                    submitBtn
+                        .querySelector('.submit-text')
+                        .classList.add('d-none');
+
+                    submitBtn
+                        .querySelector('.submit-loading')
+                        .classList.remove('d-none');
+                }
+            );
+
+    </script>
+
+</body>
+</html>

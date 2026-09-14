@@ -1,0 +1,309 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Event.CancelledEventDetailsViewModel
+@{
+    Layout = "_MemberLayout";
+}
+
+<style>
+    .cancelled-banner {
+        background-color: #fdecec;
+        border: 1px solid #f8d0d0;
+        border-radius: 12px;
+        padding: 20px 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+        .cancelled-banner .icon-circle {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border-radius: 50%;
+            background-color: #e0433f;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .cancelled-banner h5 {
+            color: #c0342f;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .cancelled-banner p {
+            color: #a5433f;
+            margin-bottom: 0;
+            font-size: 0.925rem;
+        }
+
+    .detail-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #eef0f3;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        padding: 24px;
+    }
+
+    .event-badge {
+        display: inline-block;
+        background-color: #eaf0fe;
+        color: #3d6de0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 12px;
+    }
+
+    .event-id {
+        color: #9aa1ab;
+        font-size: 0.8rem;
+    }
+
+    .event-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1c2430;
+        margin-bottom: 16px;
+    }
+
+    .meta-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        color: #4a5262;
+        font-size: 0.95rem;
+    }
+
+        .meta-row i {
+            color: #3d6de0;
+            font-size: 1rem;
+            width: 18px;
+            text-align: center;
+        }
+
+    .status-pill {
+        background-color: #fdecec;
+        color: #c0342f;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 20px;
+        margin-left: 6px;
+    }
+
+    .section-divider {
+        border: none;
+        border-top: 1px solid #eef0f3;
+        margin: 20px 0;
+    }
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #1c2430;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+
+        .section-heading i {
+            color: #4a5262;
+        }
+
+    .description-text {
+        color: #6b7280;
+        font-size: 0.925rem;
+        line-height: 1.6;
+    }
+
+    .side-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #eef0f3;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        padding: 18px 20px;
+        margin-bottom: 16px;
+    }
+
+        .side-card.danger {
+            border-color: #f8d0d0;
+        }
+
+        .side-card .side-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .side-card.danger .side-heading {
+            color: #c0342f;
+        }
+
+    .reason-box {
+        background-color: #fdecec;
+        border-radius: 10px;
+        padding: 12px 14px;
+        color: #a5433f;
+        font-size: 0.875rem;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+
+    .cancelled-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #9aa1ab;
+        font-size: 0.8rem;
+    }
+
+        .cancelled-meta i {
+            color: #c0342f;
+        }
+
+    .group-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        font-size: 0.9rem;
+        color: #1c2430;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .group-row:last-child {
+            border-bottom: none;
+        }
+
+    .group-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: #eef0fe;
+        color: #6366f1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
+
+    .side-card.info {
+        background-color: #eaf1fe;
+        border: none;
+    }
+
+        .side-card.info .side-heading {
+            color: #3d6de0;
+        }
+
+        .side-card.info p {
+            color: #4a63a0;
+            font-size: 0.85rem;
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+</style>
+
+<div class="cancelled-banner">
+    <div class="icon-circle"><i class="bi bi-x-lg"></i></div>
+    <div>
+        <h5>This event has been cancelled.</h5>
+        <p>We're sorry, but this event will no longer take place. Please see the details below.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="detail-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="event-badge">Event</span>
+                <span class="event-id">Event ID: @Model.EventId</span>
+            </div>
+
+            <div class="event-title">@Model.EventTitle</div>
+
+            <div class="meta-row">
+                <i class="bi bi-calendar-event"></i>
+                <span>@Model.StartDate.ToString("dddd, MMMM d, yyyy")</span>
+            </div>
+
+            @if (!Model.IsAllDay && Model.StartTime.HasValue && Model.EndTime.HasValue)
+            {
+                <div class="meta-row">
+                    <i class="bi bi-clock"></i>
+                    <span>@DateTime.Today.Add(Model.StartTime.Value).ToString("h:mm tt") – @DateTime.Today.Add(Model.EndTime.Value).ToString("h:mm tt")</span>
+                    <span class="status-pill">Cancelled</span>
+                </div>
+            }
+
+            @if (Model.FacilityNames.Any())
+            {
+                <div class="meta-row">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>@string.Join(", ", Model.FacilityNames)</span>
+                </div>
+            }
+
+            <div class="meta-row">
+                <i class="bi bi-people"></i>
+                <span>Organized by @Model.CreatedByName</span>
+            </div>
+
+            <hr class="section-divider" />
+
+            <div class="section-heading">
+                <i class="bi bi-file-text"></i> Description
+            </div>
+            <p class="description-text">@Model.EventDescription</p>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="side-card danger">
+            <div class="side-heading">
+                <i class="bi bi-info-circle-fill"></i> Reason for Cancellation
+            </div>
+            <div class="reason-box">@Model.CancellationReason</div>
+            @if (Model.CancelledDate.HasValue)
+            {
+                <div class="cancelled-meta">
+                    <i class="bi bi-calendar-x"></i>
+                    Cancelled on @Model.CancelledDate.Value.ToString("MMMM d, yyyy 'at' h:mm tt")
+                </div>
+            }
+        </div>
+
+        @if (Model.AssignedGroupNames.Any())
+        {
+            <div class="side-card">
+                <div class="side-heading" style="color:#1c2430;">
+                    <i class="bi bi-people-fill"></i> Assigned Groups
+                </div>
+                @foreach (var group in Model.AssignedGroupNames)
+                {
+                    <div class="group-row">
+                        <span class="group-icon"><i class="bi bi-people"></i></span>
+                        <span>@group</span>
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="side-card info">
+            <div class="side-heading">
+                <i class="bi bi-info-circle-fill"></i> Need more information?
+            </div>
+            <p>For any questions, please contact the event organizer or your group leader.</p>
+        </div>
+    </div>
+</div>

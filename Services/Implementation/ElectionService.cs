@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Election;
 using Sym_Connect__Capstone2_.ViewModels.PartyList;
 
@@ -23,75 +24,176 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             var now = DateTime.Now;
 
-            return await _context.Elections
-                    .AsNoTracking()
-                         .Where(e => e.IsArchived == false)
-                            .Select(e => new ElectionListViewModel
-                            {
-                                ElectionId = e.ElectionId,
-                                ElectionName = e.ElectionName,
-                                StartDate = e.StartDate,
-                                EndDate = e.EndDate,
-                                StartTime = e.StartTime,
-                                EndTime = e.EndTime,
-                                candidateCount = e.partyLists.SelectMany(p => p.candidates).Count(),
-                                VoteCount = _context.Votes.Count(v => v.ElectionId == e.ElectionId),
-                                Status = now < e.StartDate ? "Incoming" : (now <= e.EndDate ? "Open" : "Closed")
-                            }).ToListAsync();
-        }
-
-        public async Task<ElectionDetailsViewModel?> GetElectionByIdAsync(int? id)
-        {
-            if (id == null) return null;
-
-            var electionData = await _context.Elections
-                                .AsNoTracking().Where(e => e.ElectionId == id && e.IsArchived == false)
-                                .Select(e => new ElectionDetailsViewModel
-                                {
-                                    id = e.ElectionId,
-                                    ElectionName = e.ElectionName,
-                                    StartDate = e.StartDate,
-                                    EndDate = e.EndDate,
-                                    StartTime = e.StartTime,
-                                    EndTime = e.EndTime,
-                                    partyLists = e.partyLists.Select(p => new PartyListsViewModel
-                                    {
-                                        Id = p.PartyListId,
-                                        PartyListName = p.PartyName,
-                                        PartyListDescription = p.PartyListDescription,
-
-                                        candidates = p.candidates.Select(c => new CandidateViewModel
-                                        {
-                                            CandidateId = c.CandidateId,
-                                            PositionId = c.positionId,
-                                            PositionName = "",
-                                            FullName = c.Member.FullName,
-                                        }).ToList()
-                                    }).ToList()
-                                }).FirstOrDefaultAsync();
-
-            if (electionData == null) return null;
-            foreach (var party in electionData.partyLists)
-            {
-                foreach (var candidate in party.candidates)
+            var elections = await _context.Elections
+                .AsNoTracking()
+                .Where(e => e.IsArchived == false)
+                .Select(e => new ElectionListViewModel
                 {
-                    candidate.PositionName = candidate.PositionName;
+                    ElectionId = e.ElectionId,
+                    ElectionName = e.ElectionName,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+
+                    candidateCount = e.partyLists
+                        .SelectMany(p => p.candidates)
+                        .Count(),
+
+                    VoteCount = _context.Votes
+                        .Count(v => v.ElectionId == e.ElectionId),
+
+                    Status = ""
+                })
+                .ToListAsync();
+
+
+            foreach (var election in elections)
+            {
+                var startDateTime =
+                    election.StartDate.Date +
+                    election.StartTime;
+
+                var endDateTime =
+                    election.EndDate.Date +
+                    election.EndTime;
+
+
+                if (now < startDateTime)
+                {
+                    election.Status = "Incoming";
+                }
+                else if (now <= endDateTime)
+                {
+                    election.Status = "Open";
+                }
+                else
+                {
+                    election.Status = "Closed";
                 }
             }
 
 
+            return elections;
+        }
+
+        public async Task<ElectionDetailsViewModel?> GetElectionByIdAsync(int? id)
+        {
+            if (id == null)
+            {
+                return null;
+            }
+
+
+            var electionData = await _context.Elections
+                .AsNoTracking()
+                .Where(e =>
+                    e.ElectionId == id &&
+                    e.IsArchived == false)
+                .Select(e => new ElectionDetailsViewModel
+                {
+                    id = e.ElectionId,
+
+                    ElectionName = e.ElectionName,
+
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+
+                    partyLists = e.partyLists
+                        .Select(p => new PartyListsViewModel
+                        {
+                            Id = p.PartyListId,
+
+                            PartyListName =
+                                p.PartyName,
+
+                            PartyListDescription =
+                                p.PartyListDescription,
+
+                            candidates = p.candidates
+                                .Select(c => new CandidateViewModel
+                                {
+                                    CandidateId =
+                                        c.CandidateId,
+
+                                    PositionId =
+                                        c.positionId,
+
+                                    PositionName =
+                                        c.Position.PositionName,
+
+                                    FullName =
+                                        c.Member.FullName
+                                })
+                                .ToList()
+
+                        })
+                        .ToList()
+
+                })
+                .FirstOrDefaultAsync();
+
+
+            if (electionData == null)
+            {
+                return null;
+            }
+
+
+            // =========================================
+            // STATUS
+            // =========================================
+
             var now = DateTime.Now;
-            var election = await _context.Elections.AsNoTracking().FirstOrDefaultAsync(e => e.ElectionId == id);
-            electionData.Status = now < election.StartDate ? "Incoming" : (now <= election.EndDate ? "Open" : "Closed");
 
-            electionData.TotalCandidates = electionData.partyLists.Sum(p => p.candidates.Count);
+            var startDateTime =
+                electionData.StartDate.Date +
+                electionData.StartTime;
 
-            electionData.TotalPositions = electionData.partyLists
-                .SelectMany(p => p.candidates)
-                .Select(c => c.PositionId)
-                .Distinct()
-                .Count();
-            electionData.TotalVotes = await _context.Votes.CountAsync(v => v.ElectionId == id);
+            var endDateTime =
+                electionData.EndDate.Date +
+                electionData.EndTime;
+
+
+            if (now < startDateTime)
+            {
+                electionData.Status = "Incoming";
+            }
+            else if (now <= endDateTime)
+            {
+                electionData.Status = "Open";
+            }
+            else
+            {
+                electionData.Status = "Closed";
+            }
+
+
+            // =========================================
+            // COUNTS
+            // =========================================
+
+            electionData.TotalCandidates =
+                electionData.partyLists
+                    .Sum(p => p.candidates.Count);
+
+
+            electionData.TotalPositions =
+                electionData.partyLists
+                    .SelectMany(p => p.candidates)
+                    .Select(c => c.PositionId)
+                    .Distinct()
+                    .Count();
+
+
+            electionData.TotalVotes =
+                await _context.Votes
+                    .CountAsync(v =>
+                        v.ElectionId == id);
+
 
             return electionData;
         }
@@ -129,23 +231,248 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             }).FirstOrDefaultAsync();
         }
 
-        public async Task EditElectionAsync(EditElectionViewModel vm)
+        public async Task<OperationalResult> EditElectionAsync(
+     EditElectionViewModel vm)
         {
-            var existingElectionId = await _context.Elections
-                                    .Include(e => e.partyLists)
-                                      .FirstOrDefaultAsync(e => e.ElectionId == vm.ElectionId);
+            // ==========================================
+            // 1. FIND ELECTION
+            // ==========================================
 
-            if (existingElectionId == null) return;
+            var election = await _context.Elections
+                .Include(e => e.partyLists)
+                .FirstOrDefaultAsync(e =>
+                    e.ElectionId == vm.ElectionId &&
+                    e.IsArchived == false);
 
-            existingElectionId.ElectionName = vm.ElectionName;
-            existingElectionId.StartDate = vm.StartDate;
-            existingElectionId.EndDate = vm.EndDate;
-            existingElectionId.StartTime = vm.StartTime;
-            existingElectionId.EndTime = vm.EndTime;
+            if (election == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Election not found."
+                };
+            }
+
+
+            // ==========================================
+            // 2. DON'T EDIT AFTER ELECTION STARTS
+            // ==========================================
+
+            var currentStart =
+                election.StartDate.Date +
+                election.StartTime;
+
+
+            if (DateTime.Now >= currentStart)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "This election can no longer be edited because voting has already started."
+                };
+            }
+
+
+            // ==========================================
+            // 3. EXACTLY TWO PARTY LISTS
+            // ==========================================
+
+            if (vm.SelectedPartyListIds == null ||
+                vm.SelectedPartyListIds.Count != 2)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "Please select exactly 2 PartyLists."
+                };
+            }
+
+
+            // Prevent duplicate IDs.
+            if (vm.SelectedPartyListIds
+                .Distinct()
+                .Count() != 2)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "Please select two different PartyLists."
+                };
+            }
+
+
+            // ==========================================
+            // 4. CHECK NEW START / END
+            // ==========================================
+
+            var newStart =
+                vm.StartDate.Date +
+                vm.StartTime;
+
+            var newEnd =
+                vm.EndDate.Date +
+                vm.EndTime;
+
+
+            if (newStart <= DateTime.Now)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "Election start date and time must be in the future."
+                };
+            }
+
+
+            if (newEnd <= newStart)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "Election end date and time must be after the start date and time."
+                };
+            }
+
+
+            // ==========================================
+            // 5. VALIDATE SELECTED PARTY LISTS
+            // ==========================================
+
+            var selectedPartyLists =
+                await _context.PartyLists
+                    .Where(p =>
+                        vm.SelectedPartyListIds
+                            .Contains(p.PartyListId) &&
+
+                        p.isArchived != true &&
+
+                        (
+                            p.ElectionId == null ||
+                            p.ElectionId == election.ElectionId
+                        ))
+                    .ToListAsync();
+
+
+            if (selectedPartyLists.Count != 2)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message =
+                        "One or more selected PartyLists are unavailable."
+                };
+            }
+
+
+            // ==========================================
+            // 6. UPDATE ELECTION INFORMATION
+            // ==========================================
+
+            election.ElectionName =
+                vm.ElectionName.Trim();
+
+            election.StartDate =
+                vm.StartDate.Date;
+
+            election.EndDate =
+                vm.EndDate.Date;
+
+            election.StartTime =
+                vm.StartTime;
+
+            election.EndTime =
+                vm.EndTime;
+
+
+            // ==========================================
+            // 7. DISCONNECT REMOVED PARTY LISTS
+            // ==========================================
+
+            var partyListsToRemove =
+                election.partyLists
+                    .Where(p =>
+                        !vm.SelectedPartyListIds
+                            .Contains(p.PartyListId))
+                    .ToList();
+
+
+            foreach (var party in partyListsToRemove)
+            {
+                party.ElectionId = null;
+            }
+
+
+            // ==========================================
+            // 8. CONNECT NEW PARTY LISTS
+            // ==========================================
+
+            foreach (var party in selectedPartyLists)
+            {
+                party.ElectionId =
+                    election.ElectionId;
+            }
+
+
+            // ==========================================
+            // 9. SAVE
+            // ==========================================
 
             await _context.SaveChangesAsync();
+
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message =
+                    "Election updated successfully."
+            };
         }
 
+        public async Task<int?> GetOpenElectionMemberHasNotVotedAsync(string userId)
+        {
+            var now = DateTime.Now;
+
+            var elections = await _context.Elections
+                .Where(e => e.IsArchived == false)
+                .ToListAsync();
+
+            foreach (var election in elections)
+            {
+                var startDateTime =
+                    election.StartDate.Date +
+                    election.StartTime;
+
+                var endDateTime =
+                    election.EndDate.Date +
+                    election.EndTime;
+
+                bool isOpen =
+                    now >= startDateTime &&
+                    now <= endDateTime;
+
+                if (!isOpen)
+                {
+                    continue;
+                }
+
+                bool alreadyVoted = await _context.Votes
+                    .AnyAsync(v =>
+                        v.ElectionId == election.ElectionId &&
+                        v.UserId == userId);
+
+                if (!alreadyVoted)
+                {
+                    return election.ElectionId;
+                }
+            }
+
+            return null;
+        }
 
         public async Task<int> CreateElectionWithPartyListsAsync(CreateElectionWizardViewModel vm)
         {
@@ -208,6 +535,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var votes = await _context.Votes.Where(e => e.ElectionId == electionId)
                             .Include(v => v.Candidate)
                                 .ThenInclude(m => m.Member)
+                                    .ThenInclude(u => u.User)
                                 .Include(c => c.Candidate)
                                     .ThenInclude(p => p.PartyList).ToListAsync();
 
@@ -288,28 +616,130 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<bool> ArchiveElectionAsync(int? id)
         {
-            if (id == null) return false;
-            var existingElection = await _context.Elections.FindAsync(id);
-            if (existingElection == null) return false;
-
-            var partylist = await _context.PartyLists.Where(p => p.ElectionId == id).ToListAsync();
-
-            foreach(var remove in partylist)
+            if (id == null)
             {
-                remove.ElectionId = null; 
+                return false;
+            }
+
+            var existingElection = await _context.Elections
+                .Include(e => e.partyLists)
+                .FirstOrDefaultAsync(e => e.ElectionId == id);
+
+            if (existingElection == null)
+            {
+                return false;
+            }
+
+            existingElection.IsArchived = true;
+            existingElection.ArchivedDate = DateTime.Now;
+
+            foreach (var partyList in existingElection.partyLists)
+            {
+                partyList.ElectionId = null;
             }
 
             await _context.SaveChangesAsync();
 
-           
-            existingElection.IsArchived = true;
-            existingElection.ArchivedDate = DateTime.Now;
-         
-            await _context.SaveChangesAsync();
             return true;
-
         }
+
+        public async Task<OperationalResult> RestoreElectionAsync(int id)
+        {
+            var existingElection = await _context.Elections.FirstOrDefaultAsync(e => e.ElectionId == id);
+            if (existingElection == null)
+                return new OperationalResult { Success = false, Message = "Election not found." };
+
+            existingElection.IsArchived = false;
+            existingElection.ArchivedDate = null;
+
+            await _context.SaveChangesAsync();
+            return new OperationalResult { Success = true, Message = "Restored successfully." };
+        }
+
+        public async Task<OperationalResult> HardDeleteElectionAsync(int id)
+        {
+            var existingElection = await _context.Elections
+                .FirstOrDefaultAsync(e => e.ElectionId == id);
+
+            if (existingElection == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Election not found."
+                };
+            }
+
+            // Check first if this election already has recorded votes.
+            var voteCount = await _context.Votes
+                .CountAsync(v => v.ElectionId == id);
+
+            if (voteCount > 0)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = $"This election cannot be permanently deleted because it already has {voteCount} recorded vote(s). Keep it archived instead."
+                };
+            }
+
+            // Party lists are not deleted.
+            // They are only disconnected from this election
+            // so they can be used again later.
+            var partyLists = await _context.PartyLists
+                .Where(p => p.ElectionId == id)
+                .ToListAsync();
+
+            foreach (var party in partyLists)
+            {
+                party.ElectionId = null;
+            }
+
+            // Permanently remove the election.
+            _context.Elections.Remove(existingElection);
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Election permanently deleted."
+            };
+        }
+
+
+        public async Task<ArchivedElectionDetailsViewModel?> GetArchivedDetailsAsync(int id)
+        {
+            return await _context.Elections
+                .AsNoTracking()
+                .Where(e =>
+                    e.ElectionId == id &&
+                    e.IsArchived == true)
+                .Select(e => new ArchivedElectionDetailsViewModel
+                {
+                    ElectionId = e.ElectionId,
+                    ElectionName = e.ElectionName,
+
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+
+                    ArchiveDate = e.ArchivedDate,
+
+                    VoteCount = _context.Votes
+                        .Count(v => v.ElectionId == e.ElectionId)
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+
+       
+        
+
     }
 
-    
+
 }

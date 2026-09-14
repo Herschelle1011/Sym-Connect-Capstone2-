@@ -115,7 +115,7 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (!ModelState.IsValid)
             {
-                return View(vm);
+                return PartialView("_EditGroupForm", vm);   
             }
 
             var result = await _groupService.UpdateGroupAsync(vm);
@@ -126,12 +126,10 @@ namespace Sym_Connect__Capstone2_.Controllers
                 {
                     return NotFound();
                 }
-                ModelState.AddModelError(string.Empty, result?.Message ?? "Update failed.");
                 return Json(result);
             }
 
             return Json(result);
-
         }
 
         // GET: Groups/Delete/5

@@ -571,14 +571,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             };
         }
 
-        public async Task DeleteEvaluationAsync(int id)
+        public async Task<OperationalResult> DeleteEvaluationAsync(int id)
         {
-            var getEvaluation = await _context.Evaluations.FindAsync(id);
-            if (getEvaluation == null) return;
-            _context.Evaluations.Remove(getEvaluation);
-            await _context.SaveChangesAsync();
-        }
+            var evaluation = await _context.Evaluations.FindAsync(id);
+            if (evaluation == null)
+            {
+                return new OperationalResult { Success = false, Message = "Evaluation not found." };
+            }
 
+            _context.Evaluations.Remove(evaluation);
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult { Success = true, Message = $"\"{evaluation.EvaluationTitle}\" deleted successfully." };
+        }
         public async Task<bool> EvaluationExist(int id)
         {
             return await _context.Evaluations.AnyAsync(e => e.EvaluationId == id);
@@ -836,5 +841,40 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     !s.Evaluation.IsArchived &&
                     s.Status == SubmissionStatus.Submitted);
         }
+
+
+
+        public async Task<List<MemberEvaluationListItemViewModel>> GetAssignedEvaluationsAsync(int currentMemberId)
+        {
+            var now = DateTime.Now;
+
+            return await _context.Evaluations
+                .AsNoTracking()
+                .Where(e =>
+                    !e.IsArchived &&
+                    e.OpenAt <= now &&
+                    e.ClosedAt >= now &&
+
+                    // Must have attended
+                    _context.Attendances.Any(a =>
+                        a.EventId == e.EventId &&
+                        a.MemberId == currentMemberId &&
+                        (a.Status == "Present" || a.Status == "Late")) &&
+
+                    e.Event.CreatedByUserId != currentMemberId
+                )
+                .Select(e => new MemberEvaluationListItemViewModel
+                {
+                    EvaluationId = e.EvaluationId,
+                    EvaluationTitle = e.EvaluationTitle,
+                    Description = e.Description,
+                    DateCreated = e.DateCreated,
+                    OpenAt = e.OpenAt,
+                    ClosedAt = e.ClosedAt,
+                    EventTitle = e.Event.EventTitle
+                })
+                .ToListAsync();
+        }
+
     }
 }

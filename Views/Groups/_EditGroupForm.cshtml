@@ -75,7 +75,7 @@
     }
 </style>
 
-<form id="editGroupForm" asp-action="Edit" asp-controller="Groups" method="post">
+<form id="editGroupForm" class="modal-ajax-form" asp-action="Edit" asp-controller="Groups" method="post">
     @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
     <input type="hidden" asp-for="GroupId" />

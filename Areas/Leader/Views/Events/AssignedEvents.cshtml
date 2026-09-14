@@ -25,98 +25,189 @@
 }
 
 <style>
+    /* ============================
+           CARD (matches My Events layout)
+           ============================ */
+
     .assigned-events-card {
-        border: 1px solid #eef1f5;
-        border-radius: 14px;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
-        overflow: hidden;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        overflow: visible;
+    }
+
+    #assignedEventsList {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
     }
 
     .assigned-event-row {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid #f1f5f9;
-        transition: background-color 0.15s ease;
+        background: #ffffff;
+        border: 1px solid #edf0f4;
+        border-radius: 14px;
+        box-shadow: 0 3px 14px rgba(15, 23, 42, 0.06);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        padding: 20px 22px;
     }
 
-        .assigned-event-row:last-child {
-            border-bottom: none;
-        }
-
         .assigned-event-row:hover {
-            background-color: #fafbfc;
+            transform: translateY(-1px);
+            box-shadow: 0 7px 22px rgba(15, 23, 42, 0.09);
+            border-color: #dfe5ee;
         }
 
+    .assigned-event-row-inner {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
+    /* Date badge */
     .assigned-event-date-badge {
-        background-color: #eef2ff;
-        border-radius: 10px;
-        padding: 0.5rem 0.8rem;
-        min-width: 60px;
+        width: 90px;
+        min-width: 90px;
+        height: 118px;
+        background: linear-gradient(180deg, #edf4ff 0%, #f3f7ff 100%);
+        border-radius: 12px;
+        padding: 14px 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
     }
 
     .assigned-event-month {
-        font-size: 0.68rem;
+        font-size: 14px;
         font-weight: 700;
-        letter-spacing: 0.03em;
-        color: #4a6cf7;
+        color: #2563eb;
+        letter-spacing: 0.02em;
     }
 
     .assigned-event-day {
-        font-size: 1.4rem;
+        font-size: 38px;
         font-weight: 700;
-        line-height: 1.15;
-        color: #1e293b;
+        color: #2563eb;
+        line-height: 1.05;
+        margin: 4px 0;
     }
 
     .assigned-event-weekday {
-        font-size: 0.65rem;
+        font-size: 13px;
         font-weight: 500;
-        color: #94a3b8;
+        color: #8290a3;
     }
 
+    /* Title + meta */
     .assigned-event-title {
-        font-size: 1.02rem;
-        font-weight: 600;
-        color: #1e293b;
+        font-size: 16px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 6px;
     }
 
     .assigned-event-meta {
-        font-size: 0.82rem;
-        color: #94a3b8;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #667085;
+        margin-bottom: 6px;
     }
 
         .assigned-event-meta i {
-            color: #b0b8c4;
+            color: #64748b;
+            margin-right: 3px;
         }
 
-    .assigned-event-column-label {
-        font-size: 0.72rem;
+    .assigned-event-meta-divider {
         color: #94a3b8;
-        margin-bottom: 0.35rem;
+        font-size: 11px;
+        margin: 0 1px;
     }
 
+    .assigned-event-subline {
+        font-size: 13px;
+        color: #667085;
+        margin-bottom: 8px;
+    }
+
+        .assigned-event-subline i {
+            color: #94a3b8;
+            margin-right: 4px;
+        }
+
+    /* Tags (groups) */
     .assigned-event-group-badge {
-        font-size: 0.72rem;
+        background: #f8fafc;
+        border: 1px solid #e4e7ec;
+        color: #344054;
+        font-size: 12px;
         font-weight: 600;
-        padding: 0.32rem 0.7rem;
+        padding: 5px 12px;
+        border-radius: 999px;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        display: inline-block;
+    }
+
+    /* Right side: status + action */
+    .assigned-event-actions {
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 12px;
+        min-width: 165px;
     }
 
     .assigned-event-status-badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.4rem 0.85rem;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 7px 14px;
     }
+
+        .assigned-event-status-badge.bg-success-subtle {
+            background: #dff3e9 !important;
+            color: #14804a !important;
+        }
+
+        .assigned-event-status-badge.bg-warning-subtle {
+            background: #fff2cc !important;
+            color: #9a6700 !important;
+        }
+
+        .assigned-event-status-badge.bg-secondary-subtle {
+            background: #eef0f3 !important;
+            color: #5f6b7a !important;
+        }
 
     .assigned-event-details-btn {
-        border-radius: 50px;
-        font-size: 0.8rem;
-        font-weight: 500;
-        padding: 0.4rem 0.9rem;
+        min-width: 150px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        border: 1px solid #2563eb;
+        color: #2563eb;
+        background: #ffffff;
     }
 
-    .assigned-event-created-by {
-        font-size: 0.85rem;
-        color: #475569;
-    }
+        .assigned-event-details-btn:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border-color: #2563eb;
+        }
 
     /* ============================
            FILTER TOOLBAR
@@ -126,7 +217,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin-bottom: 16px;
+        margin-bottom: 18px;
     }
 
     .assigned-search-box {
@@ -137,8 +228,8 @@
         gap: 8px;
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: 10px;
+        padding: 9px 12px;
         color: #9ca3af;
     }
 
@@ -154,15 +245,74 @@
     .assigned-filter-select {
         background: #ffffff;
         border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border-radius: 10px;
         color: #374151;
-        padding: 8px 12px;
+        padding: 9px 12px;
         min-width: 170px;
         font-size: 0.88rem;
     }
 
     .assigned-event-row.d-none {
         display: none !important;
+    }
+
+    .assigned-events-empty {
+        background: #ffffff;
+        border: 1px solid #edf0f4;
+        border-radius: 14px;
+        padding: 2.5rem;
+        text-align: center;
+        color: #667085;
+    }
+
+    .assigned-event-details-btn {
+        text-decoration: none;
+    }
+
+        .assigned-event-details-btn:hover,
+        .assigned-event-details-btn:focus,
+        .assigned-event-details-btn:active {
+            text-decoration: none;
+        }
+
+    /* ============================
+           RESPONSIVE
+           ============================ */
+
+    @@media (max-width: 992px) {
+        .assigned-event-actions {
+            min-width: 100%;
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 6px;
+            margin-left: 0;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .assigned-event-row {
+            padding: 16px;
+        }
+
+        .assigned-event-date-badge {
+            width: 66px;
+            min-width: 66px;
+            height: 92px;
+        }
+
+        .assigned-event-month {
+            font-size: 12px;
+        }
+
+        .assigned-event-day {
+            font-size: 27px;
+        }
+
+        .assigned-event-title {
+            font-size: 15px;
+        }
     }
 </style>
 
@@ -208,52 +358,55 @@
                  data-search="@searchBlob"
                  data-date="@ev.StartDate.ToString("yyyy-MM-dd")"
                  data-facilities="@facilityAttr">
-                <div class="d-flex flex-wrap align-items-center gap-4">
+                <div class="assigned-event-row-inner">
 
                     <!-- Date badge -->
-                    <div class="assigned-event-date-badge text-center flex-shrink-0">
+                    <div class="assigned-event-date-badge">
                         <div class="assigned-event-month">@ev.StartDate.ToString("MMM").ToUpper()</div>
                         <div class="assigned-event-day">@ev.StartDate.Day</div>
                         <div class="assigned-event-weekday">@ev.StartDate.ToString("ddd").ToUpper()</div>
                     </div>
 
-                    <!-- Title + meta -->
-                    <div class="flex-grow-1" style="min-width:220px;">
+                    <!-- Title + meta + tags -->
+                    <div class="flex-grow-1" style="min-width:240px;">
                         <div class="assigned-event-title">@ev.EventTitle</div>
-                        <div class="assigned-event-meta d-flex flex-wrap align-items-center gap-3 mt-1">
+
+                        <div class="assigned-event-meta">
                             <span>
-                                <i class="bi bi-clock me-1"></i>
+                                <i class="bi bi-clock"></i>
                                 @(ev.StartTime.HasValue ? $"{FormatTime(ev.StartTime)} - {FormatTime(ev.EndTime)}" : "All Day")
                             </span>
-                            <span><i class="bi bi-building me-1"></i>@facilityText</span>
-                        </div>
-                    </div>
 
-                    <!-- Groups -->
-                    <div style="min-width:150px;">
-                        <div class="assigned-event-column-label">Groups</div>
-                        <div class="d-flex flex-wrap gap-1">
+                            @if (ev.FacilityNames.Any())
+                            {
+                                <span class="assigned-event-meta-divider">&bull;</span>
+                                <span>
+                                    <i class="bi bi-geo-alt"></i>
+                                    @facilityText
+                                </span>
+                            }
+                        </div>
+
+                        <div class="assigned-event-subline">
+                            <i class="bi bi-person-circle"></i>Created by @ev.SubmittedByName
+                        </div>
+
+                        <div>
                             @foreach (var g in ev.GroupNames)
                             {
-                                <span class="badge rounded-pill assigned-event-group-badge @UiColorHelper.GetBadgeClass(g)">@g</span>
+                                <span class="assigned-event-group-badge">@g</span>
                             }
                         </div>
                     </div>
 
-                    <!-- Created by -->
-                    <div style="min-width:130px;">
-                        <div class="assigned-event-column-label">Created by</div>
-                        <div class="assigned-event-created-by"><i class="bi bi-person-circle me-1"></i>@ev.SubmittedByName</div>
-                    </div>
-
                     <!-- Status + action -->
-                    <div class="text-md-end ms-md-auto d-flex flex-column align-items-md-end gap-2">
-                        <span class="badge rounded-pill assigned-event-status-badge @status.BadgeClass">@status.Text</span>
-                        <button type="button"
-                                class="btn btn-outline-primary assigned-event-details-btn view-event-details-btn"
-                                data-event-id="@ev.EventId">
+                    <div class="assigned-event-actions">
+                        <span class="badge assigned-event-status-badge @status.BadgeClass">@status.Text</span>
+                        <a asp-action="EventViewScannerDetails"
+                           asp-route-id="@ev.EventId"
+                           class="assigned-event-details-btn">
                             View Details <i class="bi bi-chevron-right"></i>
-                        </button>
+                        </a>
                     </div>
 
                 </div>
@@ -262,13 +415,13 @@
 
         @if (!Model.Any())
         {
-            <div class="assigned-event-row text-center text-muted py-4">
+            <div class="assigned-events-empty">
                 No events have been assigned to your group yet.
             </div>
         }
     </div>
 
-    <div id="assignedEventsNoResults" class="text-center text-muted py-4 d-none">
+    <div id="assignedEventsNoResults" class="assigned-events-empty d-none">
         No events match your filters.
     </div>
 </div>

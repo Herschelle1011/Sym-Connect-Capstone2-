@@ -13,6 +13,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Facility
         public int Capacity { get; set; }
 
         public FacilityStatus Status { get; set; }
+        public string StatusLabel { get; set; } = "";
+        public string StatusClass { get; set; } = "";
 
         public List<string> FacilityTypes { get; set; } = new();
 

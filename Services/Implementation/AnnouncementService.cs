@@ -563,7 +563,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     ExpiresAt = a.ExpirationDate,
                     TargetType = a.TargetAudience,
                     PostedByName = a.User.DisplayName ?? "Unknown",
-                    GroupName = a.Group != null ? a.Group.GroupName : null
+                    GroupName = a.Group != null ? a.Group.GroupName : null,
+                    CreatedByUserId = a.CreatedByUserId, 
+                    PinScope = a.PinScope
                 })
                 .FirstOrDefaultAsync();
 
@@ -580,7 +582,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         ExpiresAt = a.ExpirationDate,
                         TargetType = a.TargetAudience,
                         PostedByName = a.User.DisplayName ?? "Unknown",
-                        GroupName = a.Group != null ? a.Group.GroupName : null
+                        GroupName = a.Group != null ? a.Group.GroupName : null,
+                        CreatedByUserId = a.CreatedByUserId, // new
+                        PinScope = a.PinScope
                     })
                     .FirstOrDefaultAsync()
                 : null;

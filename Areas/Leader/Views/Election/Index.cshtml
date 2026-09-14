@@ -1,0 +1,112 @@
+﻿@model List<GetAllElectionListViewModel>
+
+@{
+    ViewData["Title"] = "Elections";
+    Layout = "_LeaderLayout";
+}
+
+<div class="container py-4">
+
+    <!-- ACTIVE ELECTIONS (backend-driven) -->
+    <h2 class="fw-bold mb-0">Active Elections</h2>
+    <p class="text-muted small mb-4">Vote for you future leaders</p>
+
+    @if (!Model.Any())
+    {
+        <p class="text-muted">No active elections right now.</p>
+    }
+
+    <div class="row g-3 mb-5">
+        @foreach (var election in Model)
+        {
+            var endDateTime = election.EndDate.Date + election.EndTime;
+            var statusClass = election.Status == "Open" ? "bg-success-subtle text-success"
+                             : election.Status == "Incoming" ? "bg-warning-subtle text-warning"
+                             : "bg-light text-secondary";
+
+          
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold mb-0">@election.ElectionName</h6>
+                        <span class="badge @statusClass rounded-pill px-3 py-1">@election.Status</span>
+                    </div>
+
+                    <p class="text-muted small mb-2">Ends in</p>
+
+                    <div class="d-flex gap-2 mb-3 countdown" data-end="@endDateTime.ToString("yyyy-MM-ddTHH:mm:ss")">
+                        <div class="flex-fill text-center bg-light rounded-3 py-2">
+                            <div class="fw-bold days">00</div>
+                            <div class="text-muted" style="font-size:0.7rem;">Days</div>
+                        </div>
+                        <div class="flex-fill text-center bg-light rounded-3 py-2">
+                            <div class="fw-bold hours">00</div>
+                            <div class="text-muted" style="font-size:0.7rem;">Hours</div>
+                        </div>
+                        <div class="flex-fill text-center bg-light rounded-3 py-2">
+                            <div class="fw-bold minutes">00</div>
+                            <div class="text-muted" style="font-size:0.7rem;">Minutes</div>
+                        </div>
+                        <div class="flex-fill text-center bg-light rounded-3 py-2">
+                            <div class="fw-bold seconds">00</div>
+                            <div class="text-muted" style="font-size:0.7rem;">Seconds</div>
+                        </div>
+                    </div>
+
+                    <a asp-action="TakeVoteElection" asp-route-id="@election.electionId"
+                       class="btn btn-primary w-100 rounded-pill @(election.Status != "Open" ? "disabled" : "")">
+                        Vote Now
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- VOTING HISTORY (static UI only, no backend yet) -->
+    <h2 class="fw-bold mb-4">My Voting History</h2>
+
+    <div class="card shadow-sm border-0 rounded-4 p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h6 class="fw-bold mb-1">Youth Camp Leadership Election 2025</h6>
+                <p class="text-muted small mb-0">You voted on May 12, 2025</p>
+            </div>
+            <span class="badge bg-light text-secondary rounded-pill px-3 py-1 align-self-start">Closed</span>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <button type="button" class="btn btn-primary rounded-pill px-4">
+                View Results
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function updateCountdowns() {
+        document.querySelectorAll('.countdown').forEach(el => {
+            const end = new Date(el.dataset.end).getTime();
+            const now = new Date().getTime();
+            const diff = end - now;
+
+            if (diff <= 0) {
+                el.querySelectorAll('.days, .hours, .minutes, .seconds').forEach(x => x.textContent = '00');
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            el.querySelector('.days').textContent = String(days).padStart(2, '0');
+            el.querySelector('.hours').textContent = String(hours).padStart(2, '0');
+            el.querySelector('.minutes').textContent = String(minutes).padStart(2, '0');
+            el.querySelector('.seconds').textContent = String(seconds).padStart(2, '0');
+        });
+    }
+
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+</script>

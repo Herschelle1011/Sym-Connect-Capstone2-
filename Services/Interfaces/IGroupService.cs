@@ -44,5 +44,13 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<OperationalResult> PromoteMemberToLeaderAsync(int groupId, int newLeaderId);
 
         Task<LeaderGroupViewModel?> GetGroupForLeaderAsync(int leaderId, string? search = null, string? sort = "points_desc");
+
+        Task<ArchivedGroupDetailsViewModel?> GetArchivedDetailsAsync(int id);
+
+        Task<int> GetMemberCountAsync(int groupId);
+
+        Task<int> GetTotalEarnedPointsAsync(int groupId);
+
+
     }
 }

@@ -17,7 +17,6 @@
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/MembersTable.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/facility.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/toast.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/MediaAndDocuments.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/ProfileViewMember.css" asp-append-version="true" />
@@ -26,6 +25,7 @@
     <link rel="stylesheet" href="~/css/admin/eventRequest.css" />
     <link rel="stylesheet" href="~/css/admin/dashboard.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/ParticipationMemberModal.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/event.css" asp-append-version="true" />
 
 
     <link rel="stylesheet"
@@ -58,15 +58,31 @@
         </button>
         <span class="topbar-brand">SYM-Connect</span>
         <div class="topbar-actions">
-            <a asp-controller="Notifications" asp-action="Index" class="topbar-icon-btn" id="notifBell" title="Notifications">
-                <i class="bi bi-bell"></i>
-                <span class="notif-count"
-                      id="notifCount"
-                      style="display:none;">
-                    0
-                </span>
-            </a>
-            <div id="notifDropdownPanel" class="notif-dropdown-panel"></div>
+            <div class="notification-wrapper" id="notificationWrapper">
+
+                <a asp-controller="Notifications"
+                   asp-action="Index"
+                   class="topbar-icon-btn"
+                   id="notifBell"
+                   data-dropdown-url="@Url.Action("Dropdown", "Notifications")"
+                   data-count-url="@Url.Action("UnreadCount", "Notifications")"
+                   data-mark-read-url="@Url.Action("MarkAsRead", "Notifications")"
+                   title="Notifications">
+
+                    <i class="bi bi-bell"></i>
+
+                    <span class="notif-count"
+                          id="notifCount"
+                          style="display:none;">
+                        0
+                    </span>
+                </a>
+
+                <div id="notifDropdownPanel"
+                     class="notif-dropdown-panel">
+                </div>
+
+            </div>
             <img class="topbar-avatar"
                  src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
                  alt="User Avatar" />
@@ -198,6 +214,22 @@
                 </div>
 
             </div>
+
+            <a asp-controller="WeeklySummaryReport" asp-action="Index"
+               class="nav-item @(controller == "WeeklySummaryReport" ? "active" : "")">
+
+                <i class="bi bi-bar-chart-line-fill"></i>
+                <span class="nav-label">Weekly Report Summary</span>
+            </a>
+
+
+            <a asp-controller="Archive"
+               asp-action="Index"
+               class="nav-item @(controller == "Archive" ? "active" : "")">
+                <i class="bi bi-archive-fill"></i>
+                <span class="nav-label">Archives</span>
+            </a>
+
         </div>
 
         <!-- Bottom links -->

@@ -1,0 +1,35 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.Notification.NotificationViewModel>
+
+<div class="notif-dropdown-header">
+    <h6>Notifications</h6>
+    <a asp-controller="Notifications" area="Leader" asp-action="Index" class="notif-see-all">See all</a>
+</div>
+
+<div class="notif-dropdown-list">
+    @if (!Model.Any())
+    {
+        <div class="notif-empty">You're all caught up.</div>
+    }
+    else
+    {
+        foreach (var n in Model)
+        {
+            <div class="notif-item @(n.IsRead ? "" : "unread")" data-id="@n.NotificationId" data-url="@n.Url">
+                <div class="notif-icon"><i class="bi bi-bell"></i></div>
+                <div class="notif-body">
+                    <div class="notif-title">@n.Title</div>
+                    <div class="notif-message">@n.Message</div>
+                    <div class="notif-time">@n.CreatedAt.ToString("MMM d, h:mm tt")</div>
+                </div>
+                @if (!string.IsNullOrEmpty(n.Url))
+                {
+                    <a href="@n.Url" class="btn btn-sm btn-outline-primary notif-view-btn">View</a>
+                }
+            </div>
+        }
+    }
+</div>
+
+<div class="notif-dropdown-footer">
+    <a asp-controller="Notifications" area="Leader" asp-action="Index">See previous notifications</a>
+</div>

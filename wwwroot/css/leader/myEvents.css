@@ -517,6 +517,11 @@
     margin: 0 2px;
 }
 
+.status-expired {
+    background-color: #ffedd5;
+    color: #c2410c;
+}
+
 .btn-view-details {
     border: none;
     background: transparent;
@@ -534,4 +539,6 @@
         position: static;
     }
 }
+
+
 

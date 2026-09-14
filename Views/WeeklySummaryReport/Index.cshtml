@@ -1,0 +1,571 @@
+﻿@model WeeklyReportViewModel
+@{
+    ViewData["Title"] = "Weekly Organizational Summary";
+    Layout = "_AdminLayout";
+
+    var today = DateTime.Today;
+
+    var monthStart = new DateTime(
+        today.Year,
+        today.Month,
+        1
+    );
+
+    var monthEnd = monthStart
+        .AddMonths(1)
+        .AddDays(-1);
+}
+
+<style>
+    .wr-header-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a1f2b;
+        margin: 0;
+    }
+
+    .wr-header-subtitle {
+        font-size: 13px;
+        color: #9aa3b8;
+        margin: 2px 0 0;
+    }
+
+    .wr-stat-card {
+        background: #fff;
+        border: 1px solid #eef0f5;
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 100%;
+    }
+
+    .wr-stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .wr-stat-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: #1a1f2b;
+        line-height: 1.1;
+    }
+
+    .wr-stat-label {
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .wr-card {
+        background: #fff;
+        border: 1px solid #eef0f5;
+        border-radius: 14px;
+        padding: 18px 20px;
+        height: 100%;
+    }
+
+    .wr-card-highlight {
+        border: 2px solid #3860D6;
+    }
+
+    .wr-card-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1a1f2b;
+        margin-bottom: 14px;
+    }
+
+    .wr-legend-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 13px;
+    }
+
+    .wr-legend-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    .wr-legend-label {
+        color: #374151;
+        font-weight: 500;
+    }
+
+    .wr-legend-value {
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .wr-group-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+        .wr-group-row:last-child {
+            border-bottom: none;
+        }
+
+    .wr-attendance-chart {
+        position: relative;
+        width: 100%;
+        height: 280px;
+        min-height: 280px;
+        max-height: 280px;
+    }
+
+    .wr-group-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+    }
+
+    .wr-group-name {
+        font-size: 13.5px;
+        color: #1a1f2b;
+        font-weight: 500;
+    }
+
+    .wr-group-points {
+        font-size: 13.5px;
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .wr-eval-row {
+        margin-bottom: 12px;
+    }
+
+    .wr-eval-label-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12.5px;
+        color: #374151;
+        margin-bottom: 4px;
+    }
+
+    .wr-eval-bar-bg {
+        background: #f3f4f6;
+        border-radius: 999px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .wr-eval-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+    }
+
+    .wr-announcement-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #f3f4f6;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+
+        .wr-announcement-item:last-child {
+            border-bottom: none;
+        }
+
+    .wr-announcement-title {
+        font-size: 13.5px;
+        color: #1a1f2b;
+        font-weight: 600;
+    }
+
+    .wr-announcement-date {
+        font-size: 12px;
+        color: #9aa3b8;
+        white-space: nowrap;
+        margin-left: 12px;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="wr-header-title">Weekly Organizational Summary</h1>
+        <p class="wr-header-subtitle">Overview of organizational activities and engagement for the selected week.</p>
+    </div>
+
+    <form method="get"
+          asp-action="Index"
+          class="d-flex align-items-center gap-2 flex-wrap">
+
+        <!-- Start Date -->
+        <input type="date"
+               id="startDate"
+               name="startDate"
+               class="form-control form-control-sm"
+               value="@ViewBag.SelectedStartDate.ToString("yyyy-MM-dd")"
+               style="width:150px;" />
+
+        <span class="text-muted small">to</span>
+
+        <!-- End Date -->
+        <input type="date"
+               id="endDate"
+               name="endDate"
+               class="form-control form-control-sm"
+               value="@ViewBag.SelectedEndDate.ToString("yyyy-MM-dd")"
+               style="width:150px;" />
+
+        <!-- Apply -->
+        <button type="submit"
+                class="btn btn-sm btn-primary">
+            <i class="ti ti-calendar"></i>
+            Apply
+        </button>
+
+        <!-- Today -->
+        <a asp-action="Index"
+           asp-route-startDate="@today.ToString("yyyy-MM-dd")"
+           asp-route-endDate="@today.ToString("yyyy-MM-dd")"
+           class="btn btn-sm btn-outline-secondary">
+            Today
+        </a>
+
+        <!-- This Month -->
+        <a asp-action="Index"
+           asp-route-startDate="@monthStart.ToString("yyyy-MM-dd")"
+           asp-route-endDate="@monthEnd.ToString("yyyy-MM-dd")"
+           class="btn btn-sm btn-outline-secondary">
+            This Month
+        </a>
+
+        <!-- Reset -->
+        <a asp-action="Index"
+           class="btn btn-sm btn-light">
+            <i class="ti ti-refresh"></i>
+            Reset
+        </a>
+
+    </form>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg">
+        <div class="wr-stat-card">
+            <div class="wr-stat-icon" style="background:#3860D6;"><i class="ti ti-calendar-event"></i></div>
+            <div>
+                <div class="wr-stat-value">@Model.TotalActivities</div>
+                <div class="wr-stat-label">Total Activities</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="wr-stat-card">
+            <div class="wr-stat-icon" style="background:#16a34a;"><i class="ti ti-users"></i></div>
+            <div>
+                <div class="wr-stat-value">@Model.TotalAttendance</div>
+                <div class="wr-stat-label">Total Attendance</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="wr-stat-card">
+            <div class="wr-stat-icon" style="background:#f59e0b;"><i class="ti ti-star"></i></div>
+            <div>
+                <div class="wr-stat-value">@Model.ParticipationPoints</div>
+                <div class="wr-stat-label">Participation Points</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="wr-stat-card">
+            <div class="wr-stat-icon" style="background:#f97373;"><i class="ti ti-clipboard-check"></i></div>
+            <div>
+                <div class="wr-stat-value">@Model.EvaluationsSubmitted</div>
+                <div class="wr-stat-label">Evaluations Submitted</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg">
+        <div class="wr-stat-card">
+            <div class="wr-stat-icon" style="background:#0891b2;"><i class="ti ti-speakerphone"></i></div>
+            <div>
+                <div class="wr-stat-value">@Model.AnnouncementsCount</div>
+                <div class="wr-stat-label">Announcements</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Summary + Attendance Overview -->
+<div class="row g-3 mb-3">
+    <div class="col-lg-5">
+        <div class="wr-card">
+            <div class="wr-card-title"><i class="ti ti-chart-pie me-1"></i>Activity Summary</div>
+            <div class="d-flex align-items-center gap-4">
+                <div style="width:150px; height:150px;">
+                    <canvas id="activityPieChart"></canvas>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="wr-legend-row">
+                        <span><span class="wr-legend-dot" style="background:#2563eb;"></span><span class="wr-legend-label">Completed</span></span>
+                        <span class="wr-legend-value">@Model.ActivitySummary.CompletedCount (@Model.ActivitySummary.CompletedPercent%)</span>
+                    </div>
+                    <div class="wr-legend-row">
+                        <span><span class="wr-legend-dot" style="background:#16a34a;"></span><span class="wr-legend-label">On-Going</span></span>
+                        <span class="wr-legend-value">@Model.ActivitySummary.OngoingCount (@Model.ActivitySummary.OngoingPercent%)</span>
+                    </div>
+                    <div class="wr-legend-row">
+                        <span><span class="wr-legend-dot" style="background:#f59e0b;"></span><span class="wr-legend-label">Upcoming</span></span>
+                        <span class="wr-legend-value">@Model.ActivitySummary.UpcomingCount (@Model.ActivitySummary.UpcomingPercent%)</span>
+                    </div>
+                    <div class="wr-legend-row">
+                        <span><span class="wr-legend-dot" style="background:#ef4444;"></span><span class="wr-legend-label">Cancelled</span></span>
+                        <span class="wr-legend-value">@Model.ActivitySummary.CancelledCount (@Model.ActivitySummary.CancelledPercent%)</span>
+                    </div>
+                    <hr class="my-2" />
+                    <div class="wr-legend-row">
+                        <span class="fw-bold">Total</span>
+                        <span class="fw-bold">@Model.ActivitySummary.TotalCount</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="wr-card wr-card-highlight">
+            <div class="wr-card-title">Attendance Overview</div>
+
+            <div class="wr-attendance-chart">
+                <canvas id="attendanceLineChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Groups + Evaluation Summary + Announcements -->
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="wr-card">
+            <div class="wr-card-title">Top Participating Groups</div>
+            <div class="d-flex justify-content-end text-muted small mb-1" style="padding-right:2px;">Points</div>
+            @{
+                var groupColors = new[] { "#f59e0b", "#9ca3af", "#a16207", "#16a34a", "#9333ea" };
+            }
+            @for (int i = 0; i < Model.TopGroups.Count; i++)
+            {
+                var g = Model.TopGroups[i];
+                <div class="wr-group-row">
+                    <span><span class="wr-group-dot" style="background:@groupColors[i % groupColors.Length];"></span><span class="wr-group-name">@g.GroupName</span></span>
+                    <span class="wr-group-points">@g.Points</span>
+                </div>
+            }
+            @if (!Model.TopGroups.Any())
+            {
+                <div class="text-muted small text-center py-3">No group activity for this range.</div>
+            }
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="wr-card">
+            <div class="wr-card-title">Evaluation Summary</div>
+
+            @{
+                var evalRows = new (string Label, int Count, int Percent, string Color)[]
+                {
+                    ("5 Stars", Model.EvaluationSummary.FiveStar, Model.EvaluationSummary.FiveStarPercent, "#15803d"),
+                    ("4 Stars", Model.EvaluationSummary.FourStar, Model.EvaluationSummary.FourStarPercent, "#4ade80"),
+                    ("3 Stars", Model.EvaluationSummary.ThreeStar, Model.EvaluationSummary.ThreeStarPercent, "#f59e0b"),
+                    ("2 Stars", Model.EvaluationSummary.TwoStar, Model.EvaluationSummary.TwoStarPercent, "#c2410c"),
+                    ("1 Star", Model.EvaluationSummary.OneStar, Model.EvaluationSummary.OneStarPercent, "#ef4444"),
+                };
+            }
+
+            @foreach (var row in evalRows)
+            {
+                <div class="wr-eval-row">
+                    <div class="wr-eval-label-row">
+                        <span>@row.Label</span>
+                        <span>@row.Count (@row.Percent%)</span>
+                    </div>
+                    <div class="wr-eval-bar-bg">
+                        <div class="wr-eval-bar-fill" style="width:@row.Percent%; background:@row.Color;"></div>
+                    </div>
+                </div>
+            }
+
+            <hr class="my-2" />
+            <div class="d-flex justify-content-between fw-bold" style="font-size:13.5px;">
+                <span>Total Responses</span>
+                <span>@Model.EvaluationSummary.TotalResponses</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="wr-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="wr-card-title mb-0">Recent Announcements</div>
+                <a asp-controller="Announcements" asp-action="Index" class="small text-primary">View All Announcement</a>
+            </div>
+
+            @if (!Model.RecentAnnouncements.Any())
+            {
+                <div class="text-muted small text-center py-3">No announcements yet.</div>
+            }
+            else
+            {
+                @foreach (var a in Model.RecentAnnouncements)
+                {
+                    <div class="wr-announcement-item">
+                        <span class="wr-announcement-title">@a.Title</span>
+                        <span class="wr-announcement-date">@a.DateCreated.ToString("MMM. d, yyyy")</span>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script>
+        // ---- Activity Summary pie chart ----
+        new Chart(document.getElementById('activityPieChart'), {
+        type: 'doughnut',
+        data: {
+        labels: ['Completed', 'On-Going', 'Upcoming', 'Cancelled'],
+        datasets: [{
+        data: [
+        @Model.ActivitySummary.CompletedCount,
+        @Model.ActivitySummary.OngoingCount,
+        @Model.ActivitySummary.UpcomingCount,
+        @Model.ActivitySummary.CancelledCount
+        ],
+        backgroundColor: ['#2563eb', '#16a34a', '#f59e0b', '#ef4444'],
+        borderWidth: 0
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: { legend: { display: false } }
+        }
+        });
+
+        // ---- Attendance Overview line chart ----
+        new Chart(document.getElementById('attendanceLineChart'), {
+        type: 'line',
+        data: {
+        labels: [@Html.Raw(string.Join(",", Model.AttendanceByDay.Select(d => $"'{d.DayLabel}'")))],
+        datasets: [{
+        label: 'Attendance',
+        data: [@string.Join(",", Model.AttendanceByDay.Select(d => d.Count))],
+        borderColor: '#3860D6',
+        backgroundColor: 'rgba(56, 96, 214, 0.08)',
+        tension: 0.35,
+        fill: true,
+        pointBackgroundColor: '#3860D6',
+        pointRadius: 4
+        }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+        x: { grid: { display: false } }
+        }
+        }
+        });
+
+        const attendanceCanvas =
+        document.getElementById('attendanceLineChart');
+
+        new Chart(attendanceCanvas, {
+        type: 'line',
+
+        data: {
+        labels: [
+        @Html.Raw(
+            string.Join(
+            ",",
+                Model.AttendanceByDay.Select(d => $"'{d.DayLabel}'")
+            )
+        )
+        ],
+
+        datasets: [{
+        label: 'Attendance',
+
+        data: [
+        @string.Join(
+        ",",
+            Model.AttendanceByDay.Select(d => d.Count)
+        )
+        ],
+
+        borderColor: '#3860D6',
+        backgroundColor: 'rgba(56, 96, 214, 0.08)',
+
+        tension: 0.35,
+        fill: true,
+
+        pointBackgroundColor: '#3860D6',
+        pointRadius: 4,
+
+        borderWidth: 2
+        }]
+        },
+
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        plugins: {
+        legend: {
+        display: false
+        }
+        },
+
+        scales: {
+        y: {
+        beginAtZero: true,
+
+        ticks: {
+        precision: 0
+        },
+
+        grid: {
+        color: '#f3f4f6'
+        }
+        },
+
+        x: {
+        grid: {
+        display: false
+        }
+        }
+        }
+        }
+        });
+    </script>
+}

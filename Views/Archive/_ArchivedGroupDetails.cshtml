@@ -1,0 +1,73 @@
+﻿@model ArchivedGroupDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <div class="mb-4">
+
+        <h4 style="margin:0; font-weight:700;">
+            @Model.GroupName
+        </h4>
+
+        <span class="badge bg-primary-subtle text-primary mt-2">
+            Group
+        </span>
+
+    </div>
+
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <strong>Leader</strong>
+            <div class="text-muted">
+                @Model.LeaderName
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Members</strong>
+            <div class="text-muted">
+                @Model.MemberCount
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Date Created</strong>
+            <div class="text-muted">
+                @(Model.DateCreated?.ToString("MMM dd, yyyy") ?? "N/A")
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Description</strong>
+            <div class="text-muted">
+                @(string.IsNullOrWhiteSpace(Model.Description)
+                    ? "No description"
+                    : Model.Description)
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <div class="p-3"
+         style="background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold text-warning">
+            <i class="bi bi-archive me-1"></i>
+            Archived
+        </div>
+
+        <div class="small text-muted mt-1">
+            @(Model.ArchiveDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                ?? "Archive date unavailable")
+        </div>
+
+    </div>
+
+</div>

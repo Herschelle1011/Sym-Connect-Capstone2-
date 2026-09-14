@@ -156,7 +156,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     newLeader.UserId,
                     "You're now a group leader",
                     $"You have been promoted to leader of {group.GroupName}.",
-                   $"Leader/Groups/Details/{group.GroupId}"
+                   $"Leader/Group/Index/{group.GroupId}"
                 );
             }
 
@@ -304,8 +304,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
 
 
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminMemberIds = adminUsers
+                .Where(u => u.MemberId.HasValue)
+                .Select(u => u.MemberId!.Value)
+                .ToList();
+
             members = members.Where(m =>
-              !alreadyLeadingIds.Contains(m.MemberId) &&
+              !alreadyLeadingIds.Contains(m.MemberId) && !adminMemberIds.Contains(m.MemberId) &&
               !membersInOtherGroups.Contains(m.MemberId));
 
 
@@ -345,13 +351,20 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                  .Where(g => g.GroupId == groupId)
                  .Select(g => g.LeaderId)
                  .FirstOrDefaultAsync();
-
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminMemberIds = adminUsers
+        .Where(u => u.MemberId.HasValue)
+        .Select(u => u.MemberId!.Value)
+        .ToList();
 
             return await _context.Members
        .AsNoTracking()
-       .Where(m => m.Status == "Active" &&
-       !existingIds.Contains(m.MemberId) &&
-       m.MemberId != leaderId && !_context.Groups.Any(g => g.LeaderId == m.MemberId))
+        .Where(m =>
+        m.ApplicationStatus == MembershipApplicationStatus.Approved &&
+        m.Status == "Active" &&
+        !existingIds.Contains(m.MemberId) &&
+        m.MemberId != leaderId && !adminMemberIds.Contains(m.MemberId) &&
+        !_context.Groups.Any(g => g.LeaderId == m.MemberId))
      .OrderByDescending(m => m.EarnedPoints)
        .Select(m => new MemberListViewModel
        {
@@ -466,7 +479,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
+        public async Task<int> GetMemberCountAsync(int groupId)
+        {
+            return await _context.GroupDetails.CountAsync(gd => gd.GroupId == groupId);
+        }
 
+        public async Task<int> GetTotalEarnedPointsAsync(int groupId)
+        {
+            return await _context.GroupDetails
+                .Where(gd => gd.GroupId == groupId)
+                .SumAsync(gd => gd.Member.EarnedPoints);
+        }
         private async Task AddLeaderRoleAsync(int memberId)
         {
             var member = await _context.Members
@@ -705,5 +728,65 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
+
+        public async Task<ArchivedGroupDetailsViewModel?> GetArchivedDetailsAsync(int id)
+        {
+            return await _context.Groups
+                .AsNoTracking()
+                .Where(g => g.GroupId == id && g.IsArchived)
+                .Select(g => new ArchivedGroupDetailsViewModel
+                {
+                    GroupId = g.GroupId,
+                    GroupName = g.GroupName,
+
+                    LeaderName = g.Leader != null
+                        ? g.Leader.FullName
+                        : "No leader",
+
+                    ArchiveDate = g.ArchivedDate,
+
+                    MemberCount = g.GroupDetails.Count()
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+        public async Task<List<GroupAttendanceChartItemViewModel>> GetGroupAttendanceChartAsync(int groupId)
+        {
+            var now = DateTime.Now;
+
+            var recentEvents = await _context.EventGroups
+                .Where(eg => eg.GroupId == groupId
+                          && eg.Event.EndDate.Date < now.Date
+                          && !eg.Event.IsArchived
+                          && !eg.Event.IsCancelled)
+                .OrderByDescending(eg => eg.Event.EndDate)
+                .Select(eg => new { eg.EventId, eg.Event.EventTitle, eg.Event.EndDate })
+                .Take(5)
+                .ToListAsync();
+
+            var groupMemberIds = await _context.GroupDetails
+                .Where(gd => gd.GroupId == groupId)
+                .Select(gd => gd.MemberId)
+                .ToListAsync();
+
+            var chartData = new List<GroupAttendanceChartItemViewModel>();
+
+            foreach (var evt in recentEvents.OrderBy(e => e.EndDate)) // chronological for the chart
+            {
+                var presentCount = await _context.Attendances
+                    .CountAsync(a => a.EventId == evt.EventId
+                                   && groupMemberIds.Contains(a.MemberId)
+                                   && (a.Status == "Present" || a.Status == "Late"));
+
+                chartData.Add(new GroupAttendanceChartItemViewModel
+                {
+                    EventTitle = evt.EventTitle,
+                    PresentCount = presentCount
+                });
+            }
+
+            return chartData;
+        }
     }
 }

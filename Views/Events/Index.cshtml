@@ -10,9 +10,7 @@
     var today = DateTime.Today;
 }
 
-<style>
-  
-</style>
+
 
 <div class="calendar-wrapper mx-auto">
 
@@ -76,12 +74,25 @@
                     <i class="ti ti-search"></i>
                 </button>
 
-                <!-- Facilities -->
-                <a asp-action="AvailableFacilities"
-                   class="event-action-btn">
-                    <i class="ti ti-building"></i>
-                    <span>View Facilities</span>
-                </a>
+                <!-- Upcoming -->
+                <button type="button"
+                        class="event-action-btn"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#upcomingEventsPanel">
+                    <i class="ti ti-calendar-time"></i>
+                    <span>Upcoming</span>
+                </button>
+
+                <!-- Cancelled -->
+                <button type="button"
+                        class="event-action-btn"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#cancelledEventsPanel">
+                    <i class="ti ti-calendar-x"></i>
+                    <span>Cancelled</span>
+                </button>
+
+  
 
                 <!-- Requests -->
                 <a asp-action="ViewEventsRequests"
@@ -284,4 +295,6 @@
 }
 @await Html.PartialAsync("_CreateEventPanel", createVm)
 @await Html.PartialAsync("_SearchEventPanel")
+@await Html.PartialAsync("_UpcomingEventsPanel", (List<EventListItemViewModel>)ViewBag.UpcomingEvents)
+@await Html.PartialAsync("_CancelledEventsPanel", (List<EventListItemViewModel>)ViewBag.CancelledEvents)
 

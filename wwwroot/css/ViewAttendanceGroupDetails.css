@@ -1,0 +1,460 @@
+﻿/* ============================================================
+   ATTENDANCE MODAL — CARD WRAPPER
+   ============================================================ */
+.attendance-main {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    padding: 1rem;
+}
+
+    .attendance-main h6 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+        .attendance-main h6 i {
+            color: #2f6fed;
+        }
+
+/* ============================================================
+   SEARCH + STATUS FILTER TOOLBAR
+   ============================================================ */
+.attendance-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: nowrap;
+    width: 100%;
+}
+
+.search-box {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+    .search-box i {
+        position: absolute;
+        left: 0.85rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+        font-size: 0.82rem;
+    }
+
+    .search-box .form-control {
+        width: 100%;
+        height: 36px;
+        padding: 0 0.75rem 0 2.1rem;
+        border: 1px solid #e5e9f0;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        background: #fafbfc;
+        box-sizing: border-box;
+    }
+
+        .search-box .form-control::placeholder {
+            color: #a3aab5;
+        }
+
+        .search-box .form-control:focus {
+            border-color: #2f6fed;
+            box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+            outline: none;
+            background: #fff;
+        }
+
+.attendance-toolbar #statusFilter {
+    flex: 0 0 auto;
+    width: 120px;
+    height: 36px;
+    padding: 0 1.75rem 0 0.9rem;
+    border: 1px solid #e5e9f0;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    background-color: #fff;
+    box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+    .attendance-toolbar {
+        flex-wrap: wrap;
+    }
+
+        .search-box,
+        .attendance-toolbar #statusFilter {
+            flex: 1 1 100%;
+            width: 100%;
+            min-width: 0;
+        }
+}
+
+/* ============================================================
+   TABLE SHELL — rounded corners + horizontal scroll
+   ============================================================ */
+.attendance-table-wrap {
+    border-radius: 12px;
+    border: 1px solid #eef1f5;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.attendance-table {
+    min-width: 720px;
+    width: 100%;
+    margin-bottom: 0;
+}
+
+    .attendance-table th,
+    .attendance-table td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+.attendance-table-wrap::-webkit-scrollbar {
+    height: 8px;
+}
+
+.attendance-table-wrap::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
+
+.attendance-table-wrap::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ============================================================
+   TABLE HEADER — blue, compact
+   ============================================================ */
+.attendance-table thead {
+    background: #2f6fed;
+}
+
+    .attendance-table thead th {
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border: none;
+        padding: 0.6rem 0.85rem;
+    }
+
+.attendance-table tbody td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid #f1f3f7;
+    font-size: 0.85rem;
+}
+
+.attendance-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.attendance-table tbody tr:nth-child(even) {
+    background: #fbfcfe;
+}
+
+.attendance-table tbody td:first-child {
+    color: #94a3b8;
+    font-size: 0.8rem;
+}
+
+/* ============================================================
+   MEMBER CELL — avatar + name
+   ============================================================ */
+.avatar-circle {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.75rem;
+}
+
+    .avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+.member-name-wrap .text-truncate {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #1e293b;
+}
+
+/* ============================================================
+   SCANNED BY CELL
+   ============================================================ */
+.scanned-by-cell {
+    max-width: 220px;
+}
+
+    .scanned-by-cell .scanned-by-inner {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+        .scanned-by-cell .scanned-by-inner i {
+            flex-shrink: 0;
+        }
+
+    .scanned-by-cell .scanned-by-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 190px;
+    }
+
+/* ============================================================
+   STATUS PILL (Present / Absent / Pending)
+   ============================================================ */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+    .status-pill .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+.status-pill-present {
+    background: #ecfdf3;
+    color: #12805c;
+}
+
+    .status-pill-present .dot {
+        background: #12805c;
+    }
+
+.status-pill-absent {
+    background: #fef3f2;
+    color: #b42318;
+}
+
+    .status-pill-absent .dot {
+        background: #b42318;
+    }
+
+.status-pill-pending {
+    background: #fffaeb;
+    color: #b54708;
+}
+
+    .status-pill-pending .dot {
+        background: #b54708;
+    }
+
+/* ============================================================
+   ACTIONS CHEVRON BUTTON
+   ============================================================ */
+.action-chevron-btn {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: none;
+    background: #eaf1ff;
+    color: #2f6fed;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+    .action-chevron-btn:hover {
+        background: #dbe7ff;
+    }
+
+/* ============================================================
+   NO RESULTS / FILTER STATE
+   ============================================================ */
+#attendanceTable tbody tr.d-none {
+    display: none;
+}
+
+.no-results-row td {
+    text-align: center;
+    color: #94a3b8;
+    padding: 2rem 0;
+}
+
+
+/* ============================================================
+   AOV TABLE — separate component (All Events Overview / similar)
+   Kept distinct from .attendance-* above; do not merge selectors.
+   ============================================================ */
+.aov-avatar-circle {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #eef2ff;
+    color: #4a6cf7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+    .aov-avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+.aov-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.aov-search-box {
+    position: relative;
+    flex: 1 1 220px;
+    min-width: 200px;
+}
+
+    .aov-search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+        font-size: 0.85rem;
+    }
+
+    .aov-search-box .form-control {
+        width: 100%;
+        height: 40px;
+        padding: 0 0.75rem 0 2.2rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 0.88rem;
+        box-sizing: border-box;
+    }
+
+        .aov-search-box .form-control:focus {
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 3px rgba(74, 108, 247, 0.12);
+            outline: none;
+        }
+
+.aov-table thead th {
+    background: #3057e0;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.85rem 1rem;
+    border-bottom: none;
+    white-space: nowrap;
+}
+
+.aov-table thead tr th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.aov-table thead tr th:last-child {
+    border-top-right-radius: 12px;
+}
+
+.aov-table tbody td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #eef1f5;
+}
+
+.aov-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.aov-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.aov-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+}
+
+    .aov-status-pill .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+.aov-status-pill-present {
+    background: #eafbf1;
+    color: #15803d;
+    border-color: #bbf0d1;
+}
+
+    .aov-status-pill-present .dot {
+        background: #15803d;
+    }
+
+.aov-status-pill-pending {
+    background: #fef7e6;
+    color: #b45309;
+    border-color: #fbe3a8;
+}
+
+    .aov-status-pill-pending .dot {
+        background: #b45309;
+    }
+
+.aov-status-pill-absent {
+    background: #fdecec;
+    color: #b91c1c;
+    border-color: #f7c9c9;
+}
+
+    .aov-status-pill-absent .dot {
+        background: #b91c1c;
+    }
+
+@media (max-width: 576px) {
+    .aov-toolbar {
+        width: 100%;
+    }
+
+    .aov-search-box {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+}

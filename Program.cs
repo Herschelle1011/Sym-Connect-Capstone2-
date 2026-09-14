@@ -109,6 +109,12 @@ builder.Services.AddScoped<
     IDashboardService,
     DashboardService>();
 
+builder.Services.AddScoped<
+    IArchiveService,
+    ArchiveService>();
+
+builder.Services.AddHostedService<EventReminderBackgroundService>();
+
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
                             Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
@@ -121,7 +127,7 @@ builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfa
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IProfileService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ProfileService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-
+builder.Services.AddScoped<IWeeklyReportService, WeeklyReportService>();
 
 // Program.cs
 builder.Services.AddScoped<ICalendarService, CalendarService>();

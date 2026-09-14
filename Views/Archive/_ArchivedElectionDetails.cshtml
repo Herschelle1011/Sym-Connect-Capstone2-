@@ -1,0 +1,112 @@
+﻿@model ArchivedElectionDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <div class="mb-4">
+
+        <h4 style="margin:0; font-weight:700;">
+            @Model.ElectionName
+        </h4>
+
+        <span class="badge bg-danger-subtle text-danger mt-2">
+            Election
+        </span>
+
+    </div>
+
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <strong>Status</strong>
+            <div class="text-muted">
+                @Model.Status
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Total Votes</strong>
+            <div class="text-muted">
+                @Model.TotalVotes
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Total Party Lists</strong>
+            <div class="text-muted">
+                @Model.TotalPartyLists
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Total Candidates</strong>
+            <div class="text-muted">
+                @Model.TotalCandidates
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Start</strong>
+            <div class="text-muted">
+                @Model.StartDate.ToString("MMM dd, yyyy")
+                @Model.StartTime.ToString(@"hh\:mm")
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>End</strong>
+            <div class="text-muted">
+                @Model.EndDate.ToString("MMM dd, yyyy")
+                @Model.EndTime.ToString(@"hh\:mm")
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Party Lists</strong>
+
+            <div class="mt-2">
+
+                @if (Model.PartyListNames != null &&
+                     Model.PartyListNames.Any())
+                {
+                    @foreach (var party in Model.PartyListNames)
+                    {
+                        <span class="badge bg-light text-dark me-1">
+                            @party
+                        </span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">
+                        No party lists
+                    </span>
+                }
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <div class="p-3"
+         style="background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold text-warning">
+            <i class="bi bi-archive me-1"></i>
+            Archived
+        </div>
+
+        <div class="small text-muted mt-1">
+            @(Model.ArchiveDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                ?? "Archive date unavailable")
+        </div>
+
+    </div>
+
+</div>

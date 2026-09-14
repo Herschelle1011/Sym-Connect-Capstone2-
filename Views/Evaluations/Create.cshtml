@@ -1069,11 +1069,10 @@
             openEventPicker();
         });
 
-                function bindEventPicker() {
+function bindEventPicker() {
 
             const searchInput =
                 document.getElementById("eventSearchInput");
-
 
             // ================= SEARCH =================
 
@@ -1099,7 +1098,6 @@
                 });
             }
 
-
             // ================= SELECT EVENT =================
 
             document
@@ -1114,28 +1112,23 @@
                         const eventTitle =
                             this.dataset.eventTitle;
 
-
                         // Put selected ID into hidden input
                         selectedEventId.value = eventId;
-
 
                         // Show selected event name
                         selectedEventTitle.textContent =
                             eventTitle;
 
-
                         selectedEventDisplay.style.display =
                             "block";
-
 
                         // Hide original Select Event button
                         btnSelectEvent.style.display =
                             "none";
 
-
                         // Close modal
                         const modalElement =
-                            document.getElementById("open-modal");
+                            document.getElementById("appModal");
 
                         const modal =
                             bootstrap.Modal.getInstance(modalElement);
@@ -1144,12 +1137,9 @@
                             modal.hide();
                         }
 
-
                         // Update Step 3 preview
                         updateOverview();
-
                     });
-
                 });
         }
 

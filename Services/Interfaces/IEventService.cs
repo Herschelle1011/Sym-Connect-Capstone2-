@@ -6,6 +6,8 @@ using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Attendance;
 using Sym_Connect__Capstone2_.ViewModels.Dashboard;
 using Sym_Connect__Capstone2_.ViewModels.Event;
+using Sym_Connect__Capstone2_.ViewModels.Group;
+
 using Sym_Connect__Capstone2_.ViewModels.Facility;
 
 namespace Sym_Connect__Capstone2_.Services.Interfaces
@@ -33,10 +35,14 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<FacilityScheduleViewModel?> GetFacilityScheduleAsync(int facilityId, int year, int month);
 
-        Task<List<ViewAvailableFacilitiesViewModel>> GetAvailableFacilitiesAsync();
+        //Task<List<ViewAvailableFacilitiesViewModel>> GetAvailableFacilitiesAsync();
 
-        Task<OperationalResult> RecordTimeOutAsync(string qrToken, int eventId);
-
+        Task<OperationalResult> RecordTimeOutAsync(
+             string qrToken,
+             int eventId,
+             string scannedByUserId,
+             int? scannedByMemberId,
+             bool isAdmin);
         Task<List<EventSearchResultViewModel>> SearchPanelAsync(string search);
 
         Task<List<AttendanceRowViewModel>> ViewAttendanceForEventAsync(int eventId);
@@ -80,6 +86,27 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<EventDetailsReadOnlyViewModel?> GetEventDetailsReadOnlyAsync(int id);
         Task<List<EventListItemViewModel>> GetAssignedEventsForLeaderAsync(int leaderMemberId);
+
+        Task<OperationalResult> SendAttendanceReminderAsync(int eventId, string reminderType);
+
+
+
+        Task<EventResult> CancelEventAsync(int eventId, string? reason);
+        Task<EventResult> RestoreCancelledEventAsync(int eventId);
+        Task<List<EventListItemViewModel>> GetUpcomingEventsAsync(bool isAdmin, int? currentUserId);
+        Task<List<EventListItemViewModel>> GetCancelledEventsAsync(bool isAdmin, int? currentUserId);
+
+        Task<ArchiveViewModel?> GetEventForCancelAsync(int eventId);
+
+        Task<CancelledEventDetailsViewModel?> GetCancelledEventDetailsAsync(int eventId);
+
+
+        Task ExpirePendingEventRequestsAsync();
+
+        Task CheckPendingEventRemindersAsync();
+        Task<RestoreEventViewModel?> ConfirmationRestoreAsync(int? eventId);
+
+        Task<List<GroupAttendanceChartItemViewModel>> GetGroupAttendanceChartAsync(int groupId);
 
     }
 }

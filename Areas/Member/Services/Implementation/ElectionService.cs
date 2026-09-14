@@ -48,6 +48,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             var candidates = await _context.Candidates
                 .AsNoTracking()
                 .Include(c => c.Member)
+                    .ThenInclude(u => u.User)
                 .Include(c => c.PartyList)
                 .Include(P => P.Position)
                 .Where(c => c.PartyList.ElectionId == electionId)

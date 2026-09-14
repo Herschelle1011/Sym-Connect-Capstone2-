@@ -734,5 +734,37 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             };
         }
 
+        public async Task<ArchivedMemberDetailsViewModel?> GetArchivedDetailsAsync(int id)
+        {
+            return await _context.Members
+                .AsNoTracking()
+                .Where(m => m.MemberId == id && m.IsArchive == true)
+                .Select(m => new ArchivedMemberDetailsViewModel
+                {
+                    MemberId = m.MemberId,
+                    FullName = m.FullName,
+                    Email = m.User != null
+                        ? m.User.Email
+                        : "No email",
+                    PhotoUrl = m.User.ProfilePictureUrl,
+                    ContactNumber = m.ContactNumber,
+                    Gender = m.Gender,
+                    BirthDate = m.BirthDate,
+                    Address = m.Address,
+                    MemberSince = m.DateRegistered,
+                    
+                    Status = m.Status,
+
+                    ArchiveDate = m.ArchiveDate,
+
+                    GroupName = m.GroupDetails
+                .Where(gd => gd.Group != null)
+                .Select(gd => gd.Group!.GroupName)
+                .FirstOrDefault() ?? "No Group",
+
+                })
+                .FirstOrDefaultAsync();
+        }
+
     }
 }

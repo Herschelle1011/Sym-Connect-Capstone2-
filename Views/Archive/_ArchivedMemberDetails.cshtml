@@ -1,0 +1,104 @@
+﻿@model ArchivedMemberDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+
+        <img src="@(string.IsNullOrEmpty(Model.PhotoUrl)
+                                 ? "/images/default-avatar.png"
+                                              : Model.PhotoUrl)"
+             style="width:72px;
+        height:72px;
+        object-fit:cover;
+        border-radius:50%;" />
+
+        <div>
+
+            <h4 style="margin:0; font-weight:700;">
+                @Model.FullName
+            </h4>
+
+            <span class="badge bg-success-subtle text-success mt-2">
+                Member
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <strong>Email</strong>
+            <div class="text-muted">@Model.Email</div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Contact Number</strong>
+            <div class="text-muted">@Model.ContactNumber</div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Gender</strong>
+            <div class="text-muted">@Model.Gender</div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Birth Date</strong>
+            <div class="text-muted">
+                @(Model.BirthDate?.ToString("MMM dd, yyyy") ?? "N/A")
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Status</strong>
+            <div class="text-muted">@Model.Status</div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Member Since</strong>
+            <div class="text-muted">
+                @(Model.MemberSince?.ToString("MMM dd, yyyy") ?? "N/A")
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Group</strong>
+
+            <div class="text-muted">
+                @(Model.GroupName != null && Model.GroupName.Any()
+                    ? string.Join(", ", Model.GroupName)
+                    : "No Group")
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Address</strong>
+            <div class="text-muted">@Model.Address</div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <div class="p-3"
+         style="background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold text-warning">
+            <i class="bi bi-archive me-1"></i>
+            Archived
+        </div>
+
+        <div class="small text-muted mt-1">
+            @(Model.ArchiveDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                ?? "Archive date unavailable")
+        </div>
+
+    </div>
+
+</div>

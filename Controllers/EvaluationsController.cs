@@ -68,36 +68,35 @@ public class EvaluationsController : Controller
             return NotFound();
         }
 
-        var evaluation = await _evaluationservice.GetEvaluationByIdAsync(id.Value);
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+        {
+            return Challenge();
+        }
+
+        if (user.MemberId == null)
+        {
+            return Forbid();
+        }
+
+        var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+
+        var evaluation = await _evaluationservice.GetEvaluationByIdAsync(
+            id.Value,
+            user.MemberId.Value,
+            isAdmin
+        );
+
         if (evaluation == null)
         {
             return NotFound();
         }
 
-        var Evaluations = new DetailsEvaluationViewModel
-        {
-            EvaluationId = evaluation.EvaluationId,
-            EvaluationTitle = evaluation.EvaluationTitle,
-            Description = evaluation.Description,
-            OpenAt = evaluation.OpenAt,
-            ClosesAt = evaluation.ClosedAt,
-            DateCreated = evaluation.DateCreated,
-            EventTitle = evaluation.EvaluationTitle,
-            
+        evaluation.Submissions =
+            await _evaluationservice.GetSubmissionsForEvaluationAsync(id.Value);
 
-            Questions = evaluation.EvaluationDetails.Select(q => new EvaluationQuestionViewModel
-            {
-                EvaluationDetailId = q.EvaluationDetailId,
-                QuestionId = q.QuestionId,
-                QuestionText = q.EvaluationQuestion!.QuestionText,
-                AnswerType = q.EvaluationQuestion.AnswerType,
-
-            }).ToList(),
-            Submissions = await _evaluationservice.GetSubmissionsForEvaluationAsync(id.Value) // ✅ new
-
-        };
-
-        return View(Evaluations);
+        return View(evaluation);
     }
 
     public async Task<IActionResult> SubmissionDetails(int id)
@@ -406,10 +405,22 @@ public class EvaluationsController : Controller
         var user = await _userManager.GetUserAsync(User);
 
         if (user == null)
-            return Challenge();
+        {
+            return Json(new
+            {
+                success = false,
+                message = "User account was not found."
+            });
+        }
 
         if (user.MemberId == null)
-            return Forbid();
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Member account was not found."
+            });
+        }
 
         var isAdmin =
             await _userManager.IsInRoleAsync(user, "Admin");
@@ -418,19 +429,14 @@ public class EvaluationsController : Controller
             await _evaluationservice.ArchiveEvaluationAsync(
                 id,
                 user.MemberId.Value,
-                isAdmin);
+                isAdmin
+            );
 
-        if (!result.Success)
+        return Json(new
         {
-            TempData["ErrorMessage"] = result.Message;
-        }
-        else
-        {
-            TempData["SuccessMessage"] = result.Message;
-        }
-
-
-        return RedirectToAction(nameof(Index));
+            success = result.Success,
+            message = result.Message
+        });
     }
 
 

@@ -6,22 +6,7 @@
 
     var types = Model.FacilityType.ToList();
     var photoUrls = Model.Photos?.Select(p => p.PhotoUrl).ToList() ?? new List<string>();
-
-
-    var statusClass = Model.Status switch
-    {
-        Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "maintenance",
-        Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "inactive",
-        _ => ""
-    };
-
-    var statusLabel = Model.Status switch
-    {
-        Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Active => "Available now",
-        Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "Under maintenance",
-        Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "Inactive",
-        _ => "Unknown"
-    };
+   
 }
 
 <div class="facility-page">
@@ -87,9 +72,9 @@
 
             <div class="fd-title-row">
                 <h2 class="fd-name">@Model.FacilityName</h2>
-                <span class="fd-status-pill @statusClass">
+                <span class="fd-status-pill @Model.StatusClass">
                     <span class="fd-status-dot"></span>
-                    @statusLabel
+                    @Model.StatusLabel
                 </span>
             </div>
 
@@ -143,7 +128,7 @@
                 </div>
                 <div class="fd-meta-item">
                     <span class="fd-meta-label">Status</span>
-                    <span class="fd-meta-value">@statusLabel</span>
+                    <span class="fd-meta-value">@Model.StatusLabel</span>
                 </div>
             </div>
 
@@ -190,7 +175,9 @@
                     <tr>
                         <th>Date</th>
                         <th>Event / Activity</th>
-                        <th>Group / Organization</th>
+                        <th>Groups</th>
+                        <th>Status</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -200,6 +187,9 @@
                             <td class="sched-date">@res.Date.ToString("MMM d, yyyy (ddd)")</td>
                             <td>@res.EventTitle</td>
                             <td>@(res.GroupName.Any() ? string.Join(", ", res.GroupName) : "N/A")</td>
+                            <td>
+                                <span class="sched-status-badge">@res.Status</span>
+                            </td>
                         </tr>
                     }
                 </tbody>

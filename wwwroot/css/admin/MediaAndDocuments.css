@@ -840,3 +840,97 @@
 .file-info-body .file-info-ext {
     text-align: center;
 }
+
+
+/* Let dropdowns appear outside the table row */
+.table-responsive {
+    overflow: visible !important;
+}
+
+.file-table {
+    overflow: visible !important;
+}
+
+    .file-table tbody,
+    .file-table tr,
+    .file-table td {
+        overflow: visible !important;
+    }
+
+
+/* Action column */
+.actions-col {
+    width: 55px;
+    text-align: center;
+    position: relative;
+}
+
+
+/* Wrapper around the three-dot menu */
+.file-kebab-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+
+/* Three-dot button */
+.btn-kebab {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #6b7280;
+    font-size: 22px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .btn-kebab:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+
+/* Dropdown menu */
+.file-kebab-wrapper .dropdown-menu {
+    min-width: 190px;
+    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, .12);
+    z-index: 1100;
+}
+
+
+/* Dropdown items */
+.file-kebab-wrapper .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 11px;
+    border-radius: 7px;
+    font-size: 14px;
+    color: #374151;
+}
+
+    .file-kebab-wrapper .dropdown-item:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+
+
+    /* Keep icons aligned */
+    .file-kebab-wrapper .dropdown-item i {
+        width: 18px;
+        text-align: center;
+    }
+
+.file-table-wrapper {
+    width: 100%;
+    overflow: visible;
+}

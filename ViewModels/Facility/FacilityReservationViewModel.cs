@@ -1,4 +1,6 @@
-﻿namespace Sym_Connect__Capstone2_.ViewModels.Facility
+﻿using Sym_Connect__Capstone2_.Models.Enums;
+
+namespace Sym_Connect__Capstone2_.ViewModels.Facility
 {
     public class FacilityReservationViewModel
     {
@@ -7,5 +9,6 @@
         public TimeSpan? EndTime { get; set; }
         public string EventTitle { get; set; } = string.Empty;
         public List<string> GroupName { get; set; }
+        public ApprovalStatus Status { get; set; }
     }
 }

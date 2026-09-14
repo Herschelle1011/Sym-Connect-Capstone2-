@@ -1,0 +1,93 @@
+﻿@model ArchivedEvaluationDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <div class="mb-4">
+
+        <h4 style="margin:0; font-weight:700;">
+            @Model.EvaluationTitle
+        </h4>
+
+        <span class="badge bg-secondary-subtle text-secondary mt-2">
+            Evaluation
+        </span>
+
+    </div>
+
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <strong>Event</strong>
+
+            <div class="text-muted">
+                @Model.EventName
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Questions</strong>
+
+            <div class="text-muted">
+                @Model.QuestionCount
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Opened</strong>
+
+            <div class="text-muted">
+                @Model.OpenAt.ToString("MMM dd, yyyy • hh:mm tt")
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Closed</strong>
+
+            <div class="text-muted">
+                @Model.ClosedAt.ToString("MMM dd, yyyy • hh:mm tt")
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Date Created</strong>
+
+            <div class="text-muted">
+                @Model.DateCreated.ToString("MMM dd, yyyy")
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Description</strong>
+
+            <div class="text-muted">
+                @(string.IsNullOrWhiteSpace(Model.Description)
+                    ? "No description"
+                    : Model.Description)
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <div class="p-3"
+         style="background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold text-warning">
+            <i class="bi bi-archive me-1"></i>
+            Archived
+        </div>
+
+        <div class="small text-muted mt-1">
+            @(Model.ArchiveDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                ?? "Archive date unavailable")
+        </div>
+
+    </div>
+
+</div>

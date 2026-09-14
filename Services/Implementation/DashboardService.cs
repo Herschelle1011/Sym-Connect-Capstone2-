@@ -177,6 +177,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
         }
 
+        public async Task<int> GetExpiredEventCountAsync()
+        {
+            return await _context.Events
+                .CountAsync(e =>
+                    !e.IsArchived &&
+                    e.ApprovalStatus == ApprovalStatus.Expired);
+        }
+
 
     }
 }

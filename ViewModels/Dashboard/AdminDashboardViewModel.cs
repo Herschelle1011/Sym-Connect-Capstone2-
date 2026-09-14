@@ -17,6 +17,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Dashboard
 
         public int UpcomingActivitiesCount { get; set; }
         public int PendingApprovalsCount { get; set; }
+        public int EventsExpiredCount { get; set; }
 
         public List<UpcomingEventViewModel> UpcomingEvents { get; set; } = new();
         public List<PendingApprovalItemViewModel> PendingApprovals { get; set; } = new();

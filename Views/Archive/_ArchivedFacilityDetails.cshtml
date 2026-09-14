@@ -1,0 +1,92 @@
+﻿@model ArchivedFacilityDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <div class="mb-4">
+
+        <h4 style="margin:0; font-weight:700;">
+            @Model.FacilityName
+        </h4>
+
+        <span class="badge bg-warning-subtle text-warning mt-2">
+            Facility
+        </span>
+
+    </div>
+
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <strong>Capacity</strong>
+            <div class="text-muted">
+                @Model.Capacity persons
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <strong>Status</strong>
+            <div class="text-muted">
+                @Model.Status
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Facility Types</strong>
+
+            <div class="mt-2">
+
+                @if (Model.FacilityTypes != null &&
+                     Model.FacilityTypes.Any())
+                {
+                    @foreach (var type in Model.FacilityTypes)
+                    {
+                        <span class="badge bg-light text-dark me-1">
+                            @type
+                        </span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">
+                        No facility type
+                    </span>
+                }
+
+            </div>
+        </div>
+
+        <div class="col-12">
+            <strong>Description</strong>
+
+            <div class="text-muted">
+                @(string.IsNullOrWhiteSpace(Model.Description)
+                    ? "No description"
+                    : Model.Description)
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <div class="p-3"
+         style="background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold text-warning">
+            <i class="bi bi-archive me-1"></i>
+            Archived
+        </div>
+
+        <div class="small text-muted mt-1">
+            @(Model.ArchiveDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                ?? "Archive date unavailable")
+        </div>
+
+    </div>
+
+</div>

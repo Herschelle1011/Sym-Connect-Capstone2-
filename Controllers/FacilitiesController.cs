@@ -43,17 +43,13 @@ public class FacilitiesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateFacilityViewModel vm)
     {
-        if (!ModelState.IsValid) return View(vm);
-
-        var result = await _facilityService.CreateFacilityAsync(vm);
-
-        if (!result.Success)
+        if (!ModelState.IsValid)
         {
-            ModelState.AddModelError("FacilityName", result.Message);
-            return View(vm);
+            return Json(new { success = false, message = "Please check the form and try again." });
         }
 
-        return RedirectToAction(nameof(Index));
+        var result = await _facilityService.CreateFacilityAsync(vm);
+        return Json(new { success = result.Success, message = result.Message });
     }
 
     // GET: FACILITYS/Edit/5
@@ -81,22 +77,16 @@ public class FacilitiesController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EditFacilityViewModel vm)
     {
-        if (vm.FacilityId == 0) return NotFound();
+        if (vm.FacilityId == 0)
+            return Json(new { success = false, message = "Facility not found." });
 
         if (!ModelState.IsValid)
         {
-            return PartialView("_EditFacilityForm", vm);
+            return Json(new { success = false, message = "Please check the form and try again." });
         }
 
         var result = await _facilityService.UpdateFacilityAsync(vm);
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError("FacilityName", result.Message);
-            return PartialView("_EditFacilityForm", vm);
-        }
-
-        return RedirectToAction(nameof(Index));
+        return Json(new { success = result.Success, message = result.Message });
     }
 
     //GET ARCHIVED
@@ -124,10 +114,9 @@ public class FacilitiesController : Controller
     public async Task<IActionResult> Archived(int id)
     {
         var result = await _facilityService.ArchiveFacilityAsync(id);
-        if (!result.Success) return NotFound();
-
-        return RedirectToAction(nameof(Index));
+        return Json(new { success = result.Success, message = result.Message });
     }
+
 
     // GET: FACILITYS/UnderMaintenance/5
     public async Task<IActionResult> UnderMaintenance(int? facilityid)

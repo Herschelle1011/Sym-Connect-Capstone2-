@@ -235,11 +235,27 @@
         </button>
     </div>
 
-    @* ---- LEGEND ---- *@
+    @* ---- LEGEND (updated to match new status meanings) ---- *@
     <div class="fac-legend">
-        <div><span class="dot dot-available"></span><strong>Available now</strong> &mdash; facility is Active</div>
-        <div><span class="dot dot-limited"></span><strong>Limited today</strong> &mdash; facility is Under maintenance</div>
-        <div><span class="dot dot-inactive"></span><strong>Inactive</strong> &mdash; facility is not in use</div>
+        <div>
+            <span class="dot dot-available"></span>
+            <strong>Available now</strong> &mdash; Active, no reservations today
+        </div>
+
+        <div>
+            <span class="dot dot-limited"></span>
+            <strong>Limited today</strong> &mdash; Active, has reservations today
+        </div>
+
+        <div>
+            <span class="dot dot-inactive"></span>
+            <strong>Inactive</strong> &mdash; Facility is currently not available for use
+        </div>
+
+        <div>
+            <span class="dot dot-maintenance"></span>
+            <strong>Under maintenance</strong> &mdash; Temporarily unavailable due to maintenance
+        </div>
     </div>
 
     <!-- Cards Grid -->
@@ -248,24 +264,6 @@
         @foreach (var item in Model)
         {
             var photos = item.Photos.Select(p => p.PhotoUrl).ToList();
-            <!-- Parse types -->
-
-
-            <!-- Status class -->
-            var statusClass = item.Status switch
-            {
-                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "maintenance",
-                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "inactive",
-                _ => ""
-            };
-
-            var statusLabel = item.Status switch
-            {
-                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Active => "Available now",
-                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.UnderMaintenance => "Limited today",
-                Sym_Connect__Capstone2_.Models.Enums.FacilityStatus.Inactive => "Inactive",
-                _ => "Unknown"
-            };
 
             <div class="facility-card">
 
@@ -273,7 +271,6 @@
                 <div class="card-photo-wrapper">
                     @if (photos.Count > 0)
                     {
-                        <!-- Store all URLs as data attributes on the wrapper -->
                         <div class="carousel"
                              data-photos="@string.Join("|", photos)">
 
@@ -303,30 +300,36 @@
                     }
                 </div>
 
-
                 <div class="fac-card-top">
-                    <span class="status-dot @statusClass">@statusLabel</span>
+                    <span class="status-dot @item.StatusClass">@item.StatusLabel</span>
+                    <span class="capacity-badge">
+                        <i class="bi bi-person-fill"></i> @item.Capacity cap
+                    </span>
                 </div>
 
                 <!-- Body -->
                 <div class="card-body-custom">
 
                     <div class="facility-title-row">
-
                         <p class="card-title">
                             @item.FacilityName
                         </p>
-
-            
-
                     </div>
-       
+
+                    @if (item.FacilityTypes != null && item.FacilityTypes.Count > 0)
+                    {
+                        <div class="tags">
+                            @foreach (var type in item.FacilityTypes)
+                            {
+                                <span class="tag">@type</span>
+                            }
+                        </div>
+                    }
 
                 </div>
 
                 <!-- Footer -->
                 <div class="card-footer-custom">
-
                     <div class="card-actions">
                         <a href="#"
                            class="edit-btn"
@@ -356,6 +359,7 @@
 
     </div>
 </div>
+
 
 
 <!-- Create Facility Modal -->
@@ -497,5 +501,89 @@
         });
         });
 
+
+
+        document.addEventListener('submit', async function (e) {
+
+        const form = e.target.closest('.archive-facility-form');
+
+        if (!form) {
+        return;
+        }
+
+        e.preventDefault();
+
+        const submitBtn = form.querySelector('.archive-submit-btn');
+        const normalContent = submitBtn.querySelector('.archive-btn-content');
+        const loadingContent = submitBtn.querySelector('.archive-btn-loading');
+
+        submitBtn.disabled = true;
+
+        normalContent.classList.add('d-none');
+        loadingContent.classList.remove('d-none');
+
+        try {
+
+        const formData = new FormData(form);
+
+        const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+        const modalElement =
+        document.getElementById('appModal');
+
+        const modal =
+        bootstrap.Modal.getInstance(modalElement);
+
+        if (modal) {
+        modal.hide();
+        }
+
+        showAlertDialog(
+        result.message || "Facility successfully archived.",
+        "success",
+        "Facility Archived"
+        );
+
+        setTimeout(function () {
+        window.location.reload();
+        }, 1200);
+        }
+        else {
+
+        showAlertDialog(
+        result.message || "Unable to archive facility.",
+        "error",
+        "Archive Failed"
+        );
+
+        submitBtn.disabled = false;
+
+        normalContent.classList.remove('d-none');
+        loadingContent.classList.add('d-none');
+        }
+        }
+        catch (error) {
+
+        console.error(error);
+
+        showAlertDialog(
+        "Something went wrong while archiving the facility.",
+        "error",
+        "Error"
+        );
+
+        submitBtn.disabled = false;
+
+        normalContent.classList.remove('d-none');
+        loadingContent.classList.add('d-none');
+        }
+        });
     </script>
 }

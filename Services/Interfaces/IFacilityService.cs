@@ -19,5 +19,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task MaintenanceFacilityAsync(int id);
         Task<bool> FacilityNameExist(string name, int? excludeId = null);
         Task<OperationalResult> DeletePhotosAsync(List<int> photoIds);
+
+        Task<ArchivedFacilityDetailsViewModel?> GetArchivedDetailsAsync(int id);
+
     }
 }

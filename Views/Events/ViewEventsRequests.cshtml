@@ -5,74 +5,123 @@
     Layout = "_AdminLayout";
 }
 
-
 <div class="container-fluid py-4 event-request-page">
 
     <div style="display:none">
         @Html.AntiForgeryToken()
     </div>
 
-    <h2 class="page-title mb-4">Event Request</h2>
+    <h2 class="page-title mb-4">Event Requests</h2>
 
     <!-- ═══════════════ STAT CARDS ═══════════════ -->
     <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
+
+        <div class="col-6 col-md">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-blue">
                     <i class="bi bi-people-fill"></i>
                 </div>
+
                 <div class="stat-info">
                     <h3>@Model.TotalRequests</h3>
-                    <div class="stat-label">Total Request</div>
-                    <div class="stat-sub">Assigned events</div>
+                    <div class="stat-label">Total Requests</div>
+                    <div class="stat-sub">All submitted requests</div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+
+        <div class="col-6 col-md">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-orange">
                     <i class="bi bi-clock-fill"></i>
                 </div>
+
                 <div class="stat-info">
                     <h3>@Model.PendingCount</h3>
-                    <div class="stat-label">Awaiting review</div>
-                    <div class="stat-sub">All group members</div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-sub">Awaiting review</div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+
+        <div class="col-6 col-md">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-green">
                     <i class="bi bi-check-circle-fill"></i>
                 </div>
+
                 <div class="stat-info">
                     <h3>@Model.ApprovedCount</h3>
-                    <div class="stat-label">Approve</div>
-                    <div class="stat-sub">All members attended</div>
+                    <div class="stat-label">Approved</div>
+                    <div class="stat-sub">Approved requests</div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
+
+        <div class="col-6 col-md">
             <div class="stat-card">
                 <div class="stat-icon stat-icon-red">
                     <i class="bi bi-x-circle-fill"></i>
                 </div>
+
                 <div class="stat-info">
                     <h3>@Model.RejectedCount</h3>
                     <div class="stat-label">Rejected</div>
-                    <div class="stat-sub">No members attended</div>
+                    <div class="stat-sub">Declined requests</div>
                 </div>
             </div>
         </div>
+
+        <div class="col-6 col-md">
+            <div class="stat-card">
+                <div class="stat-icon stat-icon-expired">
+                    <i class="bi bi-hourglass-bottom"></i>
+                </div>
+
+                <div class="stat-info">
+                    <h3>@Model.ExpiredCount</h3>
+                    <div class="stat-label">Expired</div>
+                    <div class="stat-sub">Not reviewed in time</div>
+                </div>
+            </div>
+        </div>
+
     </div>
+
 
     <!-- ═══════════════ FILTER TABS + SEARCH ═══════════════ -->
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+
         <div class="filter-tabs" role="group">
-            <button type="button" class="filter-tab active" data-filter="all">All</button>
-            <button type="button" class="filter-tab" data-filter="pending">Pending</button>
-            <button type="button" class="filter-tab" data-filter="approved">Approved</button>
-            <button type="button" class="filter-tab" data-filter="rejected">Rejected</button>
+            <button type="button"
+                    class="filter-tab active"
+                    data-filter="all">
+                All
+            </button>
+
+            <button type="button"
+                    class="filter-tab"
+                    data-filter="pending">
+                Pending
+            </button>
+
+            <button type="button"
+                    class="filter-tab"
+                    data-filter="approved">
+                Approved
+            </button>
+
+            <button type="button"
+                    class="filter-tab"
+                    data-filter="rejected">
+                Rejected
+            </button>
+
+            <button type="button"
+                    class="filter-tab"
+                    data-filter="expired">
+                Expired
+            </button>
         </div>
 
         <div class="search-wrap">
@@ -80,15 +129,22 @@
                    id="eventRequestSearch"
                    class="form-control search-input"
                    placeholder="Search your events..." />
+
             <i class="bi bi-search"></i>
         </div>
+
     </div>
 
+
     <!-- ═══════════════ EVENT LIST ═══════════════ -->
-    <div id="eventRequestList" class="d-flex flex-column gap-2">
+    <div id="eventRequestList"
+         class="d-flex flex-column gap-2">
+
         @foreach (var e in Model.Events)
         {
-            var statusKey = e.ApprovalStatus.ToString().ToLower(); // "pending" | "approved" | "rejected"
+            var statusKey = e.ApprovalStatus
+                .ToString()
+                .ToLower();
 
             <div class="event-request-row"
                  data-event-id="@e.EventId"
@@ -100,72 +156,186 @@
 
                     <!-- Date box -->
                     <div class="date-box text-center flex-shrink-0">
-                        <div class="date-day">@e.StartDate.Day</div>
-                        <div class="date-month">@e.StartDate.ToString("MMM")</div>
+
+                        <div class="date-day">
+                            @e.StartDate.Day
+                        </div>
+
+                        <div class="date-month">
+                            @e.StartDate.ToString("MMM")
+                        </div>
+
                     </div>
+
 
                     <!-- Main info -->
                     <div class="flex-grow-1 min-w-0">
+
                         <div class="event-title-row">
-                            <span class="event-title fw-semibold">@e.EventTitle</span>
+
+                            <span class="event-title fw-semibold">
+                                @e.EventTitle
+                            </span>
+
                             @switch (e.ApprovalStatus)
                             {
                                 case ApprovalStatus.Pending:
-                                    <span class="badge status-badge status-pending">Pending</span>
+
+                                    <span class="badge status-badge status-pending">
+                                        Pending
+                                    </span>
+
                                     break;
+
+
                                 case ApprovalStatus.Approved:
-                                    <span class="badge status-badge status-approved">Approved</span>
+
+                                    <span class="badge status-badge status-approved">
+                                        Approved
+                                    </span>
+
                                     break;
+
+
                                 case ApprovalStatus.Rejected:
-                                    <span class="badge status-badge status-rejected" title="@e.RejectionReason">Rejected</span>
+
+                                    <span class="badge status-badge status-rejected"
+                                          title="@e.RejectionReason">
+                                        Rejected
+                                    </span>
+
+                                    break;
+
+
+                                case ApprovalStatus.Expired:
+
+                                    <span class="badge status-badge status-expired">
+                                        Expired
+                                    </span>
+
                                     break;
                             }
+
                         </div>
+
 
                         <div class="event-meta">
+
                             @if (e.FacilityNames.Any())
                             {
-                                <span class="meta-item"><i class="bi bi-geo-alt"></i>@string.Join(", ", e.FacilityNames)</span>
+                                <span class="meta-item">
+                                    <i class="bi bi-geo-alt"></i>
+                                    @string.Join(", ", e.FacilityNames)
+                                </span>
                             }
+
+
                             @if (e.GroupNames.Any())
                             {
-                                <span class="meta-item"><i class="bi bi-people"></i>@string.Join(", ", e.GroupNames)</span>
+                                <span class="meta-item">
+                                    <i class="bi bi-people"></i>
+                                    @string.Join(", ", e.GroupNames)
+                                </span>
                             }
+
+
                             @switch (e.ApprovalStatus)
                             {
                                 case ApprovalStatus.Pending:
-                                    <span class="meta-item">Submitted @e.DateCreated.ToTimeAgo()</span>
+
+                                    <span class="meta-item">
+                                        Submitted @e.DateCreated.ToTimeAgo()
+                                    </span>
+
                                     break;
+
+
                                 case ApprovalStatus.Approved:
-                                    <span class="meta-item meta-approved"><i class="bi bi-check-circle-fill"></i>Approved by @(e.ApproveByName ?? "Admin")</span>
+
+                                    <span class="meta-item meta-approved">
+
+                                        <i class="bi bi-check-circle-fill"></i>
+
+                                        Approved by @(e.ApproveByName ?? "Admin")
+
+                                    </span>
+
                                     break;
+
+
                                 case ApprovalStatus.Rejected:
-                                    <span class="meta-item meta-rejected"><i class="bi bi-x-circle-fill"></i>Rejected by @(e.ApproveByName ?? "Admin")</span>
+
+                                    <span class="meta-item meta-rejected">
+
+                                        <i class="bi bi-x-circle-fill"></i>
+
+                                        Rejected by @(e.ApproveByName ?? "Admin")
+
+                                    </span>
+
+                                    break;
+
+
+                                case ApprovalStatus.Expired:
+
+                                    <span class="meta-item meta-expired">
+
+                                        <i class="bi bi-hourglass-bottom"></i>
+
+                                        @if (e.ExpiredDate.HasValue)
+                                        {
+                                            <text>
+                                                Expired @e.ExpiredDate.Value.ToTimeAgo()
+                                            </text>
+                                        }
+                                        else
+                                        {
+                                            <text>
+                                                Request expired
+                                            </text>
+                                        }
+
+                                    </span>
+
                                     break;
                             }
+
                         </div>
+
                     </div>
 
-                    <!-- Right side: actions -->
+
+                    <!-- Right side -->
                     <div class="flex-shrink-0 d-flex align-items-center gap-2">
-                        @if (e.ApprovalStatus == ApprovalStatus.Pending)
-                        {
-                           
-                        }
-                        <button type="button" class="btn-view">View</button>
+
+                        <button type="button"
+                                class="btn-view">
+                            View
+                        </button>
+
                     </div>
 
                 </div>
+
             </div>
         }
-        <div id="noResultsMessage" class="text-center text-muted py-5 d-none">
+
+
+        <div id="noResultsMessage"
+             class="text-center text-muted py-5 d-none">
+
             No events match your search.
+
         </div>
+
     </div>
+
 </div>
 
-<!-- Reject Reason Modal (uses shared #appModal shell pattern) -->
+
+<!-- Reject Reason Modal -->
 <partial name="_RejectReasonModal" />
+
 
 @section Scripts {
 
@@ -174,40 +344,55 @@
         <script>
             document.addEventListener("DOMContentLoaded", function () {
 
-                @* //not working now *@
-                const params = new URLSearchParams(window.location.search);
-                const filterParam = params.get('filter');
+                const params =
+                    new URLSearchParams(window.location.search);
 
-         
-            
-                const eventId = "@ViewBag.OpenEventId";
+                const filterParam =
+                    params.get('filter');
 
-                const eventRow = document.querySelector(
-                    `.event-request-row[data-event-id="${eventId}"]`
-                );
+                const eventId =
+                    "@ViewBag.OpenEventId";
+
+
+                const eventRow =
+                    document.querySelector(
+                        `.event-request-row[data-event-id="${eventId}"]`
+                    );
+
 
                 if (eventRow) {
-                    console.log("Opening event request:", eventId);
+
+                    console.log(
+                        "Opening event request:",
+                        eventId
+                    );
+
                     eventRow.click();
                 }
                 else {
+
                     console.error(
                         "Event request row not found for ID:",
                         eventId
                     );
                 }
 
+
                 if (filterParam) {
-                    const targetTab = document.querySelector(`.filter-tabs [data-filter="${filterParam}"]`);
+
+                    const targetTab =
+                        document.querySelector(
+                            `.filter-tabs [data-filter="${filterParam}"]`
+                        );
+
+
                     if (targetTab) {
-                        targetTab.click(); // reuses your existing click handler — same as clicking it manually
+                        targetTab.click();
                     }
                 }
-            });
 
-            
-        
-            
+            });
         </script>
     }
+
 }
