@@ -14,11 +14,11 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
     [Authorize(Roles = "Leader")]
     public class ElectionController : Controller
     {
-        private readonly IElectionService _electionService;
+        private readonly IMemberElectionService _electionService;
         private readonly UserManager<User> _userManager;
 
         public ElectionController(
-            IElectionService electionService,
+            IMemberElectionService electionService,
             UserManager<User> userManager)
         {
             _electionService = electionService;
@@ -41,10 +41,16 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             if (user.MemberId == null)
                 return Forbid();
 
-            var elections =
-                await _electionService.getAllElectionList();
+            var activeElections = await _electionService.getAllElectionList();
+            var votingHistory = await _electionService.GetVotingHistoryAsync(user.Id);
 
-            return View(elections);
+            var viewModel = new ElectionIndexViewModel
+            {
+                ActiveElections = activeElections,
+                VotingHistory = votingHistory
+            };
+
+            return View(viewModel);
         }
 
 
@@ -207,5 +213,16 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         {
             return View();
         }
+
+        public async Task<IActionResult> Results(int electionId)
+        {
+            var result = await _electionService.GetElectionResultAsync(electionId);
+             
+            if (result == null)
+                return NotFound();
+
+            return View(result);
+        }
+
     }
 }

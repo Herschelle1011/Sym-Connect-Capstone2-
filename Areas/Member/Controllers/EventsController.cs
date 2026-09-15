@@ -15,13 +15,32 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         private readonly IEventService _eventService;
         private readonly UserManager<User> _userManager;
 
-        public EventsController(IEventService eventService, UserManager<User> _userManager)
+        public EventsController(IEventService eventService, UserManager<User> userManager)
         {
             _eventService = eventService;
+            _userManager = userManager;
         }
         public async Task<IActionResult> Index()
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+
+            var model = await _eventService
+                .GetEventsForMemberAsync(user.MemberId.Value);
+
+
+            return View(model);
         }
 
         public async Task<IActionResult> CancelledDetails(int id)
@@ -30,6 +49,34 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             if (vm == null) return NotFound();
 
             return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            var model = await _eventService
+                .GetMemberEventDetailsAsync(
+                    id,
+                    user.MemberId.Value);
+
+            if (model == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_EventDetailsModal", model);
         }
     }
 }

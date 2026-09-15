@@ -45,5 +45,12 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
     int evaluationId,
     int currentMemberId,
     bool isAdmin);
+
+
+        Task<List<MemberEvaluationListItemViewModel>> GetAssignedEvaluationsAsync(
+                  int currentMemberId,
+                  string userId);
     }
+
+
 }

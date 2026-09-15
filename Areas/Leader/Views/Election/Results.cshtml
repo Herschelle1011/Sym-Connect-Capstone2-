@@ -1,0 +1,498 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Election.ResultViewModel
+
+@{
+    ViewData["Title"] = $"Results - {Model.ElectionTitle}";
+    Layout = "_LeaderLayout";
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    .results-page, .results-page * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .results-page {
+        background: #f5f7fb;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #7b8397;
+        text-decoration: none;
+        transition: color .15s;
+    }
+
+        .back-link:hover {
+            color: #0d6efd;
+        }
+
+    .breadcrumb {
+        font-size: 12.5px;
+    }
+
+    .page-heading {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1a1f2b;
+        margin: 0;
+    }
+
+    /* ── Election banner ── */
+    .results-banner {
+        background: linear-gradient(120deg, #ffffff 45%, #eaf1ff 100%);
+        border: 1px solid #eef0f5;
+        border-radius: 18px;
+        padding: 26px 28px;
+        margin-bottom: 20px;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 14px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+    }
+
+    .status-open {
+        background: #E6F8EE;
+        color: #15803D;
+    }
+
+    .status-incoming {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .status-closed {
+        background: #F1F2F6;
+        color: #64748B;
+    }
+
+    .banner-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        margin-top: 10px;
+        font-size: 13.5px;
+        color: #7b8397;
+        font-weight: 500;
+    }
+
+        .banner-meta i {
+            color: #a7b0c4;
+        }
+
+    /* ── Stat cards ── */
+    .stat-card {
+        background: #fff;
+        border: 1px solid #eef0f5;
+        border-radius: 16px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        height: 100%;
+    }
+
+    .stat-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+        flex-shrink: 0;
+    }
+
+        .stat-icon.votes {
+            background: #EEF4FF;
+            color: #3860D6;
+        }
+
+        .stat-icon.candidates {
+            background: #ECFDF3;
+            color: #15803D;
+        }
+
+        .stat-icon.participation {
+            background: #FBF0FF;
+            color: #8B3DFF;
+        }
+
+        .stat-icon.status {
+            background: #FFF7E6;
+            color: #B45309;
+        }
+
+    .stat-label {
+        font-size: 12px;
+        color: #7b8397;
+        font-weight: 600;
+    }
+
+    .stat-value {
+        font-size: 21px;
+        font-weight: 800;
+        color: #1a1f2b;
+        line-height: 1.2;
+    }
+
+    .stat-subtext {
+        font-size: 11.5px;
+        color: #9aa3b8;
+    }
+
+    /* ── Position result cards ── */
+    .position-card {
+        background: #fff;
+        border: 1px solid #eef0f5;
+        border-radius: 16px;
+        padding: 22px;
+        margin-bottom: 18px;
+    }
+
+    .position-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1f2b;
+        margin-bottom: 14px;
+    }
+
+    .result-header-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        color: #9aa3b8;
+        border-bottom: 1px solid #f0f1f5;
+        padding-bottom: 10px;
+        margin-bottom: 4px;
+    }
+
+    .candidate-result-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 0;
+        border-bottom: 1px solid #f5f6fa;
+        gap: 16px;
+    }
+
+        .candidate-result-row:last-child {
+            border-bottom: none;
+        }
+
+    .rank-badge {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .rank-1 {
+        background: #16A34A;
+    }
+
+    .rank-2 {
+        background: #9AA3B8;
+    }
+
+    .rank-3 {
+        background: #C97A3D;
+    }
+
+    .rank-other {
+        background: #E3E6EE;
+        color: #7b8397;
+    }
+
+    .candidate-photo,
+    .candidate-photo-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .candidate-photo-placeholder {
+        background: #EEF4FF;
+        color: #3860D6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .candidate-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: #1a1f2b;
+    }
+
+    .candidate-party {
+        font-size: 12px;
+        color: #9aa3b8;
+    }
+
+    .result-progress-track {
+        background: #eef0f5;
+        border-radius: 999px;
+        height: 8px;
+        overflow: hidden;
+    }
+
+    .result-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: #0d6efd;
+    }
+
+    .rank-1-row .result-progress-fill {
+        background: #16A34A;
+    }
+
+    .rank-1-row .vote-percentage {
+        color: #16A34A;
+    }
+
+    .vote-count {
+        font-weight: 700;
+        font-size: 14px;
+        color: #1a1f2b;
+        text-align: center;
+    }
+
+    .vote-label {
+        font-size: 11px;
+        color: #9aa3b8;
+        text-align: center;
+    }
+
+    .vote-percentage {
+        font-weight: 700;
+        font-size: 14px;
+        color: #0d6efd;
+        text-align: right;
+    }
+
+    /* ── Footer ── */
+    .finalized-note {
+        background: #EEF4FF;
+        border: 1px solid #dce6ff;
+        border-radius: 12px;
+        padding: 10px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #3860D6;
+        font-weight: 500;
+    }
+
+    .btn-export {
+        border: 1px solid #e3e6ee;
+        background: #fff;
+        color: #4b5468;
+        font-weight: 600;
+        font-size: 13.5px;
+        border-radius: 999px;
+        padding: 10px 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: all .15s;
+    }
+
+        .btn-export:hover {
+            background: #f8f9fc;
+            border-color: #d7dbe6;
+            color: #1a1f2b;
+        }
+</style>
+
+<div class="results-page min-vh-100 py-4">
+    <div class="container-fluid" style="max-width: 1100px;">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+            <div>
+                <nav aria-label="breadcrumb" class="mb-1">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a asp-action="Index" class="back-link">Elections</a></li>
+                        <li class="breadcrumb-item active text-muted" aria-current="page">Results</li>
+                    </ol>
+                </nav>
+                <h2 class="page-heading">Results — @Model.ElectionTitle</h2>
+            </div>
+            <a asp-action="Index" class="back-link border rounded-pill px-3 py-2" style="border-color:#e3e6ee !important;">
+                <i class="bi bi-arrow-left"></i> Back to Elections
+            </a>
+        </div>
+
+        <!-- Election banner -->
+        <div class="results-banner">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h4 class="fw-bold mb-0" style="font-size:18px;">@Model.ElectionTitle</h4>
+                        <span class="status-badge status-@Model.Status.ToLower()">@Model.Status</span>
+                    </div>
+                    <div class="banner-meta">
+                        <span><i class="bi bi-calendar-event"></i> Start: @Model.StartDate.ToString("MMM d, yyyy")</span>
+                        <span><i class="bi bi-calendar-check"></i> End: @Model.EndDate.ToString("MMM d, yyyy")</span>
+                        <span><i class="bi bi-people"></i> @Model.TotalCandidates Candidates</span>
+                        <span><i class="bi bi-bar-chart"></i> @Model.TotalVotes Total Votes</span>
+                    </div>
+                </div>
+                <div class="fs-1" style="color:#3860D6;">
+                    <i class="bi bi-clipboard-data"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon votes"><i class="bi bi-bar-chart-fill"></i></div>
+                    <div>
+                        <div class="stat-value">@Model.TotalVotes</div>
+                        <div class="stat-label">Total Votes</div>
+                        <div class="stat-subtext">All positions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon candidates"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <div class="stat-value">@Model.TotalCandidates</div>
+                        <div class="stat-label">Candidates</div>
+                        <div class="stat-subtext">Total running</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon participation"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div>
+                        <div class="stat-value">@Model.ParticipationPercentage.ToString("0")%</div>
+                        <div class="stat-label">Participation</div>
+                        <div class="stat-subtext">Votes cast</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon status"><i class="bi bi-flag-fill"></i></div>
+                    <div>
+                        <div class="stat-value" style="font-size:17px;">@Model.Status</div>
+                        <div class="stat-label">Election Status</div>
+                        <div class="stat-subtext">@(Model.Status == "Closed" ? "Voting has ended" : "Voting in progress")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results per position, in hierarchy order -->
+        @foreach (var position in Model.Positions)
+        {
+            <div class="position-card">
+                <div class="position-title">@position.PositionName Results</div>
+                <div class="result-header-row">
+                    <span>Candidate</span>
+                    <span>Votes</span>
+                </div>
+
+                @foreach (var candidate in position.Candidates)
+                {
+                    var rankClass = candidate.Rank switch
+                    {
+                        1 => "rank-1",
+                        2 => "rank-2",
+                        3 => "rank-3",
+                        _ => "rank-other"
+                    };
+                    var rowClass = candidate.Rank == 1 ? "rank-1-row" : "";
+                    var pct = candidate.Percentage.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
+
+                    <div class="candidate-result-row @rowClass">
+                        <div class="d-flex align-items-center gap-3" style="min-width: 260px;">
+                            <span class="rank-badge @rankClass">@candidate.Rank</span>
+
+                            @if (!string.IsNullOrEmpty(candidate.PhotoUrl))
+                            {
+                                <img src="@candidate.PhotoUrl" class="candidate-photo" />
+                            }
+                            else
+                            {
+                                <div class="candidate-photo-placeholder">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            }
+                            <div>
+                                <div class="candidate-name">@candidate.Name</div>
+                                @if (!string.IsNullOrEmpty(candidate.PartyName))
+                                {
+                                    <div class="candidate-party">@candidate.PartyName</div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="flex-grow-1">
+                            <div class="result-progress-track">
+                                <div class="result-progress-fill" style="width:@pct%;"></div>
+                            </div>
+                        </div>
+
+                        <div style="min-width:64px;">
+                            <div class="vote-count">@candidate.Votes</div>
+                            <div class="vote-label">votes</div>
+                        </div>
+
+                        <div class="vote-percentage" style="min-width:70px;">@candidate.Percentage.ToString("0.00")%</div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Footer actions -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-2">
+            <div class="finalized-note">
+                <i class="bi bi-info-circle"></i>
+                @(Model.IsFinalized ? "Results are final and cannot be changed." : "Results are provisional and may change.")
+            </div>
+            <a asp-action="ExportResults" asp-route-electionId="@Model.ElectionId" class="btn-export">
+                <i class="bi bi-download"></i> Export Results
+            </a>
+        </div>
+
+        <div class="text-center text-muted small mt-3" style="font-size:12px;">
+            Results shown are final and verified.<br />
+            Last updated: @Model.LastUpdated.ToString("MMMM d, yyyy 'at' h:mm tt")
+        </div>
+
+    </div>
+</div>

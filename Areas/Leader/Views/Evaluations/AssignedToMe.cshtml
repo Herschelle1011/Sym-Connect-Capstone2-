@@ -1,0 +1,258 @@
+﻿@using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation
+@model List<MemberEvaluationListItemViewModel>
+
+@{
+    ViewData["Title"] = "Assigned Evaluations";
+    Layout = "_LeaderLayout";
+}
+
+<style>
+    .eval-list-card {
+        border: 1px solid #eee;
+        border-radius: 14px;
+        transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+    }
+
+        .eval-list-card.answerable:hover {
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+            border-color: #1877F2;
+        }
+
+        .eval-list-card.disabled {
+            opacity: 0.65;
+        }
+
+
+    .eval-icon-circle {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 50%;
+        background: #E7F0FF;
+        color: #1877F2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .eval-chevron {
+        color: #c7c7c7;
+        transition: transform 0.15s ease, color 0.15s ease;
+    }
+
+    .eval-list-card.answerable:hover .eval-chevron {
+        transform: translateX(4px);
+        color: #1877F2;
+    }
+
+    .status-tag {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+    }
+
+        .status-tag.open {
+            background: #E6F4EA;
+            color: #1E7E34;
+        }
+
+        .status-tag.closed {
+            background: #FBEAEA;
+            color: #BB1414;
+        }
+
+        .status-tag.upcoming {
+            background: #FFF4E0;
+            color: #B7791F;
+        }
+
+    .eval-meta {
+        font-size: 12px;
+        color: #6c757d;
+    }
+</style>
+
+<div class="container py-4"
+     style="max-width: 800px;">
+
+    <h2 class="fw-bold mb-1">
+        Assigned Evaluations
+    </h2>
+
+    <p class="text-muted mb-4"
+       style="font-size:14px;">
+        Answer evaluations for events you attended.
+    </p>
+
+
+    @if (!Model.Any())
+    {
+        <div class="text-center text-muted py-5">
+
+            <i class="bi bi-clipboard-check"
+               style="font-size:2.5rem;">
+            </i>
+
+            <p class="mt-3 mb-0">
+                There are no assigned evaluations right now.
+            </p>
+
+        </div>
+    }
+    else
+    {
+        @foreach (var evaluation in Model)
+        {
+            var status =
+                evaluation.Status?.ToLower() ?? "closed";
+
+
+            @if (evaluation.Status == "Open")
+            {
+                <a asp-area="Leader"
+                   asp-controller="Evaluations"
+                   asp-action="TakeEvaluation"
+                   asp-route-evaluationId="@evaluation.EvaluationId"
+                   class="card eval-list-card answerable mb-3 text-decoration-none text-dark">
+
+                    <div class="card-body d-flex align-items-center gap-3">
+
+                        <div class="eval-icon-circle">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+
+
+                        <div class="flex-fill">
+
+                            <div class="d-flex align-items-center gap-2 mb-1">
+
+                                <h5 class="mb-0">
+                                    @evaluation.EvaluationTitle
+                                </h5>
+
+                                <span class="status-tag open">
+                                    Open
+                                </span>
+
+                            </div>
+
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                evaluation.EventTitle))
+                            {
+                                <div class="eval-meta mb-1">
+
+                                    <i class="bi bi-calendar-event me-1"></i>
+
+                                    @evaluation.EventTitle
+
+                                </div>
+                            }
+
+
+                            <small class="text-muted">
+
+                                Closes
+                                @evaluation.ClosedAt.ToString("MMM dd, yyyy")
+
+                            </small>
+
+                        </div>
+
+
+                        <i class="bi bi-chevron-right fs-4 eval-chevron"></i>
+
+                    </div>
+
+                </a>
+            }
+            else
+            {
+                <div class="card eval-list-card disabled mb-3">
+
+                    <div class="card-body d-flex align-items-center gap-3">
+
+                        <div class="eval-icon-circle">
+
+                            @if (evaluation.Status == "Upcoming")
+                            {
+                                <i class="bi bi-clock"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-lock"></i>
+                            }
+
+                        </div>
+
+
+                        <div class="flex-fill">
+
+                            <div class="d-flex align-items-center gap-2 mb-1">
+
+                                <h5 class="mb-0">
+                                    @evaluation.EvaluationTitle
+                                </h5>
+
+
+                                @if (evaluation.Status == "Upcoming")
+                                {
+                                    <span class="status-tag upcoming">
+                                        Upcoming
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-tag closed">
+                                        Closed
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                evaluation.EventTitle))
+                            {
+                                <div class="eval-meta mb-1">
+
+                                    <i class="bi bi-calendar-event me-1"></i>
+
+                                    @evaluation.EventTitle
+
+                                </div>
+                            }
+
+
+                            @if (evaluation.Status == "Upcoming")
+                            {
+                                <small class="text-muted">
+
+                                    Opens
+                                    @evaluation.OpenAt.ToString("MMM dd, yyyy")
+
+                                </small>
+                            }
+                            else
+                            {
+                                <small class="text-muted">
+
+                                    Closed
+                                    @evaluation.ClosedAt.ToString("MMM dd, yyyy")
+
+                                </small>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+        }
+    }
+
+</div>

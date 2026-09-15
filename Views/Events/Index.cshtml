@@ -259,11 +259,16 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-    <script src="~/js/Eventsearchpanel.js"></script>
     <script src="~/js/OpenScannerTime.js"></script>
+    
+<script src="~/js/admin/Eventsearchpanel.js"
+        asp-append-version="true"></script>
 
 
     <script>
+                console.log("=== EVENTS INDEX SCRIPTS SECTION WORKS ===");
+
+
         function handleEventFormSubmit(formSelector, offcanvasId) {
         $(document).on("submit", formSelector, function (e) {
         e.preventDefault();
@@ -290,6 +295,8 @@
 
         // handleEventFormSubmit("#createEventForm", "eventPanel");
         handleEventFormSubmit("#editEventForm", "editEventPanel");
+
+
     </script>
 
 }
@@ -297,4 +304,3 @@
 @await Html.PartialAsync("_SearchEventPanel")
 @await Html.PartialAsync("_UpcomingEventsPanel", (List<EventListItemViewModel>)ViewBag.UpcomingEvents)
 @await Html.PartialAsync("_CancelledEventsPanel", (List<EventListItemViewModel>)ViewBag.CancelledEvents)
-

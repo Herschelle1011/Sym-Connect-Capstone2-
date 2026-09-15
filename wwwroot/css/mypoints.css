@@ -1,0 +1,289 @@
+﻿/* ============================================
+   My Points — Member area
+   ============================================ */
+
+:root {
+    --mp-bg: #f6f8fc;
+    --mp-card: #ffffff;
+    --mp-border: #e7edf6;
+    --mp-ink: #16243d;
+    --mp-muted: #8b95a7;
+    --mp-blue: #1877f2;
+    --mp-blue-soft: #e8f1fe;
+    --mp-green: #1a7f4b;
+    --mp-green-soft: #d9f3e5;
+    --mp-red: #d64545;
+    --mp-red-soft: #fce4e4;
+    --mp-radius: 14px;
+    --mp-shadow: 0 1px 2px rgba(16, 24, 40, .05);
+}
+
+.mp-page {
+    background: var(--mp-bg);
+    padding: 28px 24px 48px;
+    min-height: 100%;
+}
+
+/* ---------- Header ---------- */
+
+.mp-title {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--mp-ink);
+    margin: 0 0 4px;
+    letter-spacing: -.01em;
+}
+
+.mp-subtitle {
+    font-size: .9rem;
+    color: var(--mp-muted);
+    margin: 0;
+}
+
+/* ---------- Summary cards ---------- */
+
+.mp-card {
+    background: var(--mp-card);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius);
+    box-shadow: var(--mp-shadow);
+}
+
+.mp-summary {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    height: 100%;
+}
+
+.mp-summary-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex: 0 0 auto;
+}
+
+.mp-summary-icon--coin {
+    background: transparent;
+    font-size: 2.2rem;
+    color: #f2b90c;
+}
+
+.mp-summary-icon--present {
+    background: var(--mp-green-soft);
+    color: var(--mp-green);
+}
+
+.mp-summary-icon--absent {
+    background: var(--mp-red-soft);
+    color: var(--mp-red);
+}
+
+.mp-summary-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--mp-ink);
+    line-height: 1.15;
+    margin: 0;
+}
+
+.mp-summary-value--points {
+    color: var(--mp-blue);
+}
+
+    .mp-summary-value--points span {
+        font-weight: 600;
+    }
+
+.mp-summary-label {
+    font-size: .82rem;
+    color: var(--mp-muted);
+}
+
+/* ---------- Filters + search ---------- */
+
+.mp-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 22px 0 18px;
+}
+
+.mp-filters {
+    display: inline-flex;
+    background: #eef2f8;
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+}
+
+.mp-filter {
+    border: 0;
+    background: transparent;
+    color: #55627a;
+    font-size: .85rem;
+    font-weight: 500;
+    padding: 6px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+    .mp-filter:hover {
+        color: var(--mp-ink);
+    }
+
+    .mp-filter.is-active {
+        background: var(--mp-blue);
+        color: #fff;
+        box-shadow: 0 1px 3px rgba(24, 119, 242, .35);
+    }
+
+    .mp-filter:focus-visible {
+        outline: 2px solid var(--mp-blue);
+        outline-offset: 2px;
+    }
+
+.mp-search {
+    position: relative;
+    width: 260px;
+    max-width: 100%;
+}
+
+    .mp-search i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--mp-muted);
+        font-size: .9rem;
+        pointer-events: none;
+    }
+
+    .mp-search input {
+        width: 100%;
+        border: 1px solid var(--mp-border);
+        border-radius: 999px;
+        background: #fff;
+        padding: 9px 16px 9px 38px;
+        font-size: .86rem;
+        color: var(--mp-ink);
+    }
+
+        .mp-search input::placeholder {
+            color: var(--mp-muted);
+        }
+
+        .mp-search input:focus {
+            outline: none;
+            border-color: var(--mp-blue);
+            box-shadow: 0 0 0 3px var(--mp-blue-soft);
+        }
+
+/* ---------- Activity cards ---------- */
+
+.mp-activity {
+    padding: 16px 18px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.mp-activity-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.mp-activity-title {
+    font-size: .98rem;
+    font-weight: 700;
+    color: var(--mp-ink);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.mp-badge {
+    flex: 0 0 auto;
+    font-size: .63rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+}
+
+.mp-badge--present {
+    background: var(--mp-green-soft);
+    color: var(--mp-green);
+}
+
+.mp-badge--absent {
+    background: var(--mp-red-soft);
+    color: var(--mp-red);
+}
+
+.mp-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .82rem;
+    color: var(--mp-muted);
+    margin: 0 0 6px;
+}
+
+    .mp-meta i {
+        font-size: .9rem;
+    }
+
+.mp-divider {
+    border: 0;
+    border-top: 1px solid var(--mp-border);
+    margin: 12px 0 10px;
+}
+
+.mp-points {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--mp-blue);
+    margin-top: auto;
+}
+
+.mp-points--zero {
+    color: var(--mp-muted);
+    font-weight: 500;
+}
+
+/* ---------- Empty state ---------- */
+
+.mp-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--mp-muted);
+    font-size: .9rem;
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 575.98px) {
+    .mp-page {
+        padding: 20px 14px 36px;
+    }
+
+    .mp-search {
+        width: 100%;
+    }
+
+    .mp-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

@@ -844,7 +844,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
 
-        public async Task<List<MemberEvaluationListItemViewModel>> GetAssignedEvaluationsAsync(int currentMemberId)
+        public async Task<List<MemberEvaluationListItemViewModel>> GetAssignedEvaluationsAsync(
+          int currentMemberId,
+          string userId)
         {
             var now = DateTime.Now;
 
@@ -852,17 +854,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .AsNoTracking()
                 .Where(e =>
                     !e.IsArchived &&
-                    e.OpenAt <= now &&
-                    e.ClosedAt >= now &&
+                    e.EventId != null &&
 
-                    // Must have attended
+                    // Leader attended the event
                     _context.Attendances.Any(a =>
                         a.EventId == e.EventId &&
                         a.MemberId == currentMemberId &&
-                        (a.Status == "Present" || a.Status == "Late")) &&
+                        (
+                            a.Status == "Present" ||
+                            a.Status == "Late"
+                        )) &&
 
-                    e.Event.CreatedByUserId != currentMemberId
+                    // IMPORTANT:
+                    // Hide evaluation after this user submits it
+                    !_context.EvaluationSubmissions.Any(s =>
+                        s.EvaluationId == e.EvaluationId &&
+                        s.UserId == userId &&
+                        s.Status == SubmissionStatus.Submitted)
                 )
+                .OrderByDescending(e => e.DateCreated)
                 .Select(e => new MemberEvaluationListItemViewModel
                 {
                     EvaluationId = e.EvaluationId,
@@ -871,7 +881,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     DateCreated = e.DateCreated,
                     OpenAt = e.OpenAt,
                     ClosedAt = e.ClosedAt,
-                    EventTitle = e.Event.EventTitle
+                    EventTitle = e.Event.EventTitle,
+
+                    Status = e.OpenAt > now
+                        ? "Upcoming"
+                        : e.ClosedAt < now
+                            ? "Closed"
+                            : "Open"
                 })
                 .ToListAsync();
         }

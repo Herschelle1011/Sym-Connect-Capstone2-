@@ -2,18 +2,24 @@
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Election;
 using Sym_Connect__Capstone2_.Data;
-using MemberModel = Sym_Connect__Capstone2_.Models.Member;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.ViewModels.Election;
+using MainIElectionService = Sym_Connect__Capstone2_.Services.Interfaces.IElectionService;
+using MemberModel = Sym_Connect__Capstone2_.Models.Member;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 {
-    public class ElectionService : IElectionService
+    public class MemberElectionService : IMemberElectionService
     {
         private readonly AppDbContext _context;
-        public ElectionService(AppDbContext context)
+        private readonly MainIElectionService _mainElectionService;
+
+        public MemberElectionService(AppDbContext context, MainIElectionService mainElectionService)
         {
             _context = context;
+            _mainElectionService = mainElectionService;
+
         }
 
         public async Task<MemberModel?> FindMemberForElectionAsync(string firstname, string email)
@@ -168,6 +174,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 return VoteResult.InvalidSelection;
             }
         }
-        
+
+        public Task<ResultViewModel> GetElectionResultAsync(int electionId)
+      => _mainElectionService.GetElectionResultAsync(electionId);
+
+        public Task<List<VotingHistoryViewModel>> GetVotingHistoryAsync(string userId)
+            => _mainElectionService.GetVotingHistoryAsync(userId);
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Events;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.EventModels;
@@ -6,9 +7,8 @@ using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Attendance;
 using Sym_Connect__Capstone2_.ViewModels.Dashboard;
 using Sym_Connect__Capstone2_.ViewModels.Event;
-using Sym_Connect__Capstone2_.ViewModels.Group;
-
 using Sym_Connect__Capstone2_.ViewModels.Facility;
+using Sym_Connect__Capstone2_.ViewModels.Group;
 
 namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
@@ -107,6 +107,10 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<RestoreEventViewModel?> ConfirmationRestoreAsync(int? eventId);
 
         Task<List<GroupAttendanceChartItemViewModel>> GetGroupAttendanceChartAsync(int groupId);
+
+        Task<MemberEventsViewModel> GetEventsForMemberAsync(int memberId);
+
+        Task<MemberEventDetailsViewModel?> GetMemberEventDetailsAsync(int eventId, int memberId);
 
     }
 }

@@ -1,4 +1,6 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
+﻿console.log('EVENT SEARCH JS IS RUNNING');
+
+document.addEventListener('DOMContentLoaded', function () {
     const searchPanel = document.getElementById('searchEventPanel');
     const searchInput = document.getElementById('eventSearchInput');
     const resultsContainer = document.getElementById('eventSearchResults');
@@ -32,6 +34,9 @@
             }
 
             const events = await response.json();
+
+            console.log(events);
+
             renderResults(events);
         } catch (err) {
             console.error('Error fetching search results:', err);
@@ -59,8 +64,10 @@
             card.querySelector('.event-day').textContent = day;
             card.querySelector('.event-month').textContent = month;
             card.querySelector('.event-title').textContent = ev.eventTitle;
-            card.querySelector('.event-facility').textContent = ev.facilityName;
-
+            card.querySelector('.event-facility').textContent =
+                ev.facilities && ev.facilities.length > 0
+                    ? ev.facilities.join(', ')
+                    : 'No facility';
             const timeEl = card.querySelector('.event-time');
             if (ev.isAllDay) {
                 timeEl.textContent = 'All day';
