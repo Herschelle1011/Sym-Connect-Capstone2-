@@ -883,40 +883,6 @@ document.addEventListener("click", async function (e) {
 });
 
 
-// ═══════════════ GROUP PARTICIPATION: OPEN MEMBER DETAILS MODAL ═══════════════
-// ═══════════════ GROUP PARTICIPATION: OPEN MEMBER DETAILS MODAL ═══════════════
-function openGroupParticipationModal(title, url) {
-
-    document.getElementById("groupParticipationModalLabel").innerText = title;
-
-    fetch(url, {
-        headers: {
-            "X-Requested-With": "XMLHttpRequest"
-        }
-    })
-        .then(response => response.text())
-        .then(html => {
-
-            // Put the returned partial view inside the modal
-            document.getElementById("groupParticipationModalBody").innerHTML = html;
-
-
-            // NOW initialize search, sorting, and pagination
-            initializeMemberParticipation();
-
-
-            // Open the modal
-            const modal = bootstrap.Modal.getOrCreateInstance(
-                document.getElementById("groupParticipationModal")
-            );
-
-            modal.show();
-        })
-        .catch(error => {
-            console.error("Error loading group participation:", error);
-        });
-}
-
 
 // ═══════════════ CLICK GROUP ROW ═══════════════
 document.addEventListener("click", function (e) {

@@ -491,10 +491,19 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             await _context.SaveChangesAsync();
 
 
+            var now = DateTime.Now;
 
-            var partyLists = await _context.PartyLists
-                .Where(p => vm.SelectedPartyListIds.Contains(p.PartyListId) && p.ElectionId == null)
+            var candidatePartyLists = await _context.PartyLists
+                .Include(p => p.Election)
+                .Where(p => vm.SelectedPartyListIds.Contains(p.PartyListId))
                 .ToListAsync();
+
+            var partyLists = candidatePartyLists
+                .Where(p =>
+                    p.ElectionId == null ||
+                    (p.Election != null &&
+                     now > p.Election.EndDate.Date + p.Election.EndTime))
+                .ToList();
 
             if (partyLists.Count != 2)
             {

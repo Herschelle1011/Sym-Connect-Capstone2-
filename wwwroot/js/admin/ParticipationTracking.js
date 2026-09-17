@@ -1,4 +1,116 @@
-﻿function initializeMemberParticipation() {
+﻿// =========================================================
+// OPEN GROUP PARTICIPATION MODAL (View Details)
+// =========================================================
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.body.addEventListener('click', function (e) {
+
+        const btn = e.target.closest('.open-group-participation-modal');
+
+        if (!btn) {
+            return;
+        }
+
+        const url = btn.dataset.url;
+        const title = btn.dataset.title;
+
+        const modalEl =
+            document.getElementById('groupParticipationModal');
+
+        const modalTitleTextEl =
+            document.getElementById('groupParticipationModalTitleText');
+
+        const modalMemberCountEl =
+            document.getElementById('groupParticipationModalMemberCount');
+
+        const modalBodyEl =
+            document.getElementById('groupParticipationModalBody');
+
+        if (!modalEl || !modalBodyEl) {
+            return;
+        }
+
+        modalTitleTextEl.textContent = title || '';
+        modalMemberCountEl.textContent = btn.dataset.count || '';
+
+        modalBodyEl.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+
+        const modal =
+            bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        modal.show();
+
+
+        // Preserve the currently applied date range filter
+        // when loading this group's members.
+
+        const params = new URLSearchParams(window.location.search);
+        const fromDate = params.get('fromDate');
+        const toDate = params.get('toDate');
+
+        let fetchUrl = url;
+        const sep = fetchUrl.includes('?') ? '&' : '?';
+
+        const extra = [];
+        if (fromDate) extra.push('fromDate=' + encodeURIComponent(fromDate));
+        if (toDate) extra.push('toDate=' + encodeURIComponent(toDate));
+
+        if (extra.length > 0) {
+            fetchUrl += sep + extra.join('&');
+        }
+
+
+        fetch(fetchUrl, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(function (response) {
+
+                if (!response.ok) {
+                    throw new Error('Unable to load members.');
+                }
+
+                return response.text();
+            })
+            .then(function (html) {
+
+                modalBodyEl.innerHTML = html;
+
+                // Now that the member list exists in the DOM,
+                // wire up its search/sort/pagination.
+                initializeMemberParticipation();
+            })
+            .catch(function (error) {
+
+                console.error('Group members error:', error);
+
+                modalBodyEl.innerHTML = `
+                    <div class="text-center text-danger py-5">
+                        <i class="bi bi-exclamation-circle fs-3"></i>
+                        <p class="mt-2 mb-0">Unable to load members. Please try again.</p>
+                    </div>
+                `;
+            });
+
+    });
+
+});
+
+
+
+
+
+
+function initializeMemberParticipation() {
 
     // =====================================================
     // 1. GET THE ELEMENTS FROM THE MEMBER MODAL
@@ -10,15 +122,15 @@
     const sortSelect =
         document.querySelector('.js-member-sort');
 
-    const tbody =
+    const listEl =
         document.querySelector('.js-member-tbody');
 
     const container =
         document.querySelector('.member-participation-widget');
 
 
-    // Stop if the modal/table has not been loaded yet
-    if (!searchInput || !sortSelect || !tbody || !container) {
+    // Stop if the modal/list has not been loaded yet
+    if (!searchInput || !sortSelect || !listEl || !container) {
         console.log('Member participation elements not found.');
         return;
     }
@@ -29,7 +141,7 @@
     // =====================================================
 
     const allRows = Array.from(
-        tbody.querySelectorAll('tr[data-member-name]')
+        listEl.querySelectorAll('.member-row[data-member-name]')
     );
 
 
@@ -95,7 +207,7 @@
 
 
     // =====================================================
-    // 6. UPDATE TABLE
+    // 6. UPDATE LIST
     // =====================================================
 
     function updateTable() {
@@ -160,10 +272,10 @@
 
 
         // =================================================
-        // C. CLEAR CURRENT TABLE
+        // C. CLEAR CURRENT LIST
         // =================================================
 
-        tbody.innerHTML = '';
+        listEl.innerHTML = '';
 
 
         // =================================================
@@ -172,15 +284,10 @@
 
         if (filteredRows.length === 0) {
 
-            tbody.innerHTML = `
-                <tr class="js-empty-row">
-                    <td colspan="7"
-                        class="text-center text-muted py-4">
-
-                        No members found matching your search.
-
-                    </td>
-                </tr>
+            listEl.innerHTML = `
+                <div class="text-center text-muted py-4">
+                    No members found matching your search.
+                </div>
             `;
 
 
@@ -238,7 +345,7 @@
             i++
         ) {
 
-            tbody.appendChild(
+            listEl.appendChild(
                 filteredRows[i]
             );
 

@@ -39,15 +39,20 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         public async Task<IActionResult> Index(bool unreadOnly = false)
         {
             var userId = _userManager.GetUserId(User);
-            var all = userId == null ? new List<Sym_Connect__Capstone2_.ViewModels.Notification.NotificationViewModel>() :
-                await _notificationService.GetUserNotificationsAsync(userId);
 
-            ViewBag.unreadOnly = unreadOnly;
-            var model = unreadOnly ? all.Where(n => n.IsRead == false).ToList() : all;
+            var all = userId == null
+                ? new List<Sym_Connect__Capstone2_.ViewModels.Notification.NotificationViewModel>()
+                : await _notificationService.GetUserNotificationsAsync(userId);
+
+            ViewBag.UnreadOnly = unreadOnly;
+
+            var model = unreadOnly
+                ? all.Where(n => !n.IsRead).ToList()
+                : all;
 
             return View(model);
-
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -55,6 +60,25 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         {
             await _notificationService.MarkAsReadAsync(notificationId);
             return Json(new { success = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            await _notificationService.MarkAllAsReadAsync(userId);
+
+            return Json(new
+            {
+                success = true
+            });
         }
 
         [HttpGet]

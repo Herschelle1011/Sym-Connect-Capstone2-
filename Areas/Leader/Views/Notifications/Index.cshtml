@@ -8,7 +8,9 @@
 <div class="notif-page">
     <div class="notif-page-header">
         <h4>Notifications</h4>
-        <button id="markAllReadBtn" class="btn btn-sm btn-light">Mark all as read</button>
+        <button id="markAllReadBtn" class="btn btn-sm btn-light">
+            Mark all as read
+        </button>
     </div>
 
     <div class="notif-tabs">
@@ -45,7 +47,7 @@
 @section Scripts {
     <script>
         document.getElementById('markAllReadBtn').addEventListener('click', async function () {
-            await fetch('/Notifications/MarkAllAsRead', {
+            await fetch('/Leader/Notifications/MarkAllAsRead', {
                 method: 'POST',
                 headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
             });
@@ -80,7 +82,7 @@
                 );
 
                 const response = await fetch(
-                    '/Notifications/MarkAsRead',
+                    '/Leader/Notifications/MarkAsRead',
                     {
                         method: 'POST',
                         body: formData

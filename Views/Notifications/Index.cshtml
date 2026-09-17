@@ -5,6 +5,11 @@
     bool unreadOnly = ViewBag.UnreadOnly ?? false;
 }
 
+<form id="notificationAntiForgeryForm" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+
 <div class="notif-page">
     <div class="notif-page-header">
         <h4>Notifications</h4>

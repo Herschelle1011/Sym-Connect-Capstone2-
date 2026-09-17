@@ -5,6 +5,10 @@
     bool unreadOnly = ViewBag.UnreadOnly ?? false;
 }
 
+<form id="notificationAntiForgeryForm" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
 <div class="notif-page">
     <div class="notif-page-header">
         <h4>Notifications</h4>
@@ -45,7 +49,7 @@
 @section Scripts {
     <script>
         document.getElementById('markAllReadBtn').addEventListener('click', async function () {
-            await fetch('/Notifications/MarkAllAsRead', {
+            await fetch('/Member/Notifications/MarkAllAsRead', {
                 method: 'POST',
                 headers: { 'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '' }
             });
@@ -80,7 +84,7 @@
                 );
 
                 const response = await fetch(
-                    '/Notifications/MarkAsRead',
+                    '/Member/Notifications/MarkAsRead',
                     {
                         method: 'POST',
                         body: formData

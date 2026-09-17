@@ -581,7 +581,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     isAdminCreated
                         ? $"Admin created a new event \"{newEvent.EventTitle}\" for your group. Click here to view."
                         : $"{creatorLabel} created a new event \"{newEvent.EventTitle}\" for your group. Click here to view.",
-                    $"/Events/Details/{newEvent.EventId}"
+                            $"/Member/Events/Index?openEventId={newEvent.EventId}"
+
                 );
             }
 
@@ -1632,7 +1633,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         member.UserId,
                         "Time-In Reminder",
                         $"Don't forget to check in for \"{eventEntity.EventTitle}\".",
-                        $"/Events/Details/{eventId}"
+                        $"/Member/Events/Index?openEventId={eventId}"
+
                     );
                 }
 
@@ -1676,7 +1678,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         member.UserId,
                         "Time-Out Reminder",
                         $"Don't forget to check out for \"{eventEntity.EventTitle}\".",
-                        $"/Events/Details/{eventId}"
+                        $"/Member/Events/Index?openEventId={eventId}"
                     );
                 }
 
