@@ -26,5 +26,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Group
         public int InactiveMembers => Members.Count(m => m.Status == "Inactive");
 
         public int TotalPoints { get; set; }
+
+        public int? CurrentMemberId { get; set; }
     }
 }

@@ -78,5 +78,30 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
             return PartialView("_EventDetailsModal", model);
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> EventDetails(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+
+            var model = await _eventService.GetMemberEventDetailsAsync(id, user.MemberId.Value);
+
+            if (model == null)
+                return NotFound();
+
+            return PartialView("_EventDetailsModal", model);
+        }
     }
 }

@@ -175,8 +175,41 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
             }
         }
 
-        public Task<ResultViewModel> GetElectionResultAsync(int electionId)
-      => _mainElectionService.GetElectionResultAsync(electionId);
+        public async Task<ResultViewModel> GetElectionResultAsync(
+     int electionId,
+     string userId)
+        {
+            // Get the normal election results first
+            var result = await _mainElectionService
+                .GetElectionResultAsync(electionId);
+
+            if (result == null)
+                return null;
+
+            // Find all candidates THIS logged-in user voted for
+            var myCandidateIds = await _context.Votes
+                .AsNoTracking()
+                .Where(v =>
+                    v.ElectionId == electionId &&
+                    v.UserId == userId)
+                .Select(v => v.CandidateId)
+                .ToListAsync();
+
+            // Go through every position
+            foreach (var position in result.Positions)
+            {
+                // Go through every candidate
+                foreach (var candidate in position.Candidates)
+                {
+                    candidate.IsMyVote =
+                        myCandidateIds.Contains(candidate.CandidateId);
+                }
+            }
+
+            return result;
+        }
+
+
 
         public Task<List<VotingHistoryViewModel>> GetVotingHistoryAsync(string userId)
             => _mainElectionService.GetVotingHistoryAsync(userId);

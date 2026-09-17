@@ -43,5 +43,9 @@ namespace Sym_Connect__Capstone2_.ViewModels.Election
         public int Rank { get; set; }                     // computed per-position
         public int Votes { get; set; }
         public double Percentage { get; set; }            // computed per-position
+
+        public bool IsMyVote { get; set; }
+
+
     }
 }

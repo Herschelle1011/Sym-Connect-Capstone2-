@@ -211,9 +211,19 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
         }
 
 
+        [HttpGet]
         public async Task<IActionResult> Results(int electionId)
         {
-            var result = await _electionService.GetElectionResultAsync(electionId);
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            if (user.MemberId == null)
+                return Forbid();
+
+            var result = await _electionService
+                .GetElectionResultAsync(electionId, user.Id);
 
             if (result == null)
                 return NotFound();

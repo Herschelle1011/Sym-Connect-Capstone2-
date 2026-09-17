@@ -17,7 +17,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces
 
         Task<bool> HasMemberVotedAsync(string memberId, int electionId);
 
-        Task<ResultViewModel> GetElectionResultAsync(int electionId);
+        Task<ResultViewModel> GetElectionResultAsync(int electionId, string userId);
         Task<List<VotingHistoryViewModel>> GetVotingHistoryAsync(string userId);
     }
 }

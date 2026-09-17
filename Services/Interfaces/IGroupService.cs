@@ -52,5 +52,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<int> GetTotalEarnedPointsAsync(int groupId);
 
 
+        Task<GroupDetailsViewModel?> GetGroupDetailsForMemberAsync(int memberId);
+
+
     }
 }

@@ -788,5 +788,37 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return chartData;
         }
+
+
+
+        public async Task<GroupDetailsViewModel?> GetGroupDetailsForMemberAsync( int memberId)
+        {
+            // Find the group where the logged-in member belongs
+            var groupId = await _context.GroupDetails
+                .AsNoTracking()
+                .Where(gd => gd.MemberId == memberId)
+                .Select(gd => (int?)gd.GroupId)
+                .FirstOrDefaultAsync();
+
+            // Member does not belong to any group
+            if (groupId == null)
+            {
+                return null;
+            }
+
+            // Get the same group details used by the Admin Details page
+            var group = await GetGroupByIdAsync(groupId.Value);
+
+            if (group == null)
+            {
+                return null;
+            }
+
+            // Used by the Member view to highlight:
+            // "This is me"
+            group.CurrentMemberId = memberId;
+
+            return group;
+        }
     }
 }

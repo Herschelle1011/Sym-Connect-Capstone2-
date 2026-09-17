@@ -2998,7 +2998,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
 
             // ==========================================
-            // 1. GET EVENT
+            // 1. GET EVENT DETAILS
             // ==========================================
 
             var eventDetails = await _context.Events
@@ -3006,34 +3006,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Where(e =>
                     e.EventId == eventId &&
 
-                    // Member should only see normal approved events
+                    // Member only sees approved,
+                    // active events
                     !e.IsArchived &&
                     !e.IsCancelled &&
                     e.ApprovalStatus == ApprovalStatus.Approved &&
 
-                    // Make sure the event belongs to
-                    // one of this member's groups
+                    // Event must be assigned to
+                    // this member's group
                     e.ExpectedGroups.Any(eg =>
                         eg.Group.GroupDetails.Any(gd =>
                             gd.MemberId == memberId)))
                 .Select(e => new MemberEventDetailsViewModel
                 {
-
                     EventId = e.EventId,
 
                     EventTitle = e.EventTitle,
 
                     EventDescription =
-                        e.EventDescription ?? "No description available.",
+                        e.EventDescription ??
+                        "No description available.",
 
 
-                    // Date
+                    // DATE
                     StartDate = e.StartDate,
 
                     EndDate = e.EndDate,
 
 
-                    // Time
+                    // TIME
                     IsAllDay = e.IsAllDay,
 
                     StartTime = e.StartTime,
@@ -3041,29 +3042,27 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     EndTime = e.EndTime,
 
 
+                    // FACILITIES
                     FacilityNames = e.ExpectedFacilities
-                    .Select(ef => ef.Facility.FacilityName)
-                    .ToList(),
+                        .Select(ef =>
+                            ef.Facility.FacilityName)
+                        .ToList(),
 
 
-                    FacilityPhotoUrl = e.ExpectedFacilities
-                        .SelectMany(ef => ef.Facility.FacilityPhotos)
-                        .Select(photo => photo.PhotoUrl)
-                        .FirstOrDefault(),
+                    // CREATOR
+                    PostedByName =
+                        e.CreatedByUser != null
+                            ? e.CreatedByUser.FirstName + " " +
+                              e.CreatedByUser.LastName
+                            : "Admin",
+
+                    PostedByRole =
+                        e.CreatedByUser != null
+                            ? "Leader"
+                            : "Admin",
 
 
-                    // Creator
-                    PostedByName = e.CreatedByUser != null
-                        ? e.CreatedByUser.FirstName + " " +
-                          e.CreatedByUser.LastName
-                        : "Admin",
-
-                    PostedByRole = e.CreatedByUser != null
-                        ? "Leader"
-                        : "Admin",
-
-
-                    // Points
+                    // POINTS
                     Points = e.Points
                 })
                 .FirstOrDefaultAsync();
@@ -3075,9 +3074,27 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
 
-            // ==========================================
-            // 2. CALCULATE STATUS
-            // ==========================================
+
+            eventDetails.FacilityPhotoUrls =
+                await _context.EventFacilities
+                    .AsNoTracking()
+                    .Where(ef =>
+                        ef.EventId == eventId)
+
+                    .Select(ef =>
+                        ef.Facility.FacilityPhotos
+                            .OrderBy(photo => photo.FacilityPhotoId)
+                            .Select(photo => photo.PhotoUrl)
+                            .FirstOrDefault())
+
+                    .Where(photoUrl =>
+                        photoUrl != null &&
+                        photoUrl != "")
+
+                    .Select(photoUrl => photoUrl!)
+                    .ToListAsync();
+
+
 
             DateTime eventStart;
             DateTime eventEnd;
@@ -3085,21 +3102,25 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             if (eventDetails.IsAllDay)
             {
-                eventStart = eventDetails.StartDate.Date;
+                eventStart =
+                    eventDetails.StartDate.Date;
 
-                eventEnd = eventDetails.EndDate.Date
-                    .AddDays(1)
-                    .AddTicks(-1);
+                eventEnd =
+                    eventDetails.EndDate.Date
+                        .AddDays(1)
+                        .AddTicks(-1);
             }
             else
             {
                 eventStart =
                     eventDetails.StartDate.Date +
-                    (eventDetails.StartTime ?? TimeSpan.Zero);
+                    (eventDetails.StartTime ??
+                     TimeSpan.Zero);
 
                 eventEnd =
                     eventDetails.EndDate.Date +
-                    (eventDetails.EndTime ?? TimeSpan.Zero);
+                    (eventDetails.EndTime ??
+                     TimeSpan.Zero);
             }
 
 

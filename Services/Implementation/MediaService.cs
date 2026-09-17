@@ -1,9 +1,11 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Hubs;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Models.MediaAndDocuments;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -19,6 +21,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         private readonly Cloudinary _cloudinary;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly INotificationService _notificationService;
+        private readonly UserManager<User> _userManager;
 
 
         private static readonly HashSet<string> AllowedExtensions = new()
@@ -27,12 +30,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
         };
         private const long MaxFileSizeBytes = 10 * 1024 * 1024;
-        public MediaService(AppDbContext context, Cloudinary cloudinary, INotificationService notificationService, IHubContext<NotificationHub> hubContext)
+        public MediaService(AppDbContext context, Cloudinary cloudinary, INotificationService notificationService, IHubContext<NotificationHub> hubContext, UserManager<User> userManager)
         {
             _context = context;
             _cloudinary = cloudinary;
             _notificationService = notificationService;
             _hubContext = hubContext;
+            _userManager = userManager;
         }
 
         //======= FOLDERS ===== // 
@@ -826,6 +830,105 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .FirstOrDefaultAsync();
 
             return folder;
+        }
+
+
+
+
+        public async Task<List<MediaFolderViewModel>>
+            GetPublicAdminFoldersForMemberAsync()
+        {
+            // Get all Identity users who have the Admin role
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+
+            // Get their MemberIds
+            var adminMemberIds = adminUsers
+                .Where(u => u.MemberId.HasValue)
+                .Select(u => u.MemberId!.Value)
+                .ToList();
+
+            return await _context.MediaFolders
+                .AsNoTracking()
+                .Where(f =>
+                    f.isArchived == false &&
+                    f.IsPrivate == false &&
+                    adminMemberIds.Contains(f.CreatedByMemberId))
+                .OrderBy(f => f.FolderName)
+                .Select(f => new MediaFolderViewModel
+                {
+                    MediaFolderId = f.MediaFolderId,
+                    FolderName = f.FolderName,
+                    CreatedDate = f.CreatedDate,
+                    IsPrivate = f.IsPrivate,
+                    isArchived = f.isArchived,
+
+                    FileCount = f.Files.Count(file =>
+                        file.IsArchived == false &&
+                        file.MediaFileStatus == MediaFileStatus.Published)
+                })
+                .ToListAsync();
+        }
+
+
+        public async Task<List<MediaFileViewModel>> GetPublicAdminFolderFilesForMemberAsync(int folderId)
+        {
+            // Get Admin users
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+
+            var adminMemberIds = adminUsers
+                .Where(u => u.MemberId.HasValue)
+                .Select(u => u.MemberId!.Value)
+                .ToList();
+
+            // First make sure this folder is allowed for Members
+            bool folderAllowed = await _context.MediaFolders
+                .AsNoTracking()
+                .AnyAsync(f =>
+                    f.MediaFolderId == folderId &&
+                    f.isArchived == false &&
+                    f.IsPrivate == false &&
+                    adminMemberIds.Contains(f.CreatedByMemberId));
+
+            if (!folderAllowed)
+            {
+                return new List<MediaFileViewModel>();
+            }
+
+            // Only published and non-archived files
+            return await _context.MediaFiles
+                .AsNoTracking()
+                .Where(f =>
+                    f.MediaFolderId == folderId &&
+                    f.IsArchived == false &&
+                    f.MediaFileStatus == MediaFileStatus.Published)
+                .OrderByDescending(f => f.UploadDate)
+                .Select(f => new MediaFileViewModel
+                {
+                    MediaFileId = f.MediaFileId,
+
+                    FileName = f.FileName,
+
+                    FileUrl = f.FileUrl,
+
+                    FileExtension = f.FileExtension,
+
+                    FileSizeBytes = f.FileSizeBytes,
+
+                    Status = f.MediaFileStatus,
+
+                    UploadedDate = f.UploadDate,
+
+                    folderName = f.Folder.FolderName,
+
+                    UploadedBy = f.Member != null
+                        ? f.Member.FirstName + " " + f.Member.LastName
+                        : "Admin",
+
+                    UploadedByMemberId = f.UploadedByMemberId,
+
+                    IsFolderPrivate = f.Folder.IsPrivate
+                })
+                .ToListAsync();
         }
     }
 }

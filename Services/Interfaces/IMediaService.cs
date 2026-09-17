@@ -54,5 +54,10 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<FileInformationViewModel?> GetDeleteFile(int id);
 
         Task<ArchivedMediaDetailsViewModel?> GetArchivedDetailsAsync(int id);
+
+        Task<List<MediaFolderViewModel>> GetPublicAdminFoldersForMemberAsync();
+
+        Task<List<MediaFileViewModel>> GetPublicAdminFolderFilesForMemberAsync(
+            int folderId);
     }
 }

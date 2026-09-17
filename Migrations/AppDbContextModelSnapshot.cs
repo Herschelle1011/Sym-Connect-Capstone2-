@@ -695,20 +695,12 @@ namespace Sym_Connect__Capstone2_.Migrations
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EventModels.EventFacility", b =>
                 {
                     b.Property<int>("EventId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EventId"));
-
-                    b.Property<int>("EventId1")
                         .HasColumnType("int");
 
                     b.Property<int>("FacilityId")
                         .HasColumnType("int");
 
-                    b.HasKey("EventId");
-
-                    b.HasIndex("EventId1");
+                    b.HasKey("EventId", "FacilityId");
 
                     b.HasIndex("FacilityId");
 
@@ -1444,14 +1436,14 @@ namespace Sym_Connect__Capstone2_.Migrations
                 {
                     b.HasOne("Sym_Connect__Capstone2_.Models.EventModels.Event", "Event")
                         .WithMany("ExpectedFacilities")
-                        .HasForeignKey("EventId1")
+                        .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.FacilityModels.Facility", "Facility")
                         .WithMany()
                         .HasForeignKey("FacilityId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Event");

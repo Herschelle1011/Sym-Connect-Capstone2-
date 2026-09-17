@@ -118,6 +118,31 @@ namespace Sym_Connect__Capstone2_.Data
                 .OnDelete(DeleteBehavior.Restrict);   // changed from Cascade
 
 
+
+            modelBuilder.Entity<EventFacility>()
+                .HasKey(ef => new
+                {
+                    ef.EventId,
+                    ef.FacilityId
+                });
+
+            modelBuilder.Entity<EventFacility>()
+            .HasOne(ef => ef.Event)
+            .WithMany(e => e.ExpectedFacilities)
+            .HasForeignKey(ef => ef.EventId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+            // EventFacility → Facility
+            modelBuilder.Entity<EventFacility>()
+                .HasOne(ef => ef.Facility)
+                .WithMany()
+                .HasForeignKey(ef => ef.FacilityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+
             modelBuilder.Entity<Vote>()
                 .HasOne(v => v.User)
                 .WithMany()

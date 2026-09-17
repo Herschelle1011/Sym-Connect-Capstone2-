@@ -8,37 +8,27 @@
 
         public string EventDescription { get; set; } = string.Empty;
 
-
-        // Date
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
 
-
-        // Time
         public bool IsAllDay { get; set; }
 
         public TimeSpan? StartTime { get; set; }
 
         public TimeSpan? EndTime { get; set; }
 
-
-        // Facility
         public List<string> FacilityNames { get; set; } = new();
-        public string? FacilityPhotoUrl { get; set; }
 
+        // One photo for each facility
+        public List<string> FacilityPhotoUrls { get; set; } = new();
 
-        // Creator
         public string PostedByName { get; set; } = string.Empty;
 
         public string PostedByRole { get; set; } = string.Empty;
 
-
-        // Points member can earn
         public int Points { get; set; }
 
-
-        // Upcoming / Ongoing / Completed
         public string Status { get; set; } = string.Empty;
     }
 }

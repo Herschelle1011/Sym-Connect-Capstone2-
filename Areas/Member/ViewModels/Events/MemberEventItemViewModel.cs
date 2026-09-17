@@ -26,6 +26,8 @@
 
         public string? FacilityPhotoUrl { get; set; }
 
+        public List<string> FacilityPhotoUrls { get; set; } = new();
+
 
         // Who created the event
         public string HostedByName { get; set; } = string.Empty;

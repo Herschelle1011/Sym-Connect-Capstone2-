@@ -88,7 +88,10 @@
             <div class="d-flex justify-content-end mt-4">
                 @if (entry.CanViewResults)
                 {
-                    <a asp-action="Results" asp-route-electionId="@entry.ElectionId"
+                    <a asp-area="Member"
+                       asp-controller="Elections"
+                       asp-action="Results"
+                       asp-route-electionId="@entry.ElectionId"
                        class="btn btn-primary rounded-pill px-4">
                         View Results
                     </a>
