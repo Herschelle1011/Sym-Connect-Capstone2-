@@ -49,7 +49,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     DateCreated = e.DateCreated,
                     OpenAt = e.OpenAt,
                     ClosedAt = e.ClosedAt,
-                    EventTitle = e.Event.EventTitle
+                    EventTitle = e.Event.EventTitle,
+                    Points = e.Points
                 })
                 .ToListAsync();
         }
@@ -109,6 +110,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     DateCreated = e.DateCreated,
 
                     EventTitle = e.Event.EventTitle,
+                    Points = e.Points,
 
                     Questions = e.EvaluationDetails
                         .Select(d => new EvaluationQuestionViewModel
@@ -321,7 +323,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 // Connect evaluation to event
                 EventId = selectedEvent.EventId,
-
+                Points = 2,
                 OpenAt = vm.OpenAt,
                 ClosedAt = vm.ClosedAt,
                 DateCreated = DateTime.Now,
@@ -384,16 +386,41 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Select(u => u.Id)
                 .ToListAsync();
 
- 
+
 
             // Send notification only to those users
             foreach (var userId in userIds)
             {
+                var user = await _userManager.FindByIdAsync(userId);
+
+                if (user == null)
+                {
+                    continue;
+                }
+
+                bool isLeader =
+                    await _userManager.IsInRoleAsync(user, "Leader");
+
+
+                string notificationUrl;
+
+                if (isLeader)
+                {
+                    notificationUrl =
+                        $"/Leader/Evaluations/TakeEvaluation?evaluationId={evaluation.EvaluationId}";
+                }
+                else
+                {
+                    notificationUrl =
+                        $"/Member/Evaluation/TakeEvaluation?evaluationId={evaluation.EvaluationId}";
+                }
+
+
                 await _notificationService.NotifyUserAsync(
                     userId,
                     "Event Evaluation Required",
                     $"You attended \"{selectedEvent.EventTitle}\". Please complete the required evaluation.",
-                    $"/Member/Evaluation/TakeEvaluation?evaluationId={evaluation.EvaluationId}"
+                    notificationUrl
                 );
             }
 
@@ -882,6 +909,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     OpenAt = e.OpenAt,
                     ClosedAt = e.ClosedAt,
                     EventTitle = e.Event.EventTitle,
+
+                    Points = e.Points,
 
                     Status = e.OpenAt > now
                         ? "Upcoming"

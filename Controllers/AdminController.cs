@@ -92,8 +92,24 @@ namespace Sym_Connect__Capstone2_.Controllers
             var user = await _userManager.GetUserAsync(User);
 
 
+            var monthStart =
+    new DateTime(
+        today.Year,
+        today.Month,
+        1);
+
+            var monthEnd =
+                monthStart.AddMonths(1);
+
+            var eventStatus =
+                await _dashboardService
+                    .GetEventStatusSummaryAsync(
+                        monthStart,
+                        monthEnd);
+
             var vm = new AdminDashboardViewModel
             {
+
                 AdminName = user.DisplayName ?? "Admin",
                 Today = today,
 
@@ -104,9 +120,13 @@ namespace Sym_Connect__Capstone2_.Controllers
                 UpcomingActivitiesCount = await _dashboardService.GetActivitiesCountThisWeekAsync(startOfWeek, endOfWeek),
                 EventsExpiredCount = await _dashboardService.GetExpiredEventCountAsync(),
 
-                EventsApprovedCount = await _eventService.GetApprovedCountAsync(),  // TODO: wire to real count
-                EventsPendingCount = await _eventService.GetPendingRequestCountAsync(),  // TODO: wire to real count
-                EventsRejectedCount = await _eventService.GetRejectedCountAsync(),  // TODO: wire to real count
+                EventsApprovedCount = eventStatus.Approved,
+                EventsPendingCount = eventStatus.Pending,  // TODO: wire to real count
+                EventsRejectedCount = eventStatus.Rejected,  // TODO: wire to real count
+
+                WeeklySummary =
+            await _dashboardService
+                .GetWeeklyActivityOverviewAsync()
             };
 
             var (membershipCount, membershipLatest) = await _dashboardService.GetPendingMembershipApplicationsAsync();
@@ -144,6 +164,61 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             return View(vm);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEventStatusSummary(string period = "month")
+        {
+            var now = DateTime.Now;
+
+            DateTime start;
+            DateTime end;
+
+
+            if (period == "today")
+            {
+                start = now.Date;
+                end = start.AddDays(1);
+            }
+            else if (period == "week")
+            {
+                int daysSinceMonday =
+                    ((int)now.DayOfWeek + 6) % 7;
+
+                start =
+                    now.Date.AddDays(-daysSinceMonday);
+
+                end =
+                    start.AddDays(7);
+            }
+            else
+            {
+                // Default = This Month
+                start = new DateTime(
+                    now.Year,
+                    now.Month,
+                    1);
+
+                end = start.AddMonths(1);
+            }
+
+
+            var summary =
+                await _dashboardService
+                    .GetEventStatusSummaryAsync(
+                        start,
+                        end);
+
+
+            return Json(new
+            {
+                approved = summary.Approved,
+                pending = summary.Pending,
+                rejected = summary.Rejected,
+                expired = summary.Expired,
+                total = summary.Total
+            });
+        }
+
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]

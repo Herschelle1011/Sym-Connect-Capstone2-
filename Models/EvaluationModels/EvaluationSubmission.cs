@@ -19,6 +19,7 @@ namespace Sym_Connect__Capstone2_.Models
         public DateTime? SubmittedAt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        public int PointsEarned { get; set; } = 0;
 
         public Evaluation? Evaluation { get; set; }
         public User? User { get; set; }

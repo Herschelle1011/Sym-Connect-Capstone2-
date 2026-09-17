@@ -7,6 +7,7 @@
 
     const form = e.target;
 
+
     // ==============================
     // 1. NORMAL ASP.NET VALIDATION
     // ==============================
@@ -115,7 +116,47 @@
     // 4. LOAD SCANNER TIME MODAL
     // ==============================
 
-    const html = await fetch('/Events/GetScannerEditTimeModal').then(r => r.text());
+    const scannerModalUrl =
+    form.dataset.scannerModalUrl;
+
+if (!scannerModalUrl) {
+
+    console.error(
+        "Scanner modal URL is missing from editEventForm."
+    );
+
+    showAlertDialog(
+        "Unable to load scanner settings.",
+        "danger",
+        "Unable to Continue"
+    );
+
+    return;
+}
+
+
+const response =
+    await fetch(scannerModalUrl);
+
+if (!response.ok) {
+
+    console.error(
+        "Failed to load scanner modal:",
+        response.status
+    );
+
+    showAlertDialog(
+        "Unable to load scanner settings.",
+        "danger",
+        "Unable to Continue"
+    );
+
+    return;
+}
+
+
+const html =
+    await response.text();
 
     document.getElementById('appModalBody').innerHTML = html;
     document.getElementById('appModalLabel').innerText = "Scanner Times";
@@ -254,16 +295,24 @@
 
             if (result.success) {
 
+                const modalEl = document.getElementById('appModal');
+
+                modalEl.addEventListener('hidden.bs.modal', function onHidden() {
+
+                    modalEl.removeEventListener('hidden.bs.modal', onHidden);
+
+                    showAlertDialog(
+                        result.message,
+                        "Event Updated"
+                    );
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1200);
+
+                });
+
                 modal.hide();
-
-                showAlertDialog(
-                    result.message,
-                    "Event Updated"
-                );
-
-                setTimeout(() => {
-                    location.reload();
-                }, 1200);
 
             } else {
 

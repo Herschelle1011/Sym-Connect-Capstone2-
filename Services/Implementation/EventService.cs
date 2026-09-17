@@ -139,7 +139,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             (e.EndDate < today || (
                               e.EndDate == today &&
                               e.EndTime.HasValue &&
-                              e.EndTime.Value < currentTime)));
+                              e.EndTime.Value < currentTime)) &&
+
+                                !_context.Evaluations.Any(ev =>
+                                 ev.EventId == e.EventId)
+                              );
 
             if (!IsAdmin)
             {
@@ -539,6 +543,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _context.Events.Add(newEvent);
             await _context.SaveChangesAsync();
 
+
             //NOTIFICATION 
             if (!isAdminCreated)
             {
@@ -554,35 +559,95 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             //NOTIFICATION -> Notify all assigned group members (including their leader) that an event was created for them
             string creatorLabel = "Admin";
+
             if (!isAdminCreated && createByUserId.HasValue)
             {
                 var creator = await _context.Members
-                    .Where(m => m.MemberId == createByUserId.Value)
-                    .Select(m => new { m.FirstName, m.LastName })
+                    .Where(m =>
+                        m.MemberId == createByUserId.Value)
+                    .Select(m => new
+                    {
+                        m.FirstName,
+                        m.LastName
+                    })
                     .FirstOrDefaultAsync();
 
                 if (creator != null)
-                    creatorLabel = $"{creator.FirstName} {creator.LastName}";
+                {
+                    creatorLabel =
+                        $"{creator.FirstName} {creator.LastName}";
+                }
             }
 
-            var groupMemberUserIds = await _context.GroupDetails
-                .Where(gd => vm.SelectedGroupIds.Contains(gd.GroupId)
-                          && gd.Member.User != null
-                          && gd.Member.User.Id != null)
-                .Select(gd => gd.Member.User.Id)
+
+            // ==========================================
+            // 1. GET LEADERS OF ASSIGNED GROUPS
+            // ==========================================
+
+
+            var assignedLeaderUserIds = await _context.Groups
+                .Where(g =>
+                    vm.SelectedGroupIds.Contains(g.GroupId) &&
+                    g.LeaderId != null &&
+                    g.Leader != null &&
+                    g.Leader.User != null)
+                .Select(g => g.Leader.User.Id)
                 .Distinct()
                 .ToListAsync();
+
+
+
+
+
+            var groupMemberUserIds = await _context.GroupDetails
+              .Where(gd =>
+                  vm.SelectedGroupIds.Contains(gd.GroupId) &&
+                  gd.Member.User != null)
+              .Select(gd => gd.Member.User.Id)
+              .Distinct()
+              .ToListAsync();
+
+
+            // Remove Leaders from Member notification list.
+            // We will send them their own Leader notification.
+            groupMemberUserIds =
+                groupMemberUserIds
+                    .Except(assignedLeaderUserIds)
+                    .ToList();
+
+
+            // ==========================================
+            // 3. NOTIFY REGULAR MEMBERS
+            // ==========================================
 
             foreach (var userId in groupMemberUserIds)
             {
                 await _notificationService.NotifyUserAsync(
                     userId,
-                    isAdminCreated ? "New Event Assigned" : "New Event Created",
                     isAdminCreated
-                        ? $"Admin created a new event \"{newEvent.EventTitle}\" for your group. Click here to view."
-                        : $"{creatorLabel} created a new event \"{newEvent.EventTitle}\" for your group. Click here to view.",
-                            $"/Member/Events/Index?openEventId={newEvent.EventId}"
+                        ? "New Event Assigned"
+                        : "New Event Created",
 
+                    isAdminCreated
+                        ? $"Admin created a new event \"{newEvent.EventTitle}\" for your group."
+                        : $"{creatorLabel} created a new event \"{newEvent.EventTitle}\" for your group.",
+
+                    $"/Member/Events/Index?openEventId={newEvent.EventId}"
+                );
+            }
+
+
+            // ==========================================
+            // 4. NOTIFY GROUP LEADERS
+            // ==========================================
+
+            foreach (var leaderUserId in assignedLeaderUserIds)
+            {
+                await _notificationService.NotifyUserAsync(
+                    leaderUserId,
+                    "New Event Assigned to Your Group",
+                    $"Your group has been assigned to \"{newEvent.EventTitle}\".",
+                    $"/Leader/Events/EventViewScannerDetails/{newEvent.EventId}"
                 );
             }
 

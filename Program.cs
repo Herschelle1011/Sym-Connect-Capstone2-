@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Swashbuckle.AspNetCore;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Implementation;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
@@ -108,6 +109,15 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     IDashboardService,
     DashboardService>();
+
+builder.Services.AddScoped<
+    IActivityHistoryService,
+    ActivityHistoryService>();
+
+builder.Services.AddScoped<
+    IMemberService,
+    MemberService>();
+
 
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Leader.Services.Interfaces.ILeaderEvaluationService,

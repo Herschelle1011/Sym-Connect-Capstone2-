@@ -55,6 +55,7 @@ public class EvaluationsController : Controller
             ClosesAt = e.ClosedAt,
             DateCreated = e.DateCreated,
             EventTitle = e.EventTitle,
+            Points = e.Points
         }).ToList();
 
         return View(evaluation);

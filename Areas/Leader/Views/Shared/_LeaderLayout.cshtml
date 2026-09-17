@@ -299,13 +299,7 @@
 
         <div class="sidebar-bottom">
 
-         
-            <a asp-controller="Profile" asp-action="Index" asp-area="Leader"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Profile" ? "active" : "")">
-                <i class="bi bi-person-circle"></i>
-                <span class="nav-label">Profile</span>
-            </a>
-
+   
 
             @* <a asp-controller="Help" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Help" ? "active" : "")">
@@ -323,17 +317,34 @@
 
         </div>
 
-        <div class="sidebar-user">
-            <img src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
+        <a asp-area="Leader"
+           asp-controller="Profile"
+           asp-action="Index"
+           class="sidebar-user sidebar-user-link">
+
+            <img src="@(string.IsNullOrEmpty(profilePicture)
+                                          ? fallbackAvatar
+                                          : profilePicture)"
                  alt="User Avatar" />
+
             <div class="sidebar-user-info">
-                <div>
-                    <div class="sidebar-user-name">@(User.Identity?.Name ?? "Guest")</div>
-                    <div class="sidebar-user-role">Leader</div>
+
+                <div class="sidebar-user-details">
+                    <div class="sidebar-user-name">
+                        @userName
+                    </div>
+
+                    <div class="sidebar-user-role">
+                        Leader
+                    </div>
                 </div>
-                <i class="bi bi-chevron-down sidebar-user-chevron"></i>
+
+                <i class="bi bi-chevron-right sidebar-user-chevron"></i>
+
             </div>
-        </div>
+
+        </a>
+
 
     </nav>
     <!-- ══════════════════════════════════════════════════════════════════════ -->

@@ -655,20 +655,60 @@
                             <small class="text-muted">Requests &amp; approvals</small>
                         </div>
                     </div>
-                    <button type="button" class="period-select-btn" disabled>
-                        This Month <i class="bi bi-chevron-down"></i>
-                    </button>
+                    <div class="dropdown">
+                        <button class="period-select-btn dropdown-toggle"
+                                type="button"
+                                id="eventPeriodDropdown"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
+
+                            <span id="eventPeriodText">
+                                This Month
+                            </span>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <button class="dropdown-item event-period-option"
+                                        type="button"
+                                        data-period="today"
+                                        data-label="Today">
+                                    Today
+                                </button>
+                            </li>
+
+                            <li>
+                                <button class="dropdown-item event-period-option"
+                                        type="button"
+                                        data-period="week"
+                                        data-label="This Week">
+                                    This Week
+                                </button>
+                            </li>
+
+                            <li>
+                                <button class="dropdown-item event-period-option"
+                                        type="button"
+                                        data-period="month"
+                                        data-label="This Month">
+                                    This Month
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
                     <div class="donut-chart-wrapper">
                         <canvas id="eventStatusChart"></canvas>
                         <div class="donut-center-label">
-                            <div class="donut-center-number">
+                            <div class="donut-center-number"
+                                 id="eventTotalCount">
                                 @(Model.EventsApprovedCount +
                                   Model.EventsPendingCount +
                                   Model.EventsRejectedCount +
                                   Model.EventsExpiredCount)
+
                             </div>
                             <div class="donut-center-caption">Total Events</div>
                         </div>
@@ -677,22 +717,30 @@
                     <div class="chart-legend">
                         <div class="chart-legend-item">
                             <span><span class="legend-dot" style="background:#16a34a"></span>Approved</span>
-                            <strong>@Model.EventsApprovedCount</strong>
+                            <strong id="approvedCount">
+                                @Model.EventsApprovedCount
+                            </strong>
                         </div>
                         <div class="chart-legend-item">
                             <span><span class="legend-dot" style="background:#ea580c"></span>Pending</span>
-                            <strong>@Model.EventsPendingCount</strong>
+                            <strong id="pendingCount">
+                                @Model.EventsPendingCount
+                            </strong>
                         </div>
                         <div class="chart-legend-item">
                             <span><span class="legend-dot" style="background:#dc2626"></span>Rejected</span>
-                            <strong>@Model.EventsRejectedCount</strong>
+                            <strong id="rejectedCount">
+                                @Model.EventsRejectedCount
+                            </strong>
                         </div>
                         <div class="chart-legend-item">
                             <span>
                                 <span class="legend-dot" style="background:#f59e0b"></span>
                                 Expired
                             </span>
-                            <strong>@Model.EventsExpiredCount</strong>
+                            <strong id="expiredCount">
+                                @Model.EventsExpiredCount
+                            </strong>
 
                         </div>
                     </div>
@@ -777,7 +825,10 @@
         }
         });
 
-        new Chart(document.getElementById('eventStatusChart'), {
+        const eventStatusChart =
+        new Chart(
+        document.getElementById('eventStatusChart'),
+        {
         type: 'doughnut',
         data: {
         labels: ['Approved', 'Pending', 'Rejected', 'Expired'],
@@ -792,6 +843,96 @@
         cutout: '72%',
         plugins: { legend: { display: false } }
         }
+        });
+
+
+        document.querySelectorAll('.event-period-option')
+        .forEach(function (button) {
+
+        button.addEventListener('click', async function () {
+
+        const period =
+        this.dataset.period;
+
+        const label =
+        this.dataset.label;
+
+
+        try {
+
+        const response =
+        await fetch(
+        `/Admin/GetEventStatusSummary?period=${period}`
+        );
+
+
+        if (!response.ok) {
+        throw new Error(
+        "Unable to load event status."
+        );
+        }
+
+
+        const data =
+        await response.json();
+
+
+        // =============================
+        // UPDATE DROPDOWN TEXT
+        // =============================
+
+        document.getElementById(
+        'eventPeriodText'
+        ).textContent = label;
+
+
+        // =============================
+        // UPDATE NUMBERS
+        // =============================
+
+        document.getElementById(
+        'approvedCount'
+        ).textContent = data.approved;
+
+        document.getElementById(
+        'pendingCount'
+        ).textContent = data.pending;
+
+        document.getElementById(
+        'rejectedCount'
+        ).textContent = data.rejected;
+
+        document.getElementById(
+        'expiredCount'
+        ).textContent = data.expired;
+
+        document.getElementById(
+        'eventTotalCount'
+        ).textContent = data.total;
+
+
+        // =============================
+        // UPDATE CHART
+        // =============================
+
+        eventStatusChart.data.datasets[0].data = [
+        data.approved,
+        data.pending,
+        data.rejected,
+        data.expired
+        ];
+
+        eventStatusChart.update();
+
+        }
+        catch (error) {
+
+        console.error(
+        "Event status error:",
+        error
+        );
+        }
+        });
         });
     </script>
 }

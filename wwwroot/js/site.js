@@ -1162,102 +1162,102 @@ document.addEventListener('click', function (e) {
 });
 
 
-document.addEventListener("submit", async function (e) {
+// document.addEventListener("submit", async function (e) {
 
-    if (e.target.id !== "editEventForm") {
-        return;
-    }
+//     if (e.target.id !== "editEventForm") {
+//         return;
+//     }
 
-    e.preventDefault();
+//     e.preventDefault();
 
-    const form = e.target;
-    const submitButton = form.querySelector('button[type="submit"]');
+//     const form = e.target;
+//     const submitButton = form.querySelector('button[type="submit"]');
 
-    const originalButtonHtml = submitButton.innerHTML;
+//     const originalButtonHtml = submitButton.innerHTML;
 
-    // Show loading state
-    submitButton.disabled = true;
-    submitButton.innerHTML = `
-        <span class="spinner-border spinner-border-sm me-1"></span>
-        Saving...
-    `;
+//     Show loading state
+//     submitButton.disabled = true;
+//     submitButton.innerHTML = `
+//         <span class="spinner-border spinner-border-sm me-1"></span>
+//         Saving...
+//     `;
 
-    try {
+//     try {
 
-        const formData = new FormData(form);
+//         const formData = new FormData(form);
 
-        const response = await fetch(form.action, {
-            method: "POST",
-            body: formData
-        });
+//         const response = await fetch(form.action, {
+//             method: "POST",
+//             body: formData
+//         });
 
-        const contentType = response.headers.get("content-type") || "";
+//         const contentType = response.headers.get("content-type") || "";
 
-        // ===============================
-        // JSON response
-        // ===============================
-        if (contentType.includes("application/json")) {
+//         ===============================
+//         JSON response
+//         ===============================
+//         if (contentType.includes("application/json")) {
 
-            const result = await response.json();
+//             const result = await response.json();
 
-            if (result.success) {
+//             if (result.success) {
 
-                const offcanvasElement =
-                    document.getElementById("editEventPanel");
+//                 const offcanvasElement =
+//                     document.getElementById("editEventPanel");
 
-                const offcanvas =
-                    bootstrap.Offcanvas.getInstance(offcanvasElement);
+//                 const offcanvas =
+//                     bootstrap.Offcanvas.getInstance(offcanvasElement);
 
-                if (offcanvas) {
-                    offcanvas.hide();
-                }
+//                 if (offcanvas) {
+//                     offcanvas.hide();
+//                 }
 
-                showAlertDialog(
-                    result.message || "Event updated successfully.",
-                    "success",
-                    "Event Updated"
-                );
+//                 showAlertDialog(
+//                     result.message || "Event updated successfully.",
+//                     "success",
+//                     "Event Updated"
+//                 );
 
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1200);
+//                 setTimeout(() => {
+//                     window.location.reload();
+//                 }, 1200);
 
-                return;
-            }
+//                 return;
+//             }
 
-            showAlertDialog(
-                result.message || "Unable to update the event.",
-                "error",
-                "Update Failed"
-            );
+//             showAlertDialog(
+//                 result.message || "Unable to update the event.",
+//                 "error",
+//                 "Update Failed"
+//             );
 
-            return;
-        }
+//             return;
+//         }
 
-        // ===============================
-        // Validation error HTML
-        // ===============================
-        const html = await response.text();
+//         ===============================
+//         Validation error HTML
+//         ===============================
+//         const html = await response.text();
 
-        const panelBody =
-            document.querySelector("#editEventPanel .offcanvas-body");
+//         const panelBody =
+//             document.querySelector("#editEventPanel .offcanvas-body");
 
-        panelBody.innerHTML = html;
+//         panelBody.innerHTML = html;
 
-    }
-    catch (error) {
+//     }
+//     catch (error) {
 
-        console.error(error);
+//         console.error(error);
 
-        showAlertDialog(
-            "Something went wrong while updating the event.",
-            "error",
-            "Error"
-        );
-    }
-    finally {
+//         showAlertDialog(
+//             "Something went wrong while updating the event.",
+//             "error",
+//             "Error"
+//         );
+//     }
+//     finally {
 
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonHtml;
-    }
-});
+//         submitButton.disabled = false;
+//         submitButton.innerHTML = originalButtonHtml;
+//     }
+// });

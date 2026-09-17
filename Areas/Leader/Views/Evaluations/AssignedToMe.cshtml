@@ -73,6 +73,30 @@
         font-size: 12px;
         color: #6c757d;
     }
+
+    .eval-points-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        width: fit-content;
+        margin-top: 7px;
+        padding: 4px 9px;
+        background: #F0F6FF;
+        border: 1px solid #DCEBFF;
+        border-radius: 7px;
+        color: #667085;
+        font-size: 11px;
+    }
+
+        .eval-points-indicator i {
+            color: #2F6FED;
+            font-size: 12px;
+        }
+
+        .eval-points-indicator strong {
+            color: #2F6FED;
+            font-weight: 700;
+        }
 </style>
 
 <div class="container py-4"
@@ -159,6 +183,18 @@
                                 @evaluation.ClosedAt.ToString("MMM dd, yyyy")
 
                             </small>
+
+                            <div class="eval-points-indicator">
+                                <i class="bi bi-stars"></i>
+
+                                <span>Earn</span>
+
+                                <strong>
+                                    +@evaluation.Points points
+                                </strong>
+
+                                <span>upon submission</span>
+                            </div>
 
                         </div>
 

@@ -355,7 +355,7 @@
 
     @await Html.PartialAsync("~/Views/Events/_CreateEventPanel.cshtml", createVm)
     <script src="~/js/OpenScannerTime.js"></script>
-    <script src="~/js/EditScannerTime.js"></script>
+    <script src="~/js/EditScannerTime.js" asp-append-version="true"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

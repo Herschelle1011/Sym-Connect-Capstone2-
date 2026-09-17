@@ -12,6 +12,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<int> GetActivitiesCountThisWeekAsync(DateTime start, DateTime end);
         Task<int> GetAttendanceCountThisWeekAsync(DateTime start, DateTime end);
 
+        Task<List<ChartPointViewModel>>GetWeeklyActivityOverviewAsync();
+
         Task<int> GetExpiredEventCountAsync();
 
         // NEW
@@ -20,6 +22,11 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<(int Count, DateTime? LatestDate)> GetPendingMediaFilesAsync();
         Task<List<RecentRegistrationViewModel>> GetRecentApprovedMembersAsync(int take = 5);
         Task<List<EventListItemViewModel>> GetRecentEventRequestsAsync(int take = 5);
+
+
+        Task<EventStatusSummaryViewModel>GetEventStatusSummaryAsync(
+        DateTime start,
+        DateTime end);
 
     }
 }

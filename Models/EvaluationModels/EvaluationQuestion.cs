@@ -15,8 +15,8 @@ namespace Sym_Connect__Capstone2_.Models
         [Required]
         public AnswerType AnswerType { get; set; }
 
-        public DateTime DateCreated { get; set; } = DateTime.Now;
-        public ICollection<EvaluationDetails> EvaluationDetails { get; set; } = new List<EvaluationDetails>();
+        //public DateTime DateCreated { get; set; } = DateTime.Now;
+        //public ICollection<EvaluationDetails> EvaluationDetails { get; set; } = new List<EvaluationDetails>();
 
     }
 }

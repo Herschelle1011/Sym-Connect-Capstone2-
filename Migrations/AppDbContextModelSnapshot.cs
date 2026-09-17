@@ -460,6 +460,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime>("OpenAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -478,20 +481,11 @@ namespace Sym_Connect__Capstone2_.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EvaluationDetailId"));
 
-                    b.Property<DateTime?>("ArchiveDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("EvaluationId")
                         .HasColumnType("int");
 
-                    b.Property<bool?>("IsArchived")
-                        .HasColumnType("bit");
-
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("EvaluationDetailId");
 
@@ -513,9 +507,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<string>("AnswerType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
@@ -569,6 +560,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("EvaluationId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PointsEarned")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
@@ -1365,7 +1359,7 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .IsRequired();
 
                     b.HasOne("Sym_Connect__Capstone2_.Models.EvaluationQuestion", "EvaluationQuestion")
-                        .WithMany("EvaluationDetails")
+                        .WithMany()
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1562,11 +1556,6 @@ namespace Sym_Connect__Capstone2_.Migrations
                 });
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
-                {
-                    b.Navigation("EvaluationDetails");
-                });
-
-            modelBuilder.Entity("Sym_Connect__Capstone2_.Models.EvaluationQuestion", b =>
                 {
                     b.Navigation("EvaluationDetails");
                 });

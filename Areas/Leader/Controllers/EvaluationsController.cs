@@ -86,7 +86,8 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                     OpenAt = e.OpenAt,
                     ClosesAt = e.ClosedAt,
                     DateCreated = e.DateCreated,
-                    EventTitle = e.EventTitle
+                    EventTitle = e.EventTitle,
+                    Points = e.Points
                 })
                 .ToList();
 
@@ -189,6 +190,10 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
                 MemberEmail =
                     user.Email ?? "",
+                openAt = evaluation.OpenAt,
+                closesAt = evaluation.ClosedAt,
+
+                Points = evaluation.Points,
 
                 Questions = evaluation.EvaluationDetails
                     .Select(ed => new AnswerInputViewModel

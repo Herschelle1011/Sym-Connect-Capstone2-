@@ -177,17 +177,23 @@
                 <span class="nav-label">Documents &amp; Media</span>
             </a>
 
+            <a asp-controller="ActivityHistory"
+               asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "ActivityHistory" ? "active" : "")">
+
+                <i class="bi bi-clock-history"></i>
+                <span class="nav-label">Activity History</span>
+
+            </a>
+
+
         </div>
 
         <div class="sidebar-divider"></div>
 
         <div class="sidebar-bottom">
 
-            <a asp-controller="Profile" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Profile" ? "active" : "")">
-                <i class="bi bi-person-circle"></i>
-                <span class="nav-label">Profile</span>
-            </a>
+     
 
             @* <a asp-controller="Points" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Points" ? "active" : "")">
@@ -211,20 +217,36 @@
 
         </div>
 
-        <div class="sidebar-user">
-            <img src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
+        <a asp-area="Member"
+           asp-controller="Profile"
+           asp-action="Index"
+           class="sidebar-user sidebar-user-link">
+
+            <img src="@(string.IsNullOrEmpty(profilePicture)
+                         ? fallbackAvatar
+                         : profilePicture)"
                  alt="User Avatar" />
+
             <div class="sidebar-user-info">
-                <div>
-                    <div class="sidebar-user-name">@(User.Identity?.Name ?? "Guest")</div>
-                    <div class="sidebar-user-role">Member</div>
+
+                <div class="sidebar-user-details">
+                    <div class="sidebar-user-name">
+                        @userName
+                    </div>
+
+                    <div class="sidebar-user-role">
+                        Member
+                    </div>
                 </div>
-                <i class="bi bi-chevron-down sidebar-user-chevron"></i>
-            </div>
+
+                <i class="bi bi-chevron-right sidebar-user-chevron"></i>
+
             </div>
 
+        </a>
 
-        </div>
+
+        
         </nav>
         <!-- ══════════════════════════════════════════════════════════════════════ -->
 

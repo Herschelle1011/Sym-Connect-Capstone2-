@@ -13,6 +13,8 @@
         public DateTime OpenAt { get; set; }
         public DateTime ClosesAt { get; set; }
 
+        public int Points { get; set; }
+
         public string Status
         {
             get
