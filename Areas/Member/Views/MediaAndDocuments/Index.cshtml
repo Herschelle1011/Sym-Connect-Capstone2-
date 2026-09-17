@@ -1,5 +1,108 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaAndDocumentsIndexViewModel
 @{
+    ViewData["Title"] = "Media & Documents";
+    Layout = "_MemberLayout";
+}
+<div class="media-page">
+    <div class="page-header">
+        <div>
+            <h2>Documents &amp; Media</h2>
+            <p class="page-subtitle">View folders and upload your files</p>
+        </div>
+    </div>
+
+    <div class="breadcrumb-row">
+        <span class="breadcrumb">
+            <a href="@Url.Action("Index", "Dashboard")">Home</a> / Documents &amp; Media
+        </span>
+
+    </div>
+
+    <div class="folder-grid">
+        @if (Model.Folders == null || !Model.Folders.Any())
+        {
+            <p class="text-muted">No folders available yet.</p>
+        }
+        else
+        {
+            foreach (var folder in Model.Folders)
+            {
+                <div class="folder-card">
+                    <a href="@Url.Action("Details", new { id = folder.MediaFolderId })"
+                       class="folder-card-link">
+
+                        <i class="bi bi-folder-fill folder-icon"></i>
+
+                        <div class="folder-info">
+                            <span class="folder-name">@folder.FolderName</span>
+
+                            @if (folder.IsPrivate)
+                            {
+                                <span class="visibility-badge badge-private">
+                                    <i class="bi bi-lock-fill"></i> Private
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="visibility-badge badge-public">
+                                    <i class="bi bi-globe"></i> Public
+                                </span>
+                            }
+                        </div>
+                    </a>
+
+                    <span class="folder-count">@folder.FileCount</span>
+
+            
+                </div>
+            }
+        }
+    </div>
+
+    <div class="recent-files-section">
+        <h4>Recent Files</h4>
+
+        @if (Model.RecentFiles == null || !Model.RecentFiles.Any())
+        {
+            <p class="text-muted">No files uploaded yet.</p>
+        }
+        else
+        {
+            <div class="table-responsive recent-files-table-wrapper">
+                <table class="table recent-files-table">
+                    <thead>
+                        <tr>
+                            <th>File Name</th>
+                            <th>Type</th>
+                            <th>Folder</th>
+                            <th>Uploaded by</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var file in Model.RecentFiles)
+                        {
+                            <tr>
+                                <td>
+                                    <a href="@Url.Action("Download", "MediaAndDocuments", new { id = file.MediaFileId })"
+                                       class="file-name-link">
+                                        @file.FileName
+                                    </a>
+                                </td>
+                                <td>@file.FileExtension</td>
+                                <td>@file.folderName</td>
+                                <td>@file.fullName</td>
+                                <td>@file.UploadedDate.ToString("MMM. d, yyyy")</td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/leader/Media.js"></script>
 }

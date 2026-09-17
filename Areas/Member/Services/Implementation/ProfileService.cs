@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Points;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
@@ -93,6 +94,135 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 .Take(take)
                 .ToList();
         }
-    
-}
+
+
+
+        public async Task<MemberPointDetailsViewModel?> GetMemberPointDetailsAsync(
+    int attendanceId,
+    int memberId)
+        {
+            // =========================================
+            // 1. GET ATTENDANCE + EVENT INFORMATION
+            // =========================================
+
+            var attendance = await _context.Attendances
+                .AsNoTracking()
+                .Where(a =>
+                    a.AttendanceId == attendanceId &&
+                    a.MemberId == memberId)
+                .Select(a => new
+                {
+                    a.AttendanceId,
+                    a.EventId,
+                    a.Status,
+                    a.Points,
+                    a.TimeIn,
+                    a.TimeOut,
+                    a.ScannedByUserId,
+
+                    EventTitle = a.Event.EventTitle,
+
+                    EventDate = a.Event.StartDate,
+
+                    FacilityNames = a.Event.ExpectedFacilities
+                        .Select(ef => ef.Facility.FacilityName)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+
+            if (attendance == null)
+            {
+                return null;
+            }
+
+
+            // =========================================
+            // 2. GET THE PERSON WHO SCANNED THE MEMBER
+            // =========================================
+
+            string scannedByName = "Not available";
+            string scannedByRole = "";
+
+
+            if (!string.IsNullOrWhiteSpace(attendance.ScannedByUserId))
+            {
+                var scanner = await _context.Users
+                    .AsNoTracking()
+                    .Where(u => u.Id == attendance.ScannedByUserId)
+                    .Select(u => new
+                    {
+                        u.Id,
+                        u.DisplayName
+                    })
+                    .FirstOrDefaultAsync();
+
+
+                if (scanner != null)
+                {
+                    scannedByName = scanner.DisplayName ?? "Unknown";
+                }
+            }
+
+
+            // =========================================
+            // 3. CREATE REMARK
+            // =========================================
+
+            string remarks;
+
+            if (attendance.Status == "Present")
+            {
+                remarks = "Attended on time.";
+            }
+            else if (attendance.Status == "Late")
+            {
+                remarks = "Attended late.";
+            }
+            else if (attendance.Status == "Absent")
+            {
+                remarks = "Did not attend this event.";
+            }
+            else
+            {
+                remarks = "No attendance remarks.";
+            }
+
+
+            // =========================================
+            // 4. CREATE THE VIEWMODEL
+            // =========================================
+
+            var viewModel = new MemberPointDetailsViewModel
+            {
+                AttendanceId = attendance.AttendanceId,
+
+                EventId = attendance.EventId,
+
+                EventTitle = attendance.EventTitle,
+
+                EventDate = attendance.EventDate,
+
+                FacilityNames = attendance.FacilityNames,
+
+                Status = attendance.Status,
+
+                Points = attendance.Points,
+
+                TimeIn = attendance.TimeIn,
+
+                TimeOut = attendance.TimeOut,
+
+                ScannedByName = scannedByName,
+
+                ScannedByRole = scannedByRole,
+
+                Remarks = remarks
+            };
+
+
+            return viewModel;
+        }
+
+    }
 }

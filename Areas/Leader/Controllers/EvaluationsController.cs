@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Models;
-using Sym_Connect__Capstone2_.Services.Implementation;
+using Sym_Connect__Capstone2_.Areas.Leader.Services.Interfaces;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 
@@ -13,31 +14,39 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
     public class EvaluationsController : Controller
     {
         private readonly IEvaluationService _evaluationService;
+        private readonly ILeaderEvaluationService _leaderEvaluationService;
         private readonly IEventService _eventService;
         private readonly UserManager<User> _userManager;
         private readonly IGroupService _groupService;
 
-        public EvaluationsController(IEvaluationService evaluationService, IEventService eventService, UserManager<User> userManager, IGroupService groupService)
+        public EvaluationsController(IEvaluationService evaluationService, IEventService eventService, UserManager<User> userManager, IGroupService groupService, ILeaderEvaluationService leaderEvaluationService)
         {
             _evaluationService = evaluationService;
             _eventService = eventService;
             _userManager = userManager;
             _groupService = groupService;
+            _leaderEvaluationService = leaderEvaluationService;
         }
 
         //GET
         public async Task<IActionResult> Index()
         {
-         
+
             var user = await _userManager.GetUserAsync(User);
 
-            var roles = await _userManager.GetRolesAsync(user);
+            if (user == null)
+            {
+                return Challenge();
+            }
 
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
 
             bool isLeader =
-         await _groupService.IsMemberALeaderAsync(
-           user.MemberId.Value
-       );
+                await _groupService.IsMemberALeaderAsync(
+                    user.MemberId.Value);
 
             if (!isLeader)
             {
@@ -45,23 +54,11 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             }
 
 
-
-            Console.WriteLine("==============================");
-            Console.WriteLine($"USERNAME: {user.UserName}");
-            Console.WriteLine($"MEMBER ID: {user.MemberId}");
-            Console.WriteLine($"ROLES: {string.Join(", ", roles)}");
-            Console.WriteLine("==============================");
-
             if (user.MemberId == null)
             {
                 return Forbid();
             }
 
-          
-
-            Console.WriteLine($"IS LEADER: {isLeader}");
-
-  
 
             if (user == null)
             {
@@ -94,6 +91,207 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 .ToList();
 
             return View(vm);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> AssignedToMe()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            // Make sure this member is actually a leader
+            bool isLeader = await _groupService
+                .IsMemberALeaderAsync(user.MemberId.Value);
+
+            if (!isLeader)
+            {
+                return Forbid();
+            }
+
+            var evaluations =
+          await _leaderEvaluationService
+         .GetAssignedEvaluationsAsync(
+             user.MemberId.Value,
+             user.Id);
+
+            return View(evaluations);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> TakeEvaluation(int evaluationId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            // Make sure the current member is really a leader
+            bool isLeader = await _groupService
+                .IsMemberALeaderAsync(user.MemberId.Value);
+
+            if (!isLeader)
+            {
+                return Forbid();
+            }
+
+            // Check if this leader is actually allowed
+            // to answer this evaluation
+            var canTake =
+                await _leaderEvaluationService.CanTakeAssignedEvaluationAsync(
+                    evaluationId,
+                    user.MemberId.Value,
+                    user.Id);
+
+            if (!canTake)
+            {
+               
+
+                return RedirectToAction(nameof(AssignedToMe));
+            }
+
+            // Get evaluation + questions
+            var evaluation =
+                await _leaderEvaluationService
+                    .GetEvaluationByIdAsync(evaluationId);
+
+            if (evaluation == null)
+            {
+                return NotFound();
+            }
+
+            var vm = new TakeEvaluationViewModel
+            {
+                EvaluationId = evaluation.EvaluationId,
+
+                EvaluationTitle =
+                    evaluation.EvaluationTitle,
+
+                MemberFullName =
+                    user.DisplayName ?? "",
+
+                MemberEmail =
+                    user.Email ?? "",
+
+                Questions = evaluation.EvaluationDetails
+                    .Select(ed => new AnswerInputViewModel
+                    {
+                        EvaluationDetailId =
+                            ed.EvaluationDetailId,
+
+                        QuestionText =
+                            ed.EvaluationQuestion!
+                                .QuestionText,
+
+                        AnswerType =
+                            ed.EvaluationQuestion
+                                .AnswerType
+                    })
+                    .ToList()
+            };
+
+            return View(vm);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TakeEvaluation(
+    SubmitEvaluationViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            // Make sure user is still a leader
+            bool isLeader = await _groupService
+                .IsMemberALeaderAsync(user.MemberId.Value);
+
+            if (!isLeader)
+            {
+                return Forbid();
+            }
+
+            // IMPORTANT:
+            // Check permission again during POST.
+            var canTake =
+                await _leaderEvaluationService.CanTakeAssignedEvaluationAsync(
+                    model.EvaluationId,
+                    user.MemberId.Value,
+                    user.Id);
+
+            if (!canTake)
+            {
+                TempData["ErrorMessage"] =
+                    "This evaluation is no longer available.";
+
+                return RedirectToAction(nameof(AssignedToMe));
+            }
+
+            var success =
+                await _leaderEvaluationService.SaveEvaluationAsync(
+                    user.Id,
+                    model);
+
+            if (!success)
+            {
+                TempData["ErrorMessage"] =
+                    "The evaluation could not be saved.";
+
+                return RedirectToAction(
+                    nameof(TakeEvaluation),
+                    new
+                    {
+                        evaluationId =
+                            model.EvaluationId
+                    });
+            }
+
+            // User clicked Submit Evaluation
+            if (model.IsFinalSubmit)
+            {
+                TempData["SuccessMessage"] =
+                    "Your evaluation has been submitted.";
+
+                return RedirectToAction(nameof(ThankYou));
+            }
+
+            // User only saved their progress
+            TempData["SuccessMessage"] =
+                "Your progress has been saved.";
+
+            return RedirectToAction(
+                nameof(TakeEvaluation),
+                new
+                {
+                    evaluationId =
+                        model.EvaluationId
+                });
         }
 
         [HttpGet]
@@ -463,5 +661,13 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
+        [HttpGet]
+        public IActionResult ThankYou()
+        {
+            return View();
+        }
+
     }
 }

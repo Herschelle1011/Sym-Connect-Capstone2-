@@ -109,6 +109,10 @@ builder.Services.AddScoped<
     IDashboardService,
     DashboardService>();
 
+
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Leader.Services.Interfaces.ILeaderEvaluationService,
+                            Sym_Connect__Capstone2_.Areas.Leader.Services.Implementation.LeaderEvaluationService>();
+
 builder.Services.AddScoped<
     IArchiveService,
     ArchiveService>();
@@ -119,13 +123,20 @@ builder.Services.AddHostedService<EventReminderBackgroundService>();
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Services.Interfaces.IElectionService,
                             Sym_Connect__Capstone2_.Services.Implementation.ElectionService>();
 //member
-builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IElectionService,
-                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ElectionService>();
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IMemberElectionService,
+                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.MemberElectionService>();
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IEvaluationService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.EvaluationService>();
 
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IMemberPointsService,
+                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.MemberPointsService>();
+
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IProfileService,
                             Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.ProfileService>();
+
+
+builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces.IMemberDashboardService,
+                            Sym_Connect__Capstone2_.Areas.Member.Services.Implementation.MemberDashboardService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IWeeklyReportService, WeeklyReportService>();
 

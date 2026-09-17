@@ -1194,3 +1194,104 @@ document.addEventListener('click', function (e) {
             showAlertDialog('Unable to load the cancel form. Please try again.', 'error');
         });
 });
+
+
+document.addEventListener("submit", async function (e) {
+
+    if (e.target.id !== "editEventForm") {
+        return;
+    }
+
+    e.preventDefault();
+
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    const originalButtonHtml = submitButton.innerHTML;
+
+    // Show loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-1"></span>
+        Saving...
+    `;
+
+    try {
+
+        const formData = new FormData(form);
+
+        const response = await fetch(form.action, {
+            method: "POST",
+            body: formData
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+
+        // ===============================
+        // JSON response
+        // ===============================
+        if (contentType.includes("application/json")) {
+
+            const result = await response.json();
+
+            if (result.success) {
+
+                const offcanvasElement =
+                    document.getElementById("editEventPanel");
+
+                const offcanvas =
+                    bootstrap.Offcanvas.getInstance(offcanvasElement);
+
+                if (offcanvas) {
+                    offcanvas.hide();
+                }
+
+                showAlertDialog(
+                    result.message || "Event updated successfully.",
+                    "success",
+                    "Event Updated"
+                );
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+
+                return;
+            }
+
+            showAlertDialog(
+                result.message || "Unable to update the event.",
+                "error",
+                "Update Failed"
+            );
+
+            return;
+        }
+
+        // ===============================
+        // Validation error HTML
+        // ===============================
+        const html = await response.text();
+
+        const panelBody =
+            document.querySelector("#editEventPanel .offcanvas-body");
+
+        panelBody.innerHTML = html;
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        showAlertDialog(
+            "Something went wrong while updating the event.",
+            "error",
+            "Error"
+        );
+    }
+    finally {
+
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonHtml;
+    }
+});

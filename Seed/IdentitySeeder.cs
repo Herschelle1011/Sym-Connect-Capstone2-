@@ -128,7 +128,6 @@ namespace Sym_Connect__Capstone2_.Seed
                 DateRegistered = DateTime.Now,
                 ApplicationStatus = MembershipApplicationStatus.Approved
             };
-            member.User.ProfilePictureUrl = photoUrl;
             context.Members.Add(member);
             await context.SaveChangesAsync();
 
@@ -139,7 +138,6 @@ namespace Sym_Connect__Capstone2_.Seed
                 Email = email,
                 EmailConfirmed = true,
                 ProfilePictureUrl = photoUrl,
-
                 MemberId = member.MemberId
             };
 

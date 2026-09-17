@@ -1,29 +1,29 @@
-﻿@model List<GetAllElectionListViewModel>
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Election.ElectionIndexViewModel
 
 @{
     ViewData["Title"] = "Elections";
     Layout = "_MemberLayout";
 }
 
+
 <div class="container py-4">
 
-    <!-- ACTIVE ELECTIONS (backend-driven) -->
+    <!-- ACTIVE ELECTIONS -->
     <h2 class="fw-bold mb-0">Active Elections</h2>
     <p class="text-muted small mb-4">Vote for you future leaders</p>
 
-    @if (!Model.Any())
+    @if (!Model.ActiveElections.Any())
     {
         <p class="text-muted">No active elections right now.</p>
     }
 
     <div class="row g-3 mb-5">
-        @foreach (var election in Model)
+        @foreach (var election in Model.ActiveElections)
         {
             var endDateTime = election.EndDate.Date + election.EndTime;
             var statusClass = election.Status == "Open" ? "bg-success-subtle text-success"
                              : election.Status == "Incoming" ? "bg-warning-subtle text-warning"
                              : "bg-light text-secondary";
-          
 
             <div class="col-md-4">
                 <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
@@ -62,24 +62,49 @@
         }
     </div>
 
-    <!-- VOTING HISTORY (static UI only, no backend yet) -->
+    <!-- VOTING HISTORY (real data) -->
     <h2 class="fw-bold mb-4">My Voting History</h2>
 
-    <div class="card shadow-sm border-0 rounded-4 p-4 mb-3">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h6 class="fw-bold mb-1">Youth Camp Leadership Election 2025</h6>
-                <p class="text-muted small mb-0">You voted on May 12, 2025</p>
-            </div>
-            <span class="badge bg-light text-secondary rounded-pill px-3 py-1 align-self-start">Closed</span>
-        </div>
+    @if (!Model.VotingHistory.Any())
+    {
+        <p class="text-muted">You haven't voted in any elections yet.</p>
+    }
 
-        <div class="d-flex justify-content-end mt-4">
-            <button type="button" class="btn btn-primary rounded-pill px-4">
-                View Results
-            </button>
+    @foreach (var entry in Model.VotingHistory)
+    {
+        var historyStatusClass = entry.Status == "Open" ? "bg-success-subtle text-success"
+                                : entry.Status == "Incoming" ? "bg-warning-subtle text-warning"
+                                : "bg-light text-secondary";
+
+        <div class="card shadow-sm border-0 rounded-4 p-4 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="fw-bold mb-1">@entry.ElectionName</h6>
+                    <p class="text-muted small mb-0">You voted on @entry.VotedDate.ToString("MMMM d, yyyy")</p>
+                </div>
+                <span class="badge @historyStatusClass rounded-pill px-3 py-1 align-self-start">@entry.Status</span>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+                @if (entry.CanViewResults)
+                {
+                    <a asp-area="Member"
+                       asp-controller="Elections"
+                       asp-action="Results"
+                       asp-route-electionId="@entry.ElectionId"
+                       class="btn btn-primary rounded-pill px-4">
+                        View Results
+                    </a>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" disabled>
+                        Results Locked
+                    </button>
+                }
+            </div>
         </div>
-    </div>
+    }
 
 </div>
 

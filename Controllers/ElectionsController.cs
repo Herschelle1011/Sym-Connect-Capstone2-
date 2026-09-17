@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
 using System.Threading.Tasks;
@@ -10,11 +12,13 @@ public class ElectionsController : Controller
 {
     private readonly IElectionService _electionService;
     private readonly IPartyListService _partyListService;
+    public readonly UserManager<User> _userManager;
 
-    public ElectionsController(IElectionService electionService, IPartyListService partyListService)
+    public ElectionsController(IElectionService electionService, IPartyListService partyListService, UserManager<User> userManager)
     {
         _electionService = electionService;
         _partyListService = partyListService;
+        _userManager = userManager;
     }
 
     // GET: ELECTIONS
@@ -25,6 +29,15 @@ public class ElectionsController : Controller
     }
     public async Task<IActionResult> Result(int? electionId)
     {
+
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+            return Challenge();
+
+        if (user.MemberId == null)
+            return Forbid();
+
         if (electionId == null) return NotFound();
         var Result = await _electionService.GetElectionResultAsync(electionId.Value);
         if (Result == null) return NotFound();

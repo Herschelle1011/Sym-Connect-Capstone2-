@@ -9,60 +9,1228 @@
     {
         TargetAudience.SpecificGroup => "#f0a34e",
         TargetAudience.AllLeaders => "#f0a34e",
-        _ => "#4a7fd6"
+        _ => "#078ed4"
     };
 
     string Initials(string name) =>
-        string.IsNullOrWhiteSpace(name) ? "?" :
-        string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                           .Take(2)
-                           .Select(w => char.ToUpper(w[0])));
+        string.IsNullOrWhiteSpace(name)
+            ? "?"
+            : string.Concat(
+                name.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Take(3)
+                    .Select(w => char.ToUpper(w[0]))
+            );
+
+    string FormatTimeRange(TimeSpan? start, TimeSpan? end)
+    {
+        if (!start.HasValue)
+            return "";
+
+        var startText = DateTime.Today
+            .Add(start.Value)
+            .ToString("h:mm tt");
+
+        if (!end.HasValue)
+            return startText;
+
+        var endText = DateTime.Today
+            .Add(end.Value)
+            .ToString("h:mm tt");
+
+        return $"{startText} - {endText}";
+    }
 }
 
-<h1>Members Dashboard</h1>
 
-@if (Model?.PinnedAnnouncement != null && Model.PinnedAnnouncement.Any(a => a != null))
-{
-    <div class="announcement-panel">
-        <div class="announcement-panel-header">
-            <i class="bi bi-star-fill"></i>
-            <span>Pinned Announcement@(Model.PinnedAnnouncement.Count(a => a != null) > 1 ? "s" : "")</span>
+<div class="dash-wrap">
+
+    <!-- =====================================================
+         GREETING
+    ====================================================== -->
+
+    <div class="dash-greeting">
+        <h2>
+            Good afternoon,
+            <span class="accent-text">@Model.MemberName</span>!
+        </h2>
+    </div>
+
+
+    <!-- =====================================================
+         LIVE & HAPPENING TODAY
+         This sits ABOVE the two-column dashboard.
+    ====================================================== -->
+
+    <section class="today-section">
+
+        <div class="section-title today-section-title">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span>Live &amp; Happening Today</span>
         </div>
 
-        @foreach (var item in Model.PinnedAnnouncement)
-        {
-            if (item == null) continue;
+        <div class="today-row">
 
-            <div class="announcement-card" style="--accent: @AccentColor(item.TargetType)">
-                <div class="announcement-avatar">
-                    @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
-                    {
-                        <img src="@item.PhotoUrl" alt="@item.PostedByName" />
-                    }
-                    else
-                    {
-                        <span>@Initials(item.PostedByName)</span>
-                    }
-                </div>
+            @if (Model.TodayEvents != null && Model.TodayEvents.Any())
+            {
+                foreach (var ev in Model.TodayEvents.Take(3))
+                {
+                    <div class="today-card">
 
-                <div class="announcement-body">
-                    <div class="announcement-title">@item.Title</div>
-                    <div class="announcement-meta">
-                        <span>Posted by @item.PostedByName</span>
-                        <span class="dot">&bull;</span>
-                        <span>
-                            @(item.PublishedAt.HasValue
-                                ? item.PublishedAt.Value.ToString("MMM d, yyyy")
-                                : "&mdash;")
+                        <span class="badge-today">
+                            TODAY
                         </span>
-                        @if (item.PublishedAt.HasValue)
-                        {
-                            <span>@item.PublishedAt.Value.ToString("h:mm tt")</span>
-                        }
+
+                        <div class="today-card-top">
+
+                            <h5>
+                                @ev.EventTitle
+                            </h5>
+
+                            <span class="time-status">
+                                @ev.TimeStatus
+                            </span>
+
+                        </div>
+
+                        <div class="today-info-line">
+
+                            <i class="bi bi-clock"></i>
+
+                            <span>
+                                @(ev.IsAllDay
+                                    ? "All day"
+                                    : FormatTimeRange(
+                                        ev.StartTime,
+                                        ev.EndTime
+                                    ))
+                            </span>
+
+                        </div>
+
+                        <div class="today-info-line">
+
+                            <i class="bi bi-geo-alt"></i>
+
+                            <span>
+                                @ev.FacilityName
+                            </span>
+
+                        </div>
+
+                        <div class="today-divider"></div>
+
+                        <div class="hosted-by">
+
+                            <i class="bi bi-person"></i>
+
+                            <span>
+                                Hosted by @ev.HostedBy
+                            </span>
+
+                        </div>
+
                     </div>
-                    <p class="announcement-content">@item.Content</p>
+                }
+            }
+
+
+            @* Show empty/end card only when there is space *@
+            @if (Model.TodayEvents == null ||
+                 Model.TodayEvents.Count < 3)
+            {
+                <div class="today-done-card">
+
+                    <span class="done-emoji">
+                        🎉
+                    </span>
+
+                    <p>
+                        @(Model.TodayEvents != null &&
+                          Model.TodayEvents.Any()
+                            ? "That's all for today"
+                            : "Nothing happening today")
+                    </p>
+
                 </div>
+            }
+
+        </div>
+    </section>
+
+
+    <!-- =====================================================
+         LOWER DASHBOARD
+
+         LEFT  = ANNOUNCEMENTS
+         RIGHT = UPCOMING + MEMBERSHIP
+    ====================================================== -->
+
+    <div class="lower-dashboard">
+
+
+        <!-- =================================================
+             LEFT SIDE
+             PINNED ANNOUNCEMENTS
+        ================================================== -->
+
+        <div class="dashboard-left">
+
+            <div class="announcement-panel">
+
+                <div class="announcement-panel-header">
+
+                    <i class="bi bi-pin-angle"></i>
+
+                    <span>
+                        Pinned Announcement@(Model?.PinnedAnnouncement != null &&
+                                                                     Model.PinnedAnnouncement.Count(a => a != null) > 1
+                                                    ? "s"
+                                                    : "")
+                    </span>
+
+                </div>
+
+
+                @if (Model?.PinnedAnnouncement != null &&
+                     Model.PinnedAnnouncement.Any(a => a != null))
+                {
+                    @foreach (var item in Model.PinnedAnnouncement)
+                    {
+                        if (item == null)
+                            continue;
+
+                        bool isLeader = item.PinScope == AnnouncementPinScope.Leader;
+
+                        string roleText = isLeader
+                            ? "Posted by Leader"
+                            : "Posted by Admin";
+
+                        string roleClass = isLeader
+                            ? "role-leader"
+                            : "role-admin";
+
+                        string cardClass = isLeader
+                            ? "announcement-leader"
+                            : "announcement-admin";
+
+
+                        <div class="announcement-card @cardClass">
+
+                            <!-- Avatar -->
+                            <div class="announcement-avatar">
+
+                                @if (!string.IsNullOrWhiteSpace(item.PhotoUrl))
+                                {
+                                    <img src="@item.PhotoUrl"
+                                         alt="@item.PostedByName" />
+                                }
+                                else
+                                {
+                                    <span>
+                                        @Initials(item.PostedByName)
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <div class="announcement-body">
+
+                                <!-- Title -->
+                                <div class="announcement-title">
+                                    @item.Title
+                                </div>
+
+
+                                <!-- Meta -->
+                                <div class="announcement-meta">
+
+                                    <span class="role-badge @roleClass">
+                                        @roleText
+                                    </span>
+
+                                    <span class="poster-name">
+                                        @item.PostedByName
+                                    </span>
+
+                                    @if (item.PublishedAt.HasValue)
+                                    {
+                                        <span class="announcement-date">
+
+                                            <i class="bi bi-calendar"></i>
+                                            @item.PublishedAt.Value.ToString("MMM d, yyyy")
+
+                                            <span class="meta-dot">•</span>
+
+                                            <i class="bi bi-clock"></i>
+                                            @item.PublishedAt.Value.ToString("h:mm tt")
+
+                                        </span>
+                                    }
+
+                                </div>
+
+
+                                <!-- Content -->
+                                <p class="announcement-content">
+                                    @item.Content
+                                </p>
+
+                            </div>
+
+                        </div>
+                    }
+
+
+                    <a href="#"
+                       class="view-all-link announcement-view-all">
+                        View all announcements
+                    </a>
+                }
+                else
+                {
+                    <div class="empty-announcement">
+                        No pinned announcements.
+                    </div>
+                }
+
             </div>
-        }
+
+        </div>
+
+
+
+        <!-- =================================================
+             RIGHT SIDE
+        ================================================== -->
+
+        <div class="dashboard-right">
+
+
+            <!-- =============================================
+                 UPCOMING EVENTS
+            ============================================== -->
+
+            <div class="panel-card upcoming-panel">
+
+
+                <div class="section-title small">
+                    Upcoming Events
+                </div>
+
+
+                @if (Model.UpcomingEvents != null &&
+                     Model.UpcomingEvents.Any())
+                {
+                    foreach (var ev in Model.UpcomingEvents)
+                    {
+                        <div class="upcoming-item">
+
+
+                            <!-- Date -->
+
+                            <div class="date-badge">
+
+                                <span class="day">
+                                    @ev.StartDate.Day.ToString("00")
+                                </span>
+
+                                <span class="month">
+                                    @ev.StartDate.ToString("MMM")
+                                </span>
+
+                            </div>
+
+
+                            <!-- Event Info -->
+
+                            <div class="upcoming-info">
+
+
+                                <div class="upcoming-title">
+                                    @ev.EventTitle
+                                </div>
+
+
+                                <div class="upcoming-meta">
+
+                                    <i class="bi bi-clock"></i>
+
+                                    <span>
+                                        @(ev.IsAllDay
+                                            ? "All day"
+                                            : FormatTimeRange(
+                                                ev.StartTime,
+                                                ev.EndTime
+                                            ))
+                                    </span>
+
+                                </div>
+
+
+                                <div class="upcoming-meta">
+
+                                    <i class="bi bi-geo-alt"></i>
+
+                                    <span>
+                                        @ev.FacilityName
+                                    </span>
+
+                                </div>
+
+
+                                <div class="upcoming-meta">
+
+                                    <i class="bi bi-person"></i>
+
+                                    <span>
+                                        By @ev.CreatedByName
+                                    </span>
+
+                                </div>
+
+
+                            </div>
+
+                        </div>
+                    }
+
+
+                    <a href="#"
+                       class="view-all-link">
+                        View all activities
+                    </a>
+                }
+                else
+                {
+                    <div class="empty-text">
+                        No upcoming events yet.
+                    </div>
+                }
+
+            </div>
+
+
+
+            <!-- =============================================
+                 MEMBERSHIP + ATTENDANCE
+            ============================================== -->
+
+            <div class="panel-card membership-card">
+
+
+                <!-- Membership -->
+
+                <div class="membership-info">
+
+                    <div class="section-title small">
+                        Membership
+                    </div>
+
+
+                    <div class="membership-group">
+                        @Model.Membership.GroupName
+                    </div>
+
+
+                    <div class="membership-meta">
+
+                        <span>
+                            @Model.Membership.MemberCount members
+                        </span>
+
+
+                        @if (!string.IsNullOrWhiteSpace(
+                            Model.Membership.GroupDescription))
+                        {
+                            <span class="membership-description">
+                                @Model.Membership.GroupDescription
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- Attendance -->
+
+                <div class="attendance-box">
+
+
+                    <div class="ring"
+                         style="--percent: @Model.AttendanceProgress.AttendancePercentage">
+
+                        <span>
+                            @Model.AttendanceProgress.AttendancePercentage%
+                        </span>
+
+                    </div>
+
+
+                    <div class="attendance-text">
+
+                        <strong>
+                            @Model.AttendanceProgress.AttendedEvents
+                            of
+                            @Model.AttendanceProgress.TotalEvents
+                            events attended!
+                        </strong>
+
+
+                        <p>
+                            Keep it up -
+                            @Model.AttendanceProgress.RemainingForBadge
+                            more to reach your quarterly badge 🏅
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-}
+
+</div>
+
+
+
+<style>
+
+    /* =====================================================
+           DASHBOARD ROOT
+        ====================================================== */
+
+    .dash-wrap {
+        width: 100%;
+        font-family: inherit;
+        color: #263241;
+    }
+
+
+        /* =====================================================
+           GREETING
+        ====================================================== */
+
+        .dash-wrap .dash-greeting {
+            margin-bottom: 26px;
+        }
+
+            .dash-wrap .dash-greeting h2 {
+                margin: 0;
+                font-size: 1.75rem;
+                line-height: 1.2;
+                font-weight: 700;
+                color: #202b3c;
+            }
+
+        .dash-wrap .accent-text {
+            color: #078ed4;
+        }
+
+
+        /* =====================================================
+           COMMON SECTION TITLE
+        ====================================================== */
+
+        .dash-wrap .section-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 0 10px 0;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #263241;
+        }
+
+            .dash-wrap .section-title.small {
+                margin-bottom: 12px;
+                font-size: 0.9rem;
+            }
+
+
+
+        /* =====================================================
+           TODAY SECTION
+        ====================================================== */
+
+        .dash-wrap .today-section {
+            margin-bottom: 16px;
+        }
+
+
+        .dash-wrap .today-section-title {
+            margin-bottom: 10px;
+        }
+
+
+        /*
+            Exactly 3 cards:
+            Event 1 | Event 2 | That's all for today
+        */
+
+        .dash-wrap .today-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.65fr);
+            gap: 14px;
+            max-width: 860px;
+        }
+
+
+        /* =====================================================
+           TODAY EVENT CARD
+        ====================================================== */
+
+        .dash-wrap .today-card {
+            min-height: 145px;
+            position: relative;
+            padding: 12px 14px;
+            background: #ffffff;
+            border: 1px solid #e4e9ee;
+            border-radius: 12px;
+            box-shadow: none;
+        }
+
+
+        .dash-wrap .badge-today {
+            display: inline-block;
+            padding: 3px 9px;
+            background: #dff3ff;
+            border-radius: 5px;
+            color: #078ed4;
+            font-size: 0.6rem;
+            line-height: 1.2;
+            font-weight: 700;
+        }
+
+
+        .dash-wrap .today-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 7px;
+        }
+
+
+            .dash-wrap .today-card-top h5 {
+                margin: 0;
+                min-width: 0;
+                font-size: 0.9rem;
+                line-height: 1.25;
+                font-weight: 700;
+                color: #202b3c;
+            }
+
+
+        .dash-wrap .time-status {
+            flex-shrink: 0;
+            padding-top: 2px;
+            font-size: 0.56rem;
+            color: #929aa4;
+            white-space: nowrap;
+        }
+
+
+        .dash-wrap .today-info-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 7px;
+            font-size: 0.7rem;
+            color: #596574;
+        }
+
+
+            .dash-wrap .today-info-line i {
+                font-size: 0.7rem;
+            }
+
+
+        .dash-wrap .today-divider {
+            width: 100%;
+            height: 1px;
+            margin: 10px 0 8px;
+            background: #dfe4e8;
+        }
+
+
+        .dash-wrap .hosted-by {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.68rem;
+            color: #078ed4;
+        }
+
+
+
+        /* =====================================================
+           TODAY DONE CARD
+        ====================================================== */
+
+        .dash-wrap .today-done-card {
+            min-height: 145px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: transparent;
+            border: 1px dashed #b6c4d0;
+            border-radius: 12px;
+            color: #263241;
+        }
+
+
+        .dash-wrap .done-emoji {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.7rem;
+        }
+
+
+        .dash-wrap .today-done-card p {
+            margin: 0;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+
+
+        /* =====================================================
+           LOWER TWO-COLUMN DASHBOARD
+        ====================================================== */
+
+        .dash-wrap .lower-dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            align-items: start;
+            gap: 16px;
+        }
+
+
+        .dash-wrap .dashboard-left,
+        .dash-wrap .dashboard-right {
+            min-width: 0;
+        }
+
+
+        .dash-wrap .dashboard-right {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+
+
+        /* =====================================================
+           COMMON PANEL
+        ====================================================== */
+
+        .dash-wrap .panel-card,
+        .dash-wrap .announcement-panel {
+            background: #ffffff;
+            border: 1px solid #edf0f3;
+            border-radius: 14px;
+            box-shadow: none;
+        }
+
+
+        .dash-wrap .panel-card {
+            padding: 14px;
+        }
+
+
+        /* =====================================================
+           ANNOUNCEMENT PANEL
+        ====================================================== */
+
+        .dash-wrap .announcement-panel {
+            position: relative;
+            padding: 14px;
+            min-height: 310px;
+        }
+
+
+        .dash-wrap .announcement-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #263241;
+        }
+
+
+            .dash-wrap .announcement-panel-header i {
+                font-size: 0.85rem;
+            }
+
+
+
+        /* =====================================================
+           ANNOUNCEMENT CARD
+        ====================================================== */
+
+        .dash-wrap .announcement-card {
+            --announcement-accent: #078ed4;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 13px 10px 15px;
+            margin-bottom: 12px;
+            background: #fafafa;
+            border: 0;
+            border-top: 4px solid var(--announcement-accent);
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+
+            .dash-wrap .announcement-card:last-of-type {
+                margin-bottom: 8px;
+            }
+
+
+        .dash-wrap .announcement-avatar {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #eaf4ff;
+            border-radius: 50%;
+            color: #078ed4;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+
+            .dash-wrap .announcement-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+
+        .dash-wrap .announcement-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+
+        .dash-wrap .announcement-title {
+            font-size: 0.82rem;
+            line-height: 1.3;
+            font-weight: 700;
+            color: #263241;
+        }
+
+
+        .dash-wrap .announcement-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0 8px;
+            font-size: 0.6rem;
+            color: #89929e;
+        }
+
+        .dash-wrap .announcement-card.announcement-admin {
+            border-top: 4px solid #078ed4;
+        }
+
+        .dash-wrap .announcement-card.announcement-leader {
+            border-top: 4px solid #f0a34e;
+        }
+
+
+        .dash-wrap .role-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+
+
+            .dash-wrap .role-badge.role-admin {
+                background: #dff3ff;
+                color: #078ed4;
+            }
+
+
+            .dash-wrap .role-badge.role-leader {
+                background: #fff0df;
+                color: #e58a22;
+            }
+
+
+        /* Actual poster name */
+        .dash-wrap .poster-name {
+            color: #89929e;
+            font-size: 0.6rem;
+        }
+
+
+        /* Date */
+        .dash-wrap .announcement-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #89929e;
+        }
+
+
+        .dash-wrap .announcement-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+
+        .dash-wrap .announcement-content {
+            margin: 0;
+            font-size: 0.7rem;
+            line-height: 1.55;
+            color: #303a46;
+            white-space: pre-line;
+        }
+
+
+        .dash-wrap .empty-announcement {
+            padding: 25px 10px;
+            text-align: center;
+            font-size: 0.72rem;
+            color: #929aa4;
+        }
+
+
+
+        /* =====================================================
+           VIEW ALL
+        ====================================================== */
+
+        .dash-wrap .view-all-link {
+            display: block;
+            margin-top: 7px;
+            text-align: right;
+            color: #078ed4;
+            font-size: 0.62rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+
+            .dash-wrap .view-all-link:hover {
+                text-decoration: underline;
+            }
+
+
+        .dash-wrap .announcement-view-all {
+            margin-top: 8px;
+        }
+
+
+
+        /* =====================================================
+           UPCOMING PANEL
+        ====================================================== */
+
+        .dash-wrap .upcoming-panel {
+            min-height: 220px;
+        }
+
+
+        .dash-wrap .upcoming-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            margin-bottom: 9px;
+            background: #ffffff;
+            border: 1px solid #e3e8ec;
+            border-radius: 10px;
+        }
+
+
+        .dash-wrap .date-badge {
+            width: 50px;
+            height: 58px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #dff4ff;
+            border-radius: 8px;
+            color: #078ed4;
+            line-height: 1;
+        }
+
+
+            .dash-wrap .date-badge .day {
+                font-size: 1rem;
+                font-weight: 700;
+            }
+
+
+            .dash-wrap .date-badge .month {
+                margin-top: 5px;
+                font-size: 0.68rem;
+                font-weight: 700;
+            }
+
+
+        .dash-wrap .upcoming-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+
+        .dash-wrap .upcoming-title {
+            margin-bottom: 3px;
+            font-size: 0.8rem;
+            line-height: 1.25;
+            font-weight: 700;
+            color: #263241;
+        }
+
+
+        .dash-wrap .upcoming-meta {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 2px;
+            font-size: 0.6rem;
+            color: #697481;
+        }
+
+
+            .dash-wrap .upcoming-meta i {
+                flex-shrink: 0;
+                font-size: 0.62rem;
+            }
+
+
+        .dash-wrap .empty-text {
+            padding: 15px 0;
+            font-size: 0.7rem;
+            color: #929aa4;
+        }
+
+
+
+        /* =====================================================
+           MEMBERSHIP PANEL
+        ====================================================== */
+
+        .dash-wrap .membership-card {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            align-items: center;
+            gap: 16px;
+        }
+
+
+        .dash-wrap .membership-info {
+            min-width: 0;
+        }
+
+
+            .dash-wrap .membership-info .section-title {
+                margin-bottom: 9px;
+            }
+
+
+        .dash-wrap .membership-group {
+            font-size: 0.88rem;
+            line-height: 1.25;
+            font-weight: 700;
+            color: #263241;
+        }
+
+
+        .dash-wrap .membership-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 7px;
+            font-size: 0.62rem;
+            color: #89929e;
+        }
+
+
+        .dash-wrap .membership-description {
+            display: inline-block;
+        }
+
+
+
+        /* =====================================================
+           ATTENDANCE BOX
+        ====================================================== */
+
+        .dash-wrap .attendance-box {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+
+
+        /* =====================================================
+           ATTENDANCE RING
+        ====================================================== */
+
+        .dash-wrap .ring {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient( #078ed4 calc(var(--percent) * 1%), #e8ecef 0 );
+            border-radius: 50%;
+        }
+
+
+            .dash-wrap .ring::before {
+                content: "";
+                position: absolute;
+                width: 38px;
+                height: 38px;
+                background: #f8fafc;
+                border-radius: 50%;
+            }
+
+
+            .dash-wrap .ring span {
+                position: relative;
+                z-index: 1;
+                font-size: 0.62rem;
+                font-weight: 700;
+                color: #263241;
+            }
+
+
+
+        /* =====================================================
+           ATTENDANCE TEXT
+        ====================================================== */
+
+        .dash-wrap .attendance-text {
+            min-width: 0;
+        }
+
+
+            .dash-wrap .attendance-text strong {
+                display: block;
+                font-size: 0.7rem;
+                line-height: 1.35;
+                font-weight: 700;
+                color: #263241;
+            }
+
+
+            .dash-wrap .attendance-text p {
+                margin: 3px 0 0;
+                font-size: 0.58rem;
+                line-height: 1.4;
+                color: #89929e;
+            }
+
+
+
+    /* =====================================================
+           RESPONSIVE - TABLET
+        ====================================================== */
+
+    @@media (max-width: 1000px) {
+
+        .dash-wrap .today-row {
+            max-width: none;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        }
+
+
+        .dash-wrap .today-done-card {
+            grid-column: span 2;
+            min-height: 100px;
+        }
+
+
+        .dash-wrap .lower-dashboard {
+            grid-template-columns: 1fr;
+        }
+
+
+        .dash-wrap .announcement-panel {
+            min-height: auto;
+        }
+    }
+
+
+
+    /* =====================================================
+           RESPONSIVE - MOBILE
+        ====================================================== */
+
+    @@media (max-width: 650px) {
+
+        .dash-wrap .dash-greeting {
+            margin-bottom: 20px;
+        }
+
+
+            .dash-wrap .dash-greeting h2 {
+                font-size: 1.4rem;
+            }
+
+
+        .dash-wrap .today-row {
+            grid-template-columns: 1fr;
+        }
+
+
+        .dash-wrap .today-done-card {
+            grid-column: auto;
+            min-height: 100px;
+        }
+
+
+        .dash-wrap .membership-card {
+            grid-template-columns: 1fr;
+        }
+
+
+        .dash-wrap .attendance-box {
+            width: 100%;
+        }
+
+
+        .dash-wrap .announcement-card {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    }
+
+</style>

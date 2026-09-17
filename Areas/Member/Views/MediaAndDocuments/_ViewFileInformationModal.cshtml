@@ -1,5 +1,74 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Sym_Connect__Capstone2_.Helpers
+@model Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.FileInformationViewModel
+
 @{
+    string StatusBadgeClass(MediaFileStatus status) => status switch
+    {
+        MediaFileStatus.Published => "status-badge status-published",
+        MediaFileStatus.Pending => "status-badge status-pending",
+        MediaFileStatus.Rejected => "status-badge status-rejected",
+        _ => "status-badge"
+    };
+
+    var (fileIcon, fileIconColor) = FileIconHelper.GetFileIcon(Model?.FileExtension);
+
+    string FormatSize(string rawBytes)
+    {
+        if (!long.TryParse(rawBytes, out var bytes)) return rawBytes;
+        string[] units = { "B", "KB", "MB", "GB" };
+        double size = bytes;
+        int unitIndex = 0;
+        while (size >= 1024 && unitIndex < units.Length - 1)
+        {
+            size /= 1024;
+            unitIndex++;
+        }
+        return $"{size:0.##} {units[unitIndex]}";
+    }
+}
+
+@if (Model == null)
+{
+    <p class="text-muted text-center py-4 mb-0">File not found.</p>
+}
+else
+{
+    <div class="file-info-body">
+        <div class="file-info-header">
+            <div class="file-info-icon">
+                <i class="bi @fileIcon @fileIconColor"></i>
+            </div>
+            <div>
+                <div class="file-info-name">@Model.FileName</div>
+                <div class="file-info-ext">@Model.FileExtension.TrimStart('.').ToUpperInvariant() file</div>
+            </div>
+        </div>
+
+        <div class="file-info-badges">
+            <span class="@StatusBadgeClass(Model.Status)">@Model.Status</span>
+            <span class="visibility-badge">
+                <i class="bi @(Model.Visibility == "Private" ? "bi-lock-fill" : "bi-globe")"></i>
+                @Model.Visibility
+            </span>
+        </div>
+
+        <dl class="file-info-list">
+            <div class="file-info-row">
+                <dt>Uploaded by</dt>
+                <dd>@Model.UploadedBy</dd>
+            </div>
+            <div class="file-info-row">
+                <dt>Uploaded on</dt>
+                <dd>@Model.CreatedAt.ToString("MMM d, yyyy h:mm tt")</dd>
+            </div>
+            <div class="file-info-row">
+                <dt>File size</dt>
+                <dd>@FormatSize(Model.Size)</dd>
+            </div>
+        </dl>
+
+        <div class="file-info-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+    </div>
 }

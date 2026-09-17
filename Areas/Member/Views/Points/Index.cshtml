@@ -1,0 +1,265 @@
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Points.MemberPointsViewModel
+
+@{
+    ViewData["Title"] = "My Points";
+    Layout = "_MemberLayout";
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/mypoints.css"
+          asp-append-version="true" />
+}
+
+<div class="mp-page">
+
+    <div class="mb-4">
+        <h2 class="mp-title">My Points</h2>
+        <p class="mp-subtitle">
+            Everything you've joined, attended, and voted on
+        </p>
+    </div>
+
+
+    <!-- =========================================
+         SUMMARY
+    ========================================== -->
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <div class="mp-card mp-summary">
+
+                <div class="mp-summary-icon mp-summary-icon--coin">
+                    <i class="bi bi-coin"></i>
+                </div>
+
+                <div>
+                    <p class="mp-summary-value mp-summary-value--points">
+                        @Model.TotalPoints <span>Points</span>
+                    </p>
+
+                    <div class="mp-summary-label">
+                        Total points earned
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <div class="mp-card mp-summary">
+
+                <div class="mp-summary-icon mp-summary-icon--present">
+                    <i class="bi bi-check-lg"></i>
+                </div>
+
+                <div>
+                    <p class="mp-summary-value">
+                        @Model.AttendanceCount
+                    </p>
+
+                    <div class="mp-summary-label">
+                        Attendance
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <div class="mp-card mp-summary">
+
+                <div class="mp-summary-icon mp-summary-icon--absent">
+                    <i class="bi bi-x-lg"></i>
+                </div>
+
+                <div>
+                    <p class="mp-summary-value">
+                        @Model.AbsentCount
+                    </p>
+
+                    <div class="mp-summary-label">
+                        Absents
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         FILTERS + SEARCH
+    ========================================== -->
+
+    <div class="mp-toolbar">
+
+        <div class="mp-filters"
+             role="group"
+             aria-label="Filter activities">
+
+            <button type="button"
+                    class="mp-filter is-active"
+                    data-filter="all">
+                All
+            </button>
+
+            <button type="button"
+                    class="mp-filter"
+                    data-filter="present">
+                Attended
+            </button>
+
+            <button type="button"
+                    class="mp-filter"
+                    data-filter="absent">
+                Missed
+            </button>
+
+        </div>
+
+
+        <div class="mp-search">
+
+            <i class="bi bi-search"></i>
+
+            <label class="visually-hidden"
+                   for="mpSearch">
+                Search your activities
+            </label>
+
+            <input id="mpSearch"
+                   type="search"
+                   placeholder="Search your activities" />
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         ACTIVITIES
+    ========================================== -->
+
+    <div class="row g-3"
+         id="mpActivities">
+
+        @foreach (var activity in Model.Activities)
+        {
+            var isPresent = activity.Points > 0;
+
+            var statusKey = isPresent
+                ? "present"
+                : "absent";
+
+
+            <div class="col-md-4 mp-item"
+                 data-status="@statusKey"
+                 data-title="@activity.EventTitle.ToLowerInvariant()">
+
+
+                <!--
+                    IMPORTANT:
+
+                    data-attendance-id stores the AttendanceId.
+
+                    JavaScript will read this when the member
+                    clicks the card.
+                -->
+
+                <div class="mp-card mp-activity point-activity-card"
+                     data-attendance-id="@activity.AttendanceId"
+                     role="button"
+                     tabindex="0">
+
+
+                    <!-- CARD HEADER -->
+
+                    <div class="mp-activity-head">
+
+                        <h5 class="mp-activity-title">
+                            @activity.EventTitle
+                        </h5>
+
+                        <span class="mp-badge mp-badge--@statusKey">
+                            @activity.Status
+                        </span>
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <p class="mp-meta">
+
+                        <i class="bi bi-calendar"></i>
+
+                        @activity.EventDate.ToString("MMM dd, yyyy")
+
+                    </p>
+
+
+                    <!-- FACILITY -->
+
+                    <p class="mp-meta">
+
+                        <i class="bi bi-geo-alt"></i>
+
+                        @activity.FacilityName
+
+                    </p>
+
+
+                    <hr class="mp-divider" />
+
+
+                    <!-- POINTS -->
+
+                    @if (isPresent)
+                    {
+                        <div class="mp-points">
+                            + @activity.Points pts
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mp-points mp-points--zero">
+                            0 pts
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+
+
+    <!-- EMPTY FILTER RESULT -->
+
+    <p class="mp-empty d-none"
+       id="mpEmpty">
+        No activities match your search.
+    </p>
+
+</div>
+
+
+<!-- =========================================
+     MODAL WILL BE INSERTED HERE
+========================================== -->
+
+<div id="pointDetailsModalContainer"></div>
+
+
+@section Scripts {
+
+    <script src="~/js/eventdetails.js"
+            asp-append-version="true"></script>
+
+}

@@ -27,5 +27,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<ArchivedElectionDetailsViewModel?> GetArchivedDetailsAsync(int id);
 
+        Task<List<VotingHistoryViewModel>> GetVotingHistoryAsync(string userId);
+
     }
 }

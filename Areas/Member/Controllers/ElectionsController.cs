@@ -17,11 +17,11 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
     [Authorize(Roles = "Member")]
     public class ElectionsController : Controller
     {
-        private readonly IElectionService _electionService;
+        private readonly IMemberElectionService _electionService;
         private readonly UserManager<User> _userManager;
 
 
-        public ElectionsController(IElectionService electionService, UserManager<User> userManager)
+        public ElectionsController(IMemberElectionService electionService, UserManager<User> userManager)
         {
             _electionService = electionService;
             _userManager = userManager;
@@ -37,14 +37,19 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             if (user == null)
                 return Challenge();
 
-
-
             if (user.MemberId == null)
                 return Forbid();
 
-            var elections = await _electionService.getAllElectionList();
+            var activeElections = await _electionService.getAllElectionList();
+            var votingHistory = await _electionService.GetVotingHistoryAsync(user.Id);
 
-            return View(elections);
+            var viewModel = new ElectionIndexViewModel
+            {
+                ActiveElections = activeElections,
+                VotingHistory = votingHistory
+            };
+
+            return View(viewModel);
         }
 
 
@@ -205,5 +210,25 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             return View();
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> Results(int electionId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Challenge();
+
+            if (user.MemberId == null)
+                return Forbid();
+
+            var result = await _electionService
+                .GetElectionResultAsync(electionId, user.Id);
+
+            if (result == null)
+                return NotFound();
+
+            return View(result);
+        }
     }
 }

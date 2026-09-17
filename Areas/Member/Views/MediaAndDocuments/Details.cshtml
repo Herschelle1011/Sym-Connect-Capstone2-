@@ -1,0 +1,559 @@
+﻿@model List<Sym_Connect__Capstone2_.ViewModels.MediaAndDocuments.MediaFileViewModel>
+
+@{
+    ViewData["Title"] = "Media & Documents";
+    Layout = "_MemberLayout";
+
+    int? folderId = ViewBag.FolderId;
+    string FolderName = ViewBag.FolderName ?? "Folder";
+
+    // Maps the file extension to its correct icon
+    (string Icon, string ColorClass) GetFileIcon(string ext)
+    {
+        return ext?.ToLower() switch
+        {
+            ".pdf" => ("bi-file-earmark-pdf-fill", "file-icon-pdf"),
+
+            ".doc" or ".docx"
+                => ("bi-file-earmark-word-fill", "file-icon-docx"),
+
+            ".xls" or ".xlsx"
+                => ("bi-file-earmark-excel-fill", "file-icon-xlsx"),
+
+            ".ppt" or ".pptx"
+                => ("bi-file-earmark-slides-fill", "file-icon-pptx"),
+
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp"
+                => ("bi-file-earmark-image-fill", "file-icon-image"),
+
+            _ => ("bi-file-earmark-fill", "file-icon-default")
+        };
+    }
+}
+
+
+<div class="media-page">
+
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div>
+            <h2>@FolderName</h2>
+
+            <p class="page-subtitle">
+                View SYM files and media shared by the administration
+            </p>
+        </div>
+
+    </div>
+
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb-row">
+
+        <span class="breadcrumb">
+
+            <a asp-area="Member"
+               asp-controller="Dashboard"
+               asp-action="Index">
+                Home
+            </a>
+
+            /
+
+            <a asp-area="Member"
+               asp-controller="MediaAndDocuments"
+               asp-action="Index">
+                Documents &amp; Media
+            </a>
+
+            /
+
+            @FolderName
+
+        </span>
+
+    </div>
+
+
+    <!-- TOOLBAR -->
+    <div class="file-toolbar">
+
+        <!-- SEARCH -->
+        <div class="file-search-box">
+
+            <i class="bi bi-search"></i>
+
+            <input type="text"
+                   id="fileSearchInput"
+                   placeholder="Search" />
+
+        </div>
+
+
+        <!-- DATE SORT -->
+        <div class="dropdown">
+
+            <button class="btn btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+
+                <i class="bi bi-calendar3"></i>
+                Modified dates
+
+            </button>
+
+            <ul class="dropdown-menu">
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-sort="newest">
+                        Newest first
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-sort="oldest">
+                        Oldest first
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <!-- TYPE FILTER -->
+        <div class="dropdown">
+
+            <button class="btn btn-outline-secondary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+
+                Type
+
+            </button>
+
+            <ul class="dropdown-menu">
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-type="all">
+                        All
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-type="pdf">
+                        PDF
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-type="docx">
+                        Docx
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-type="xlsx">
+                        Xlsx
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-type="pptx">
+                        PowerPoint
+                    </a>
+                </li>
+
+                <li>
+                    <a class="dropdown-item"
+                       href="#"
+                       data-type="image">
+                        Image
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+
+    <!-- FILE TABLE -->
+    <div class="file-table-wrapper">
+
+        <table class="table file-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        File Name
+                    </th>
+
+                    <th>
+                        Type
+                    </th>
+
+                    <th>
+                        Uploaded by
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <th class="actions-col"></th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody id="fileTableBody">
+
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+
+                        <td colspan="5"
+                            class="text-center text-muted">
+
+                            No files here yet.
+
+                        </td>
+
+                    </tr>
+                }
+                else
+                {
+                    foreach (var f in Model)
+                    {
+                        var (icon, colorClass) =
+                            GetFileIcon(f.FileExtension);
+
+                        // Used by the JavaScript filters
+                        var extension =
+                            f.FileExtension?
+                                .Replace(".", "")
+                                .ToLower() ?? "";
+
+                        var fileType =
+                            extension switch
+                            {
+                                "jpg" or "jpeg" or "png" or "gif" or "webp"
+                                    => "image",
+
+                                "doc"
+                                    => "docx",
+
+                                "xls"
+                                    => "xlsx",
+
+                                "ppt"
+                                    => "pptx",
+
+                                _ => extension
+                            };
+
+
+                        <tr data-id="@f.MediaFileId"
+                            data-file-name="@f.FileName?.ToLower()"
+                            data-file-type="@fileType"
+                            data-upload-date="@f.UploadedDate.ToString("yyyy-MM-ddTHH:mm:ss")">
+
+                            <!-- FILE NAME -->
+                            <td>
+
+                                <div class="file-name-cell">
+
+                                    <span class="file-icon-badge @colorClass">
+
+                                        <i class="bi @icon"></i>
+
+                                    </span>
+
+
+                                    <a href="@f.FileUrl"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+
+                                        @f.FileName
+
+                                    </a>
+
+                                </div>
+
+                            </td>
+
+
+                            <!-- FILE TYPE -->
+                            <td>
+                                @f.FileExtension?.ToUpper()
+                            </td>
+
+
+                            <!-- UPLOADED BY -->
+                            <td>
+                                @f.UploadedBy
+                            </td>
+
+
+                            <!-- UPLOAD DATE -->
+                            <td>
+                                @f.UploadedDate.ToString("MMM. d, yyyy")
+                            </td>
+
+
+                            <!-- ACTION -->
+                            <td class="actions-col">
+
+                                <div class="dropdown file-kebab-wrapper">
+
+                                    <button class="btn-kebab"
+                                            type="button"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+
+                                        ⋮
+
+                                    </button>
+
+
+                                    <ul class="dropdown-menu dropdown-menu-end">
+
+                                        <!-- VIEW FILE -->
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               href="@f.FileUrl"
+                                               target="_blank"
+                                               rel="noopener noreferrer">
+
+                                                <i class="bi bi-eye"></i>
+                                                View file
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <!-- DOWNLOAD -->
+                                        <li>
+
+                                            <a class="dropdown-item"
+                                               asp-area="Member"
+                                               asp-controller="MediaAndDocuments"
+                                               asp-action="Download"
+                                               asp-route-id="@f.MediaFileId">
+
+                                                <i class="bi bi-download"></i>
+                                                Download
+
+                                            </a>
+
+                                        </li>
+
+
+                                        <!-- FILE INFORMATION -->
+                                        <li>
+
+                                            <a class="dropdown-item open-modal file-information-link"
+                                               href="#"
+                                               data-file-id="@f.MediaFileId"
+                                               data-title="File Information"
+                                               data-icon="bi-info-circle"
+                                               data-url="@Url.Action(
+                                                                                                  "FileInformation",
+                                                                                                  "MediaAndDocuments",
+                                                                                                  new
+                                                                                                  {
+                                                                                                      area = "Member",
+                                                                                                      id = f.MediaFileId
+                                                                                                  })">
+
+                                                <i class="bi bi-info-circle"></i>
+                                                File information
+
+                                            </a>
+
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const searchInput =
+                document.getElementById("fileSearchInput");
+
+            const tableBody =
+                document.getElementById("fileTableBody");
+
+
+            // ==============================
+            // SEARCH
+            // ==============================
+
+            if (searchInput) {
+
+                searchInput.addEventListener("input", function () {
+
+                    const searchValue =
+                        this.value.trim().toLowerCase();
+
+                    const rows =
+                        tableBody.querySelectorAll("tr[data-id]");
+
+                    rows.forEach(function (row) {
+
+                        const fileName =
+                            row.dataset.fileName || "";
+
+                        row.style.display =
+                            fileName.includes(searchValue)
+                                ? ""
+                                : "none";
+
+                    });
+
+                });
+
+            }
+
+
+            // ==============================
+            // FILE TYPE FILTER
+            // ==============================
+
+            const typeButtons =
+                document.querySelectorAll("[data-type]");
+
+            typeButtons.forEach(function (button) {
+
+                button.addEventListener("click", function (event) {
+
+                    event.preventDefault();
+
+                    const selectedType =
+                        this.dataset.type;
+
+                    const rows =
+                        tableBody.querySelectorAll("tr[data-id]");
+
+
+                    rows.forEach(function (row) {
+
+                        const fileType =
+                            row.dataset.fileType || "";
+
+                        if (
+                            selectedType === "all" ||
+                            fileType === selectedType
+                        ) {
+                            row.style.display = "";
+                        }
+                        else {
+                            row.style.display = "none";
+                        }
+
+                    });
+
+                });
+
+            });
+
+
+            // ==============================
+            // DATE SORT
+            // ==============================
+
+            const sortButtons =
+                document.querySelectorAll("[data-sort]");
+
+            sortButtons.forEach(function (button) {
+
+                button.addEventListener("click", function (event) {
+
+                    event.preventDefault();
+
+                    const sortType =
+                        this.dataset.sort;
+
+                    const rows =
+                        Array.from(
+                            tableBody.querySelectorAll("tr[data-id]")
+                        );
+
+
+                    rows.sort(function (a, b) {
+
+                        const dateA =
+                            new Date(a.dataset.uploadDate);
+
+                        const dateB =
+                            new Date(b.dataset.uploadDate);
+
+
+                        if (sortType === "oldest") {
+
+                            return dateA - dateB;
+
+                        }
+
+                        return dateB - dateA;
+
+                    });
+
+
+                    rows.forEach(function (row) {
+
+                        tableBody.appendChild(row);
+
+                    });
+
+                });
+
+            });
+
+        });
+
+    </script>
+
+}

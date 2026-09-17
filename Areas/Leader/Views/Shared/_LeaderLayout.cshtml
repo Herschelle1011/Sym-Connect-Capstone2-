@@ -199,13 +199,85 @@
                 <span class="nav-label">My Groups</span>
             </a>
 
-            <a asp-area="Leader"
-               asp-controller="Evaluations"
-               asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations" ? "active" : "")">
-                <i class="bi bi-star-half"></i>
-                <span class="nav-label">Evaluation</span>
-            </a>
+            <div class="nav-item-group">
+
+                <a href="#leaderEvaluationSubmenu"
+                   class="nav-item nav-item-toggle
+                    @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations"
+                       ? "active"
+                       : "")"
+                   data-bs-toggle="collapse"
+                   role="button"
+                   aria-expanded="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations"
+                              ? "true"
+                              : "false")"
+                   aria-controls="leaderEvaluationSubmenu">
+
+                    <i class="bi bi-star-half"></i>
+
+                    <span class="nav-label">
+                        Evaluation
+                    </span>
+
+                    <i class="bi bi-chevron-down nav-toggle-caret"></i>
+
+                </a>
+
+
+                <div class="collapse
+                    @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations"
+                         ? "show"
+                         : "")"
+                     id="leaderEvaluationSubmenu">
+
+                    <div class="nav-submenu">
+
+                        <!-- CREATED EVALUATIONS -->
+                        <a asp-area="Leader"
+                           asp-controller="Evaluations"
+                           asp-action="Index"
+                           class="nav-subitem
+                            @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations"
+                               && ViewContext.RouteData.Values["action"]?.ToString() == "Index"
+                               ? "active"
+                               : "")">
+
+                            <i class="bi bi-pencil-square"></i>
+
+                            <span class="nav-label">
+                                Created Evaluations
+                            </span>
+
+                        </a>
+
+
+                        <!-- ASSIGNED TO ME -->
+                        <a asp-area="Leader"
+                           asp-controller="Evaluations"
+                           asp-action="AssignedToMe"
+                           class="nav-subitem
+                            @(ViewContext.RouteData.Values["controller"]?.ToString() == "Evaluations"
+                               && (
+                                   ViewContext.RouteData.Values["action"]?.ToString() == "AssignedToMe"
+                                   || ViewContext.RouteData.Values["action"]?.ToString() == "TakeEvaluation"
+                                   || ViewContext.RouteData.Values["action"]?.ToString() == "ThankYou"
+                               )
+                               ? "active"
+                               : "")">
+
+                            <i class="bi bi-clipboard-check"></i>
+
+                            <span class="nav-label">
+                                Assigned To Me
+                            </span>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
 
             <a asp-area="Leader"
                asp-controller="Election"

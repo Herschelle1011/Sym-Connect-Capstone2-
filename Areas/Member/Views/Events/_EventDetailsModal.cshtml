@@ -1,0 +1,320 @@
+﻿@model MemberEventDetailsViewModel
+
+@{
+    var hasMultiplePhotos =
+        Model.FacilityPhotoUrls != null &&
+        Model.FacilityPhotoUrls.Count > 1;
+
+    var facilityText =
+        Model.FacilityNames != null &&
+        Model.FacilityNames.Any()
+            ? string.Join(", ", Model.FacilityNames)
+            : "No facility assigned";
+}
+
+
+<style>
+    /* =========================
+           FACILITY PHOTO STRIP
+        ========================== */
+
+    .event-photo-strip-wrap {
+        position: relative;
+    }
+
+    .event-photo-strip {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+        .event-photo-strip::-webkit-scrollbar {
+            display: none;
+        }
+
+    .event-photo-slide {
+        flex: 0 0 100%;
+        scroll-snap-align: center;
+    }
+
+    .event-facility-photo {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .event-strip-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, .4);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .95rem;
+        z-index: 3;
+        transition: background .15s ease;
+    }
+
+        .event-strip-btn.prev {
+            left: 10px;
+        }
+
+        .event-strip-btn.next {
+            right: 10px;
+        }
+
+        .event-strip-btn:hover {
+            background: rgba(0, 0, 0, .6);
+            color: #fff;
+        }
+
+    .event-strip-count {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        background: rgba(0, 0, 0, .45);
+        color: #fff;
+        font-size: .68rem;
+        font-weight: 600;
+        padding: 3px 9px;
+        border-radius: 20px;
+        z-index: 3;
+    }
+</style>
+
+
+<div class="member-event-details">
+
+    <!-- ==============================
+         BLUE HEADER
+    =============================== -->
+
+    <div class="event-modal-header">
+
+        <div>
+
+            <div class="event-modal-label">
+                EVENT
+            </div>
+
+            <h4 class="event-modal-title">
+                @Model.EventTitle
+            </h4>
+
+        </div>
+
+
+        <button type="button"
+                class="event-modal-close"
+                data-bs-dismiss="modal"
+                aria-label="Close">
+
+            <i class="bi bi-x-lg"></i>
+
+        </button>
+
+    </div>
+
+
+    <!-- ==============================
+         FACILITY PHOTOS
+    =============================== -->
+    @if (Model.FacilityPhotoUrls != null &&
+             Model.FacilityPhotoUrls.Any())
+    {
+        <div class="event-photo-strip-wrap">
+
+            <div class="event-photo-strip"
+                 id="eventPhotoStrip">
+
+                @foreach (var photo in Model.FacilityPhotoUrls)
+                {
+                    <div class="event-photo-slide">
+
+                        <img src="@photo"
+                             class="event-facility-photo"
+                             alt="@Model.EventTitle" />
+
+                    </div>
+                }
+
+            </div>
+
+
+            @if (hasMultiplePhotos)
+            {
+                <!-- PREVIOUS -->
+                <button type="button"
+                        class="event-strip-btn prev"
+                        data-strip-dir="-1"
+                        aria-label="Previous photo">
+
+                    <i class="bi bi-chevron-left"></i>
+
+                </button>
+
+
+                <!-- NEXT -->
+                <button type="button"
+                        class="event-strip-btn next"
+                        data-strip-dir="1"
+                        aria-label="Next photo">
+
+                    <i class="bi bi-chevron-right"></i>
+
+                </button>
+
+
+                <!-- PHOTO COUNT -->
+                <span class="event-strip-count">
+                    @Model.FacilityPhotoUrls.Count photos
+                </span>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="event-no-photo">
+
+            <i class="bi bi-image"></i>
+
+            <span>
+                No facility photo available
+            </span>
+
+        </div>
+    }
+
+
+    <!-- ==============================
+         CONTENT
+    =============================== -->
+
+    <div class="event-modal-body">
+
+
+        <!-- ABOUT -->
+        <div class="event-about">
+
+            <div class="event-section-label">
+                About
+            </div>
+
+            <p>
+                @Model.EventDescription
+            </p>
+
+        </div>
+
+
+        <!-- ==============================
+             INFORMATION
+        =============================== -->
+
+        <div class="event-info-list">
+
+
+            <!-- TIME -->
+            <div class="event-info-item">
+
+                <i class="bi bi-clock"></i>
+
+                <span>
+
+                    @if (Model.IsAllDay)
+                    {
+                        <text>All Day</text>
+                    }
+                    else
+                    {
+                        @($"{Model.StartTime:hh\\:mm} - {Model.EndTime:hh\\:mm}")
+                    }
+
+                </span>
+
+            </div>
+
+
+            <!-- DATE -->
+            <div class="event-info-item">
+
+                <i class="bi bi-calendar3"></i>
+
+                <span>
+
+                    @if (Model.StartDate.Date ==
+                         Model.EndDate.Date)
+                    {
+                        @Model.StartDate.ToString(
+                            "MMMM d, yyyy"
+                        )
+                    }
+                    else
+                    {
+                        @($"{Model.StartDate:MMMM d, yyyy} - {Model.EndDate:MMMM d, yyyy}")
+                    }
+
+                </span>
+
+            </div>
+
+
+            <!-- FACILITY -->
+            <div class="event-info-item">
+
+                <i class="bi bi-geo-alt"></i>
+
+                <span>
+                    @facilityText
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <div class="event-modal-divider"></div>
+
+
+        <!-- ==============================
+             FOOTER
+        =============================== -->
+
+        <div class="event-modal-footer">
+
+
+            <!-- POSTED BY -->
+            <div class="event-posted-by">
+
+                <i class="bi bi-person"></i>
+
+                <span>
+                    Posted by @Model.PostedByName
+                </span>
+
+            </div>
+
+
+            <!-- POINTS -->
+            <div class="event-points">
+
+                +@Model.Points pts
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

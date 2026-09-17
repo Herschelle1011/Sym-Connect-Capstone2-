@@ -1,5 +1,6 @@
 ﻿using Humanizer;
 using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Events;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
@@ -1734,9 +1735,17 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         //==== SEARCH PANEL PART ==== 
         public async Task<List<EventSearchResultViewModel>> SearchPanelAsync(string search)
         {
+            search ??= "";
+
             var existingEvents = await _context.Events
                 .AsNoTracking()
-                .Where(e => e.EventTitle.Contains(search) && !e.IsArchived && !e.IsCancelled)
+                .Where(e =>
+                    !e.IsArchived &&
+                    !e.IsCancelled &&
+                    e.ApprovalStatus == ApprovalStatus.Approved &&
+                    e.EventTitle.Contains(search))
+                .OrderBy(e => e.StartDate)
+                .ThenBy(e => e.StartTime)
                 .Select(e => new EventSearchResultViewModel
                 {
                     EventId = e.EventId,
@@ -1746,8 +1755,12 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     EndDate = e.EndDate,
                     StartTime = e.StartTime,
                     EndTime = e.EndTime,
-                    Facilities = e.ExpectedFacilities.Select(f => f.Facility.FacilityName).ToList(),
-                }).ToListAsync();
+
+                    Facilities = e.ExpectedFacilities
+                        .Select(f => f.Facility.FacilityName)
+                        .ToList()
+                })
+                .ToListAsync();
 
             return existingEvents;
         }
@@ -1773,7 +1786,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         //    foreach (var facility in facilities)
         //    {
-                
+
         //        var upcoming = await _context.Events
         //           .AsNoTracking()
         //           .Where(e =>
@@ -2803,5 +2816,330 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return chartData;
         }
+
+
+        public async Task<MemberEventsViewModel> GetEventsForMemberAsync(int memberId)
+        {
+            var now = DateTime.Now;
+
+
+            // ==========================================
+            // 1. FIND THE MEMBER'S GROUP
+            // ==========================================
+
+            var memberGroup = await _context.GroupDetails
+                .AsNoTracking()
+                .Where(gd =>
+                    gd.MemberId == memberId &&
+                    gd.Group != null &&
+                    !gd.Group.IsArchived)
+                .Select(gd => new
+                {
+                    gd.GroupId,
+                    GroupName = gd.Group.GroupName,
+
+                    MemberCount = gd.Group.GroupDetails
+                        .Count(x =>
+                            x.Member != null &&
+                            x.Member.ApplicationStatus ==
+                                MembershipApplicationStatus.Approved &&
+                            x.Member.IsArchive != true)
+                })
+                .FirstOrDefaultAsync();
+
+
+            // Member does not belong to a group
+            if (memberGroup == null)
+            {
+                return new MemberEventsViewModel
+                {
+                    GroupId = null,
+                    GroupName = "No Group",
+                    GroupMemberCount = 0,
+                    Events = new List<MemberEventItemViewModel>()
+                };
+            }
+
+
+            // ==========================================
+            // 2. GET EVENTS ASSIGNED TO THAT GROUP
+            // ==========================================
+
+            var events = await _context.Events
+                .AsNoTracking()
+                .Where(e =>
+                    !e.IsArchived && 
+                    !e.IsCancelled &&
+                    e.ApprovalStatus == ApprovalStatus.Approved &&
+
+                    e.ExpectedGroups.Any(eg =>
+                        eg.GroupId == memberGroup.GroupId))
+                 .OrderByDescending(e => e.StartDate)
+                .ThenByDescending(e => e.StartTime)
+                .Select(e => new MemberEventItemViewModel
+                {
+                    EventId = e.EventId,
+
+                    EventTitle = e.EventTitle,
+
+                    StartDate = e.StartDate,
+
+                    EndDate = e.EndDate,
+
+                    IsAllDay = e.IsAllDay,
+
+                    StartTime = e.StartTime,
+
+                    EndTime = e.EndTime,
+
+
+                    // First assigned facility
+                    FacilityName = e.ExpectedFacilities
+                        .Select(ef => ef.Facility.FacilityName)
+                        .FirstOrDefault() ?? "No facility",
+
+
+                    // First photo from the event's facilities
+                    FacilityPhotoUrl = e.ExpectedFacilities
+                        .SelectMany(ef => ef.Facility.FacilityPhotos)
+                        .Select(photo => photo.PhotoUrl)
+                        .FirstOrDefault(),
+
+
+                    // If CreatedByUser is null, it was created by Admin
+                    HostedByName = e.CreatedByUser != null
+                        ? e.CreatedByUser.FirstName + " " +
+                          e.CreatedByUser.LastName
+                        : "Admin",
+
+                    HostedByRole = e.CreatedByUser != null
+                        ? "Leader"
+                        : "Admin"
+                })
+                .ToListAsync();
+
+
+            // ==========================================
+            // 3. CALCULATE EVENT STATUS
+            // ==========================================
+
+            foreach (var eventItem in events)
+            {
+                DateTime eventStart;
+                DateTime eventEnd;
+
+
+                // ALL-DAY EVENT
+                if (eventItem.IsAllDay)
+                {
+                    eventStart = eventItem.StartDate.Date;
+
+                    eventEnd = eventItem.EndDate.Date
+                        .AddDays(1)
+                        .AddTicks(-1);
+                }
+
+                // NORMAL EVENT
+                else
+                {
+                    eventStart =
+                        eventItem.StartDate.Date +
+                        (eventItem.StartTime ?? TimeSpan.Zero);
+
+                    eventEnd =
+                        eventItem.EndDate.Date +
+                        (eventItem.EndTime ?? TimeSpan.Zero);
+                }
+
+
+                if (now < eventStart)
+                {
+                    eventItem.Status = "Upcoming";
+                }
+                else if (now <= eventEnd)
+                {
+                    eventItem.Status = "Ongoing";
+                }
+                else
+                {
+                    eventItem.Status = "Completed";
+                }
+            }
+
+            events = events
+            .Where(e =>
+                e.Status == "Upcoming" ||
+                e.Status == "Ongoing")
+            .OrderBy(e => e.StartDate)
+            .ThenBy(e => e.StartTime)
+            .ToList();
+
+
+            // ==========================================
+            // 4. RETURN THE WHOLE PAGE VIEWMODEL
+            // ==========================================
+
+            return new MemberEventsViewModel
+            {
+                GroupId = memberGroup.GroupId,
+
+                GroupName = memberGroup.GroupName,
+
+                GroupMemberCount = memberGroup.MemberCount,
+
+                Events = events
+            };
+        }
+
+
+        public async Task<MemberEventDetailsViewModel?>GetMemberEventDetailsAsync(int eventId, int memberId)
+        {
+            var now = DateTime.Now;
+
+
+            // ==========================================
+            // 1. GET EVENT DETAILS
+            // ==========================================
+
+            var eventDetails = await _context.Events
+                .AsNoTracking()
+                .Where(e =>
+                    e.EventId == eventId &&
+
+                    // Member only sees approved,
+                    // active events
+                    !e.IsArchived &&
+                    !e.IsCancelled &&
+                    e.ApprovalStatus == ApprovalStatus.Approved &&
+
+                    // Event must be assigned to
+                    // this member's group
+                    e.ExpectedGroups.Any(eg =>
+                        eg.Group.GroupDetails.Any(gd =>
+                            gd.MemberId == memberId)))
+                .Select(e => new MemberEventDetailsViewModel
+                {
+                    EventId = e.EventId,
+
+                    EventTitle = e.EventTitle,
+
+                    EventDescription =
+                        e.EventDescription ??
+                        "No description available.",
+
+
+                    // DATE
+                    StartDate = e.StartDate,
+
+                    EndDate = e.EndDate,
+
+
+                    // TIME
+                    IsAllDay = e.IsAllDay,
+
+                    StartTime = e.StartTime,
+
+                    EndTime = e.EndTime,
+
+
+                    // FACILITIES
+                    FacilityNames = e.ExpectedFacilities
+                        .Select(ef =>
+                            ef.Facility.FacilityName)
+                        .ToList(),
+
+
+                    // CREATOR
+                    PostedByName =
+                        e.CreatedByUser != null
+                            ? e.CreatedByUser.FirstName + " " +
+                              e.CreatedByUser.LastName
+                            : "Admin",
+
+                    PostedByRole =
+                        e.CreatedByUser != null
+                            ? "Leader"
+                            : "Admin",
+
+
+                    // POINTS
+                    Points = e.Points
+                })
+                .FirstOrDefaultAsync();
+
+
+            if (eventDetails == null)
+            {
+                return null;
+            }
+
+
+
+            eventDetails.FacilityPhotoUrls =
+                await _context.EventFacilities
+                    .AsNoTracking()
+                    .Where(ef =>
+                        ef.EventId == eventId)
+
+                    .Select(ef =>
+                        ef.Facility.FacilityPhotos
+                            .OrderBy(photo => photo.FacilityPhotoId)
+                            .Select(photo => photo.PhotoUrl)
+                            .FirstOrDefault())
+
+                    .Where(photoUrl =>
+                        photoUrl != null &&
+                        photoUrl != "")
+
+                    .Select(photoUrl => photoUrl!)
+                    .ToListAsync();
+
+
+
+            DateTime eventStart;
+            DateTime eventEnd;
+
+
+            if (eventDetails.IsAllDay)
+            {
+                eventStart =
+                    eventDetails.StartDate.Date;
+
+                eventEnd =
+                    eventDetails.EndDate.Date
+                        .AddDays(1)
+                        .AddTicks(-1);
+            }
+            else
+            {
+                eventStart =
+                    eventDetails.StartDate.Date +
+                    (eventDetails.StartTime ??
+                     TimeSpan.Zero);
+
+                eventEnd =
+                    eventDetails.EndDate.Date +
+                    (eventDetails.EndTime ??
+                     TimeSpan.Zero);
+            }
+
+
+            if (now < eventStart)
+            {
+                eventDetails.Status = "Upcoming";
+            }
+            else if (now <= eventEnd)
+            {
+                eventDetails.Status = "Ongoing";
+            }
+            else
+            {
+                eventDetails.Status = "Completed";
+            }
+
+
+            return eventDetails;
+        }
+
     }
 }

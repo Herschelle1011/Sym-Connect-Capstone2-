@@ -311,7 +311,7 @@ public class EventsController : Controller
         return PartialView("_ViewAllGroupsModal", groups);
     }
 
-
+    [HttpGet]
     public async Task<IActionResult> SearchPanel(string search)
     {
         var existingEvent = await _eventService.SearchPanelAsync(search);

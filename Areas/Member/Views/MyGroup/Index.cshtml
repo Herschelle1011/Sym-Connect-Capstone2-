@@ -1,0 +1,630 @@
+﻿@model GroupDetailsViewModel
+
+@{
+    ViewData["Title"] = "My Group";
+    Layout = "_MemberLayout";
+
+    // IMPORTANT:
+    // CurrentMemberId should be supplied by your controller/view model.
+    var currentMemberId = Model.CurrentMemberId;
+}
+
+@section Styles {
+    <style>
+        .member-group-page {
+            padding: 28px 0;
+        }
+
+        /* =========================
+                   HEADER
+                ========================== */
+
+        .group-eyebrow {
+            margin: 0 0 4px;
+            color: #9ca3af;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .group-title-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .group-title {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .member-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 10px;
+            background: #eff6ff;
+            color: #2563eb;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+
+        /* =========================
+                   LEADER
+                ========================== */
+
+        .leader-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-top: 24px;
+            margin-bottom: 28px;
+            background: #fff;
+            border: 1px solid #eef0f5;
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .leader-avatar {
+            width: 54px;
+            height: 54px;
+            flex-shrink: 0;
+        }
+
+        .leader-profile-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .leader-name-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .leader-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .leader-role {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            background: #fff7ed;
+            color: #c2410c;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .leader-contact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 5px;
+            color: #6b7280;
+            font-size: 12px;
+        }
+
+        .leader-description {
+            margin: 10px 0 0;
+            color: #6b7280;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+
+        /* =========================
+                   TABLE CARD
+                ========================== */
+
+        .members-card {
+            background: #fff;
+            border: 1px solid #eef0f5;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .members-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 18px 20px;
+            border-bottom: 1px solid #eef0f5;
+        }
+
+        .members-card-title {
+            margin: 0;
+            color: #111827;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .members-card-subtitle {
+            margin: 3px 0 0;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+
+        /* =========================
+                   TABLE
+                ========================== */
+
+        .members-table {
+            width: 100%;
+        }
+
+            .members-table thead th {
+                padding: 12px 18px;
+                background: #fafbfc;
+                color: #9ca3af;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                border-bottom: 1px solid #eef0f5;
+            }
+
+            .members-table tbody td {
+                padding: 14px 18px;
+                color: #374151;
+                font-size: 13px;
+                vertical-align: middle;
+                border-bottom: 1px solid #f3f4f6;
+            }
+
+            .members-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+
+        /* =========================
+                   MEMBER
+                ========================== */
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .member-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .member-name {
+            color: #111827;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .member-email {
+            color: #9ca3af;
+            font-size: 11px;
+            margin-top: 1px;
+        }
+
+
+        /* =========================
+                   CURRENT LOGGED-IN MEMBER
+                ========================== */
+
+        .members-table tbody tr.current-member-row td {
+            background: #eff6ff;
+            border-top: 1px solid #bfdbfe;
+            border-bottom: 1px solid #bfdbfe;
+        }
+
+            .members-table tbody tr.current-member-row td:first-child {
+                border-left: 3px solid #2563eb;
+            }
+
+            .members-table tbody tr.current-member-row td:last-child {
+                border-right: 1px solid #bfdbfe;
+            }
+
+        .you-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 6px;
+            padding: 3px 8px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+            .you-badge i {
+                font-size: 11px;
+            }
+
+
+        /* =========================
+                   POINTS
+                ========================== */
+
+        .points-value {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .current-member-row .points-value {
+            color: #2563eb;
+        }
+
+        .points-icon {
+            color: #f59e0b;
+        }
+
+        .top-contributor {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 5px;
+            color: #d97706;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+
+        /* =========================
+                   STATUS
+                ========================== */
+
+        .member-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+            .member-status.active {
+                background: #ecfdf3;
+                color: #15803d;
+            }
+
+            .member-status.inactive {
+                background: #f3f4f6;
+                color: #6b7280;
+            }
+
+        .status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+
+        /* =========================
+                   MOBILE
+                ========================== */
+
+        @@media (max-width: 768px) {
+
+            .leader-section {
+                flex-direction: column;
+            }
+
+            .members-card {
+                overflow-x: auto;
+            }
+
+            .members-table {
+                min-width: 700px;
+            }
+        }
+    </style>
+}
+
+
+<div class="member-group-page">
+
+    <div class="container-fluid" style="max-width:1100px;">
+
+        <!-- =========================
+             GROUP HEADER
+        ========================== -->
+
+        <div>
+            <p class="group-eyebrow">My Group</p>
+
+            <div class="group-title-row">
+
+                <h1 class="group-title">
+                    @Model.GroupName
+                </h1>
+
+                <div class="member-count-badge">
+                    <i class="ti ti-users"></i>
+
+                    <span>
+                        @Model.TotalMembers members
+                    </span>
+                </div>
+
+                <div class="member-count-badge"
+                     style="background:#fff7ed; color:#c2410c;">
+
+                    <i class="ti ti-star"></i>
+
+                    <span>
+                        @Model.TotalPoints group points
+                    </span>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- =========================
+             GROUP LEADER
+        ========================== -->
+
+        <div class="leader-section">
+
+            <div class="leader-avatar">
+
+                <img src="@(string.IsNullOrWhiteSpace(Model.PhotoUrl)
+                                                 ? "/images/default-avatar.png"
+                                                 : Model.PhotoUrl)"
+                     alt="@Model.LeaderName"
+                     class="leader-profile-image" />
+
+            </div>
+
+            <div>
+
+                <div class="leader-name-row">
+
+                    <span class="leader-name">
+                        @Model.LeaderName
+                    </span>
+
+                    <span class="leader-role">
+                        <i class="ti ti-crown"></i>
+                        Group Leader
+                    </span>
+
+                </div>
+
+                <div class="leader-contact">
+
+                    <span>
+                        <i class="ti ti-mail"></i>
+                        @Model.LeaderEmail
+                    </span>
+
+                    <span>
+                        <i class="ti ti-phone"></i>
+                        @Model.LeaderContact
+                    </span>
+
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <p class="leader-description">
+                        @Model.Description
+                    </p>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- =========================
+             MEMBERS
+        ========================== -->
+
+        <div class="members-card">
+
+            <div class="members-card-header">
+
+                <div>
+                    <h5 class="members-card-title">
+                        Group Members
+                    </h5>
+
+                    <p class="members-card-subtitle">
+                        View members and track participation points.
+                    </p>
+                </div>
+
+                <div class="member-count-badge">
+                    <i class="ti ti-users"></i>
+                    @Model.TotalMembers
+                </div>
+
+            </div>
+
+
+            @if (Model.Members == null || !Model.Members.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="ti ti-users"
+                       style="font-size:30px; color:#cbd5e1;">
+                    </i>
+
+                    <p class="mt-2 mb-0 text-muted">
+                        No members found.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table members-table mb-0">
+
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+
+                                <th class="text-center">
+                                    Points
+                                </th>
+
+                                <th class="text-center">
+                                    Status
+                                </th>
+
+                                <th>
+                                    Joined
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var member in Model.Members)
+                            {
+                                var isCurrentMember =
+                                    member.MemberId == currentMemberId;
+
+                                <tr class="@(isCurrentMember
+                                                                                    ? "current-member-row"
+                                                                                    : "")">
+
+                                    <!-- MEMBER -->
+                                    <td>
+
+                                        <div class="member-info">
+
+                                            <img src="@(string.IsNullOrWhiteSpace(member.PhotoUrl)
+                                                                                                         ? "/images/default-avatar.png"
+                                                                                                         : member.PhotoUrl)"
+                                                 alt="@member.FullName"
+                                                 class="member-avatar" />
+
+                                            <div>
+
+                                                <div class="member-name">
+
+                                                    @member.FullName
+
+                                                    @if (isCurrentMember)
+                                                    {
+                                                        <span class="you-badge">
+                                                            <i class="ti ti-user-check"></i>
+                                                            You
+                                                        </span>
+                                                    }
+
+                                                </div>
+
+                                                <div class="member-email">
+                                                    @member.Email
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- POINTS -->
+                                    <td class="text-center">
+
+                                        <span class="points-value">
+
+                                            <i class="ti ti-star-filled points-icon"></i>
+
+                                            @member.EarnedPoints
+
+                                        </span>
+
+                                        @if (member.IsTopContributor)
+                                        {
+                                            <span class="top-contributor"
+                                                  title="Top contributor">
+
+                                                <i class="ti ti-trophy"></i>
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- STATUS -->
+                                    <td class="text-center">
+
+                                        @if (member.Status == "Active")
+                                        {
+                                            <span class="member-status active">
+
+                                                <span class="status-dot"></span>
+
+                                                Active
+
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="member-status inactive">
+
+                                                <span class="status-dot"></span>
+
+                                                Inactive
+
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <!-- JOINED -->
+                                    <td class="text-muted">
+
+                                        @member.DateRegistered.ToString(
+                                            "MMMM dd, yyyy"
+                                        )
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

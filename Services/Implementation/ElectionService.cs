@@ -734,10 +734,81 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<List<VotingHistoryViewModel>> GetVotingHistoryAsync(string userId)
+        {
+         
+
+            var history = await _context.Votes
+                .AsNoTracking()
+                .Where(v => v.UserId == userId)
+                .GroupBy(v => v.ElectionId)
+                .Select(g => new VotingHistoryViewModel
+                {
+                    ElectionId = g.Key,
+
+                    // g.First() just grabs one vote from the bucket to read
+                    // the election info off of — every vote in this bucket
+                    // points to the same election, so any one of them works.
+                    ElectionName = g.First().Election.ElectionName,
+                    StartDate = g.First().Election.StartDate,
+                    EndDate = g.First().Election.EndDate,
+                    StartTime = g.First().Election.StartTime,
+                    EndTime = g.First().Election.EndTime,
+
+                    // The earliest vote timestamp in this bucket = when they
+                    // started voting in this election.
+                    VotedDate = g.Min(v => v.DateVoted),
+
+                    Status = "" // filled in below, same reason as GetAllElectionListAsync
+                })
+                .ToListAsync();
 
 
-       
-        
+            // ==========================================
+            // 2. COMPUTE STATUS + CAN-VIEW-RESULTS
+            // ==========================================
+            // Same rule as GetAllElectionListAsync — can't run DateTime.Now
+            // comparisons inside .Select() because EF Core can't translate
+            // that to SQL, so we do it in a normal C# loop afterward.
+
+            var now = DateTime.Now;
+
+            foreach (var entry in history)
+            {
+                var startDateTime = entry.StartDate.Date + entry.StartTime;
+                var endDateTime = entry.EndDate.Date + entry.EndTime;
+
+                if (now < startDateTime)
+                {
+                    entry.Status = "Incoming";
+                }
+                else if (now <= endDateTime)
+                {
+                    entry.Status = "Open";
+                }
+                else
+                {
+                    entry.Status = "Closed";
+                }
+
+                // Movie-ticket-stub rule: you can only walk into the results
+                // room once the show is over.
+                entry.CanViewResults = entry.Status == "Closed";
+            }
+
+
+            // ==========================================
+            // 3. MOST RECENT ELECTION FIRST
+            // ==========================================
+            // Like a bank statement — newest transaction on top.
+
+            return history
+                .OrderByDescending(h => h.VotedDate)
+                .ToList();
+        }
+
+
+
 
     }
 
