@@ -259,8 +259,20 @@
             Reset
         </a>
 
+        <button type="button"
+                id="exportWeeklyReportBtn"
+                class="btn btn-outline-secondary d-flex align-items-center gap-2">
+
+            <i class="bi bi-download"></i>
+            Export
+
+        </button>
+
     </form>
 </div>
+
+
+<div id="weeklyReportExportArea">
 
 <!-- Stat cards -->
 <div class="row g-3 mb-3">
@@ -442,15 +454,43 @@
         </div>
     </div>
 </div>
+</div>
+
+
+
 
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+    <!-- CHART LIBRARY -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- PDF EXPORT LIBRARIES -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <script>
-        // ---- Activity Summary pie chart ----
-        new Chart(document.getElementById('activityPieChart'), {
-        type: 'doughnut',
+        document.addEventListener("DOMContentLoaded", function () {
+
+        // =====================================================
+        // ACTIVITY SUMMARY - DOUGHNUT CHART
+        // =====================================================
+
+        const activityCanvas =
+        document.getElementById("activityPieChart");
+
+        if (activityCanvas) {
+
+        new Chart(activityCanvas, {
+        type: "doughnut",
+
         data: {
-        labels: ['Completed', 'On-Going', 'Upcoming', 'Cancelled'],
+        labels: [
+        "Completed",
+        "On-Going",
+        "Upcoming",
+        "Cancelled"
+        ],
+
         datasets: [{
         data: [
         @Model.ActivitySummary.CompletedCount,
@@ -458,78 +498,85 @@
         @Model.ActivitySummary.UpcomingCount,
         @Model.ActivitySummary.CancelledCount
         ],
-        backgroundColor: ['#2563eb', '#16a34a', '#f59e0b', '#ef4444'],
+
+        backgroundColor: [
+        "#2563eb",
+        "#16a34a",
+        "#f59e0b",
+        "#ef4444"
+        ],
+
         borderWidth: 0
         }]
         },
-        options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '65%',
-        plugins: { legend: { display: false } }
-        }
-        });
 
-        // ---- Attendance Overview line chart ----
-        new Chart(document.getElementById('attendanceLineChart'), {
-        type: 'line',
-        data: {
-        labels: [@Html.Raw(string.Join(",", Model.AttendanceByDay.Select(d => $"'{d.DayLabel}'")))],
-        datasets: [{
-        label: 'Attendance',
-        data: [@string.Join(",", Model.AttendanceByDay.Select(d => d.Count))],
-        borderColor: '#3860D6',
-        backgroundColor: 'rgba(56, 96, 214, 0.08)',
-        tension: 0.35,
-        fill: true,
-        pointBackgroundColor: '#3860D6',
-        pointRadius: 4
-        }]
-        },
         options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-        x: { grid: { display: false } }
+        cutout: "65%",
+
+        plugins: {
+        legend: {
+        display: false
+        }
         }
         }
         });
+        }
+
+
+        // =====================================================
+        // ATTENDANCE OVERVIEW - LINE CHART
+        // =====================================================
 
         const attendanceCanvas =
-        document.getElementById('attendanceLineChart');
+        document.getElementById("attendanceLineChart");
 
-        new Chart(attendanceCanvas, {
-        type: 'line',
+        if (attendanceCanvas) {
 
-        data: {
-        labels: [
+        const attendanceLabels = [
         @Html.Raw(
             string.Join(
-            ",",
-                Model.AttendanceByDay.Select(d => $"'{d.DayLabel}'")
+                    ",",
+                Model.AttendanceByDay.Select(
+                    d => $"'{d.DayLabel}'"
+                )
             )
         )
-        ],
+        ];
+
+        const attendanceValues = [
+        @string.Join(
+                ",",
+            Model.AttendanceByDay.Select(
+                d => d.Count
+            )
+        )
+        ];
+
+
+        new Chart(attendanceCanvas, {
+        type: "line",
+
+        data: {
+        labels: attendanceLabels,
 
         datasets: [{
-        label: 'Attendance',
+        label: "Attendance",
 
-        data: [
-        @string.Join(
-        ",",
-            Model.AttendanceByDay.Select(d => d.Count)
-        )
-        ],
+        data: attendanceValues,
 
-        borderColor: '#3860D6',
-        backgroundColor: 'rgba(56, 96, 214, 0.08)',
+        borderColor: "#3860D6",
+
+        backgroundColor:
+        "rgba(56, 96, 214, 0.08)",
 
         tension: 0.35,
+
         fill: true,
 
-        pointBackgroundColor: '#3860D6',
+        pointBackgroundColor: "#3860D6",
+
         pointRadius: 4,
 
         borderWidth: 2
@@ -538,6 +585,7 @@
 
         options: {
         responsive: true,
+
         maintainAspectRatio: false,
 
         plugins: {
@@ -555,7 +603,7 @@
         },
 
         grid: {
-        color: '#f3f4f6'
+        color: "#f3f4f6"
         }
         },
 
@@ -566,6 +614,84 @@
         }
         }
         }
+        });
+        }
+
+
+        // =====================================================
+        // EXPORT TO PDF
+        // =====================================================
+
+        const exportBtn =
+        document.getElementById("exportWeeklyReportBtn");
+
+        const exportArea =
+        document.getElementById("weeklyReportExportArea");
+
+        if (exportBtn && exportArea) {
+
+        exportBtn.addEventListener("click", function () {
+
+        const originalLabel = exportBtn.innerHTML;
+
+        exportBtn.disabled = true;
+        exportBtn.innerHTML =
+        '<span class="spinner-border spinner-border-sm"></span> Exporting...';
+
+        html2canvas(exportArea, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff"
+        })
+        .then(function (canvas) {
+
+        const imgData =
+        canvas.toDataURL("image/png");
+
+        const jsPDFCtor = window.jspdf.jsPDF;
+
+        const pdfWidth = 210;
+        const pdfHeight =
+        (canvas.height * pdfWidth) / canvas.width;
+
+        const doc = new jsPDFCtor({
+        orientation:
+        pdfHeight > pdfWidth ? "portrait" : "landscape",
+        unit: "mm",
+        format: [pdfWidth, pdfHeight]
+        });
+
+        doc.addImage(
+        imgData,
+        "PNG",
+        0,
+        0,
+        pdfWidth,
+        pdfHeight
+        );
+
+        const filename =
+        "weekly-report-" +
+        new Date().toISOString().slice(0, 10) +
+        ".pdf";
+
+        doc.save(filename);
+        })
+        .catch(function (error) {
+
+        console.error("Export error:", error);
+        alert("Unable to export report. Please try again.");
+        })
+        .finally(function () {
+
+        exportBtn.disabled = false;
+        exportBtn.innerHTML = originalLabel;
+        });
+
+        });
+
+        }
+
         });
     </script>
 }

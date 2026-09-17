@@ -453,47 +453,6 @@
 
     <!-- MAIN PARTICIPATION PANEL -->
     <div class="participation-panel">
-
-        <div class="participation-panel-top">
-
-            <ul class="nav nav-tabs" id="participationTab">
-
-                <li class="nav-item">
-                    <button class="nav-link active"
-                            id="groups-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#groups-pane"
-                            type="button">
-                        Groups
-                    </button>
-                </li>
-
-              
-
-            </ul>
-
-
-            <div class="panel-actions d-flex gap-2">
-
-                <button type="button"
-                        class="btn btn-outline-secondary d-flex align-items-center gap-2">
-                    <i class="bi bi-download"></i>
-                    Export
-                </button>
-
-                <a asp-controller="Events"
-                   asp-action="Index"
-                   class="btn btn-primary d-flex align-items-center gap-2">
-
-                    <i class="bi bi-calendar-event"></i>
-                    View Event Calendar
-                </a>
-
-            </div>
-
-        </div>
-
-
         <div class="participation-panel-body">
 
             <p class="participation-description"
@@ -583,10 +542,11 @@
 
 
 @section Scripts {
-    <script src="~/js/admin/ParticipationTracking.js"/>
+    <script src="~/js/admin/ParticipationTracking.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script>
-        // Switch the description text under the tabs based on which tab is active.
         document.addEventListener('DOMContentLoaded', function () {
             var groupsTab = document.getElementById('groups-tab');
             var membersTab = document.getElementById('members-tab');
@@ -602,7 +562,6 @@
             }
         });
 
-        // ═══════════════ DATE RANGE PICKER ═══════════════
         document.addEventListener('DOMContentLoaded', function () {
             var fromInput = document.getElementById('ptFromDate');
             var toInput = document.getElementById('ptToDate');
@@ -669,6 +628,87 @@
                 url.searchParams.delete('toDate');
                 window.location.href = url.toString();
             });
+        });
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+        var exportBtn = document.getElementById('exportPdfBtn');
+
+        if (!exportBtn) return;
+
+        exportBtn.addEventListener('click', function () {
+
+        var jsPDFCtor = window.jspdf.jsPDF;
+        var doc = new jsPDFCtor({ orientation: 'landscape' });
+
+        doc.setFontSize(14);
+        doc.text('Participation Tracking - Group Report', 14, 15);
+
+        var generatedOn = new Date().toLocaleString();
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text('Generated: ' + generatedOn, 14, 21);
+
+
+        // Respect the current search + status filter,
+        // ignore pagination (export the full filtered set).
+
+        var searchTerm =
+        (document.getElementById('groupSearchInput')?.value || '')
+        .toLowerCase()
+        .trim();
+
+        var status =
+        document.getElementById('groupStatusFilter')?.value || '';
+
+        var rows = Array.from(
+        document.querySelectorAll('#groupParticipationTable tbody .group-row')
+        )
+        .filter(function (row) {
+
+        var matchesName = row.dataset.name.includes(searchTerm);
+        var matchesStatus = !status || row.dataset.status === status;
+
+        return matchesName && matchesStatus;
+        })
+        .map(function (row) {
+
+        var cells = row.querySelectorAll('td');
+
+        return [
+        cells[0].querySelector('.group-name-text')?.textContent.trim() || '',
+        cells[1].textContent.trim(),
+        cells[2].textContent.replace(/\s+/g, ' ').trim(),
+        cells[3].textContent.trim(),
+        cells[4].textContent.trim(),
+        cells[5].textContent.trim(),
+        cells[6].textContent.replace(/\s+/g, ' ').trim(),
+        cells[7].querySelector('.rate-value')?.textContent.trim() || ''
+        ];
+        });
+
+        doc.autoTable({
+        startY: 27,
+        head: [[
+        'Group Name', 'Total Members', 'Events Assigned',
+        'Fully Present', 'Partial', 'Absent',
+        'Points', 'Rate'
+        ]],
+        body: rows,
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [37, 99, 235], textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 250, 252] }
+        });
+
+        var filename =
+        'participation-tracking-' +
+        new Date().toISOString().slice(0, 10) +
+        '.pdf';
+
+        doc.save(filename);
+        });
+
         });
     </script>
 }

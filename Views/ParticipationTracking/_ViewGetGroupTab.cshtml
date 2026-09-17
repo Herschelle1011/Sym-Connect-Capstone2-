@@ -5,34 +5,34 @@
 
     <!-- HEADER -->
     <div class="participation-table-header">
-        <div>
-            <h6 class="mb-1 fw-semibold">Group Participation</h6>
-            <div class="text-muted small">
-                View participation performance for each assigned group.
-            </div>
-        </div>
+
+        <h6 class="mb-0 fw-bold participation-table-title">
+            Group Participation
+        </h6>
 
         <div class="d-flex align-items-center gap-2 flex-wrap">
+
             <div class="participation-search">
-                <i class="bi bi-search"></i>
                 <input type="text"
                        id="groupSearchInput"
-                       placeholder="Search group..." />
+                       placeholder="Search" />
+                <i class="bi bi-search"></i>
             </div>
 
-            <select id="groupStatusFilter"
-                    class="form-select form-select-sm participation-status-filter">
-                <option value="">All Status</option>
-                <option value="@GroupAttendanceStatus.FullyPresent">
-                    Fully Present
-                </option>
-                <option value="@GroupAttendanceStatus.PartiallyPresent">
-                    Partially Present
-                </option>
-                <option value="@GroupAttendanceStatus.Absent">
-                    Absent
-                </option>
-            </select>
+            <button type="button"
+                    id="exportPdfBtn"
+                    class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-download"></i>
+                Export
+            </button>
+
+            <a asp-controller="Events"
+               asp-action="Index"
+               class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="bi bi-calendar-event"></i>
+                Event Calendar
+            </a>
+
         </div>
     </div>
 
@@ -46,40 +46,12 @@
                 <tr>
                     <th>GROUP NAME</th>
                     <th class="text-center">TOTAL MEMBERS</th>
-                    <th class="text-center">EVENTS ASSIGNED</th>
-
-                    <th class="text-center participation-parent-header"
-                        colspan="3">
-                        PARTICIPATION
-                    </th>
-
-                    <th class="text-center">POINTS</th>
-
-                    <th>RATE</th>
-                    <th>STATUS</th>
-                </tr>
-
-                <tr class="participation-subheader">
-                    <th></th>
-                    <th></th>
-                    <th></th>
-
-                    <th class="text-center text-success">
-                        FULLY PRESENT
-                    </th>
-
-                    <th class="text-center text-warning">
-                        PARTIAL
-                    </th>
-
-                    <th class="text-center text-danger">
-                        ABSENT
-                    </th>
-
-                
-
-                    <th></th>
-                    <th></th>
+                    <th class="text-center">EVENT ASSIGNED</th>
+                    <th class="text-center">PRESENT</th>
+                    <th class="text-center">PARTIAL</th>
+                    <th class="text-center">ABSENT</th>
+                    <th class="text-center">TOTAL POINTS</th>
+                    <th class="text-center">RATE</th>
                     <th></th>
                 </tr>
             </thead>
@@ -99,38 +71,10 @@
                 {
                     @foreach (var group in Model)
                     {
-                        var statusClass = group.Status switch
-                        {
-                            GroupAttendanceStatus.FullyPresent
-                                => "status-fully-present",
-
-                            GroupAttendanceStatus.PartiallyPresent
-                                => "status-partially-present",
-
-                            _ => "status-absent"
-                        };
-
-
-                        var statusLabel = group.Status switch
-                        {
-                            GroupAttendanceStatus.FullyPresent
-                                => "Fully Present",
-
-                            GroupAttendanceStatus.PartiallyPresent
-                                => "Partially Present",
-
-                            _ => "Absent"
-                        };
-
-
                         var barColor = group.Status switch
                         {
-                            GroupAttendanceStatus.FullyPresent
-                                => "#16a34a",
-
-                            GroupAttendanceStatus.PartiallyPresent
-                                => "#f59e0b",
-
+                            GroupAttendanceStatus.FullyPresent => "#16a34a",
+                            GroupAttendanceStatus.PartiallyPresent => "#f59e0b",
                             _ => "#dc2626"
                         };
 
@@ -141,18 +85,8 @@
 
                             <!-- GROUP -->
                             <td>
-                                <div class="d-flex align-items-center gap-2">
-
-                                    <div class="group-avatar">
-                                        <i class="bi bi-people-fill"></i>
-                                    </div>
-
-                                    <div>
-                                        <div class="group-name-text">
-                                            @group.GroupName
-                                        </div>
-                                    </div>
-
+                                <div class="group-name-text">
+                                    @group.GroupName
                                 </div>
                             </td>
 
@@ -165,82 +99,66 @@
 
                             <!-- EVENTS -->
                             <td class="text-center table-number">
-                                <span class="fw-semibold">@group.AttendedEvents</span>
-                                <span class="text-muted">/@group.EventsAssigned</span>
+                                @group.EventsAssigned
                             </td>
 
 
-                            <!-- FULL -->
-                            <td class="text-center participation-value text-success">
-                                @group.FullyPresentEvents
+                            <!-- PRESENT -->
+                            <td class="text-center table-number">
+                                @group.AttendedEvents
                             </td>
 
 
                             <!-- PARTIAL -->
-                            <td class="text-center participation-value text-warning">
+                            <td class="text-center table-number">
                                 @group.PartiallyPresentEvents
                             </td>
 
 
                             <!-- ABSENT -->
-                            <td class="text-center participation-value text-danger">
+                            <td class="text-center table-number">
                                 @group.AbsentEvents
                             </td>
 
 
                             <!-- POINTS -->
                             <td class="text-center table-number">
-                                <span class="fw-semibold points-earned">@group.EarnedPoints</span>
-                                <span class="text-muted">/@group.TotalPossiblePoints pts</span>
+                                @group.EarnedPoints/@group.TotalPossiblePoints points
                             </td>
 
 
                             <!-- RATE -->
-                            <td style="min-width:110px;">
-
-                                <div class="d-flex align-items-center gap-2">
-
-                                    <div class="participation-rate-bar flex-grow-1">
-
+                            <td style="min-width:90px;">
+                                <div class="rate-cell">
+                                    <div class="participation-rate-bar">
                                         <div class="participation-rate-bar-fill"
-                                             style="
-                                            width:@group.ParticipationRate.ToString("0")%;
-                                            background:@barColor;">
+                                             style="width:@group.ParticipationRate.ToString("0")%; background:@barColor;">
                                         </div>
-
                                     </div>
 
                                     <span class="rate-value">
                                         @group.ParticipationRate.ToString("0")%
                                     </span>
-
                                 </div>
-
                             </td>
 
 
-                            <!-- STATUS -->
-                            <td>
-                                <span class="status-badge @statusClass">
-                                    @statusLabel
-                                </span>
-                            </td>
-
+                            <!-- ACTION -->
                             <td class="text-center">
                                 <button type="button" class="btn btn-outline-primary btn-sm open-group-participation-modal"
                                         data-url="@Url.Action("GetGroupMembers", "ParticipationTracking", new { groupId = group.GroupId })"
-                                        data-title="@group.GroupName - Members">
+                                        data-title="@group.GroupName"
+                                        data-count="@group.TotalMembers member@(group.TotalMembers == 1 ? "" : "s")">
                                     View Details
                                 </button>
                             </td>
-
 
                         </tr>
                     }
 
                     <tr id="groupNoResultsRow" style="display:none;">
                         <td colspan="9" class="text-center text-muted py-5">
-                            No groups match your search or filter.
+                            No groups match your search.
                         </td>
                     </tr>
                 }
@@ -255,16 +173,12 @@
     {
         <div class="participation-table-footer">
 
-            <span class="text-muted small"
-                  id="groupShowingLabel">
+            <span class="text-muted small" id="groupShowingLabel">
                 Showing 1 to @Math.Min(5, Model.Count) of @Model.Count groups
             </span>
 
-
             <nav>
-                <ul class="pagination pagination-sm participation-pagination mb-0"
-                    id="groupPagination">
-                </ul>
+                <ul class="pagination pagination-sm participation-pagination mb-0" id="groupPagination"></ul>
             </nav>
 
         </div>
@@ -277,122 +191,98 @@
 
     .participation-table-card {
         border: 1px solid #e5e7eb;
-        border-radius: 10px;
+        border-radius: 12px;
         background: #fff;
         overflow: hidden;
     }
 
 
     .participation-table-header {
-        padding: 14px 16px;
+        padding: 18px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 12px;
         flex-wrap: wrap;
-        border-bottom: 1px solid #e5e7eb;
+    }
+
+
+    .participation-table-title {
+        font-size: 16px;
+        color: #0f172a;
     }
 
 
     .participation-search {
-        height: 34px;
-        width: 210px;
-        border: 1px solid #dbe1ea;
-        border-radius: 7px;
-        background: #fff;
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        padding: 0 10px;
+        position: relative;
+        height: 36px;
+        width: 200px;
     }
 
-
-        .participation-search i {
-            color: #94a3b8;
-            font-size: 12px;
-        }
-
-
         .participation-search input {
-            border: none;
-            outline: none;
             width: 100%;
-            font-size: 12px;
+            height: 100%;
+            border: 1px solid #dbe1ea;
+            border-radius: 999px;
+            padding: 0 34px 0 14px;
+            font-size: 13px;
             color: #334155;
-            background: transparent;
+            outline: none;
         }
-
 
             .participation-search input::placeholder {
                 color: #94a3b8;
             }
 
+            .participation-search input:focus {
+                border-color: #93c5fd;
+            }
 
-    .participation-status-filter {
-        width: 135px;
-        height: 34px;
-        border-radius: 7px;
-        border-color: #dbe1ea;
-        font-size: 12px;
-        color: #475569;
-    }
+        .participation-search i {
+            position: absolute;
+            right: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 13px;
+            pointer-events: none;
+        }
 
 
     .participation-table {
-        font-size: 12px;
+        font-size: 13px;
         color: #334155;
+        margin-bottom: 0;
     }
 
-
         .participation-table thead th {
-            background: #f8fafc;
-            color: #64748b;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 10px 12px;
-            font-size: 9.5px;
+            background: #0d91e8;
+            color: #fff;
+            border: none;
+            padding: 12px 14px;
+            font-size: 11px;
             font-weight: 700;
             letter-spacing: .02em;
+            white-space: nowrap;
+        }
+
+            .participation-table thead th:first-child {
+                border-top-left-radius: 0;
+            }
+
+        .participation-table tbody td {
+            padding: 14px;
+            border-color: #eef1f5;
             vertical-align: middle;
         }
 
-
-        .participation-table .participation-subheader th {
-            padding-top: 4px;
-            padding-bottom: 7px;
-            background: #f8fafc;
-            font-size: 8.5px;
+        .participation-table tbody tr:hover {
+            background: #fafcff;
         }
 
-
-    .participation-parent-header {
-        border-bottom: none !important;
-    }
-
-
-    .participation-table tbody td {
-        padding: 12px;
-        border-color: #edf0f5;
-        vertical-align: middle;
-    }
-
-
-    .participation-table tbody tr:hover {
-        background: #fafcff;
-    }
-
-
-    .group-avatar {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #2563eb;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        flex-shrink: 0;
-    }
+        .participation-table tbody tr:last-child td {
+            border-bottom: none;
+        }
 
 
     .group-name-text {
@@ -408,22 +298,20 @@
     }
 
 
-    .participation-value {
-        font-weight: 600;
-    }
-
-
-    .points-earned {
-        color: #7c3aed;
+    .rate-cell {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
     }
 
 
     .participation-rate-bar {
+        width: 70px;
         height: 4px;
         background: #e5e7eb;
         border-radius: 999px;
         overflow: hidden;
-        min-width: 45px;
     }
 
 
@@ -434,45 +322,15 @@
 
 
     .rate-value {
-        min-width: 30px;
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 600;
-        color: #475569;
-    }
-
-
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 999px;
-        padding: 4px 8px;
-        font-size: 9.5px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-
-    .status-fully-present {
-        color: #15803d;
-        background: #dcfce7;
-    }
-
-
-    .status-partially-present {
-        color: #b45309;
-        background: #fef3c7;
-    }
-
-
-    .status-absent {
-        color: #b91c1c;
-        background: #fee2e2;
+        color: #94a3b8;
     }
 
 
     .participation-table-footer {
         min-height: 48px;
-        padding: 10px 14px;
+        padding: 12px 16px;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -491,24 +349,20 @@
         font-size: 11px;
     }
 
-
     .participation-pagination .page-item.active .page-link {
-        background: #2563eb;
+        background: #0d91e8;
         color: white;
     }
 
 
     @@media (max-width: 768px) {
 
+        .participation-table-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
         .participation-search {
-            width: 100%;
-        }
-
-        .participation-status-filter {
-            width: 100%;
-        }
-
-        .participation-table-header > div:last-child {
             width: 100%;
         }
     }
@@ -520,53 +374,22 @@
 
     (function () {
 
-        var searchInput =
-            document.getElementById('groupSearchInput');
-
-        var statusFilter =
-            document.getElementById('groupStatusFilter');
-
-        var allRows =
-            Array.from(
-                document.querySelectorAll(
-                    '#groupParticipationTable tbody .group-row'
-                )
-            );
-
-        var noResultsRow =
-            document.getElementById('groupNoResultsRow');
-
-        var showingLabel =
-            document.getElementById('groupShowingLabel');
-
-        var paginationEl =
-            document.getElementById('groupPagination');
+        var searchInput = document.getElementById('groupSearchInput');
+        var allRows = Array.from(document.querySelectorAll('#groupParticipationTable tbody .group-row'));
+        var noResultsRow = document.getElementById('groupNoResultsRow');
+        var showingLabel = document.getElementById('groupShowingLabel');
+        var paginationEl = document.getElementById('groupPagination');
 
         var rowsPerPage = 5;
         var currentPage = 1;
 
 
-        // Returns only the rows that pass the current search + status filter
         function getVisibleRows() {
 
-            var term =
-                (searchInput?.value || '')
-                    .toLowerCase()
-                    .trim();
-
-            var status =
-                statusFilter?.value || '';
+            var term = (searchInput?.value || '').toLowerCase().trim();
 
             return allRows.filter(function (row) {
-
-                var matchesName =
-                    row.dataset.name.includes(term);
-
-                var matchesStatus =
-                    !status ||
-                    row.dataset.status === status;
-
-                return matchesName && matchesStatus;
+                return row.dataset.name.includes(term);
             });
         }
 
@@ -591,7 +414,6 @@
         }
 
 
-        // ── Pagination renderer ───────────────────────────────────────
         function renderPage() {
 
             var visible = getVisibleRows();
@@ -623,7 +445,6 @@
         }
 
 
-        // ── Pagination click events (delegated) ─────────────────────────
         paginationEl?.addEventListener('click', function (e) {
             var link = e.target.closest('a');
             if (!link) return;
@@ -645,19 +466,12 @@
         });
 
 
-        // ── Search / filter events ──────────────────────────────────────
         searchInput?.addEventListener('input', function () {
             currentPage = 1;
             renderPage();
         });
 
-        statusFilter?.addEventListener('change', function () {
-            currentPage = 1;
-            renderPage();
-        });
 
-
-        // ── First render ──────────────────────────────────────────────
         if (allRows.length > 0) {
             renderPage();
         }

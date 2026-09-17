@@ -41,21 +41,34 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<List<PartyListsViewModel>> GetUnassignedPartyListsAsync()
         {
-            return await _context.PartyLists
-                .AsNoTracking() 
-                .Where(p => p.ElectionId == null && p.isArchived == false && p.candidates.Any(c => c.MemberId != null && c.MemberId != 0)) 
+            var now = DateTime.Now;
+
+            var partyLists = await _context.PartyLists
+                .AsNoTracking()
+                .Include(p => p.Election)
+                .Where(p =>
+                    p.isArchived == false &&
+                    p.candidates.Any(c => c.MemberId != null && c.MemberId != 0))
+                .ToListAsync();
+
+            var available = partyLists
+                .Where(p =>
+                    p.ElectionId == null ||
+                    (p.Election != null &&
+                     now > p.Election.EndDate.Date + p.Election.EndTime))
                 .Select(p => new PartyListsViewModel
                 {
                     Id = p.PartyListId,
                     PartyListName = p.PartyName,
                     PartyListDescription = p.PartyListDescription,
- 
                     candidates = new List<CandidateViewModel>()
                 })
-                .ToListAsync(); 
-                }
+                .ToList();
 
-       public async Task<PartyListDetailsViewModel?> GetPartyListByIdAsync(int id)
+            return available;
+        }
+
+        public async Task<PartyListDetailsViewModel?> GetPartyListByIdAsync(int id)
         {
             var existingPartyList = await _context.PartyLists
                                     .AsNoTracking()
@@ -149,16 +162,29 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task AssignPartyListsToElectionAsync(int electionId, List<int> partyListIds)
         {
             var election = await _context.Elections
-                        .FirstOrDefaultAsync(e => e.ElectionId == electionId);
+                .FirstOrDefaultAsync(e => e.ElectionId == electionId);
+
             if (election == null) return;
-            var partyListsToAssign = await _context.PartyLists
-                       .Where(p => partyListIds.Contains(p.PartyListId) && p.ElectionId == null)
-                       .ToListAsync();
+
+            var now = DateTime.Now;
+
+            var candidatePartyLists = await _context.PartyLists
+                .Include(p => p.Election)
+                .Where(p => partyListIds.Contains(p.PartyListId))
+                .ToListAsync();
+
+            var partyListsToAssign = candidatePartyLists
+                .Where(p =>
+                    p.ElectionId == null ||
+                    (p.Election != null &&
+                     now > p.Election.EndDate.Date + p.Election.EndTime))
+                .ToList();
 
             foreach (var party in partyListsToAssign)
             {
                 party.ElectionId = electionId;
             }
+
             await _context.SaveChangesAsync();
         }
 

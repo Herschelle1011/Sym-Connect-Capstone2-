@@ -190,9 +190,18 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task MarkAllAsReadAsync(string userId)
         {
-            await _context.Notifications
-                .Where(n => n.UserId == userId && !n.IsRead)
-                .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+            var notifications = await _context.Notifications
+                .Where(n =>
+                    n.UserId == userId &&
+                    !n.IsRead)
+                .ToListAsync();
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
         }
 
 

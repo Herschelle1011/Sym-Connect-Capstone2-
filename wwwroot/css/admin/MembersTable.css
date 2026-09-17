@@ -553,3 +553,56 @@
 .applicant-info-modal .min-w-0 {
     min-width: 0;
 }
+
+
+/* ========================================
+   TABLE PAGINATION
+======================================== */
+
+.table-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 4px 0;
+}
+
+.pagination-info {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination-page {
+    font-size: 13px;
+    color: #475569;
+    min-width: 90px;
+    text-align: center;
+}
+
+.pagination-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .pagination-btn:hover:not(:disabled) {
+        background: #f8fafc;
+    }
+
+    .pagination-btn:disabled {
+        color: #cbd5e1;
+        background: #f8fafc;
+        cursor: not-allowed;
+    }

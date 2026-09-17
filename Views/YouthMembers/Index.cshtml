@@ -132,6 +132,12 @@
 
             <div class="spacer"></div>
 
+            <button type="button"
+                    id="exportMembersPdfBtn"
+                    class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-download"></i>
+                Export
+            </button>
 
             <!-- Search -->
             <div class="search-box">
@@ -282,6 +288,38 @@
 
         </div>
 
+
+
+        <!-- APPLICANTS PAGINATION -->
+        <div class="table-pagination" id="applicantsPagination">
+
+            <div class="pagination-info"
+                 id="applicantsPageInfo">
+                Showing 0-0 of 0 applicants
+            </div>
+
+            <div class="pagination-controls">
+
+                <button type="button"
+                        class="pagination-btn"
+                        id="applicantsPrevBtn">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <span class="pagination-page"
+                      id="applicantsPageNum">
+                    Page 1 of 1
+                </span>
+
+                <button type="button"
+                        class="pagination-btn"
+                        id="applicantsNextBtn">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
     </div>
 
 
@@ -491,6 +529,38 @@
 
         </div>
 
+
+        <!-- MEMBERS PAGINATION -->
+        <div class="table-pagination" id="membersPagination">
+
+            <div class="pagination-info"
+                 id="membersPageInfo">
+                Showing 0-0 of 0 members
+            </div>
+
+            <div class="pagination-controls">
+
+                <button type="button"
+                        class="pagination-btn"
+                        id="membersPrevBtn">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <span class="pagination-page"
+                      id="membersPageNum">
+                    Page 1 of 1
+                </span>
+
+                <button type="button"
+                        class="pagination-btn"
+                        id="membersNextBtn">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
 
 </div>
@@ -512,7 +582,11 @@
         );
     }
 
-    <script src="~/js/admin/membersTable.js"></script>
+    <script src="~/js/admin/membersTable.js" asp-append-version="true"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <script>
         const tooltipTriggerList =

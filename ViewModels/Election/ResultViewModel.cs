@@ -46,6 +46,9 @@ namespace Sym_Connect__Capstone2_.ViewModels.Election
 
         public bool IsMyVote { get; set; }
 
+        public bool IsCurrentUserVote { get; set; }
+
+
 
     }
 }
