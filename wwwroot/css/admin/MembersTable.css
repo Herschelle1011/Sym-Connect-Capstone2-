@@ -7,7 +7,7 @@
     --status-inactive-text: #B87400;
     --status-inactive-bg: #fdf1cf;
     --status-inactive-border: #E8A317;
-    --table-header-bg: #0089D9;
+    --table-header-bg: #007ec8;
     --table-header-color: #ffffff;
     --border-color: #e4e8f0;
     --text-main: #1a2340;
@@ -21,7 +21,7 @@
 }
 
 .member-page {
-    padding: 20px 16px 32px;
+    padding: 8px 16px 32px;
     background: var(--bg-page);
     min-height: 100vh;
     font-family: 'Segoe UI', sans-serif;
@@ -32,7 +32,9 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 5px;
+    font-size:30px;
+
 }
 
 .page-title-row {
@@ -55,16 +57,17 @@
 }
 
 .page-title {
-    font-size: 22px;
+    
     font-weight: 700;
     color: var(--text-main);
     margin: 0;
 }
 
 .page-subtitle {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-muted);
     margin: 0;
+    margin-bottom:20px;
 }
 
 .btn-add {
@@ -92,11 +95,13 @@
 
 /* Filter tabs sit on their own row, scroll horizontally rather than wrap */
 .filter-tabs {
-    display: flex;
-    gap: 8px;
+    display: inline-flex;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
     overflow-x: auto;
-    padding-bottom: 2px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
@@ -106,35 +111,36 @@
     }
 
 .filter-tab {
-    border: 1.5px solid var(--border-color);
-    background: #fff;
-    color: var(--text-main);
-    border-radius: 20px;
-    padding: 7px 18px;
-    font-size: 13px;
+    border: none;
+    background: transparent;
+    color: #4b5563;
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    text-decoration: none;
-    transition: all 0.18s;
     white-space: nowrap;
     flex-shrink: 0;
+    transition: background .15s ease, color .15s ease;
 }
 
-    .filter-tab.active-tab,
-    .filter-tab:hover {
-        background: var(--primary);
+    .filter-tab.active-tab {
+        background: #007ec8;
         color: #fff;
-        border-color: var(--primary);
+        border-radius:10px;
     }
 
-/* Search / date / filter stack full-width on mobile, row on wider screens */
-.filter-bar {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    margin-bottom: 16px;
-}
+    .filter-tab:hover:not(.active-tab) {
+        background: #f3f4f6;
+    }
+    /* Search / date / filter stack full-width on mobile, row on wider screens */
+    .filter-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
 
 .spacer {
     display: none;
@@ -144,25 +150,28 @@
     display: flex;
     align-items: center;
     background: #fff;
-    border: 1.5px solid var(--border-color);
-    border-radius: var(--radius);
-    padding: 9px 14px;
-    gap: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 4px 10px;
+    gap: 6px;
     width: 100%;
+    max-width: 280px;
+    
 }
 
     .search-box input {
         border: none;
         outline: none;
-        font-size: 13px;
+        font-size: 12.5px;
         color: var(--text-main);
         background: transparent;
         width: 100%;
+        padding: 3px 0;
     }
 
     .search-box i {
         color: var(--text-muted);
-        font-size: 16px;
+        font-size: 13px;
     }
 
 .filter-bar-row {
@@ -196,10 +205,10 @@
 /* Table scrolls horizontally instead of squashing on mobile */
 .table-card {
     background: #fff;
-    border-radius: var(--radius);
+    border-radius: 8px;
     border: 1px solid var(--border-color);
     overflow-x: auto;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: none;
 }
 
 .members-table {
@@ -211,15 +220,17 @@
 
     .members-table thead tr {
         background: var(--table-header-bg);
+        
     }
 
     .members-table thead th {
-        color: var(--table-header-color);
+        background: var(--table-header-bg);
+        color: #fff;
         font-weight: 600;
-        padding: 12px 12px;
+        padding: 9px 12px;
         text-align: left;
         white-space: nowrap;
-        font-size: 12px;
+        font-size: 11.5px;
     }
 
     .members-table tbody tr {
@@ -309,7 +320,7 @@
 /* From ~600px up, let the filter row sit inline instead of stacking full-width */
 @media (min-width: 600px) {
     .member-page {
-        padding: 28px 32px;
+        padding: 8px 32px;
     }
 
     .page-header {
@@ -397,27 +408,28 @@
 /* --- Top-level tabs (All Members / Applicants) --- */
 .top-tabs {
     display: flex;
-    gap: 10px;
-    margin: 16px 0;
+    gap: 8px;
+    margin: 10px 0;
 }
 
 .top-tab {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border-radius: 8px;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 6px;
     border: 1px solid var(--border-color, #e0e0e0);
     background: #fff;
     color: #555;
     font-weight: 500;
+    font-size: 12.5px;
     cursor: pointer;
 }
 
     .top-tab.active-tab {
-        background: #1a6fe0;
+        background: #007ec8;
         color: #fff;
-        border-color: #1a6fe0;
+        border-color: #007ec8;
     }
 
 .tab-count-badge {
@@ -438,6 +450,7 @@
 }
 
 /* --- Colored dot indicators for applicant filter tabs --- */
+/*
 .filter-tab.dot-pending::before,
 .filter-tab.dot-approved::before,
 .filter-tab.dot-rejected::before {
@@ -448,6 +461,7 @@
     border-radius: 50%;
     margin-right: 6px;
 }
+
 
 .filter-tab.dot-pending::before {
     background: #f5b13d;
@@ -460,6 +474,7 @@
 .filter-tab.dot-rejected::before {
     background: #e05656;
 }
+*/
 
 /* --- Status badges --- */
 .badge-status {

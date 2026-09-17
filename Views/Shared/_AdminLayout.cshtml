@@ -127,6 +127,11 @@
 
         <div class="sidebar-nav">
 
+            <a asp-controller="Admin" asp-action="Dashboard"
+               class="nav-item @(controller == "Home" ? "active" : "")">
+                <i class="bi bi-grid"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
             <a asp-controller="Announcements" asp-action="Index"
                class="nav-item @(controller == "Announcements" ? "active" : "")">
                 <i class="bi bi-megaphone"></i>
@@ -135,39 +140,36 @@
 
         
 
-            <a asp-controller="Admin" asp-action="Dashboard"
-               class="nav-item @(controller == "Home" ? "active" : "")">
-                <i class="bi bi-grid"></i>
-                <span class="nav-label">Dashboard</span>
-            </a>
+            
 
             <a asp-controller="YouthMembers" asp-action="Index"
                class="nav-item @(controller == "Members" ? "active" : "")">
                 <i class="bi bi-people"></i>
                 <span class="nav-label">Members</span>
             </a>
-
-            <a asp-controller="Events" asp-action="Index"
-               class="nav-item @(controller == "Events" ? "active" : "")">
-                <i class="bi bi-calendar-event"></i>
-                <span class="nav-label">Events</span>
-            </a>
-
             <a asp-controller="Groups" asp-action="Index"
                class="nav-item @(controller == "Groups" ? "active" : "")">
                 <i class="bi bi-diagram-3"></i>
                 <span class="nav-label">Groups</span>
             </a>
 
+            <a asp-controller="Events" asp-action="Index"
+               class="nav-item @(controller == "Events" ? "active" : "")">
+                <i class="bi bi-calendar4-event"></i>
+                <span class="nav-label">Events</span>
+            </a>
+
+            
+
             <a asp-controller="Facilities" asp-action="Index"
                class="nav-item @(controller == "Facility" ? "active" : "")">
-                <i class="bi bi-hospital"></i>
+                <i class="bi bi-buildings"></i>
                 <span class="nav-label">Facility</span>
             </a>
 
             <a asp-controller="Evaluations" asp-action="Index"
                class="nav-item @(controller == "Evaluation" ? "active" : "")">
-                <i class="bi bi-star-half"></i>
+                <i class="bi bi-star"></i>
                 <span class="nav-label">Evaluation</span>
             </a>
 
@@ -191,7 +193,7 @@
             <div class="nav-dropdown @(electionOpen ? "open" : "")">
 
                 <a href="#" class="nav-item nav-dropdown-toggle @(electionOpen ? "active" : "")">
-                    <i class="bi bi-hand-index-thumb"></i>
+                    <i class="bi bi-fingerprint"></i>
                     <span class="nav-label">Election</span>
                     <i class="bi bi-chevron-down dropdown-arrow"></i>
                 </a>
@@ -200,13 +202,13 @@
 
                     <a asp-controller="PartyLists" asp-action="Index"
                        class="nav-item sub-item @(controller == "PartyLists" ? "active" : "")">
-                        <i class="bi bi-people-fill"></i>
+                        <i class="bi bi-person"></i>
                         <span class="nav-label">Partylist</span>
                     </a>
 
                     <a asp-controller="Elections" asp-action="Index"
                        class="nav-item sub-item @(controller == "Elections" ? "active" : "")">
-                        <i class="bi bi-person-check-fill"></i>
+                        <i class="bi bi-plus"></i>
                         <span class="nav-label">Create Voting</span>
                     </a>
 
@@ -218,7 +220,7 @@
             <a asp-controller="WeeklySummaryReport" asp-action="Index"
                class="nav-item @(controller == "WeeklySummaryReport" ? "active" : "")">
 
-                <i class="bi bi-bar-chart-line-fill"></i>
+                <i class="bi bi-bar-chart-line"></i>
                 <span class="nav-label">Weekly Report Summary</span>
             </a>
 
@@ -226,7 +228,7 @@
             <a asp-controller="Archive"
                asp-action="Index"
                class="nav-item @(controller == "Archive" ? "active" : "")">
-                <i class="bi bi-archive-fill"></i>
+                <i class="bi bi-archive"></i>
                 <span class="nav-label">Archives</span>
             </a>
 
