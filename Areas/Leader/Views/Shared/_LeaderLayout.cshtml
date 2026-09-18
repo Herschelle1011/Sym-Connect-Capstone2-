@@ -98,12 +98,51 @@
                 </div>
 
             </div>
-        <img class="topbar-avatar"
-             src="@(string.IsNullOrEmpty(profilePicture)
-                 ? fallbackAvatar
-                 : profilePicture)"
-             alt="User Avatar" />
+            <div class="dropdown">
 
+                <button type="button"
+                        class="border-0 bg-transparent p-0"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+
+                    <img src="@profilePicture"
+                         class="topbar-avatar"
+                         alt="Profile" />
+
+                </button>
+
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                    <li>
+                        <button type="button"
+                                class="dropdown-item open-modal"
+                                data-url="@Url.Action(
+                                                        "EditProfile",
+                                                        "Profile",
+                                                        new { area = "Member" })"
+                                data-title="Edit Profile">
+
+                            <i class="bi bi-person me-2"></i>
+                            Edit Account
+                        </button>
+                    </li>
+
+
+                    <li>
+                        <a class="dropdown-item"
+                           asp-area="Member"
+                           asp-controller="Profile"
+                           asp-action="Index">
+
+                            <i class="bi bi-person-vcard me-2"></i>
+                            My Profile
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
     </div>
 </div>
 

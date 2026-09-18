@@ -1,0 +1,178 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Profile.EditAccountProfileViewModel
+@{
+    string formArea =
+        ViewBag.FormArea as string ?? "";
+
+    string formController =
+        ViewBag.FormController as string ?? "Admin";
+}
+
+<form asp-action="EditProfile"
+      asp-controller="@formController"
+      asp-area="@formArea"
+      method="post"
+      enctype="multipart/form-data"
+      class="modal-ajax-form">
+
+    @Html.AntiForgeryToken()
+
+
+    <div class="modal-header">
+        <div>
+            <small class="text-muted">
+                Update your account information
+            </small>
+        </div>
+    </div>
+
+
+    <div class="modal-body">
+
+        <!-- PROFILE PHOTO -->
+        <div class="text-center mb-4">
+
+            @if (!string.IsNullOrWhiteSpace(
+                Model.CurrentPhotoUrl))
+            {
+                <img src="@Model.CurrentPhotoUrl"
+                     id="profilePhotoPreview"
+                     class="rounded-circle object-fit-cover mb-3"
+                     width="90"
+                     height="90"
+                     alt="Profile photo" />
+            }
+            else
+            {
+                <div id="profilePhotoPlaceholder"
+                     class="rounded-circle bg-light
+                    d-flex align-items-center
+                    justify-content-center
+                    mx-auto mb-3"
+                     style="width:90px;height:90px;">
+
+                    <i class="bi bi-person fs-2 text-muted"></i>
+                </div>
+            }
+
+
+            <div>
+                <label asp-for="ProfilePicture"
+                       class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                    <i class="bi bi-camera me-1"></i>
+                    Change Photo
+                </label>
+
+                <input asp-for="ProfilePicture"
+                       type="file"
+                       accept="image/*"
+                       class="d-none"
+                       id="profilePictureInput" />
+
+                <div>
+                    <span asp-validation-for="ProfilePicture"
+                          class="text-danger small">
+                    </span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- DISPLAY NAME -->
+        <div class="mb-3">
+            <label asp-for="DisplayName"
+                   class="form-label">
+                Display Name
+            </label>
+
+            <input asp-for="DisplayName"
+                   class="form-control"
+                   placeholder="Enter your name" />
+
+            <span asp-validation-for="DisplayName"
+                  class="text-danger small">
+            </span>
+        </div>
+
+
+        <!-- EMAIL -->
+        <div class="mb-3">
+            <label asp-for="Email"
+                   class="form-label">
+                Email Address
+            </label>
+
+            <input asp-for="Email"
+                   class="form-control"
+                   placeholder="Enter your email" />
+
+            <span asp-validation-for="Email"
+                  class="text-danger small">
+            </span>
+        </div>
+
+
+        <hr class="my-4" />
+
+
+        <div class="mb-3">
+            <h6 class="fw-semibold mb-1">
+                Change Password
+            </h6>
+
+            <small class="text-muted">
+                Leave these fields blank if you
+                don't want to change your password.
+            </small>
+        </div>
+
+
+        <!-- NEW PASSWORD -->
+        <div class="mb-3">
+            <label asp-for="NewPassword"
+                   class="form-label">
+                New Password
+            </label>
+
+            <input asp-for="NewPassword"
+                   class="form-control"
+                   placeholder="Enter new password" />
+
+            <span asp-validation-for="NewPassword"
+                  class="text-danger small">
+            </span>
+        </div>
+
+
+        <!-- CONFIRM PASSWORD -->
+        <div class="mb-2">
+            <label asp-for="ConfirmPassword"
+                   class="form-label">
+                Confirm Password
+            </label>
+
+            <input asp-for="ConfirmPassword"
+                   class="form-control"
+                   placeholder="Confirm new password" />
+
+            <span asp-validation-for="ConfirmPassword"
+                  class="text-danger small">
+            </span>
+        </div>
+
+    </div>
+
+
+    <div class="modal-footer">
+        <button type="button"
+                class="btn btn-light"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+
+        <button type="submit"
+                class="btn btn-primary px-4">
+            Save Changes
+        </button>
+    </div>
+
+</form>

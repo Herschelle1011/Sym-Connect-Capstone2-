@@ -83,9 +83,60 @@
                 </div>
 
             </div>
-            <img class="topbar-avatar"
-                 src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
-                 alt="User Avatar" />
+            <div class="dropdown">
+
+                <button type="button"
+                        class="border-0 bg-transparent p-0"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+
+                 <img class="topbar-avatar"
+                  src="@(string.IsNullOrEmpty(profilePicture) ? fallbackAvatar : profilePicture)"
+                         alt="Profile" />
+
+                </button>
+
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                    <li>
+                        <button type="button"
+                                class="dropdown-item open-modal"
+                                data-url="@Url.Action(
+                                                        "EditProfile",
+                                                        "Admin")"
+                                data-title="Edit Profile">
+
+                            <i class="bi bi-person me-2"></i>
+                            Profile
+                        </button>
+                    </li>
+
+
+                    <li>
+                        <hr class="dropdown-divider" />
+                    </li>
+
+
+                    <li>
+                        <form asp-controller="Admin"
+                              asp-action="Logout"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="dropdown-item text-danger">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Logout
+                            </button>
+
+                        </form>
+                    </li>
+
+                </ul>
+
+            </div>
         </div>
     </header>
 
