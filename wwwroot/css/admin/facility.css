@@ -1,5 +1,4 @@
-﻿
-.facility-page {
+﻿.facility-page {
     padding: 2rem 2.5rem;
     background-color: #f4f6fb;
     min-height: 100vh;
@@ -8,9 +7,11 @@
 
 .facility-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+
 }
 
     .facility-header h1 {
@@ -21,7 +22,7 @@
     }
 
 .btn-create {
-    background-color: #3b6ef6;
+    background-color: #007ec8;
     color: white;
     border: none;
     padding: 0.55rem 1.2rem;
@@ -33,18 +34,23 @@
     gap: 0.4rem;
     text-decoration: none;
     transition: background 0.2s ease;
+    margin-left:auto;
 }
 
     .btn-create:hover {
-        background-color: #2a56d6;
+        background-color: #00669f;
         color: white;
         text-decoration: none;
     }
 
+.btn-createfacility, .btn-savechanges {
+    background-color: #007ec8;
+    color: white;
+}
 /* Card Grid */
 .facility-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 340px));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
 }
 
@@ -79,23 +85,23 @@
     display: block;
 }
 
-    .card-photo-wrapper .no-photo {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #d8dce8;
-        color: #8a8fa8;
-        font-size: 0.85rem;
-    }
+.card-photo-wrapper .no-photo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #d8dce8;
+    color: #8a8fa8;
+    font-size: 0.85rem;
+}
 
 /* Capacity Badge */
 .capacity-badge {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(59, 110, 246, 0.85);
+    background: rgba(0, 126, 200, 0.85);
     color: white;
     font-size: 0.72rem;
     font-weight: 600;
@@ -103,6 +109,7 @@
     border-radius: 20px;
     backdrop-filter: blur(4px);
 }
+
 .carousel {
     position: relative;
     width: 100%;
@@ -127,6 +134,7 @@
     gap: 6px;
     z-index: 10;
 }
+
     .carousel-dots .dot {
         width: 8px;
         height: 8px;
@@ -239,7 +247,7 @@
     }
 
         .card-actions a:hover {
-            color: #3b6ef6;
+            color: #007ec8;
         }
 
         .card-actions a.archive-btn:hover {
@@ -247,14 +255,17 @@
         }
 
 
+/* ===== Facility Details header (Back to List + title) ===== */
 .facility-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+    gap: 1rem;
     margin-bottom: 1.5rem;
 }
 
 .btn-back-list {
+    order: -1; /* add this line — pushes it before the h1 visually */
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -283,6 +294,7 @@
     border-radius: 16px;
     overflow: hidden;
     max-width: 1060px;
+    margin: 0 auto;
 }
 
 .fd-photo-col {
@@ -322,7 +334,7 @@
 }
 
     .fd-dot.active {
-        background: #2563eb;
+        background: #007ec8;
     }
 
 .fd-thumbs {
@@ -343,7 +355,7 @@
 
     .fd-thumb.active,
     .fd-thumb:hover {
-        border-color: #2563eb;
+        border-color: #007ec8;
     }
 
 .fd-no-photo {
@@ -433,7 +445,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #2563eb;
+    background: #007ec8;
     color: #fff;
     font-size: 12px;
     font-weight: 600;
@@ -521,14 +533,14 @@
 }
 
 .fd-btn-edit {
-    background: #111827;
+    background: #007ec8;
     color: #fff;
-    border: 1px solid #111827;
+    border: 1px solid #007ec8;
 }
 
     .fd-btn-edit:hover {
-        background: #1f2937;
-        color: #fff;
+        background: #CDECFF;
+        color: #007ec8;
     }
 
 .fd-btn-archive {
@@ -578,7 +590,7 @@
 }
 
     .facility-page .fd-schedule-header i {
-        color: #1877F2;
+        color: #007ec8;
     }
 
 .facility-page .fd-schedule-subheader {
@@ -599,7 +611,7 @@
     .facility-page .fd-schedule-subheader a {
         font-size: 13px;
         font-weight: 700;
-        color: #1877F2;
+        color: #007ec8;
         text-decoration: none;
     }
 
@@ -630,7 +642,7 @@
     }
 
     .facility-page .fd-schedule-table .sched-date {
-        color: #1877F2;
+        color: #007ec8;
         font-weight: 700;
     }
 
@@ -649,4 +661,8 @@
     padding: 4px 10px;
     border-radius: 999px;
     display: inline-block;
+}
+
+.btn-details {
+    background-color: #007ec8 !important;
 }
