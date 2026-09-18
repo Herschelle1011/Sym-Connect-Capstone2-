@@ -160,7 +160,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 
                 if (scanner != null)
                 {
-                    scannedByName = scanner.DisplayName ?? "Unknown";
+                    scannedByName = scanner.DisplayName ?? "A";
                 }
             }
 

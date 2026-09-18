@@ -434,39 +434,132 @@ document.addEventListener('click', function (e) {
 });
 
 // ═══════════════ LEADER: EDIT REQUEST FROM DETAILS MODAL ═══════════════
+let editEventRequestLoading = false;
+
 document.addEventListener('click', async function (e) {
+
     const btn = e.target.closest('.edit-event-from-modal-btn');
+
     if (!btn) return;
 
-    const eventId = btn.dataset.eventId;
+    // Prevent another request while one is already running
+    if (editEventRequestLoading) return;
 
-    const response = await fetch(`/Leader/Events/GetEditForm?eventid=${eventId}`);
-    if (!response.ok) {
-        showAlertDialog('Unable to load event details.', 'error');
-        return;
+    editEventRequestLoading = true;
+    btn.disabled = true;
+
+    const originalHtml = btn.innerHTML;
+
+    btn.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Loading...
+    `;
+
+    try {
+
+        const eventId = btn.dataset.eventId;
+
+        const response = await fetch(
+            `/Leader/Events/GetEditForm?eventId=${eventId}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Unable to load edit form.");
+        }
+
+        const html = await response.text();
+
+
+        // Remove old edit panel
+        const existingPanelEl =
+            document.getElementById('editEventPanel');
+
+        if (existingPanelEl) {
+
+            const existingInstance =
+                bootstrap.Offcanvas.getInstance(existingPanelEl);
+
+            if (existingInstance) {
+                existingInstance.dispose();
+            }
+
+            existingPanelEl.remove();
+        }
+
+
+        // Add the new edit panel
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            html
+        );
+
+
+        // Reinitialize validation
+        const editForm =
+            document.getElementById("editEventForm");
+
+        if (
+            editForm &&
+            window.jQuery &&
+            $.validator &&
+            $.validator.unobtrusive
+        ) {
+            $.validator.unobtrusive.parse(editForm);
+        }
+
+
+        // Close details modal
+        const detailsModalElement =
+            document.getElementById('eventDetailsModal');
+
+        if (detailsModalElement) {
+
+            const detailsModal =
+                bootstrap.Modal.getInstance(detailsModalElement);
+
+            if (detailsModal) {
+                detailsModal.hide();
+            }
+        }
+
+
+        // Open edit panel
+        const editPanel =
+            document.getElementById('editEventPanel');
+
+        if (editPanel) {
+
+            const panel =
+                bootstrap.Offcanvas.getOrCreateInstance(editPanel);
+
+            panel.show();
+        }
+
     }
+    catch (error) {
 
-    const html = await response.text();
+        console.error(
+            "Error loading edit event form:",
+            error
+        );
 
-    const existingPanelEl = document.getElementById('editEventPanel');
-    if (existingPanelEl) {
-        const existingInstance = bootstrap.Offcanvas.getInstance(existingPanelEl);
-        if (existingInstance) existingInstance.dispose();
-        existingPanelEl.remove();
+        showAlertDialog(
+            "Unable to load event details.",
+            "error",
+            "Error"
+        );
     }
+    finally {
 
-    document.body.insertAdjacentHTML('beforeend', html);
+        editEventRequestLoading = false;
 
-    const editForm = document.getElementById("editEventForm");
-    $.validator.unobtrusive.parse(editForm);
-
-    const detailsModal = bootstrap.Modal.getInstance(document.getElementById('eventDetailsModal'));
-    if (detailsModal) detailsModal.hide();
-
-    const panel = new bootstrap.Offcanvas(document.getElementById('editEventPanel'));
-    panel.show();
+        // Button may have disappeared because modal was closed
+        if (document.body.contains(btn)) {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
 });
-
 
 function applyEventRequestFilters() {
     const activeFilter = document.querySelector('.filter-tabs .active')?.dataset.filter || 'all';

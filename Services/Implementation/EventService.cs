@@ -99,7 +99,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.Events
                 .AsNoTracking()
-                    .AsSplitQuery()
+                  .AsSplitQuery()
                 .Where(e => e.CreatedByUserId == memberId && !e.IsArchived && !e.IsCancelled)
                 .OrderByDescending(e => e.DateCreated)
                 .Select(e => new EventListItemViewModel
@@ -232,6 +232,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<DetailsEventViewModel?> GetDetailsByAsync(int id)
         {
             var existingEvent = await _context.Events
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Where(e => e.EventId == id && e.IsArchived == false)
                 .Select(e => new DetailsEventViewModel
                 {
@@ -2335,6 +2337,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             return await _context.Events
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(e => e.EventId == id && !e.IsArchived)
                 .Select(e => new EventDetailsReadOnlyViewModel
                 {
@@ -2366,6 +2369,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<List<EventListItemViewModel>> GetAssignedEventsForLeaderAsync(int leaderMemberId)
         {
             return await _context.Events
+                .AsNoTracking()
+                 .AsSplitQuery()
                 .Where(e => !e.IsArchived
                          && !e.IsCancelled
                          && e.ApprovalStatus == ApprovalStatus.Approved
@@ -2563,6 +2568,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var now = DateTime.Now;
 
             var query = _context.Events
+                  .AsNoTracking()
+                 .AsSplitQuery()
                 .Where(e => !e.IsArchived
                          && !e.IsCancelled
                          && e.ApprovalStatus == ApprovalStatus.Approved
@@ -2606,6 +2613,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             return await query
+                .AsNoTracking()
+                  .AsSplitQuery()
                 .OrderByDescending(e => e.CancelledDate)
                 .Select(e => new EventListItemViewModel
                 {
@@ -2645,6 +2654,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             var eventDetails = await _context.Events
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Where(e => e.EventId == eventId && e.IsCancelled && !e.IsArchived)
                 .Select(e => new CancelledEventDetailsViewModel
                 {
