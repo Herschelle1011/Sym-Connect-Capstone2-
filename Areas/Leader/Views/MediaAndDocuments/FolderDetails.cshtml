@@ -92,8 +92,13 @@
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
                                             <a class="dropdown-item"
-                                               href="@Url.Action("Download", "MediaAndDocuments", new { id = f.MediaFileId })">
-                                                <i class="bi bi-download"></i> Download
+                                               href="@Url.Action(
+                                                      "Download",
+                                                      "MediaAndDocuments",
+                                                      new { area = "Leader", id = f.MediaFileId })">
+
+                                                <i class="bi bi-download"></i>
+                                                Download
                                             </a>
                                         </li>
                                         <li>
@@ -108,12 +113,20 @@
                                                 File information
                                             </a>
                                         </li>
-                                        <li>
-                                            <a class="dropdown-item text-danger" href="#"
-                                               data-file-id="@f.MediaFileId" data-action="delete-file">
-                                                <i class="bi bi-trash"></i> Delete
-                                            </a>
-                                        </li>
+                                                <li>
+                                                    <a class="dropdown-item text-danger open-modal"
+                                                       href="#"
+                                                       data-url="@Url.Action(
+                                                                     "GetDeleteFile",
+                                                                     "MediaAndDocuments",
+                                                                     new { area = "Leader", mediaFileId = f.MediaFileId })"
+                                                       data-title="Delete File">
+
+                                                        <i class="bi bi-trash"></i>
+                                                        Delete
+                                                    </a>
+                                                </li>
+                                  
                                     </ul>
                                 </div>
                             </td>

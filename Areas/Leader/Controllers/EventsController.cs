@@ -29,13 +29,41 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
         private async Task<IActionResult?> AuthorizeEvent(int eventId)
         {
-            var leaderId = CurrentLeaderId;
-            if (leaderId == null) return Unauthorized();
+            var user = await _userManager.GetUserAsync(User);
 
-            if (!await _eventService.LeaderOwnsEventsAsync(eventId, leaderId.Value))
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+      
+            if (user.MemberId == null)
+            {
                 return Forbid();
+            }
 
-            return null; // null = authorized, keep going
+            bool isLeader =
+                await _groupService.IsMemberALeaderAsync(
+                    user.MemberId.Value
+                );
+
+            if (!isLeader)
+            {
+                return Forbid();
+            }
+
+            bool canAccess =
+                await _eventService.LeaderOwnsEventsAsync(
+                    eventId,
+                    user.MemberId.Value
+                );
+
+            if (!canAccess)
+            {
+                return Forbid();
+            }
+
+            return null;
         }
 
 
@@ -76,8 +104,17 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         }
 
         //========== LEADERS VIEW SCANNER =================
-        private int? CurrentLeaderId => HttpContext.Session.GetInt32("CurrentMemberId");
+        private async Task<int?> GetCurrentLeaderIdAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
 
+            if (user == null || user.MemberId == null)
+            {
+                return null;
+            }
+
+            return user.MemberId.Value;
+        }
 
 
 
@@ -269,17 +306,59 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 "~/Views/Shared/_ScannerTimeModal.cshtml");
         }
 
+
+        [HttpGet]
+        public IActionResult GetScannerEditTimeModal()
+        {
+            return PartialView(
+                "~/Views/Events/_EditScannerTimeModal.cshtml"
+            );
+        }
+
+
+
+
         [HttpGet]
         public async Task<IActionResult> GetEditForm(int eventid)
         {
-            ViewBag.Facilities = await _facilityService.GetAllFacilitiesAsync();
-            ViewBag.Groups = await _groupService.GetAllGroupsAsync();
+            // Make sure the leader owns this event
+            var guard = await AuthorizeEvent(eventid);
 
-            var existingEvent = await _eventService.GetEventForEditAsync(eventid);
-            if (existingEvent == null) return NotFound();
+            if (guard != null)
+            {
+                return guard;
+            }
 
-            return PartialView("~/Views/Events/_EditEventPanel.cshtml", existingEvent);
+
+            ViewBag.Facilities =
+                await _facilityService.GetAllFacilitiesAsync();
+
+            ViewBag.Groups =
+                await _groupService.GetAllGroupsAsync();
+
+
+            // IMPORTANT:
+            // The shared edit form needs to know
+            // where it should POST.
+            ViewBag.FormController = "Events";
+            ViewBag.FormArea = "Leader";
+
+
+            var existingEvent =
+                await _eventService.GetEventForEditAsync(eventid);
+
+            if (existingEvent == null)
+            {
+                return NotFound();
+            }
+
+
+            return PartialView(
+                "~/Views/Events/_EditEventPanel.cshtml",
+                existingEvent
+            );
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -332,7 +411,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             var eventDetails = await _eventService.GetDetailsByAsync(id.Value); // REUSED
             if (eventDetails == null) return NotFound();
 
-            var leaderId = CurrentLeaderId;
+            var leaderId = await GetCurrentLeaderIdAsync();
             var leaderGroup = await _groupService.GetGroupLedByMemberAsync(leaderId);
             if (leaderGroup != null)
             {
@@ -343,6 +422,95 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         }
 
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(
+    int? eventid,
+    EditEventViewModel vm)
+        {
+            // ==============================
+            // 1. CHECK EVENT ID
+            // ==============================
+
+            if (eventid == null ||
+                eventid != vm.EventId)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Event ID mismatch."
+                });
+            }
+
+
+            // ==============================
+            // 2. MAKE SURE LEADER OWNS EVENT
+            // ==============================
+
+            var guard =
+                await AuthorizeEvent(eventid.Value);
+
+            if (guard != null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "You are not allowed to edit this event."
+                });
+            }
+
+
+            // ==============================
+            // 3. VALIDATE FORM
+            // ==============================
+
+            if (!ModelState.IsValid)
+            {
+                var errors =
+                    ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage);
+
+                return Json(new
+                {
+                    success = false,
+                    message = string.Join(" ", errors)
+                });
+            }
+
+
+            // ==============================
+            // 4. UPDATE EVENT
+            // ==============================
+
+            var result =
+                await _eventService.UpdateEventAsync(
+                    eventid,
+                    vm
+                );
+
+
+            if (!result.Success)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = result.ErrorMessage
+                });
+            }
+
+
+            // ==============================
+            // 5. SUCCESS
+            // ==============================
+
+            return Json(new
+            {
+                success = true,
+                message = $"{vm.EventTitle} updated successfully"
+            });
+        }
 
 
         // ====== CHECK ATTENDANCE for 

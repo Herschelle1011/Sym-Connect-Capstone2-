@@ -171,6 +171,46 @@
         border: 1px solid #E3E7ED;
         border-radius: 10px;
     }
+
+    .eval-reward-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        background: #F8FBFF;
+        border: 1px solid #DCEBFF;
+        border-radius: 10px;
+    }
+
+    .eval-reward-icon {
+        width: 36px;
+        height: 36px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #EAF2FE;
+        color: #2F6FED;
+        border-radius: 9px;
+        font-size: 16px;
+    }
+
+    .eval-reward-title {
+        color: #344054;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 1px;
+    }
+
+    .eval-reward-text {
+        color: #7B8495;
+        font-size: 12px;
+    }
+
+        .eval-reward-text strong {
+            color: #2F6FED;
+            font-weight: 700;
+        }
 </style>
 
 @if (TempData["Message"] != null)
@@ -195,18 +235,48 @@
             <p class="eval-description">@Model.Description</p>
             <hr />
 
-            <div class="eval-dates mb-4">
+            <div class="eval-dates mb-3">
+
                 <div class="eval-date-item">
                     <span class="eval-date-label">Open date:</span>
-                    <i class="bi bi-calendar3" aria-hidden="true"></i>
+                    <i class="bi bi-calendar3"></i>
                     <span>@Model.openAt.ToString("MMMM d, yyyy")</span>
                 </div>
+
                 <div class="eval-date-item">
                     <span class="eval-date-label">Close date:</span>
-                    <i class="bi bi-calendar3" aria-hidden="true"></i>
+                    <i class="bi bi-calendar3"></i>
                     <span>@Model.closesAt.ToString("MMMM d, yyyy")</span>
                 </div>
+
             </div>
+
+
+            <!-- POINTS REWARD -->
+            <div class="eval-reward-box mb-4">
+
+                <div class="eval-reward-icon">
+                    <i class="bi bi-stars"></i>
+                </div>
+
+                <div class="eval-reward-content">
+                    <div class="eval-reward-title">
+                        Completion Reward
+                    </div>
+
+                    <div class="eval-reward-text">
+                        Submit this evaluation to earn
+                        <strong>+@Model.Points points</strong>.
+                    </div>
+                </div>
+
+            </div>
+
+
+            <h6 class="fw-semibold mb-3 text-muted"
+                style="font-size:13px; letter-spacing:0.5px;">
+                YOUR DETAILS
+            </h6>
 
             <h6 class="fw-semibold mb-3 text-muted" style="font-size:13px; letter-spacing:0.5px;">YOUR DETAILS</h6>
             <div class="row g-3">

@@ -7,6 +7,7 @@ using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Dashboard;
+using Sym_Connect__Capstone2_.ViewModels.Profile;
 using System.Text.RegularExpressions;
 
 namespace Sym_Connect__Capstone2_.Controllers
@@ -92,8 +93,24 @@ namespace Sym_Connect__Capstone2_.Controllers
             var user = await _userManager.GetUserAsync(User);
 
 
+            var monthStart =
+    new DateTime(
+        today.Year,
+        today.Month,
+        1);
+
+            var monthEnd =
+                monthStart.AddMonths(1);
+
+            var eventStatus =
+                await _dashboardService
+                    .GetEventStatusSummaryAsync(
+                        monthStart,
+                        monthEnd);
+
             var vm = new AdminDashboardViewModel
             {
+
                 AdminName = user.DisplayName ?? "Admin",
                 Today = today,
 
@@ -104,9 +121,13 @@ namespace Sym_Connect__Capstone2_.Controllers
                 UpcomingActivitiesCount = await _dashboardService.GetActivitiesCountThisWeekAsync(startOfWeek, endOfWeek),
                 EventsExpiredCount = await _dashboardService.GetExpiredEventCountAsync(),
 
-                EventsApprovedCount = await _eventService.GetApprovedCountAsync(),  // TODO: wire to real count
-                EventsPendingCount = await _eventService.GetPendingRequestCountAsync(),  // TODO: wire to real count
-                EventsRejectedCount = await _eventService.GetRejectedCountAsync(),  // TODO: wire to real count
+                EventsApprovedCount = eventStatus.Approved,
+                EventsPendingCount = eventStatus.Pending,  // TODO: wire to real count
+                EventsRejectedCount = eventStatus.Rejected,  // TODO: wire to real count
+
+                WeeklySummary =
+            await _dashboardService
+                .GetWeeklyActivityOverviewAsync()
             };
 
             var (membershipCount, membershipLatest) = await _dashboardService.GetPendingMembershipApplicationsAsync();
@@ -144,6 +165,61 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             return View(vm);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetEventStatusSummary(string period = "month")
+        {
+            var now = DateTime.Now;
+
+            DateTime start;
+            DateTime end;
+
+
+            if (period == "today")
+            {
+                start = now.Date;
+                end = start.AddDays(1);
+            }
+            else if (period == "week")
+            {
+                int daysSinceMonday =
+                    ((int)now.DayOfWeek + 6) % 7;
+
+                start =
+                    now.Date.AddDays(-daysSinceMonday);
+
+                end =
+                    start.AddDays(7);
+            }
+            else
+            {
+                // Default = This Month
+                start = new DateTime(
+                    now.Year,
+                    now.Month,
+                    1);
+
+                end = start.AddMonths(1);
+            }
+
+
+            var summary =
+                await _dashboardService
+                    .GetEventStatusSummaryAsync(
+                        start,
+                        end);
+
+
+            return Json(new
+            {
+                approved = summary.Approved,
+                pending = summary.Pending,
+                rejected = summary.Rejected,
+                expired = summary.Expired,
+                total = summary.Total
+            });
+        }
+
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -158,6 +234,202 @@ namespace Sym_Connect__Capstone2_.Controllers
             // Send user to Identity Login page
             return Redirect("/Identity/Account/Login");
 
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+
+            var vm = new EditAccountProfileViewModel
+            {
+                UserId = user.Id,
+                DisplayName = user.DisplayName ?? "",
+                Email = user.Email ?? "",
+                CurrentPhotoUrl = user.ProfilePictureUrl
+            };
+
+
+            return PartialView(
+                "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                vm
+            );
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile(EditAccountProfileViewModel vm)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Unable to find your account."
+                });
+            }
+
+
+            // ==========================================
+            // VALIDATE FORM
+            // ==========================================
+
+            if (!ModelState.IsValid)
+            {
+                return PartialView(
+                    "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                    vm
+                );
+            }
+
+
+            // ==========================================
+            // CHECK EMAIL
+            // ==========================================
+
+            var emailOwner =
+                await _userManager.FindByEmailAsync(vm.Email);
+
+            if (emailOwner != null &&
+                emailOwner.Id != user.Id)
+            {
+                ModelState.AddModelError(
+                    "Email",
+                    "This email address is already being used."
+                );
+
+                vm.CurrentPhotoUrl =
+                    user.ProfilePictureUrl;
+
+                return PartialView(
+                    "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                    vm
+                );
+            }
+
+
+            // ==========================================
+            // UPDATE PHOTO
+            // ==========================================
+
+            if (vm.ProfilePicture != null &&
+                vm.ProfilePicture.Length > 0)
+            {
+                if (vm.ProfilePicture.Length >
+                    5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError(
+                        "ProfilePicture",
+                        "Profile picture must be less than 5MB."
+                    );
+
+                    vm.CurrentPhotoUrl =
+                        user.ProfilePictureUrl;
+
+                    return PartialView(
+                        "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                        vm
+                    );
+                }
+
+
+                var imageUrl =
+                    await _cloudinaryService
+                        .UploadProfilePicture(
+                            vm.ProfilePicture,
+                            user.Id
+                        );
+
+                if (imageUrl == null)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Profile picture upload failed."
+                    });
+                }
+
+
+                user.ProfilePictureUrl = imageUrl;
+            }
+
+
+            // ==========================================
+            // UPDATE NAME + EMAIL
+            // ==========================================
+
+            user.DisplayName =
+                vm.DisplayName.Trim();
+
+            user.Email =
+                vm.Email.Trim();
+
+            user.UserName =
+                vm.Email.Trim();
+
+
+            var updateResult =
+                await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = updateResult.Errors
+                        .FirstOrDefault()?.Description
+                        ?? "Unable to update profile."
+                });
+            }
+
+
+            // ==========================================
+            // CHANGE PASSWORD - ONLY WHEN ENTERED
+            // ==========================================
+
+            if (!string.IsNullOrWhiteSpace(
+                vm.NewPassword))
+            {
+                var token =
+                    await _userManager
+                        .GeneratePasswordResetTokenAsync(user);
+
+                var passwordResult =
+                    await _userManager
+                        .ResetPasswordAsync(
+                            user,
+                            token,
+                            vm.NewPassword
+                        );
+
+
+                if (!passwordResult.Succeeded)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = passwordResult.Errors
+                            .FirstOrDefault()?.Description
+                            ?? "Unable to change password."
+                    });
+                }
+            }
+
+
+            return Json(new
+            {
+                success = true,
+                message = "Profile updated successfully."
+            });
         }
     }
 }

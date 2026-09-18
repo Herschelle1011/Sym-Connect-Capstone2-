@@ -186,5 +186,155 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
+        public async Task<List<ChartPointViewModel>>GetWeeklyActivityOverviewAsync()
+        {
+            var result = new List<ChartPointViewModel>();
+
+
+            // ==========================================
+            // GET THE START OF THIS WEEK
+            // ==========================================
+
+            var today = DateTime.Today;
+
+            int daysSinceMonday =
+                ((int)today.DayOfWeek + 6) % 7;
+
+            var thisWeekStart =
+                today.AddDays(-daysSinceMonday);
+
+
+            // ==========================================
+            // BUILD THE PAST 4 WEEKS
+            // ==========================================
+
+            for (int i = 3; i >= 0; i--)
+            {
+                var weekStart =
+                    thisWeekStart.AddDays(-7 * i);
+
+                var weekEnd =
+                    weekStart.AddDays(7);
+
+
+                // ======================================
+                // EVENTS
+                // ======================================
+
+                int eventCount =
+                    await _context.Events.CountAsync(e =>
+                        !e.IsArchived &&
+                        e.ApprovalStatus ==
+                            ApprovalStatus.Approved &&
+                        e.StartDate >= weekStart &&
+                        e.StartDate < weekEnd
+                    );
+
+
+                // ======================================
+                // ATTENDANCE
+                // ======================================
+
+                int attendanceCount =
+                    await _context.Attendances.CountAsync(a =>
+                        a.TimeIn.HasValue &&
+                        a.TimeIn.Value >= weekStart &&
+                        a.TimeIn.Value < weekEnd
+                    );
+
+
+                // ======================================
+                // EVALUATION SUBMISSIONS
+                // ======================================
+
+                int evaluationCount =
+                    await _context.EvaluationSubmissions
+                        .CountAsync(s =>
+                            s.SubmittedAt.HasValue &&
+                            s.SubmittedAt.Value >= weekStart &&
+                            s.SubmittedAt.Value < weekEnd
+                        );
+
+
+                // ======================================
+                // ANNOUNCEMENTS
+                // ======================================
+
+                int announcementCount =
+                    await _context.Announcements.CountAsync(a =>
+                        a.PublishDate >= weekStart &&
+                        a.PublishDate < weekEnd
+                    );
+
+
+                // ======================================
+                // TOTAL ACTIVITY
+                // ======================================
+
+                int totalActivity =
+                    eventCount +
+                    attendanceCount +
+                    evaluationCount +
+                    announcementCount;
+
+
+                // ======================================
+                // LABEL
+                // ======================================
+
+                string label;
+
+                if (i == 0)
+                {
+                    label = "This Week";
+                }
+                else
+                {
+                    label =
+                        $"{weekStart:MMM d} - " +
+                        $"{weekEnd.AddDays(-1):MMM d}";
+                }
+
+
+                result.Add(new ChartPointViewModel
+                {
+                    Label = label,
+                    Value = totalActivity
+                });
+            }
+
+
+            return result;
+        }
+
+
+        public async Task<EventStatusSummaryViewModel>
+    GetEventStatusSummaryAsync(
+        DateTime start,
+        DateTime end)
+        {
+            var events = _context.Events
+                .AsNoTracking()
+                .Where(e =>
+                    !e.IsArchived &&
+                    e.DateCreated >= start &&
+                    e.DateCreated < end);
+
+
+            return new EventStatusSummaryViewModel
+            {
+                Approved = await events.CountAsync(e =>
+                    e.ApprovalStatus == ApprovalStatus.Approved),
+
+                Pending = await events.CountAsync(e =>
+                    e.ApprovalStatus == ApprovalStatus.Pending),
+
+                Rejected = await events.CountAsync(e =>
+                    e.ApprovalStatus == ApprovalStatus.Rejected),
+
+                Expired = await events.CountAsync(e =>
+                    e.ApprovalStatus == ApprovalStatus.Expired)
+            };
+        }
     }
 }

@@ -61,7 +61,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     DateCreated = e.DateCreated,
                     OpenAt = e.OpenAt,
                     ClosedAt = e.ClosedAt,
-                    EventTitle = e.Event.EventTitle
+                    EventTitle = e.Event.EventTitle,
+                    Points = e.Points
                 })
 
                 .ToListAsync();
@@ -106,6 +107,26 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     s.EvaluationId == model.EvaluationId &&
                     s.UserId == userId);
 
+            var evaluation =
+         await _context.Evaluations
+             .FirstOrDefaultAsync(e =>
+                 e.EvaluationId == model.EvaluationId &&
+                 !e.IsArchived);
+
+            if (evaluation == null)
+            {
+                return false;
+            }
+
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m =>
+                    m.User.Id == userId);
+
+            if (member == null)
+            {
+                return false;
+            }
+
             // 2. Create one if this is the first attempt
             if (submission == null)
             {
@@ -114,7 +135,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     EvaluationId = model.EvaluationId,
                     UserId = userId,
                     Status = SubmissionStatus.Draft,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    
                 };
 
                 _context.EvaluationSubmissions.Add(submission);
@@ -175,6 +197,10 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 
                 submission.SubmittedAt =
                     DateTime.Now;
+
+
+                member.EarnedPoints +=
+                    evaluation.Points;
             }
 
             await _context.SaveChangesAsync();

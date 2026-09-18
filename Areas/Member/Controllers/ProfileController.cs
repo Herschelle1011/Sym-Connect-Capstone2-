@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Profile;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 {
@@ -13,12 +16,14 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
         private readonly IMemberService _memberService;
         private readonly IProfileService _profileService;
+        private readonly UserManager<User> _userManager;
 
 
-        public ProfileController(IMemberService memberService, IProfileService profileService)
+        public ProfileController(IMemberService memberService, IProfileService profileService, UserManager<User> userManager)
         {
             _memberService = memberService;
             _profileService = profileService;
+            _userManager = userManager;
         }
         public async Task<IActionResult> Index()
         {
@@ -47,6 +52,37 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             var qrCode = new QRCoder.PngByteQRCode(qrData);
             byte[] qrImageBytes = qrCode.GetGraphic(20);
             return File(qrImageBytes, "image/png");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditProfile()
+        {
+            var user =
+                await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+
+            var vm = new EditAccountProfileViewModel
+            {
+                UserId = user.Id,
+                DisplayName = user.DisplayName ?? "",
+                Email = user.Email ?? "",
+                CurrentPhotoUrl = user.ProfilePictureUrl
+            };
+
+
+            ViewBag.FormArea = "Member";
+            ViewBag.FormController = "Profile";
+
+
+            return PartialView(
+                "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                vm
+            );
         }
     }
 }

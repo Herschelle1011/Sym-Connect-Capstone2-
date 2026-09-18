@@ -319,6 +319,27 @@
             font-size: 16px;
             cursor: pointer;
         }
+
+    .eval-points-info {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        width: fit-content;
+        padding: 4px 9px;
+        background: #F0F6FF;
+        color: #667085;
+        border-radius: 6px;
+        font-size: 11px;
+    }
+
+        .eval-points-info i {
+            color: #2F6FED;
+        }
+
+        .eval-points-info strong {
+            color: #2F6FED;
+            font-weight: 700;
+        }
 </style>
 
 <div class="member-page eval-page">
@@ -407,6 +428,13 @@
                         </p>
                     }
 
+                    <div class="eval-points-info">
+                        <i class="bi bi-stars"></i>
+                        <span>Member reward</span>
+                        <strong>+@item.Points points</strong>
+                    </div>
+
+                    @* ---- DESCRIPTION ---- *@
                     <p class="eval-description">@item.Description</p>
 
                     <div class="eval-card-footer">

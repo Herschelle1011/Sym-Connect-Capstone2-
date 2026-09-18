@@ -1,5 +1,10 @@
 ﻿@model EditEventViewModel
 
+@{
+    string formController = ViewBag.FormController as string ?? "Events";
+    string formArea = ViewBag.FormArea as string ?? "";
+}
+
 <div class="offcanvas offcanvas-end event-panel" tabindex="-1" id="editEventPanel" style="width: 420px;">
 
     <div class="offcanvas-header border-bottom pb-2">
@@ -9,9 +14,14 @@
 
     <div class="offcanvas-body">
         <form asp-action="Edit"
-              asp-controller="@(ViewBag.FormController ?? "Events")"
-              asp-area="@(ViewBag.FormArea ?? "")"
-              method="post" id="editEventForm"
+              asp-controller="@formController"
+              asp-area="@formArea"
+              method="post"
+              id="editEventForm"
+              data-scanner-modal-url="@Url.Action(
+                        "GetScannerEditTimeModal",
+                        formController,
+                        new { area = formArea })"
               data-time-in-open="@Model.TimeInScannerOpenTime?.ToString(@"hh\:mm")"
               data-time-in-close="@Model.TimeInScannerClosesTime?.ToString(@"hh\:mm")"
               data-time-out-open="@Model.TimeOutScannerOpenTime?.ToString(@"hh\:mm")"
@@ -136,10 +146,19 @@
             </div>
 
             <div class="d-flex gap-2 mt-4 pb-3">
-                <button type="button" class="btn btn-outline-secondary w-50" data-bs-dismiss="offcanvas">Cancel</button>
-                <button type="submit" class="btn btn-primary w-50">
-                    <i class="ti ti-device-floppy"></i> Save Changes
+
+                <button type="button"
+                        class="btn btn-outline-secondary w-50"
+                        data-bs-dismiss="offcanvas">
+                    Cancel
                 </button>
+
+                <button type="submit"
+                        class="btn btn-primary w-50">
+                    Continue
+                    <i class="ti ti-arrow-right ms-1"></i>
+                </button>
+
             </div>
         </form>
     </div>

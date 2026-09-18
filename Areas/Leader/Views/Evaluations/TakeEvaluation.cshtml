@@ -196,7 +196,7 @@
 
 
             <!-- OPEN / CLOSE DATE -->
-            <div class="eval-dates mb-4">
+            <div class="eval-dates mb-3">
 
                 <div class="eval-date-item">
 
@@ -207,7 +207,7 @@
                     <i class="bi bi-calendar3"></i>
 
                     <span>
-                        @Model.openAt.ToString("MMMM d, yyyy")
+                        @Model.openAt.ToString("MMM. d, yyyy • h:mm tt")
                     </span>
 
                 </div>
@@ -222,12 +222,39 @@
                     <i class="bi bi-calendar3"></i>
 
                     <span>
-                        @Model.closesAt.ToString("MMMM d, yyyy")
+                        @Model.closesAt.ToString("MMM. d, yyyy • h:mm tt")
                     </span>
 
                 </div>
 
             </div>
+
+            <!-- POINTS REWARD -->
+            <div class="eval-reward-box mb-4">
+
+                <div class="eval-reward-icon">
+                    <i class="bi bi-stars"></i>
+                </div>
+
+                <div class="eval-reward-content">
+
+                    <div class="eval-reward-title">
+                        Completion Reward
+                    </div>
+
+                    <div class="eval-reward-text">
+                        Submit this evaluation to earn
+                        <strong>+@Model.Points points</strong>.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+
+
 
 
             <!-- LEADER DETAILS -->

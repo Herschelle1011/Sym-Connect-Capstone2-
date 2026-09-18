@@ -13,5 +13,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation
         public DateTime openAt { get; set; }
         public DateTime closesAt { get; set; }
         public List<AnswerInputViewModel> Questions { get; set; } = new();
+        public int Points { get; set; }
+
     }
 }

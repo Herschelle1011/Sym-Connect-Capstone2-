@@ -15,5 +15,7 @@
 
         public string Status { get; set; } = string.Empty;   // "Upcoming" / "Open" / "Closed"
         public bool IsAnswerable => Status == "Open";
+
+        public int Points { get; set; }
     }
 }

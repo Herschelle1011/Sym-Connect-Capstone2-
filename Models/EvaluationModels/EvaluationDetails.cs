@@ -20,10 +20,10 @@ namespace Sym_Connect__Capstone2_.Models
         public Evaluation? Evaluation { get; set; }
         public EvaluationQuestion? EvaluationQuestion { get; set; }
 
-        //ARCHIVED SECTION
-        public bool? IsArchived { get; set; } = false;
-        public DateTime? UpdatedAt { get; set; }
-        public DateTime? ArchiveDate { get; set; }
+        ////ARCHIVED SECTION
+        //public bool? IsArchived { get; set; } = false;
+        //public DateTime? UpdatedAt { get; set; }
+        //public DateTime? ArchiveDate { get; set; }
 
     }
 }

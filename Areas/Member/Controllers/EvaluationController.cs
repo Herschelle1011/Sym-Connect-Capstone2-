@@ -74,9 +74,6 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
             if (!canTake)
             {
-                TempData["Error"] =
-                    "This evaluation is not available to you.";
-
                 return RedirectToAction("Index");
             }
 
@@ -136,8 +133,7 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
 
             if (!success)
             {
-                TempData["Error"] =
-                    "This evaluation has already been submitted.";
+
 
                 return RedirectToAction(
                     "TakeEvaluation",
@@ -148,8 +144,6 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             if (model.IsFinalSubmit)
                 return RedirectToAction("ThankYou");
 
-            TempData["Message"] =
-                "Your progress has been saved.";
 
             return RedirectToAction(
                 "TakeEvaluation",

@@ -343,3 +343,41 @@ async function refreshPendingFilesCount() {
     }
 }
 
+
+
+// =====================================================
+// SEARCH FILES
+// =====================================================
+document.addEventListener("input", function (e) {
+
+    // Only run this code for the file search box
+    if (e.target.id !== "fileSearchInput") {
+        return;
+    }
+
+    const searchText =
+        e.target.value
+            .toLowerCase()
+            .trim();
+
+    const rows =
+        document.querySelectorAll(
+            "#fileTableBody tr[data-id]"
+        );
+
+    rows.forEach(function (row) {
+
+        // Get all visible text from the row
+        const rowText =
+            row.textContent
+                .toLowerCase();
+
+        // Check if the row contains the search text
+        const matches =
+            rowText.includes(searchText);
+
+        // Show or hide the row
+        row.style.display =
+            matches ? "" : "none";
+    });
+});

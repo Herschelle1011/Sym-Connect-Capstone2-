@@ -54,6 +54,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Services.Implementation
                     OpenAt = e.OpenAt,
                     ClosedAt = e.ClosedAt,
                     EventTitle = e.Event.EventTitle,
+                    Points = e.Points,
 
                     Status = e.OpenAt > now
                         ? "Upcoming"
@@ -94,78 +95,147 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Services.Implementation
         }
 
         public async Task<bool> SaveEvaluationAsync(
-            string userId,
-            SubmitEvaluationViewModel model)
+    string userId,
+    SubmitEvaluationViewModel model)
         {
-            if (model.Answers == null || !model.Answers.Any())
+      
+
+            if (model.Answers == null ||
+                !model.Answers.Any())
             {
                 return false;
             }
 
-            var submission = await _context.EvaluationSubmissions
-                .FirstOrDefaultAsync(s =>
-                    s.EvaluationId == model.EvaluationId &&
-                    s.UserId == userId);
+
+
+
+            var evaluation =
+                await _context.Evaluations
+                    .FirstOrDefaultAsync(e =>
+                        e.EvaluationId == model.EvaluationId &&
+                        !e.IsArchived);
+
+            if (evaluation == null)
+            {
+                return false;
+            }
+
+            var member = await _context.Members
+          .FirstOrDefaultAsync(m =>
+              m.User.Id == userId);
+
+            if (member == null)
+            {
+                return false;
+            }
+
+
+
+            var submission =
+                await _context.EvaluationSubmissions
+                    .FirstOrDefaultAsync(s =>
+                        s.EvaluationId == model.EvaluationId &&
+                        s.UserId == userId);
+
+
 
             if (submission != null &&
-                submission.Status == SubmissionStatus.Submitted)
+                submission.Status ==
+                    SubmissionStatus.Submitted)
             {
                 return false;
             }
+
+
 
             if (submission == null)
             {
-                submission = new EvaluationSubmission
-                {
-                    EvaluationId = model.EvaluationId,
-                    UserId = userId,
-                    Status = SubmissionStatus.Draft,
-                    CreatedAt = DateTime.Now
-                };
+                submission =
+                    new EvaluationSubmission
+                    {
+                        EvaluationId =
+                            model.EvaluationId,
 
-                _context.EvaluationSubmissions.Add(submission);
+                        UserId =
+                            userId,
+
+                        Status =
+                            SubmissionStatus.Draft,
+
+                        CreatedAt =
+                            DateTime.Now,
+
+           
+                        PointsEarned = 0
+                    };
+
+                _context.EvaluationSubmissions
+                    .Add(submission);
 
                 await _context.SaveChangesAsync();
             }
+
 
             foreach (var answerInput in model.Answers)
             {
                 var existingAnswer =
                     await _context.EvaluationResponses
                         .FirstOrDefaultAsync(r =>
-                            r.SubmissionId == submission.SubmissionId &&
+                            r.SubmissionId ==
+                                submission.SubmissionId &&
+
                             r.EvaluationDetailId ==
                                 answerInput.EvaluationDetailId);
 
+
                 if (existingAnswer != null)
                 {
-                    existingAnswer.Answer = answerInput.Answer;
+                    existingAnswer.Answer =
+                        answerInput.Answer;
                 }
                 else
                 {
-                    var response = new EvaluationResponse
-                    {
-                        SubmissionId = submission.SubmissionId,
-                        EvaluationDetailId =
-                            answerInput.EvaluationDetailId,
-                        Answer = answerInput.Answer
-                    };
+                    var response =
+                        new EvaluationResponse
+                        {
+                            SubmissionId =
+                                submission.SubmissionId,
 
-                    _context.EvaluationResponses.Add(response);
+                            EvaluationDetailId =
+                                answerInput.EvaluationDetailId,
+
+                            Answer =
+                                answerInput.Answer
+                        };
+
+                    _context.EvaluationResponses
+                        .Add(response);
                 }
             }
 
+
+            //  FINAL SUBMISSION
+
             if (model.IsFinalSubmit)
             {
-                submission.Status = SubmissionStatus.Submitted;
-                submission.SubmittedAt = DateTime.Now;
+                submission.Status =
+                    SubmissionStatus.Submitted;
+
+                submission.SubmittedAt =
+                    DateTime.Now;
+
+                member.EarnedPoints +=
+                    evaluation.Points;
             }
+
+
+            // SAVE EVERYTHING
+
 
             await _context.SaveChangesAsync();
 
             return true;
         }
-
         public async Task<Evaluation?> GetEvaluationByIdAsync(
             int evaluationId)
         {
