@@ -16,7 +16,7 @@
 
     @Html.AntiForgeryToken()
 
-
+    <input asp-for="UserId" type="hidden" />
     <div class="modal-header">
         <div>
             <small class="text-muted">
@@ -31,67 +31,97 @@
         <!-- PROFILE PHOTO -->
         <div class="text-center mb-4">
 
-            @if (!string.IsNullOrWhiteSpace(
-                Model.CurrentPhotoUrl))
-            {
-                <img src="@Model.CurrentPhotoUrl"
-                     id="profilePhotoPreview"
-                     class="rounded-circle object-fit-cover mb-3"
-                     width="90"
-                     height="90"
-                     alt="Profile photo" />
-            }
-            else
-            {
-                <div id="profilePhotoPlaceholder"
-                     class="rounded-circle bg-light
-                    d-flex align-items-center
-                    justify-content-center
-                    mx-auto mb-3"
-                     style="width:90px;height:90px;">
+            <div class="mb-3">
 
-                    <i class="bi bi-person fs-2 text-muted"></i>
-                </div>
-            }
+                @if (!string.IsNullOrWhiteSpace(Model.CurrentPhotoUrl))
+                {
+                    <img src="@Model.CurrentPhotoUrl"
+                         id="profilePhotoPreview"
+                         class="rounded-circle object-fit-cover mx-auto"
+                         width="90"
+                         height="90"
+                         alt="Profile photo" />
 
+                    <div id="profilePhotoPlaceholder"
+                         class="rounded-circle bg-light
+                        d-none align-items-center
+                        justify-content-center
+                        mx-auto"
+                         style="width:90px;height:90px;">
 
-            <div>
-                <label asp-for="ProfilePicture"
-                       class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                    <i class="bi bi-camera me-1"></i>
-                    Change Photo
-                </label>
+                        <i class="bi bi-person fs-2 text-muted"></i>
+                    </div>
+                }
+                else
+                {
+                    <img src=""
+                         id="profilePhotoPreview"
+                         class="rounded-circle object-fit-cover mx-auto d-none"
+                         width="90"
+                         height="90"
+                         alt="Profile photo" />
 
-                <input asp-for="ProfilePicture"
-                       type="file"
-                       accept="image/*"
-                       class="d-none"
-                       id="profilePictureInput" />
+                    <div id="profilePhotoPlaceholder"
+                         class="rounded-circle bg-light
+                        d-flex align-items-center
+                        justify-content-center
+                        mx-auto"
+                         style="width:90px;height:90px;">
 
-                <div>
-                    <span asp-validation-for="ProfilePicture"
-                          class="text-danger small">
-                    </span>
-                </div>
+                        <i class="bi bi-person fs-2 text-muted"></i>
+                    </div>
+                }
+
             </div>
+
+
+            <!-- Hidden actual file input -->
+            <input asp-for="ProfilePicture"
+                   type="file"
+                   accept="image/jpeg,image/png,image/webp"
+                   class="d-none"
+                   id="profilePictureInput" />
+
+
+            <!-- Visible Change Photo button -->
+            <button type="button"
+                    id="changePhotoButton"
+                    class="btn btn-sm btn-outline-primary rounded-pill px-3">
+
+                <i class="bi bi-camera me-1"></i>
+                Change Photo
+
+            </button>
+
+
+            <div class="mt-1">
+                <span asp-validation-for="ProfilePicture"
+                      class="text-danger small">
+                </span>
+            </div>
+
         </div>
 
 
         <!-- DISPLAY NAME -->
-        <div class="mb-3">
-            <label asp-for="DisplayName"
-                   class="form-label">
-                Display Name
-            </label>
+        @if (string.IsNullOrEmpty(formArea))
+        {
+            <!-- DISPLAY NAME - ADMIN ONLY -->
+            <div class="mb-3">
+                <label asp-for="DisplayName"
+                       class="form-label">
+                    Display Name
+                </label>
 
-            <input asp-for="DisplayName"
-                   class="form-control"
-                   placeholder="Enter your name" />
+                <input asp-for="DisplayName"
+                       class="form-control"
+                       placeholder="Enter your name" />
 
-            <span asp-validation-for="DisplayName"
-                  class="text-danger small">
-            </span>
-        </div>
+                <span asp-validation-for="DisplayName"
+                      class="text-danger small">
+                </span>
+            </div>
+        }
 
 
         <!-- EMAIL -->
@@ -133,9 +163,21 @@
                 New Password
             </label>
 
-            <input asp-for="NewPassword"
-                   class="form-control"
-                   placeholder="Enter new password" />
+            <div class="input-group">
+                <input asp-for="NewPassword"
+                       type="password"
+                       id="newPasswordInput"
+                       class="form-control"
+                       placeholder="Enter new password" />
+
+                <button type="button"
+                        class="btn btn-outline-secondary password-toggle"
+                        data-target="newPasswordInput"
+                        aria-label="Show password">
+
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
 
             <span asp-validation-for="NewPassword"
                   class="text-danger small">
@@ -150,15 +192,26 @@
                 Confirm Password
             </label>
 
-            <input asp-for="ConfirmPassword"
-                   class="form-control"
-                   placeholder="Confirm new password" />
+            <div class="input-group">
+                <input asp-for="ConfirmPassword"
+                       type="password"
+                       id="confirmPasswordInput"
+                       class="form-control"
+                       placeholder="Confirm new password" />
+
+                <button type="button"
+                        class="btn btn-outline-secondary password-toggle"
+                        data-target="confirmPasswordInput"
+                        aria-label="Show password">
+
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
 
             <span asp-validation-for="ConfirmPassword"
                   class="text-danger small">
             </span>
         </div>
-
     </div>
 
 

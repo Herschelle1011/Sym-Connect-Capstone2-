@@ -21,11 +21,10 @@ namespace Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile
         public string Country { get; set; } = "Philippines";
         public string Province { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
+        public string Gender { get; set; } = string.Empty;
         public string Barangay { get; set; } = string.Empty;
 
-        public string Address =>
-            string.Join(", ", new[] { Barangay, City, Province, Country }
-                .Where(p => !string.IsNullOrWhiteSpace(p) && p != "N/A"));
+        public string Address { get; set; } = string.Empty;
         // QR
         public string MyQrToken { get; set; } = string.Empty;
         public string PhotoUrl { get; set; } = string.Empty;

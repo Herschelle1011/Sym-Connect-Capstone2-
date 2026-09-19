@@ -48,8 +48,6 @@ namespace Sym_Connect__Capstone2_.ViewModels.Membership
 
         // ACCOUNT INFORMATION
 
-        [Required]
-        public string Username { get; set; } = string.Empty;
 
         [Required]
         [DataType(DataType.Password)]

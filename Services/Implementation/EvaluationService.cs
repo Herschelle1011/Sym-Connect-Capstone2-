@@ -7,6 +7,7 @@ using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.ViewModels.Evaluation;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
@@ -25,33 +26,44 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             _userManager = userManager;
         }
 
-        public async Task<List<MemberEvaluationListItemViewModel>>GetAvailableEvaluationsAsync(int currentMemberId,bool isAdmin)
+        public async Task<List<MemberEvaluationListItemViewModel>> GetAvailableEvaluationsAsync(
+         int currentMemberId,
+         string currentUserId,
+         bool isAdmin)
         {
+            var now = DateTime.Now;
+
             var query = _context.Evaluations
                 .AsNoTracking()
-                .Where(e =>
-                    !e.IsArchived &&
-                    e.OpenAt <= DateTime.Now &&
-                    e.ClosedAt >= DateTime.Now);
-            // Leader only sees evaluations for events they created
+                .Where(e => !e.IsArchived);
+
+            // Leader only sees evaluations THEY created —
+            // not just evaluations attached to events they created.
             if (!isAdmin)
             {
                 query = query.Where(e =>
-                    e.Event.CreatedByUserId == currentMemberId);
+                    e.CreatedByUserId == currentUserId);
             }
 
             return await query
-                .Select(e => new MemberEvaluationListItemViewModel
-                {
-                    EvaluationId = e.EvaluationId,
-                    EvaluationTitle = e.EvaluationTitle,
-                    Description = e.Description,
-                    DateCreated = e.DateCreated,
-                    OpenAt = e.OpenAt,
-                    ClosedAt = e.ClosedAt,
-                    EventTitle = e.Event.EventTitle,
-                    Points = e.Points
-                })
+                .OrderByDescending(e => e.DateCreated)
+                .Select(e =>
+                    new MemberEvaluationListItemViewModel
+                    {
+                        EvaluationId = e.EvaluationId,
+                        EvaluationTitle = e.EvaluationTitle,
+                        Description = e.Description,
+                        DateCreated = e.DateCreated,
+                        OpenAt = e.OpenAt,
+                        ClosedAt = e.ClosedAt,
+                        EventTitle = e.Event.EventTitle,
+                        Points = e.Points,
+                        Status = e.OpenAt > now
+                            ? "Upcoming"
+                            : e.ClosedAt < now
+                                ? "Closed"
+                                : "Open"
+                    })
                 .ToListAsync();
         }
 
@@ -109,7 +121,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                     DateCreated = e.DateCreated,
 
-                    EventTitle = e.Event.EventTitle,
+                    EventTitle = e.Event.EventTitle ?? "",
+
+                    CreatedBy = e.CreatedByUser.DisplayName
+                           ?? "Unknown",
+
                     Points = e.Points,
 
                     Questions = e.EvaluationDetails
@@ -201,6 +217,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     UsageCount = _context.EvaluationDetail
                         .Count(d => d.QuestionId == q.QuestionId)
                 })
+                //if question has been use 5 times then it must show in MostUsedQuestion
                 .Where(q => q.UsageCount >= 5)
                 .OrderByDescending(q => q.UsageCount)
                 .Take(10)
@@ -258,8 +275,22 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<OperationalResult> CreateEvaluationAsync(
     CreateEvaluationViewModel vm, int currentMemberId,
-    bool isAdmin)
+    bool isAdmin, string createdByUserId)
         {
+
+            if (isAdmin)
+            {
+              
+            }
+            else
+            {
+                // Leader has a Member record.
+                createdByUserId = await _context.Members
+                    .Where(m => m.MemberId == currentMemberId)
+                    .Select(m => m.UserId)
+                    .FirstOrDefaultAsync();
+            }
+
             // Make sure an event was selected
             if (!vm.EventId.HasValue)
             {
@@ -271,7 +302,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
      
-
 
             // Make sure the selected event really exists
             var selectedEvent = await _context.Events
@@ -329,6 +359,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 DateCreated = DateTime.Now,
                 IsArchived = false,
                 ArchivedDate = null,
+                CreatedByUserId = createdByUserId,
             };
 
             _context.Evaluations.Add(evaluation);
@@ -920,6 +951,100 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 })
                 .ToListAsync();
         }
+
+
+
+        public async Task<MemberEvaluationListItemViewModel?> GetCloseEvaluationAsync(
+           int evaluationId,
+           int currentMemberId,
+           bool isAdmin)
+        {
+            var query = _context.Evaluations
+                .AsNoTracking()
+                .Where(e =>
+                    e.EvaluationId == evaluationId &&
+                    !e.IsArchived &&
+                    e.ClosedAt > DateTime.Now);
+
+            // Leader ownership check only.
+            // Admin can access any evaluation.
+            if (!isAdmin)
+            {
+                query = query.Where(e =>
+                    e.Event != null &&
+                    e.Event.CreatedByUserId == currentMemberId);
+            }
+
+            return await query
+                .Select(e => new MemberEvaluationListItemViewModel
+                {
+                    EvaluationId = e.EvaluationId,
+                    EvaluationTitle = e.EvaluationTitle
+                })
+                .FirstOrDefaultAsync();
+        }
+
+
+        public async Task<OperationalResult> CloseEvaluationAsync( int evaluationId,int currentMemberId, bool isAdmin)
+        {
+            var evaluation = await _context.Evaluations
+                .Include(e => e.Event)
+                .FirstOrDefaultAsync(e =>
+                    e.EvaluationId == evaluationId &&
+                    !e.IsArchived);
+
+            if (evaluation == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Evaluation not found."
+                };
+            }
+
+
+            if (!isAdmin)
+            {
+                if (evaluation.Event == null ||
+                    evaluation.Event.CreatedByUserId != currentMemberId)
+                {
+                    return new OperationalResult
+                    {
+                        Success = false,
+                        Message = "You are not allowed to close this evaluation."
+                    };
+                }
+            }
+
+            // ==========================================
+            // ALREADY CLOSED
+            // ==========================================
+
+            if (evaluation.ClosedAt <= DateTime.Now)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "This evaluation is already closed."
+                };
+            }
+
+            // ==========================================
+            // CLOSE THE EVALUATION
+            // ==========================================
+
+            evaluation.ClosedAt = DateTime.Now;
+            evaluation.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Evaluation closed successfully."
+            };
+        }
+
 
     }
 }

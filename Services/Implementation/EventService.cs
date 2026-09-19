@@ -124,64 +124,78 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }).ToListAsync();
         }
 
-        public async Task<List<EventListItemViewModel>> GetAllEventForEvaluationAsync(int currentUserId, bool IsAdmin)
+        public async Task<List<EventListItemViewModel>>
+     GetAllEventForEvaluationAsync(int currentUserId, bool isAdmin)
         {
             var now = DateTime.Now;
             var today = now.Date;
             var currentTime = now.TimeOfDay;
 
-            
             var query = _context.Events
-             .Where(e =>
-          !e.IsArchived &&
-          !e.IsCancelled &&
-          e.ApprovalStatus == ApprovalStatus.Approved &&
-                            (e.EndDate < today || (
-                              e.EndDate == today &&
-                              e.EndTime.HasValue &&
-                              e.EndTime.Value < currentTime)) &&
+                .Where(e =>
+                    !e.IsArchived &&
+                    !e.IsCancelled &&
+                    e.ApprovalStatus == ApprovalStatus.Approved &&
 
-                                !_context.Evaluations.Any(ev =>
-                                 ev.EventId == e.EventId)
-                              );
+                    // Event must already be completed
+                    (
+                        e.EndDate < today ||
+                        (
+                            e.EndDate == today &&
+                            e.EndTime.HasValue &&
+                            e.EndTime.Value < currentTime
+                        )
+                    ) &&
 
-            if (!IsAdmin)
+                    // Do not show an event that already has an evaluation
+                    !_context.Evaluations.Any(ev =>
+                        ev.EventId == e.EventId &&
+                        !ev.IsArchived
+                    )
+                );
+
+            // Leader can only see events they created
+            if (!isAdmin)
             {
-                query = query.Where(e => e.CreatedByUserId == currentUserId);
+                query = query.Where(e =>
+                    e.CreatedByUserId == currentUserId);
             }
 
             return await query
-               .OrderByDescending(e => e.EndDate)
-               .ThenByDescending(e => e.EndTime)
-               .Select(e => new EventListItemViewModel
-               {
-                   EventId = e.EventId,
-                   EventTitle = e.EventTitle,
-                   StartDate = e.StartDate,
-                   StartTime = e.StartTime,
-                   EndTime = e.EndTime,
-                   EndDate = e.EndDate,
-                   ApprovalStatus = e.ApprovalStatus,
-                   DateCreated = e.DateCreated,
-                   ApprovedDate = e.ApprovedDate,
-                   RejectionReason = e.RejectionReason,
-                   ApproveByName =
-               e.ApprovedByUser != null
-                   ? e.ApprovedByUser.FirstName + " " + e.ApprovedByUser.LastName
-                   : null,
-                   SubmittedByName =
-               e.CreatedByUser != null
-                   ? e.CreatedByUser.FirstName + " " + e.CreatedByUser.LastName
-                   : null,
-                   FacilityNames =
-               e.ExpectedFacilities
-                   .Select(f => f.Facility.FacilityName)
-                   .ToList(),
-                   GroupNames =
-                      e.ExpectedGroups
-                   .Select(g => g.Group.GroupName)
-                   .ToList()
-               }).ToListAsync();
+                .OrderByDescending(e => e.EndDate)
+                .ThenByDescending(e => e.EndTime)
+                .Select(e => new EventListItemViewModel
+                {
+                    EventId = e.EventId,
+                    EventTitle = e.EventTitle,
+                    StartDate = e.StartDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+                    EndDate = e.EndDate,
+                    ApprovalStatus = e.ApprovalStatus,
+                    DateCreated = e.DateCreated,
+                    ApprovedDate = e.ApprovedDate,
+                    RejectionReason = e.RejectionReason,
+
+                    ApproveByName = e.ApprovedByUser != null
+                        ? e.ApprovedByUser.FirstName + " " +
+                          e.ApprovedByUser.LastName
+                        : null,
+
+                    SubmittedByName = e.CreatedByUser != null
+                        ? e.CreatedByUser.FirstName + " " +
+                          e.CreatedByUser.LastName
+                        : null,
+
+                    FacilityNames = e.ExpectedFacilities
+                        .Select(f => f.Facility.FacilityName)
+                        .ToList(),
+
+                    GroupNames = e.ExpectedGroups
+                        .Select(g => g.Group.GroupName)
+                        .ToList()
+                })
+                .ToListAsync();
         }
 
         //FOR ADMINS VIEW === > Get all pending, approve, rejected events < ==== 
@@ -1034,10 +1048,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     !g.IsArchived);
         }
 
-        public async Task<OperationalResult> RecordTimeInAsync(
-           string qrToken,
-           int eventId,
-           string scannedByUserId,
+        public async Task<OperationalResult> RecordTimeInAsync( string qrToken,int eventId,string scannedByUserId,
            int? scannedByMemberId,
            bool isAdmin)
         {
@@ -1076,9 +1087,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 };
             }
 
-            // ============================
             // ADMIN
-            // ============================
             if (isAdmin)
             {
                 bool memberIsExpected = await _context.EventGroups
@@ -1110,9 +1119,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 return new OperationalResult { Success = true, Message = $"{member.FirstName} checked in successfully." };
             }
 
-            // ============================
             // LEADER
-            // ============================
+            
             if (scannedByMemberId == null)
             {
                 return new OperationalResult { Success = false, Message = "Leader identity could not be resolved." };
@@ -1125,7 +1133,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 return new OperationalResult { Success = false, Message = "You are not currently leading a group." };
             }
 
-            // Leader's group must be assigned to this event
+            //  must be assigned to this event
             bool groupIsExpected = await _context.EventGroups
                 .AnyAsync(eg => eg.EventId == eventId && eg.GroupId == leaderGroup.GroupId);
 
@@ -1157,7 +1165,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 ScannedByUserId = scannedByUserId
             });
 
-            // First scan of this event by this leader → auto-mark them present
+ 
             bool leaderAlreadyRecorded = await _context.Attendances
                 .AnyAsync(a => a.MemberId == scannedByMemberId && a.EventId == eventId);
 
@@ -1182,7 +1190,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             leaderPoints = eventEntity.Points - 2;
                         }
                     }
-                    // eventEntity.StartTime == null (all-day) → falls through, stays "Present" with full points
 
                     _context.Attendances.Add(new Attendance
                     {
@@ -1265,7 +1272,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             await _context.SaveChangesAsync();
-
 
 
         }
@@ -1613,9 +1619,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-        public async Task<OperationalResult> SendAttendanceReminderAsync(
-     int eventId,
-     string reminderType)
+        public async Task<OperationalResult> SendAttendanceReminderAsync(int eventId,string reminderType)
         {
             var eventEntity = await _context.Events
                 .FirstOrDefaultAsync(e =>
@@ -1632,10 +1636,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 };
             }
 
-
-            // ==========================================
             // GET EXPECTED GROUPS
-            // ==========================================
 
             var expectedGroupIds = await _context.EventGroups
                 .Where(eg => eg.EventId == eventId)
@@ -1643,9 +1644,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
 
 
-            // ==========================================
             // GET EXPECTED MEMBERS
-            // ==========================================
 
             var expectedMembers = await _context.GroupDetails
                 .Where(gd =>
@@ -1662,18 +1661,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .ToListAsync();
 
 
-            // ==========================================
             // GET ATTENDANCE
-            // ==========================================
 
             var attendanceRecords = await _context.Attendances
                 .Where(a => a.EventId == eventId)
                 .ToListAsync();
 
 
-            // ==========================================
             // TIME-IN REMINDER
-            // ==========================================
 
             if (reminderType == "TimeIn")
             {
@@ -1713,10 +1708,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 };
             }
 
-
-            // ==========================================
             // TIME-OUT REMINDER
-            // ==========================================
 
             if (reminderType == "TimeOut")
             {

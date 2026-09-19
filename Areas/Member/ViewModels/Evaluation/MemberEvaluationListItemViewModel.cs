@@ -17,5 +17,7 @@
         public bool IsAnswerable => Status == "Open";
 
         public int Points { get; set; }
+
+        public string CreatedBy { get; set; } = string.Empty;
     }
 }

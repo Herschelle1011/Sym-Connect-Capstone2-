@@ -75,6 +75,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             var evaluations =
                 await _evaluationService.GetAvailableEvaluationsAsync(
                     user.MemberId.Value,
+                    user.Id,
                     false);
 
             var vm = evaluations
@@ -93,6 +94,15 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
 
             return View(vm);
         }
+
+        public async Task<IActionResult> SummaryReports(int? id)
+        {
+            if (id == null) { return NotFound(); }
+            var report = await _evaluationService.summaryReport(id);
+            if (report == null) { return NotFound(); }
+            return PartialView("_SummaryReportsPartial", report);
+        }
+
 
 
         [HttpGet]
@@ -431,7 +441,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 return View(vm);
             }
 
-            var result = await _evaluationService.CreateEvaluationAsync(vm,user.MemberId.Value,false);
+            var result = await _evaluationService.CreateEvaluationAsync(vm,user.MemberId.Value,false, user.Id);
 
             if (!result.Success)
             {
@@ -672,6 +682,80 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         public IActionResult ThankYou()
         {
             return View();
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetCloseEvaluation(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            var evaluation =
+                await _evaluationService.GetCloseEvaluationAsync(
+                    id.Value,
+                    user.MemberId.Value,
+                    false
+                );
+
+            if (evaluation == null)
+            {
+                return NotFound();
+            }
+
+            ViewBag.FormArea = "Leader";
+            ViewBag.FormController = "Evaluations";
+
+            return PartialView(
+                "~/Views/Shared/_CloseEvaluationModal.cshtml",
+                evaluation
+            );
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseEvaluation(
+    int evaluationId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (user.MemberId == null)
+            {
+                return Forbid();
+            }
+
+            var result =
+                await _evaluationService.CloseEvaluationAsync(
+                    evaluationId,
+                    user.MemberId.Value,
+                    false
+                );
+
+            return Json(new
+            {
+                success = result.Success,
+                message = result.Message
+            });
         }
 
     }

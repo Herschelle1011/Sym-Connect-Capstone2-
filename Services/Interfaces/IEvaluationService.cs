@@ -8,9 +8,16 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 {
     public interface IEvaluationService
     {
-        Task<List<MemberEvaluationListItemViewModel>> GetAvailableEvaluationsAsync(int currentMemberId, bool isAdmin);        Task<Evaluation?> GetEvaluationByIdAsync(int id);
-        Task <OperationalResult>CreateEvaluationAsync(CreateEvaluationViewModel vm, int currentMemberId, bool isAdmin);
-        Task<EditQuestionViewModel> GetQuestionAsync(int id);
+        Task<List<MemberEvaluationListItemViewModel>> GetAvailableEvaluationsAsync(
+            int currentMemberId,
+           string currentUserId, bool isAdmin); 
+        
+        
+        Task<OperationalResult> CreateEvaluationAsync(
+           CreateEvaluationViewModel vm, int currentMemberId,
+           bool isAdmin, string createdByUserId);
+            
+            Task<EditQuestionViewModel> GetQuestionAsync(int id);
         Task CreateOrReuseQuestionAsync(int evaluationid, string questionText, AnswerType answertype);
 
         Task<OperationalResult> UpdateEvaluationAsync(UpdateEvaluationViewModel vm, int currentMemberId,
@@ -50,6 +57,18 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<List<MemberEvaluationListItemViewModel>> GetAssignedEvaluationsAsync(
                   int currentMemberId,
                   string userId);
+
+
+        Task<OperationalResult> CloseEvaluationAsync(
+    int evaluationId,
+    int currentMemberId,
+    bool isAdmin);
+
+
+        Task<MemberEvaluationListItemViewModel?> GetCloseEvaluationAsync(
+           int evaluationId,
+           int currentMemberId,
+           bool isAdmin);
     }
 
 

@@ -82,7 +82,7 @@
                     <tbody>
                         @foreach (var file in Model.RecentFiles)
                         {
-                            <tr>
+                            <tr class="recent-file-row">
                                 <td>
                                     <a href="@Url.Action("Download", "MediaAndDocuments", new { id = file.MediaFileId })"
                                        class="file-name-link">

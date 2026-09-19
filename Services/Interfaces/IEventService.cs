@@ -82,6 +82,7 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         Task<int> GetRejectedCountAsync();
 
         Task<List<AllEventsListItemViewModel>> GetAllApprovedEventsForOrgAsync();
+
         Task<List<EventListItemViewModel>> GetAllEventForEvaluationAsync(int currentUserId, bool IsAdmin);
 
         Task<EventDetailsReadOnlyViewModel?> GetEventDetailsReadOnlyAsync(int id);

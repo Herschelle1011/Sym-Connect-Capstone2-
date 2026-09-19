@@ -135,6 +135,10 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                 {
                     scannedByName = scanner.DisplayName ?? "Unknown";
                 }
+                else
+                {
+                    scannedByName = "Automatically recorded";
+                }
             }
 
 

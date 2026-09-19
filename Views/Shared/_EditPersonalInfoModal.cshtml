@@ -1,0 +1,132 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Profile.EditPersonalInfoViewModel
+
+@{
+    string formArea = ViewBag.FormArea as string ?? "";
+    string formController = ViewBag.FormController as string ?? "Profile";
+}
+
+<form asp-action="EditPersonalInfo"
+      asp-controller="@formController"
+      asp-area="@formArea"
+      method="post"
+      class="modal-ajax-form">
+
+    @Html.AntiForgeryToken()
+
+    <div class="modal-header">
+        <div>
+            <small class="text-muted">Update your personal information</small>
+        </div>
+    </div>
+
+    <div class="modal-body">
+
+        
+        <!-- FIRST NAME -->
+        <div class="mb-3">
+            <label asp-for="FirstName" class="form-label">First Name</label>
+            <input asp-for="FirstName" class="form-control" placeholder="Enter first name" />
+            <span asp-validation-for="FirstName" class="text-danger small"></span>
+        </div>
+
+        <!-- MIDDLE NAME (OPTIONAL) -->
+        <div class="mb-3">
+            <label asp-for="MiddleName" class="form-label">
+                Middle Name <span class="text-muted">(optional)</span>
+            </label>
+            <input asp-for="MiddleName" class="form-control" placeholder="Enter middle name" />
+            <span asp-validation-for="MiddleName" class="text-danger small"></span>
+        </div>
+
+        <!-- LAST NAME -->
+        <div class="mb-3">
+            <label asp-for="LastName" class="form-label">Last Name</label>
+            <input asp-for="LastName" class="form-control" placeholder="Enter last name" />
+            <span asp-validation-for="LastName" class="text-danger small"></span>
+        </div>
+
+        <hr class="my-4" />
+
+
+
+        <!-- BIRTHDATE -->
+        <div class="mb-3">
+            <label asp-for="Birthdate" class="form-label">Birthdate</label>
+            <input asp-for="Birthdate" type="date" class="form-control" />
+            <span asp-validation-for="Birthdate" class="text-danger small"></span>
+        </div>
+
+        <!-- GENDER -->
+        <div class="mb-3">
+            <label asp-for="Gender" class="form-label">Gender</label>
+            <select asp-for="Gender" class="form-select">
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+            <span asp-validation-for="Gender" class="text-danger small"></span>
+        </div>
+
+        <!-- CONTACT NUMBER -->
+        <div class="mb-3">
+            <label asp-for="ContactNumber" class="form-label">Contact Number</label>
+            <input asp-for="ContactNumber" class="form-control" placeholder="Enter contact number" />
+            <span asp-validation-for="ContactNumber" class="text-danger small"></span>
+        </div>
+
+        <!-- COUNTRY -->
+        <div class="mb-3">
+            <label asp-for="Country" class="form-label">Country</label>
+            <input asp-for="Country" class="form-control" placeholder="Enter country" />
+            <span asp-validation-for="Country" class="text-danger small"></span>
+        </div>
+
+        <!-- PROVINCE -->
+        <div class="mb-3">
+            <label class="form-label">Province</label>
+            <select id="provinceSelect" class="form-select">
+                <option value="">-- Select Province --</option>
+            </select>
+            <!-- Actual value posted to the model -->
+            <input type="hidden" id="provinceName" asp-for="Province" />
+            <!-- Existing DB value, read by the JS to pre-select on open -->
+            <input type="hidden" id="savedProvince" value="@Model.Province" />
+        </div>
+
+        <!-- CITY -->
+        <div class="mb-3">
+            <label class="form-label">City</label>
+            <select id="citySelect" class="form-select">
+                <option value="">-- Select City First --</option>
+            </select>
+            <input type="hidden" id="cityName" asp-for="City" />
+            <input type="hidden" id="savedCity" value="@Model.City" />
+        </div>
+
+        <!-- BARANGAY -->
+        <div class="mb-3">
+            <label class="form-label">Barangay</label>
+
+            <select id="barangaySelect" class="form-select">
+                <option value="">-- Select City First --</option>
+            </select>
+
+            <!-- Actual value posted to the model -->
+            <input type="hidden"
+                   id="barangayName"
+                   asp-for="Barangay" />
+
+            <!-- Existing DB value used when opening Edit -->
+            <input type="hidden"
+                   id="savedBarangay"
+                   value="@Model.Barangay" />
+        </div>
+
+    </div>
+
+    <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+    </div>
+
+</form>

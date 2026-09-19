@@ -306,15 +306,21 @@
                             </p>
                             <p class="profile-since">Member since @Model.MemberSince.ToString("MMMM d, yyyy")</p>
                         </div>
-                        <a asp-action="Edit" asp-controller="Profile" asp-area="Member" class="btn-edit-profile">
-                            Edit Profile
+                        <a href="#"
+                           class="btn-edit-profile open-modal"
+                           data-title="Edit Personal Info"
+                           data-url="@Url.Action(
+                                  "EditPersonalInfo",
+                                  "Profile",
+                                  new { area = "Leader" })">
+                            Edit Personal Info
                         </a>
                     </div>
 
                     <div class="profile-details-grid">
                         <div>
-                            <div class="detail-label"><i class="ti ti-mail"></i> Email</div>
-                            <div class="detail-value">@Model.Email</div>
+                            <div class="detail-label"><i class="ti ti-mail"></i> Gender</div>
+                            <div class="detail-value">@Model.Gender</div>
                         </div>
                         <div>
                             <div class="detail-label"><i class="ti ti-cake"></i> Birthdate</div>

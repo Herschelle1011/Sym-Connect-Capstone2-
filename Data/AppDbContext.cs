@@ -82,7 +82,11 @@ namespace Sym_Connect__Capstone2_.Data
 
                 .OnDelete(DeleteBehavior.ClientSetNull);
 
-
+            modelBuilder.Entity<Evaluation>()
+            .HasOne(e => e.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
 
 
             modelBuilder.Entity<Attendance>()
@@ -141,15 +145,13 @@ namespace Sym_Connect__Capstone2_.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-
-
-            modelBuilder.Entity<Vote>()
+               modelBuilder.Entity<Vote>()
                 .HasOne(v => v.User)
                 .WithMany()
                 .HasForeignKey(v => v.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<Vote>()
+               modelBuilder.Entity<Vote>()
                 .HasIndex(v => new { v.UserId, v.ElectionId, v.positionId })
                 .IsUnique();
 

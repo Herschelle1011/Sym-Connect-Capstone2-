@@ -86,38 +86,7 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 available = true
             });
         }
-
-        // ---------------------------------------------------------------
-        // Username availability check (Step 2).
-        // ---------------------------------------------------------------
-        public async Task<IActionResult> OnPostCheckUsernameAsync(
-            [FromBody] UsernameCheckRequestViewModel request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Username))
-            {
-                return new JsonResult(new
-                {
-                    available = false,
-                    message = "Please enter a username."
-                });
-            }
-
-            var existingUser = await _userManager.FindByNameAsync(request.Username);
-
-            if (existingUser != null)
-            {
-                return new JsonResult(new
-                {
-                    available = false,
-                    message = "This username is already taken."
-                });
-            }
-
-            return new JsonResult(new
-            {
-                available = true
-            });
-        }
+       
 
         public async Task<IActionResult> OnPostSendCodeAsync(
      [FromBody] EmailVerificationRequestViewModel request)
@@ -260,25 +229,10 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                 });
             }
 
-
-            // 4. Check if username already exists
-            var existingUsernameUser =
-                await _userManager.FindByNameAsync(registration.Username);
-
-            if (existingUsernameUser != null)
-            {
-                return new JsonResult(new
-                {
-                    success = false,
-                    message = "This username is already taken."
-                });
-            }
-
-
             // 5. Create Identity User
             var user = new User
             {
-                UserName = registration.Username,
+                UserName = registration.Email,
                 Email = registration.Email,
 
                 DisplayName =
@@ -405,11 +359,25 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
 
                 ContactNumber = registration.ContactNumber,
 
-                Address =
-                    $"{registration.Barangay}, " +
-                    $"{registration.City}, " +
-                    $"{registration.Province}, " +
-                    $"{registration.Country}",
+
+                Barangay = registration.Barangay,
+
+                City = registration.City,
+
+                Province = registration.Province,
+
+                Country = registration.Country,
+
+                Address = string.Join(", ",
+                    new[]
+                    {
+                        registration.Barangay,
+                        registration.City,
+                        registration.Province,
+                        registration.Country
+                    }
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                ),
 
                 PreferredGroupId = registration.GroupId.Value,
 
@@ -493,9 +461,6 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
             public string Code { get; set; } = string.Empty;
         }
 
-        public class UsernameCheckRequestViewModel
-        {
-            public string Username { get; set; } = string.Empty;
-        }
+       
     }
 }

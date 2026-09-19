@@ -33,7 +33,7 @@ public class PartyListsController : Controller
 
 
     // GET: PARTYLISTS/Details/5
-    // FIX: Changed 'partylistid' to 'id' so it matches the view's routing output
+
     public async Task<IActionResult> Details(int id)
     {
         if (id == null) return NotFound();
@@ -65,7 +65,7 @@ public class PartyListsController : Controller
     }
 
     // GET: PARTYLISTS/Edit/5
-    // FIX: Changed 'partylistid' to 'id'
+
     public async Task<IActionResult> Edit(int? id)
     {
         if (id == null) return NotFound();
@@ -84,7 +84,6 @@ public class PartyListsController : Controller
     }
 
     // POST: PARTYLISTS/Edit/5
-    // FIX: Changed 'partylistid' to 'id'
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, EditPartyListViewModel model)
@@ -98,7 +97,6 @@ public class PartyListsController : Controller
     }
 
     // GET: PARTYLISTS/Delete/5
-    // FIX: Changed 'partylistid' to 'id'
     public async Task<IActionResult> Archive(int? id)
     {
         if (id == null) return NotFound();
@@ -110,7 +108,6 @@ public class PartyListsController : Controller
     }
 
     // POST: PARTYLISTS/Delete/5
-    // FIX: Changed 'partylistid' to 'id'
     [HttpPost, ActionName("Archive")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ArchiveConfirmed(int id)
