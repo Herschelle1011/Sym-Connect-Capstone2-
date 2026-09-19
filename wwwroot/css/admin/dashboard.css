@@ -174,3 +174,7 @@
         width: 100% !important;
         height: 100% !important;
     }
+
+.text-primary{
+    color:#007ec8 !important;
+}

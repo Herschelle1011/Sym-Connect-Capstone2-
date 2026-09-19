@@ -32,6 +32,7 @@
           href="~/css/notification-dropdown.css"
           asp-append-version="true" />
 
+    
 
 </head>
 <body>
@@ -169,16 +170,18 @@
 
         <div class="sidebar-nav">
 
-            <a asp-controller="AnnouncementFeed" asp-action="Index"
-               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Announcement" ? "active" : "")">
-                <i class="bi bi-megaphone"></i>
-                <span class="nav-label">Announcements</span>
-            </a>
+            
 
             <a asp-controller="Dashboard" asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
                 <i class="bi bi-grid"></i>
                 <span class="nav-label">Dashboard</span>
+            </a>
+
+            <a asp-controller="AnnouncementFeed" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Announcement" ? "active" : "")">
+                <i class="bi bi-megaphone"></i>
+                <span class="nav-label">Announcements</span>
             </a>
 
             <div class="nav-item-group">
@@ -188,7 +191,7 @@
                    role="button"
                    aria-expanded="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" ? "true" : "false")"
                    aria-controls="leaderEventsSubmenu">
-                    <i class="bi bi-calendar-event"></i>
+                    <i class="bi bi-calendar4-event"></i>
                     <span class="nav-label">Events</span>
                     <i class="bi bi-chevron-down nav-toggle-caret"></i>
                 </a>
@@ -198,7 +201,7 @@
                     <div class="nav-submenu">
                         <a asp-area="Leader" asp-controller="Events" asp-action="Index"
                            class="nav-subitem @(ViewContext.RouteData.Values["controller"]?.ToString() == "Events" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
-                            <i class="bi bi-person-badge"></i>
+                            <i class="bi bi-person-badge" style="color:#6F7D99;"></i>
                             <span class="nav-label">My Events</span>
                         </a>
 
@@ -209,7 +212,7 @@
                                                    ViewContext.RouteData.Values["action"]?.ToString() == "AssignedEvents"
                                                    ? "active" : "")">
 
-                            <i class="bi bi-calendar2-check"></i>
+                            <i class="bi bi-clipboard-check"></i>
                             <span class="nav-label">Assigned Events</span>
                         </a>
 
@@ -226,7 +229,7 @@
                asp-controller="Facility"
                asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Facility" ? "active" : "")">
-                <i class="bi bi-hospital"></i>
+                <i class="bi bi-buildings" ></i>
                 <span class="nav-label">Facility</span>
             </a>
 
@@ -234,7 +237,7 @@
                asp-controller="Group"
                asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "MyGroups" ? "active" : "")">
-                <i class="bi bi-people-fill"></i>
+                <i class="bi bi-people"></i>
                 <span class="nav-label">My Groups</span>
             </a>
 
@@ -252,7 +255,7 @@
                               : "false")"
                    aria-controls="leaderEvaluationSubmenu">
 
-                    <i class="bi bi-star-half"></i>
+                    <i class="bi bi-star"></i>
 
                     <span class="nav-label">
                         Evaluation
@@ -322,7 +325,7 @@
                asp-controller="Election"
                asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Election" ? "active" : "")">
-                <i class="bi bi-hand-index-thumb"></i>
+                <i class="bi bi-fingerprint"></i>
                 <span class="nav-label">Election</span>
             </a>
 

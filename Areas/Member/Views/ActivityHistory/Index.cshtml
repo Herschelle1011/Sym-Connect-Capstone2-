@@ -165,7 +165,7 @@
             }
 
             .history-tab.active {
-                background: #2f80ed;
+                background: #007ec8;
                 color: white;
                 box-shadow: 0 2px 5px rgba(47, 128, 237, 0.22);
             }
@@ -626,6 +626,8 @@
                         class="history-tab"
                         data-type="Election">
 
+
+
                     Election
 
                 </button>
@@ -742,11 +744,11 @@
 
                                         @if (activity.ActivityType == "Event")
                                         {
-                                            <i class="bi bi-calendar2-check"></i>
+                                            <i class="bi bi-calendar4-event"></i>
                                         }
                                         else if (activity.ActivityType == "Election")
                                         {
-                                            <i class="bi bi-ballot"></i>
+                                            <i class="bi bi-fingerprint"></i>
                                         }
                                         else
                                         {

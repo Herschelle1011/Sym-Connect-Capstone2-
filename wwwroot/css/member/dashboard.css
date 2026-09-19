@@ -3,7 +3,10 @@
     border-radius: 14px;
     padding: 1.25rem;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    max-width: 1000px;
+    max-width: none;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .announcement-panel-header {
@@ -29,6 +32,8 @@
     border-radius: 8px;
     padding: 0.9rem 1rem;
     margin-bottom: 0.75rem;
+    
+
 }
 
     .announcement-card:last-child {

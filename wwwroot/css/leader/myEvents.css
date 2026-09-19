@@ -1,4 +1,16 @@
-﻿
+﻿/* ===============================
+   THEME VARIABLES
+=============================== */
+
+:root {
+    --btn-blue: #007ec8;
+    --btn-blue-hover: #0069a8;
+    --btn-blue-active: #005a92;
+    --btn-blue-light: #e6f4fc;
+    --btn-radius: 10px;
+}
+
+
 .my-events-page {
     padding: 24px;
     background: #f5f7fb;
@@ -37,38 +49,72 @@
 
 
 /* ===============================
-           BUTTONS
-        =============================== */
+   BUTTONS  (all 10px radius)
+=============================== */
+
+.btn,
+.btn-pill {
+    border-radius: var(--btn-radius);
+}
 
 .btn-pill {
-    border-radius: 10px;
     padding: 9px 16px;
     font-size: 13px;
     font-weight: 600;
 }
 
+/* Primary */
 .btn-primary {
-    background-color: #2563eb;
-    border-color: #2563eb;
+    --bs-btn-bg: var(--btn-blue);
+    --bs-btn-border-color: var(--btn-blue);
+    --bs-btn-hover-bg: var(--btn-blue-hover);
+    --bs-btn-hover-border-color: var(--btn-blue-hover);
+    --bs-btn-active-bg: var(--btn-blue-active);
+    --bs-btn-active-border-color: var(--btn-blue-active);
+    --bs-btn-disabled-bg: var(--btn-blue);
+    --bs-btn-disabled-border-color: var(--btn-blue);
+    --bs-btn-focus-shadow-rgb: 0, 126, 200;
+    background-color: var(--btn-blue);
+    border-color: var(--btn-blue);
+    color: #fff;
 }
 
     .btn-primary:hover {
-        background-color: #1d4ed8;
-        border-color: #1d4ed8;
+        background-color: var(--btn-blue-hover);
+        border-color: var(--btn-blue-hover);
+        color: #fff;
     }
 
+    .btn-primary:active,
+    .btn-primary.active {
+        background-color: var(--btn-blue-active);
+        border-color: var(--btn-blue-active);
+        color: #fff;
+    }
+
+/* Outline primary */
 .btn-outline-primary {
-    border-color: #2563eb;
-    color: #2563eb;
+    --bs-btn-color: var(--btn-blue);
+    --bs-btn-border-color: var(--btn-blue);
+    --bs-btn-hover-color: var(--btn-blue-hover);
+    --bs-btn-hover-bg: var(--btn-blue-light);
+    --bs-btn-hover-border-color: var(--btn-blue);
+    --bs-btn-active-color: var(--btn-blue-active);
+    --bs-btn-active-bg: var(--btn-blue-light);
+    --bs-btn-active-border-color: var(--btn-blue);
+    --bs-btn-focus-shadow-rgb: 0, 126, 200;
+    border-color: var(--btn-blue);
+    color: var(--btn-blue);
     background: #fff;
 }
 
     .btn-outline-primary:hover {
-        background: #eff6ff;
-        color: #1d4ed8;
-        border-color: #2563eb;
+        background: var(--btn-blue-light);
+        color: var(--btn-blue-hover);
+        border-color: var(--btn-blue);
     }
 
+/* Outline secondary */
 .btn-outline-secondary {
     border-color: #d7dce5;
     color: #5f6b7a;
@@ -83,16 +129,33 @@
 
 
 /* ===============================
-           TOP FILTER AREA
-        =============================== */
+   TOP FILTER AREA / TABS
+=============================== */
 
 #eventTabs {
     flex-wrap: wrap;
+    gap: 10px;
 }
 
     #eventTabs .btn {
         min-height: 38px;
+        border-radius: var(--btn-radius);
     }
+
+        /* active tab */
+        #eventTabs .btn.active,
+        #eventTabs .btn-primary {
+            background-color: var(--btn-blue);
+            border-color: var(--btn-blue);
+            color: #fff;
+        }
+
+            #eventTabs .btn.active:hover,
+            #eventTabs .btn-primary:hover {
+                background-color: var(--btn-blue-hover);
+                border-color: var(--btn-blue-hover);
+                color: #fff;
+            }
 
 .rounded-pill-start {
     border-radius: 10px 0 0 10px !important;
@@ -116,8 +179,8 @@
 
 
 /* ===============================
-           EVENT LIST
-        =============================== */
+   EVENT LIST
+=============================== */
 
 .event-list-card {
     background: transparent;
@@ -153,14 +216,14 @@
 
 
 /* ===============================
-           DATE BOX
-        =============================== */
+   DATE BOX
+=============================== */
 
 .event-date-box {
     width: 90px;
     min-width: 90px;
     height: 118px;
-    background: linear-gradient( 180deg, #edf4ff 0%, #f3f7ff 100% );
+    background: linear-gradient(180deg, #edf4ff 0%, #f3f7ff 100%);
     border-radius: 12px;
     padding: 14px 8px;
     display: flex;
@@ -195,8 +258,8 @@
 
 
 /* ===============================
-           EVENT CONTENT
-        =============================== */
+   EVENT CONTENT
+=============================== */
 
 .event-title {
     font-size: 17px;
@@ -217,7 +280,7 @@
 }
 
 .btn-view-details-link {
-    color: #2563eb;
+    color: var(--btn-blue);
     text-decoration: underline;
     text-underline-offset: 2px;
     font-size: 13px;
@@ -225,13 +288,13 @@
 }
 
     .btn-view-details-link:hover {
-        color: #1d4ed8;
+        color: var(--btn-blue-hover);
     }
 
 
 /* ===============================
-           TAGS
-        =============================== */
+   TAGS
+=============================== */
 
 .event-card .badge.bg-light {
     background: #f8fafc !important;
@@ -245,112 +308,105 @@
 
 
 /* ===============================
-           RIGHT SIDE
-        =============================== */
-
-/* ===============================
    RIGHT SIDE ACTIONS
+   - badge pinned top-right
+   - buttons sit in a flex row at the bottom
+     with a real gap, so they can never overlap
 =============================== */
 
 .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
-    position: relative; /* ← add this */
-    min-width: 350px;
+    position: relative;
     display: flex !important;
-    flex-direction: column;
-    justify-content: space-between;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
     align-items: flex-end !important;
-    gap: 14px !important;
+    gap: 12px !important;
+    min-width: 350px;
+    flex-shrink: 0;
     padding-left: 20px;
 }
 
-
     /* status badge stays top-right */
     .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > .badge {
-        align-self: flex-end;
+        position: absolute;
+        top: 0;
+        right: 0;
     }
 
-
-    /* BOTH <a> and <button> get same style */
+    /* BOTH <a> and <button> get the same size/style */
     .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a,
     .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button {
+        position: static;
+        flex-shrink: 0;
         min-width: 165px;
         height: 42px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 7px;
-        border-radius: 10px;
+        padding: 0 18px;
+        border-radius: var(--btn-radius);
         font-size: 13px;
         font-weight: 600;
         white-space: nowrap;
     }
 
-
         /* scanner button */
         .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary {
-            position: absolute;
-            right: 200px;
-            bottom: 20px;
             background: #ffffff;
-            border: 1px solid #2563eb;
-            color: #2563eb;
+            border: 1px solid var(--btn-blue);
+            color: var(--btn-blue);
         }
 
+            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary:hover {
+                background: var(--btn-blue-light);
+                color: var(--btn-blue-hover);
+            }
 
         /* approval details button */
         .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary {
-            position: absolute;
-            right: 22px;
-            bottom: 20px;
-            background: #2563eb;
-            border: 1px solid #2563eb;
+            background: var(--btn-blue);
+            border: 1px solid var(--btn-blue);
             color: #ffffff;
         }
 
-
-        /* hover scanner */
-        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
-
-
-        /* hover approval */
-        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary:hover {
-            background: #1d4ed8;
-            border-color: #1d4ed8;
-        }
-
-    /* ===============================
-           STATUS BADGES
-        =============================== */
-
-    .event-card .bg-success-subtle {
-        background: #dff3e9 !important;
-        color: #14804a !important;
-    }
-
-    .event-card .bg-warning-subtle {
-        background: #fff2cc !important;
-        color: #9a6700 !important;
-    }
-
-    .event-card .bg-danger-subtle {
-        background: #fee4e2 !important;
-        color: #b42318 !important;
-    }
-
-    .event-card .badge.rounded-pill {
-        border-radius: 999px !important;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 7px 14px !important;
-    }
+            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary:hover {
+                background: var(--btn-blue-hover);
+                border-color: var(--btn-blue-hover);
+            }
 
 
 /* ===============================
-           FILTER DROPDOWN
-        =============================== */
+   STATUS BADGES
+=============================== */
+
+.event-card .bg-success-subtle {
+    background: #dff3e9 !important;
+    color: #14804a !important;
+}
+
+.event-card .bg-warning-subtle {
+    background: #fff2cc !important;
+    color: #9a6700 !important;
+}
+
+.event-card .bg-danger-subtle {
+    background: #fee4e2 !important;
+    color: #b42318 !important;
+}
+
+.event-card .badge.rounded-pill {
+    border-radius: 10px !important;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 7px 14px !important;
+}
+
+
+/* ===============================
+   FILTER DROPDOWN
+=============================== */
 
 .filter-dropdown-menu {
     min-width: 240px;
@@ -372,8 +428,8 @@
 
 
 /* ===============================
-           PAGINATION
-        =============================== */
+   PAGINATION
+=============================== */
 
 .pagination-bar {
     background: transparent;
@@ -383,101 +439,9 @@
 
     .pagination-bar .btn {
         min-width: 82px;
+        border-radius: var(--btn-radius);
     }
 
-
-/* ===============================
-           RESPONSIVE
-        =============================== */
-
-@media (max-width: 992px) {
-
-    .event-card .card-body {
-        flex-wrap: wrap;
-    }
-
-        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
-            min-width: 100%;
-            width: 100%;
-            flex-direction: row;
-            align-items: center !important;
-            justify-content: flex-end;
-            padding-left: 0;
-            margin-top: 14px;
-        }
-
-            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-primary,
-            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary {
-                position: static;
-            }
-}
-
-
-@media (max-width: 768px) {
-
-    .my-events-page {
-        padding: 16px;
-    }
-
-    .page-header {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-        .page-header > button {
-            width: 100%;
-        }
-
-    .event-card .card-body {
-        align-items: flex-start !important;
-    }
-
-    .event-date-box {
-        width: 74px;
-        min-width: 74px;
-        height: 100px;
-    }
-
-    .event-date-day {
-        font-size: 30px;
-    }
-
-    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
-        flex-wrap: wrap;
-        justify-content: flex-start;
-    }
-
-        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a {
-            flex: 1;
-            min-width: 130px;
-        }
-}
-
-
-@media (max-width: 576px) {
-
-    .event-card .card-body {
-        gap: 12px !important;
-    }
-
-    .event-date-box {
-        width: 66px;
-        min-width: 66px;
-        height: 92px;
-    }
-
-    .event-date-month {
-        font-size: 12px;
-    }
-
-    .event-date-day {
-        font-size: 27px;
-    }
-
-    .event-title {
-        font-size: 15px;
-    }
-}
 
 /* =========================
    EVENT TIME + LOCATION
@@ -526,19 +490,105 @@
     border: none;
     background: transparent;
     padding: 0;
-    color: #2563eb;
+    color: var(--btn-blue);
     font-size: 13px;
     cursor: pointer;
     text-decoration: underline;
+    border-radius: var(--btn-radius);
 }
+
+
+/* ===============================
+   RESPONSIVE
+=============================== */
 
 @media (max-width: 992px) {
-    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-primary,
-    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a.btn-outline-primary,
-    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button.btn-primary {
-        position: static;
+
+    .event-card .card-body {
+        flex-wrap: wrap;
     }
+
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
+            min-width: 100%;
+            width: 100%;
+            flex-wrap: wrap;
+            flex-direction: row;
+            align-items: center !important;
+            justify-content: flex-end;
+            padding-left: 0;
+            margin-top: 14px;
+        }
+
+            /* badge goes back into the normal flow on the left */
+            .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > .badge {
+                position: static;
+                margin-right: auto;
+            }
 }
 
 
+@media (max-width: 768px) {
 
+    .my-events-page {
+        padding: 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+        .page-header > button {
+            width: 100%;
+        }
+
+    .event-card .card-body {
+        align-items: flex-start !important;
+    }
+
+    .event-date-box {
+        width: 74px;
+        min-width: 74px;
+        height: 100px;
+    }
+
+    .event-date-day {
+        font-size: 30px;
+    }
+
+    .event-card .card-body > .d-flex.align-items-center.gap-3:last-child {
+        justify-content: flex-start;
+    }
+
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > a,
+        .event-card .card-body > .d-flex.align-items-center.gap-3:last-child > button {
+            flex: 1;
+            min-width: 130px;
+        }
+}
+
+
+@media (max-width: 576px) {
+
+    .event-card .card-body {
+        gap: 12px !important;
+    }
+
+    .event-date-box {
+        width: 66px;
+        min-width: 66px;
+        height: 92px;
+    }
+
+    .event-date-month {
+        font-size: 12px;
+    }
+
+    .event-date-day {
+        font-size: 27px;
+    }
+
+    .event-title {
+        font-size: 15px;
+    }
+}

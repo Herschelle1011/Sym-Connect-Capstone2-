@@ -11,7 +11,7 @@
     <h1 class="mb-3">Archive</h1>
 
     <!-- Tabs -->
-    <div class="archive-tabs d-flex gap-2 flex-wrap mb-3 p-2" style="background:#f1f3f6; border-radius:999px; width:fit-content;">
+    <div class="archive-tabs d-flex gap-2 flex-wrap mb-3 p-2" style="background:#f1f3f6; border-radius:10px; width:fit-content;">
         <button type="button" class="btn btn-sm rounded-pill archive-tab-btn active" data-filter="All">All</button>
         @foreach (var category in Enum.GetValues<ArchiveCategory>())
         {
@@ -108,7 +108,33 @@
         </div>
     </div>
 </div>
+<style>
+    .archive-tabs .archive-tab-btn {
+        background-color: transparent;
+        color: #667085;
+        border: none;
+        border-radius: 10px !important; /* beats rounded-pill without editing the HTML */
+    }
 
+        .archive-tabs .archive-tab-btn:hover,
+        .archive-tabs .archive-tab-btn:focus,
+        .archive-tabs .archive-tab-btn:focus-visible,
+        .archive-tabs .archive-tab-btn:active {
+            background-color: transparent;
+            color: #007ec8; /* text turns blue on hover, no background */
+            border: none;
+            box-shadow: none;
+        }
+
+        /* selected tab */
+        .archive-tabs .archive-tab-btn.active,
+        .archive-tabs .archive-tab-btn.active:hover,
+        .archive-tabs .archive-tab-btn.active:focus {
+            background-color: #007ec8;
+            color: #fff;
+            border: none;
+        }
+</style>
 
 @section Scripts {
     <script>

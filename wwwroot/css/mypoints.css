@@ -119,7 +119,7 @@
 .mp-filters {
     display: inline-flex;
     background: #eef2f8;
-    border-radius: 999px;
+    border-radius: 10px;
     padding: 3px;
     gap: 2px;
 }
@@ -131,7 +131,7 @@
     font-size: .85rem;
     font-weight: 500;
     padding: 6px 18px;
-    border-radius: 999px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
@@ -143,6 +143,7 @@
         background: var(--mp-blue);
         color: #fff;
         box-shadow: 0 1px 3px rgba(24, 119, 242, .35);
+        background-color:#007ec8;
     }
 
     .mp-filter:focus-visible {
@@ -169,7 +170,7 @@
     .mp-search input {
         width: 100%;
         border: 1px solid var(--mp-border);
-        border-radius: 999px;
+        border-radius: 10px;
         background: #fff;
         padding: 9px 16px 9px 38px;
         font-size: .86rem;

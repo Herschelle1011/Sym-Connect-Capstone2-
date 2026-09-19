@@ -48,6 +48,9 @@ body {
 
 .login-logo-img {
     display: block;
+    margin: 0 auto 16px; /* center it, 16px space below */
+    width: 120px; /* size: change this number */
+    height: auto;
 }
 
 
@@ -126,7 +129,7 @@ body {
         left: 12px;
         top: 50%;
         transform: translateY(-50%);
-        color: #a5a5a5;
+        color: #007ec8 !important;
         font-size: 13px;
         pointer-events: none;
         z-index: 2;
@@ -168,6 +171,7 @@ body {
 
 .password-group .input-wrapper input {
     padding-right: 35px;
+    color:#007ec8 !important;
 }
 
 .password-toggle {
@@ -366,7 +370,7 @@ body {
 
     body {
         background-image: none; /* photo only shows on desktop/tablet */
-        background-color: #0d1f3a;
+        background-color: #fff;
         align-items: flex-end; /* pins the card to the bottom of the viewport */
         justify-content: center;
         display: flex;
@@ -411,9 +415,9 @@ body {
         width: 100%;
         margin: 0;
         padding: 32px 24px 28px;
-        background: #0d1f3a;
+        background: #007ec8;
         flex: 0 0 auto;
-        border-radius: 28px 28px 0 0;
+        border-radius: 20px 20px 0 0;
         box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
     }
 
@@ -442,7 +446,7 @@ body {
         padding: 10px 16px 10px 38px;
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 999px;
+        border-radius: 10px;
         color: #ffffff;
         font-size: 0.85rem;
     }
@@ -468,7 +472,8 @@ body {
 
     .password-toggle {
         right: 12px;
-        color: rgba(255, 255, 255, 0.55);
+        color: #007ec8 !important;
+
     }
 
         .password-toggle:hover {
@@ -487,14 +492,14 @@ body {
 
         .login-extras a {
             font-size: 0.75rem;
-            color: #4fb3e8;
+            color: #fff;
         }
 
     /* Big rounded blue Sign In button, matching mockup */
     .btn-signin {
         height: 48px;
-        border-radius: 999px;
-        background: #1c9bf0;
+        border-radius: 10px;
+        background: #1E293B;
         font-size: 0.95rem;
         letter-spacing: 0.3px;
     }
@@ -510,6 +515,6 @@ body {
 
         .login-footer button {
             font-size: 0.78rem;
-            color: #4fb3e8;
+            color: #ffff;
         }
 }

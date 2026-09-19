@@ -40,28 +40,28 @@
     <!-- Stat Cards -->
     <div class="stat-cards-row">
         <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-icon"><i class="bi bi-people" style="color:#007ec8;"></i></div>
             <div>
                 <div class="stat-number">@Model.TotalMembers</div>
                 <div class="stat-label">Total Members</div>
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-icon"><i class="bi bi-person-bounding-box" style="color:#007ec8;"></i></div>
             <div>
                 <div class="stat-number">@Model.ParticipationPoints</div>
                 <div class="stat-label">Participation Points</div>
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-icon"><i class="bi bi-calendar4-event" style="color:#007ec8;"></i></div>
             <div>
                 <div class="stat-number">@Model.UpcomingActivitiesCount</div>
                 <div class="stat-label">Upcoming Activities</div>
             </div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-icon"><i class="bi bi-clock" style="color:#007ec8;"></i></div>
             <div>
                 <div class="stat-number">@Model.PendingRequestCount</div>
                 <div class="stat-label">Pending Request</div>
@@ -74,7 +74,7 @@
         <!-- Pinned Announcements -->
         <div class="dash-card">
             <div class="dash-card-header">
-                <i class="bi bi-star-fill" style="color:#f0a34e;"></i>
+                <i class="bi bi-pin-angle" style="color:#007ec8;"></i>
                 <span>Pinned Announcement@(Model.PinnedAnnouncement.Count(a => a != null) > 1 ? "s" : "")</span>
             </div>
 
@@ -232,7 +232,7 @@
     }
 
     .text-accent {
-    color: #1877F2;
+    color: #007ec8;
     }
 
     /* ---- Stat Cards ---- */

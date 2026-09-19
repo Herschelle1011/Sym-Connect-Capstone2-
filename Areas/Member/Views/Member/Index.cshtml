@@ -509,6 +509,8 @@
         width: 100%;
         font-family: inherit;
         color: #263241;
+        max-width: 1200px;
+        margin-inline: auto;
     }
 
 
@@ -577,7 +579,7 @@
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.65fr);
             gap: 14px;
-            max-width: 860px;
+            
         }
 
 
@@ -752,9 +754,10 @@
         ====================================================== */
 
         .dash-wrap .announcement-panel {
-            position: relative;
-            padding: 14px;
-            min-height: 310px;
+            width: 100%;
+            max-width: none; /* overrides the global 1000px */
+            min-width: 0;
+            box-sizing: border-box;
         }
 
 

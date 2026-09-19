@@ -3,10 +3,188 @@
     ViewData["Title"] = "All Events";
     string FormatTime(TimeSpan? t) => t.HasValue ? DateTime.Today.Add(t.Value).ToString("h:mm tt") : "";
 }
+<style>
+    .all-events-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .all-event-card {
+        background: #ffffff;
+        border: 1px solid #edf0f4;
+        border-radius: 14px;
+        box-shadow: 0 3px 14px rgba(15, 23, 42, 0.06);
+        padding: 20px 22px;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+        .all-event-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 22px rgba(15, 23, 42, 0.09);
+            border-color: #dfe5ee;
+        }
+
+    .all-event-card-inner {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    /* Date box */
+    .all-event-date-box {
+        width: 90px;
+        min-width: 90px;
+        height: 118px;
+        background: linear-gradient(180deg, #e6f4fc 0%, #f0f8fd 100%);
+        border-radius: 12px;
+        padding: 14px 8px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    .all-event-month {
+        font-size: 14px;
+        font-weight: 700;
+        color: #007ec8;
+    }
+
+    .all-event-day {
+        font-size: 38px;
+        font-weight: 700;
+        color: #007ec8;
+        line-height: 1.05;
+        margin: 4px 0;
+    }
+
+    .all-event-dow {
+        font-size: 13px;
+        font-weight: 500;
+        color: #8290a3;
+    }
+
+    /* Content */
+    .all-event-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .all-event-title {
+        font-size: 17px;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 7px;
+    }
+
+    .all-event-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #667085;
+        margin-bottom: 6px;
+    }
+
+        .all-event-meta i {
+            color: #007ec8;
+            margin-right: 4px;
+        }
+
+    .all-event-divider {
+        color: #94a3b8;
+        font-size: 11px;
+    }
+
+    .all-event-subline {
+        font-size: 13px;
+        color: #667085;
+        margin-bottom: 8px;
+    }
+
+        .all-event-subline i {
+            color: #94a3b8;
+            margin-right: 4px;
+        }
+
+    /* Group tags */
+    .all-event-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .all-event-tag {
+        background: #f8fafc;
+        border: 1px solid #e4e7ec;
+        color: #344054;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 10px;
+    }
+
+    /* Status badge (top-right) */
+    .all-event-status {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #dff3e9;
+        color: #14804a;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 7px 14px;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+
+    .all-events-empty {
+        background: #ffffff;
+        border: 1px solid #edf0f4;
+        border-radius: 14px;
+        padding: 2.5rem;
+        text-align: center;
+        color: #667085;
+    }
+
+    @@media (max-width: 576px) {
+        .all-event-card {
+            padding: 16px;
+        }
+
+        .all-event-card-inner {
+            flex-wrap: wrap;
+        }
+
+        .all-event-date-box {
+            width: 66px;
+            min-width: 66px;
+            height: 92px;
+        }
+
+        .all-event-month {
+            font-size: 12px;
+        }
+
+        .all-event-day {
+            font-size: 27px;
+        }
+
+        .all-event-title {
+            font-size: 15px;
+        }
+    }
+</style>
 
 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
     <div>
-        <h4 class="mb-1"><i class="bi bi-calendar-week me-2"></i>All Events</h4>
+        <h4 class="mb-1"><i class="bi bi-calendar-week me-2" style="color:#007ec8;"></i>All Events</h4>
         <p class="text-muted mb-0">View all approved events across the organization. This is for reference only to check facility reservations.</p>
     </div>
     <div class="alert alert-success d-flex align-items-start gap-2 py-2 px-3 mb-0" style="max-width:320px;">
@@ -41,60 +219,74 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="table-responsive">
-        <table class="table align-middle mb-0" id="allEventsTable">
-            <thead>
-                <tr>
-                    <th>Date &amp; Time</th>
-                    <th>Event Title</th>
-                    <th>Group</th>
-                    <th>Facility</th>
-                    <th>Created By</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var ev in Model)
-                {
-                    var groupText = ev.GroupNames.Any() ? string.Join(", ", ev.GroupNames) : "All Groups";
-                    var facilityText = ev.FacilityNames.Any() ? string.Join(", ", ev.FacilityNames) : "-";
-                    var searchBlob = $"{ev.EventTitle} {groupText} {facilityText}".ToLower();
+<div id="allEventsList" class="all-events-list">
+    @foreach (var ev in Model)
+    {
+        var groupText = ev.GroupNames.Any() ? string.Join(", ", ev.GroupNames) : "All Groups";
+        var facilityText = ev.FacilityNames.Any() ? string.Join(", ", ev.FacilityNames) : "-";
+        var searchBlob = $"{ev.EventTitle} {groupText} {facilityText}".ToLower();
 
-                    <tr class="all-events-row" role="button" data-event-id="@ev.EventId"
-                        data-search="@searchBlob"
-                        data-group="@groupText.ToLower()"
-                        data-facility="@facilityText.ToLower()">
-                        <td>
-                            <div class="fw-semibold">@ev.StartDate.ToString("MMM dd")</div>
-                            <small class="text-muted">
-                                @(ev.IsAllDay ? "All Day" : $"{FormatTime(ev.StartTime)} - {FormatTime(ev.EndTime)}")
-                            </small>
-                        </td>
-                        <td>@ev.EventTitle</td>
-                        <td>
-                            @foreach (var g in ev.GroupNames)
-                            {
-                                <span class="badge rounded-pill text-bg-light border me-1">@g</span>
-                            }
-                            @if (!ev.GroupNames.Any())
-                            {
-                                <span class="badge rounded-pill text-bg-light border">All Groups</span>
-                            }
-                        </td>
-                        <td>@facilityText</td>
-                        <td>
-                            @ev.CreatedByName
-                            <div><small class="text-muted">@ev.CreatedByRole</small></div>
-                        </td>
-                        <td><span class="badge bg-success-subtle text-success">Approved</span></td>
-                    </tr>
-                }
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="6" class="text-center text-muted py-4">No approved events found.</td></tr>
-                }
-            </tbody>
-        </table>
-    </div>
+        <div class="all-events-row all-event-card" role="button" data-event-id="@ev.EventId"
+             data-search="@searchBlob"
+             data-group="@groupText.ToLower()"
+             data-facility="@facilityText.ToLower()">
+
+            <div class="all-event-card-inner">
+
+                <!-- Date box -->
+                <div class="all-event-date-box">
+                    <div class="all-event-month">@ev.StartDate.ToString("MMM").ToUpper()</div>
+                    <div class="all-event-day">@ev.StartDate.Day</div>
+                    <div class="all-event-dow">@ev.StartDate.ToString("ddd").ToUpper()</div>
+                </div>
+
+                <!-- Title, time, facility, creator, groups -->
+                <div class="all-event-content">
+                    <div class="all-event-title">@ev.EventTitle</div>
+
+                    <div class="all-event-meta">
+                        <span>
+                            <i class="bi bi-clock"></i>
+                            @(ev.IsAllDay ? "All Day" : $"{FormatTime(ev.StartTime)} - {FormatTime(ev.EndTime)}")
+                        </span>
+
+                        @if (ev.FacilityNames.Any())
+                        {
+                            <span class="all-event-divider">&bull;</span>
+                            <span>
+                                <i class="bi bi-geo-alt"></i>
+                                @facilityText
+                            </span>
+                        }
+                    </div>
+
+                    <div class="all-event-subline">
+                        <i class="bi bi-person-circle"></i>Created by @ev.CreatedByName &bull; @ev.CreatedByRole
+                    </div>
+
+                    <div class="all-event-tags">
+                        @foreach (var g in ev.GroupNames)
+                        {
+                            <span class="all-event-tag">@g</span>
+                        }
+                        @if (!ev.GroupNames.Any())
+                        {
+                            <span class="all-event-tag">All Groups</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Status (top-right) -->
+                <span class="all-event-status">
+                    <i class="bi bi-check-circle-fill"></i> Approved
+                </span>
+
+            </div>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="all-events-empty">No approved events found.</div>
+    }
 </div>

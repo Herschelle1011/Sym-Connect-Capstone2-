@@ -489,12 +489,13 @@ body {
 }
 
     .nav-subitem:hover {
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: #007ec8;
+        color:white;
     }
 
     .nav-subitem.active {
-        background-color: rgba(74, 108, 247, 0.1);
-        color: #4a6cf7;
+        background-color: #007ec8;
+        color: #fff;
         font-weight: 500;
     }
 
@@ -560,5 +561,53 @@ body {
 
     .sidebar-user:hover .sidebar-user-chevron {
         transform: translateX(3px);
-        color: #4a6cf7;
+        color: #007ec8;
     }
+
+
+
+
+/* ───────── Sidebar hover: everything turns white ───────── */
+
+.nav-item,
+.nav-subitem {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+    .nav-item i,
+    .nav-subitem i,
+    .nav-item .nav-label,
+    .nav-subitem .nav-label {
+        transition: color 0.2s ease;
+    }
+
+    /* Hover + active: link text, label and icon all white */
+    .nav-item:hover,
+    .nav-subitem:hover,
+    .nav-item.active,
+    .nav-subitem.active {
+        background-color: #007ec8; /* change to your theme color */
+        color: #fff !important;
+    }
+
+        .nav-item:hover .nav-label,
+        .nav-subitem:hover .nav-label,
+        .nav-item.active .nav-label,
+        .nav-subitem.active .nav-label {
+            color: #fff !important;
+        }
+
+        /* !important is needed to beat the inline style="color:#6F7D99" on some icons */
+        .nav-item:hover i,
+        .nav-subitem:hover i,
+        .nav-item.active i,
+        .nav-subitem.active i {
+            color: #fff !important;
+        }
+
+/* Sidebar user card at the bottom */
+.sidebar-user-link:hover .sidebar-user-name,
+.sidebar-user-link:hover .sidebar-user-role,
+.sidebar-user-link:hover .sidebar-user-chevron {
+    color: #fff !important;
+}
