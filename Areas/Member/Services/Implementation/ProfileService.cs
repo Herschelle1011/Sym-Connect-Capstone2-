@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Points;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Profile;
@@ -6,9 +8,11 @@ using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Profile;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 {
+
     public class ProfileService : IProfileService
     {
         private readonly AppDbContext _context;
@@ -37,14 +41,17 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     Country = m.Country,
                     Province = m.Province,
                     City = m.City,
+                    Gender = m.Gender,
                     Barangay = m.Barangay,
                     ContactNumber = m.ContactNumber,
+                    Address = m.Address,
                     PhotoUrl = m.User.ProfilePictureUrl,
                     Email = m.User.Email,
                     Birthdate = m.BirthDate,
                     GroupName = m.GroupDetails.Select(
                         gd=> gd.Group.GroupName).FirstOrDefault() ?? "N/A",
                     MemberSince = m.DateRegistered,
+                    
 
                 }).FirstOrDefaultAsync();
 
@@ -219,9 +226,91 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 
                 Remarks = remarks
             };
-
-
             return viewModel;
+        }
+
+
+        public async Task<EditPersonalInfoViewModel?>GetEditPersonalInfoAsync(int memberId)
+        {
+            var model = await _context.Members
+                .AsNoTracking()
+                .Where(m => m.MemberId == memberId)
+                .Select(m => new EditPersonalInfoViewModel
+                {
+                    FirstName = m.FirstName ?? "",
+                    MiddleName = m.MiddleName,   
+                    LastName = m.LastName ?? "",
+
+
+                    Birthdate = m.BirthDate,
+
+                    Gender = m.Gender ?? "",
+
+                    ContactNumber = m.ContactNumber ?? "",
+
+                    Country = m.Country,
+
+                    Province = m.Province,
+
+                    City = m.City,
+
+                    Barangay = m.Barangay
+                })
+                .FirstOrDefaultAsync();
+
+
+            return model;
+        }
+
+
+        public async Task<bool> UpdatePersonalInfoAsync(
+    int memberId,
+    EditPersonalInfoViewModel model)
+        {
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m =>
+                    m.MemberId == memberId);
+
+            if (member == null)
+            {
+                return false;
+            }
+
+
+            member.FirstName = model.FirstName;
+            member.MiddleName = string.IsNullOrWhiteSpace(model.MiddleName) ? null : model.MiddleName;
+            member.LastName = model.LastName;
+
+            member.BirthDate = model.Birthdate;
+
+            member.Gender = model.Gender;
+
+            member.ContactNumber = model.ContactNumber;
+
+            member.Country = model.Country;
+
+            member.Province = model.Province;
+
+            member.City = model.City;
+
+            member.Barangay = model.Barangay;
+
+
+            member.Address = string.Join(", ",
+                new[]
+                {
+                    model.Barangay,
+                    model.City,
+                    model.Province,
+                    model.Country
+                }
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+            );
+
+
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
     }

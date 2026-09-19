@@ -12,6 +12,8 @@
         public DateTime OpenAt { get; set; }
         public DateTime ClosesAt { get; set; }
 
+        public string CreatedBy { get; set; }
+
         public int Points { get; set; }
 
         public List<SubmissionListItemViewModel> Submissions { get; set; } = new();

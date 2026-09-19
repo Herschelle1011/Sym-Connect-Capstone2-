@@ -24,6 +24,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Announcement
 
         public string? CreatedByUserId { get; set; }
 
+        public bool IsPinned { get; set; }
+
         public AnnouncementPinScope PinScope { get; set; }
 
     }

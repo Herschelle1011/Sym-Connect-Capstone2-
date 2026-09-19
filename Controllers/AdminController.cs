@@ -265,7 +265,8 @@ namespace Sym_Connect__Capstone2_.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(EditAccountProfileViewModel vm)
+        public async Task<IActionResult> EditProfile(
+     EditAccountProfileViewModel vm)
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -280,11 +281,23 @@ namespace Sym_Connect__Capstone2_.Controllers
 
 
             // ==========================================
+            // RESTORE DISPLAY-ONLY DATA
+            // ==========================================
+
+            vm.CurrentPhotoUrl =
+                user.ProfilePictureUrl;
+
+
+            // ==========================================
             // VALIDATE FORM
             // ==========================================
 
+            // Admin keeps DisplayName validation.
             if (!ModelState.IsValid)
             {
+                ViewBag.FormArea = "";
+                ViewBag.FormController = "Admin";
+
                 return PartialView(
                     "~/Views/Shared/_EditAccountProfileModal.cshtml",
                     vm
@@ -297,7 +310,9 @@ namespace Sym_Connect__Capstone2_.Controllers
             // ==========================================
 
             var emailOwner =
-                await _userManager.FindByEmailAsync(vm.Email);
+                await _userManager.FindByEmailAsync(
+                    vm.Email.Trim()
+                );
 
             if (emailOwner != null &&
                 emailOwner.Id != user.Id)
@@ -307,8 +322,8 @@ namespace Sym_Connect__Capstone2_.Controllers
                     "This email address is already being used."
                 );
 
-                vm.CurrentPhotoUrl =
-                    user.ProfilePictureUrl;
+                ViewBag.FormArea = "";
+                ViewBag.FormController = "Admin";
 
                 return PartialView(
                     "~/Views/Shared/_EditAccountProfileModal.cshtml",
@@ -332,8 +347,8 @@ namespace Sym_Connect__Capstone2_.Controllers
                         "Profile picture must be less than 5MB."
                     );
 
-                    vm.CurrentPhotoUrl =
-                        user.ProfilePictureUrl;
+                    ViewBag.FormArea = "";
+                    ViewBag.FormController = "Admin";
 
                     return PartialView(
                         "~/Views/Shared/_EditAccountProfileModal.cshtml",
@@ -351,15 +366,27 @@ namespace Sym_Connect__Capstone2_.Controllers
 
                 if (imageUrl == null)
                 {
-                    return Json(new
-                    {
-                        success = false,
-                        message = "Profile picture upload failed."
-                    });
+                    ModelState.AddModelError(
+                        "ProfilePicture",
+                        "Profile picture upload failed."
+                    );
+
+                    ViewBag.FormArea = "";
+                    ViewBag.FormController = "Admin";
+
+                    return PartialView(
+                        "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                        vm
+                    );
                 }
 
 
-                user.ProfilePictureUrl = imageUrl;
+                user.ProfilePictureUrl =
+                    imageUrl;
+
+                // Keep the ViewModel synchronized too.
+                vm.CurrentPhotoUrl =
+                    imageUrl;
             }
 
 
@@ -368,7 +395,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             // ==========================================
 
             user.DisplayName =
-                vm.DisplayName.Trim();
+                vm.DisplayName!.Trim();
 
             user.Email =
                 vm.Email.Trim();
@@ -382,13 +409,24 @@ namespace Sym_Connect__Capstone2_.Controllers
 
             if (!updateResult.Succeeded)
             {
-                return Json(new
+                foreach (var error in updateResult.Errors)
                 {
-                    success = false,
-                    message = updateResult.Errors
-                        .FirstOrDefault()?.Description
-                        ?? "Unable to update profile."
-                });
+                    ModelState.AddModelError(
+                        "",
+                        error.Description
+                    );
+                }
+
+                vm.CurrentPhotoUrl =
+                    user.ProfilePictureUrl;
+
+                ViewBag.FormArea = "";
+                ViewBag.FormController = "Admin";
+
+                return PartialView(
+                    "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                    vm
+                );
             }
 
 
@@ -414,13 +452,24 @@ namespace Sym_Connect__Capstone2_.Controllers
 
                 if (!passwordResult.Succeeded)
                 {
-                    return Json(new
+                    foreach (var error in passwordResult.Errors)
                     {
-                        success = false,
-                        message = passwordResult.Errors
-                            .FirstOrDefault()?.Description
-                            ?? "Unable to change password."
-                    });
+                        ModelState.AddModelError(
+                            "NewPassword",
+                            error.Description
+                        );
+                    }
+
+                    vm.CurrentPhotoUrl =
+                        user.ProfilePictureUrl;
+
+                    ViewBag.FormArea = "";
+                    ViewBag.FormController = "Admin";
+
+                    return PartialView(
+                        "~/Views/Shared/_EditAccountProfileModal.cshtml",
+                        vm
+                    );
                 }
             }
 
@@ -428,7 +477,9 @@ namespace Sym_Connect__Capstone2_.Controllers
             return Json(new
             {
                 success = true,
-                message = "Profile updated successfully."
+                message = "Profile updated successfully.",
+                photoUrl = user.ProfilePictureUrl,
+                displayName = user.DisplayName
             });
         }
     }

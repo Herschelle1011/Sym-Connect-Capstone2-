@@ -77,12 +77,17 @@
                 bool isPastEvent = Model.EndDate < DateTime.Today;
             }
 
-            <button type="button"
-                    class="btn btn-outline-primary btn-sm edit-event-btn"
-                    data-eventid="@Model.EventId"
-                    disabled="@(isPastEvent ? "disabled" : null)">
-                <i class="ti ti-pencil"></i> Edit Event
-            </button>
+            @if (Model.Status != EventStatus.Completed &&
+            Model.Status != EventStatus.Ongoing &&
+            Model.Status != EventStatus.Cancelled)
+            {
+                <button type="button"
+                        class="btn btn-outline-primary btn-sm edit-event-btn"
+                        data-eventid="@Model.EventId">
+                    <i class="ti ti-pencil"></i>
+                    Edit Event
+                </button>
+            }
 
 
             <div class="dropdown">

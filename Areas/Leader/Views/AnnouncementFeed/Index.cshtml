@@ -18,6 +18,14 @@
         </button>
     </div>
 
+    <div class="announcement-toolbar">
+        <div class="ann-tabs">
+            <button type="button" class="ann-tab active" data-tab="all">All</button>
+            <button type="button" class="ann-tab" data-tab="admin">From Admin</button>
+            <button type="button" class="ann-tab" data-tab="mine">My Announcements</button>
+        </div>
+    </div>
+
     <div class="ann-card-list" id="announcementListBody">
         @if (Model == null || !Model.Any())
         {
@@ -27,10 +35,12 @@
         }
         else
         {
-            foreach (var a in Model.OrderByDescending(x => x.TargetType == TargetAudience.SpecificGroup)
-                                    .ThenByDescending(x => x.PublishedAt))
+            foreach (var a in Model.OrderByDescending(x => x.IsPinned)
+                        .ThenByDescending(x => x.TargetType == TargetAudience.SpecificGroup)
+                        .ThenByDescending(x => x.PublishedAt))
             {
                 bool isOwner = currentUserId != null && a.CreatedByUserId == currentUserId;
+                bool isFromAdmin = a.TargetType != TargetAudience.SpecificGroup;
                 var avatarSrc = string.IsNullOrWhiteSpace(a.PhotoUrl) ? "/images/default.png" : a.PhotoUrl;
 
                 var audiencePillClass = a.TargetType switch
@@ -41,7 +51,10 @@
                     _ => "pill-audience"
                 };
 
-                <div class="ann-card" data-id="@a.AnnouncementId">
+                <div class="ann-card @(a.IsPinned ? "pinned" : "")"
+                     data-id="@a.AnnouncementId"
+                     data-source="@(isFromAdmin ? "admin" : "leader")"
+                     data-owner="@isOwner.ToString().ToLower()">
                     <div class="ann-card-header">
                         <img class="ann-avatar" src="@avatarSrc" alt="@a.PostedByName"
                              onerror="this.onerror=null;this.src='/images/default.png';" />
@@ -70,6 +83,11 @@
 
                             <div class="ann-card-meta">
                                 <span class="pill pill-posted-by">Posted by @a.PostedByName</span>
+
+                                @if (a.IsPinned)
+                                {
+                                    <span class="badge-pinned">PINNED</span>
+                                }
 
                                 <span class="pill @audiencePillClass">@a.TargetType</span>
 
@@ -105,6 +123,44 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            // ==== TAB FILTERING ====
+            const tabs = document.querySelectorAll('.ann-tab');
+            const cards = document.querySelectorAll('#announcementListBody .ann-card');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function () {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const filter = this.dataset.tab;
+
+                    cards.forEach(card => {
+                        if (filter === 'all') {
+                            card.style.display = '';
+                        } else if (filter === 'admin') {
+                            card.style.display = card.dataset.source === 'admin' ? '' : 'none';
+                        } else if (filter === 'mine') {
+                            card.style.display = card.dataset.owner === 'true' ? '' : 'none';
+                        }
+                    });
+
+                    // Show/hide empty-state message if a filter yields zero visible cards
+                    const anyVisible = Array.from(cards).some(c => c.style.display !== 'none');
+                    const emptyState = document.querySelector('#announcementListBody .empty-state');
+                    if (!anyVisible && cards.length > 0) {
+                        if (!document.getElementById('noResultsMsg')) {
+                            const msg = document.createElement('div');
+                            msg.className = 'empty-state';
+                            msg.id = 'noResultsMsg';
+                            msg.innerHTML = '<div>No announcements in this tab.</div>';
+                            document.getElementById('announcementListBody').appendChild(msg);
+                        }
+                    } else {
+                        document.getElementById('noResultsMsg')?.remove();
+                    }
+                });
+            });
+
             function initializeAnnouncementForm() {
                 const publishSelect = document.getElementById("publishOptionSelect");
                 const scheduleField = document.getElementById("scheduleField");
@@ -136,7 +192,6 @@
                 initializeAnnouncementForm();
             });
 
-            // Dropdown toggle (event delegation, cards are server-rendered but menu is per-card)
             document.getElementById("announcementListBody").addEventListener("click", function (e) {
                 const moreBtn = e.target.closest(".btn-more");
                 document.querySelectorAll(".ann-dropdown-menu").forEach(menu => {
@@ -153,8 +208,6 @@
                 }
             });
 
-            // Open Edit modal — server already refuses this for non-owned posts (NotFound),
-            // but the button only renders for isOwner anyway.
             document.getElementById("announcementListBody").addEventListener("click", async function (e) {
                 const editBtn = e.target.closest(".btnEditAnnouncement");
                 if (!editBtn) return;
@@ -162,9 +215,6 @@
                 const id = editBtn.dataset.id;
                 const response = await fetch(`/Leader/AnnouncementFeed/Edit/${id}`);
 
-                
-        console.log("Status:", response.status);
-        console.log("OK:", response.ok);
                 if (!response.ok) {
                     showAlertDialog("You can't edit this announcement.", "error", "Not allowed");
                     return;
@@ -193,42 +243,40 @@
                 }
             });
 
-
             document.getElementById("announcementListBody").addEventListener("click", async function(e) {
-            const archiveBtn = e.target.closest(".btnArchiveAnnouncement");
-            if (!archiveBtn) return;
+                const archiveBtn = e.target.closest(".btnArchiveAnnouncement");
+                if (!archiveBtn) return;
 
-            const id = archiveBtn.dataset.id;
+                const id = archiveBtn.dataset.id;
 
                 const response = await fetch(`/Leader/AnnouncementFeed/GetArchive?announcementId=${id}`);
-            if (!response.ok) {
-                showAlertDialog("Unable to load this announcement.", "error", "Failed");
-                return;
-            }
-            const html = await response.text();
+                if (!response.ok) {
+                    showAlertDialog("Unable to load this announcement.", "error", "Failed");
+                    return;
+                }
+                const html = await response.text();
 
-            document.getElementById("appModalLabel").textContent = "Archive Announcement";
-            document.getElementById("appModalBody").innerHTML = html;
-            bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal")).show();
-        });
+                document.getElementById("appModalLabel").textContent = "Archive Announcement";
+                document.getElementById("appModalBody").innerHTML = html;
+                bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal")).show();
+            });
 
-        // Submit handler for the archive confirm form (loaded dynamically into the modal)
-        document.getElementById("appModalBody").addEventListener("submit", async function (e) {
-            const form = e.target.closest("form[asp-action='Archive']") || e.target.closest("form");
-            if (!form || !form.action.includes("/Archive")) return;
-            e.preventDefault();
+            document.getElementById("appModalBody").addEventListener("submit", async function (e) {
+                const form = e.target.closest("form[asp-action='Archive']") || e.target.closest("form");
+                if (!form || !form.action.includes("/Archive")) return;
+                e.preventDefault();
 
-            const response = await fetch(form.action, { method: "POST", body: new FormData(form) });
-            const result = await response.json();
+                const response = await fetch(form.action, { method: "POST", body: new FormData(form) });
+                const result = await response.json();
 
-            if (result.success) {
-                bootstrap.Modal.getInstance(document.getElementById("appModal")).hide();
-                showAlertDialog(result.message || "Announcement archived.", "success", "Success");
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showAlertDialog(result.message || "Unable to archive announcement.", "error", "Failed");
-            }
-        });
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById("appModal")).hide();
+                    showAlertDialog(result.message || "Announcement archived.", "success", "Success");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlertDialog(result.message || "Unable to archive announcement.", "error", "Failed");
+                }
+            });
         });
     </script>
 }

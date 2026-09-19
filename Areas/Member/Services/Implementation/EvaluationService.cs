@@ -2,9 +2,10 @@
 using Sym_Connect__Capstone2_.Areas.Member.Services.Interfaces;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Data;
-using MemberModel = Sym_Connect__Capstone2_.Models.Member;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.ViewModels;
+using MemberModel = Sym_Connect__Capstone2_.Models.Member;
 
 namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
 {
@@ -60,6 +61,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     Description = e.Description,
                     DateCreated = e.DateCreated,
                     OpenAt = e.OpenAt,
+                    
+                    CreatedBy = e.CreatedByUser.DisplayName ?? "N/A",
                     ClosedAt = e.ClosedAt,
                     EventTitle = e.Event.EventTitle,
                     Points = e.Points
@@ -216,6 +219,12 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Services.Implementation
                     .ThenInclude(ed => ed.EvaluationQuestion)
                 .FirstOrDefaultAsync(e => e.EvaluationId == evaluationId && !e.IsArchived);
         }
+
+
+       
+
+
+       
 
     }
 }

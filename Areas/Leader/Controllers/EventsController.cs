@@ -591,7 +591,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
             if (guard != null) return guard;
 
             var groups = await _eventService.GetGroupsForModalAsync(id);
-            return PartialView("~/Views/Events/_AllGroupsModal.cshtml", groups);
+            return PartialView("~/Views/Events/_ViewAllGroupsModal.cshtml", groups);
         }
 
         public async Task<IActionResult> CancelledDetails(int id)

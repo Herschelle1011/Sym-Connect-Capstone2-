@@ -440,6 +440,9 @@ namespace Sym_Connect__Capstone2_.Migrations
                     b.Property<DateTime>("ClosedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
@@ -467,6 +470,8 @@ namespace Sym_Connect__Capstone2_.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("EvaluationId");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("EventId");
 
@@ -1343,9 +1348,16 @@ namespace Sym_Connect__Capstone2_.Migrations
 
             modelBuilder.Entity("Sym_Connect__Capstone2_.Models.Evaluation", b =>
                 {
+                    b.HasOne("Sym_Connect__Capstone2_.Models.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Sym_Connect__Capstone2_.Models.EventModels.Event", "Event")
                         .WithMany("Evaluations")
                         .HasForeignKey("EventId");
+
+                    b.Navigation("CreatedByUser");
 
                     b.Navigation("Event");
                 });

@@ -18,8 +18,15 @@ namespace Sym_Connect__Capstone2_.Models
         public DateTime OpenAt { get; set; }
         public DateTime ClosedAt { get; set; }
 
-        public int Points { get; set; } = 2;
 
+        public string? CreatedByUserId { get; set; } 
+
+        [ForeignKey(nameof(CreatedByUserId))]
+        public User? CreatedByUser { get; set; }
+
+
+
+        public int Points { get; set; } = 2;
         public bool IsArchived { get; set; } = false;
         public DateTime? UpdatedAt { get; set; }
         public DateTime? ArchivedDate { get; set; }
@@ -32,5 +39,6 @@ namespace Sym_Connect__Capstone2_.Models
 
         // Navigation property
         public Event? Event { get; set; }
+
     }
 }

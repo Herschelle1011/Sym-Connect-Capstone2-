@@ -1,5 +1,4 @@
-﻿using AspNetCoreGeneratedDocument;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models.ElectionModels;
 using Sym_Connect__Capstone2_.Models.Enums;
@@ -7,7 +6,6 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels;
 using Sym_Connect__Capstone2_.ViewModels.Election;
 using Sym_Connect__Capstone2_.ViewModels.PartyList;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -31,8 +29,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                             Id = p.PartyListId,
                             PartyListName = p.PartyName,
                             PartyListDescription = p.PartyListDescription,
-                            //DateCreated = p.DateCreated ?? DateTime.Today 
-
                         }).ToListAsync();
         }
 
@@ -194,7 +190,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 PartyName = vm.PartyListName,
                 PartyListDescription = vm.PartyListDescription,
-                //DateCreated = DateTime.Now
             };
             _context.PartyLists.Add(NewPartyList);
             await _context.SaveChangesAsync();

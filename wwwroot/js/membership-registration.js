@@ -611,40 +611,6 @@ async function checkEmailAvailability(email) {
 }
 
 
-async function checkUsernameAvailability(username) {
-
-    const token = getAntiForgeryToken();
-
-    try {
-
-        const response =
-            await fetch(
-                "/Identity/Account/Register?handler=CheckUsername",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "RequestVerificationToken": token
-                    },
-                    body: JSON.stringify({ username })
-                }
-            );
-
-        return await response.json();
-
-    }
-    catch (error) {
-
-        console.error(
-            "Error checking username availability:",
-            error
-        );
-
-        return { available: true };
-    }
-}
-
-
 /* =========================================================
    STEP 1 VALIDATION
 ========================================================= */
@@ -858,10 +824,7 @@ async function validateStep2() {
             "registrationEmail"
         );
 
-    const username =
-        document.querySelector(
-            '[name="Username"]'
-        );
+
 
     const password =
         document.getElementById(
@@ -876,7 +839,6 @@ async function validateStep2() {
 
     [
         email,
-        username,
         password,
         confirmPassword
     ].forEach(
@@ -905,16 +867,6 @@ async function validateStep2() {
         valid = false;
     }
 
-
-    if (!username?.value.trim()) {
-
-        showFieldError(
-            username,
-            "Username is required."
-        );
-
-        valid = false;
-    }
 
 
     if (!password?.value) {
@@ -1001,26 +953,7 @@ async function validateStep2() {
     }
 
 
-    const usernameCheck =
-        await checkUsernameAvailability(
-            username.value.trim()
-        );
 
-    if (!usernameCheck.available) {
-
-        showFieldError(
-            username,
-            usernameCheck.message || "This username is already taken."
-        );
-
-        showAlertDialog(
-            usernameCheck.message || "This username is already taken.",
-            "error",
-            "Username Unavailable"
-        );
-
-        return false;
-    }
 
 
     if (!emailVerified) {
@@ -1807,10 +1740,7 @@ function populateReview() {
             .join(", ");
 
 
-    const username =
-        document.querySelector(
-            '[name="Username"]'
-        )?.value ?? "";
+
 
 
     const groupSelect =
@@ -1887,11 +1817,6 @@ function populateReview() {
         address
     );
 
-
-    setReviewText(
-        "reviewUsername",
-        username
-    );
 
 
     setReviewText(

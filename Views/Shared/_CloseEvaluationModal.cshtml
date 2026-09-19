@@ -1,0 +1,72 @@
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation.MemberEvaluationListItemViewModel
+
+@{
+    string formArea = ViewBag.FormArea as string ?? "";
+    string formController = ViewBag.FormController as string ?? "Evaluations";
+}
+
+<form asp-action="CloseEvaluation"
+      asp-controller="@formController"
+      asp-area="@formArea"
+      method="post"
+      class="evaluation-close-form">
+
+    @Html.AntiForgeryToken()
+
+    <input type="hidden"
+           asp-for="EvaluationId" />
+
+    <div class="text-center py-2">
+
+        <div class="mb-3">
+            <i class="bi bi-exclamation-triangle-fill
+                text-danger"
+               style="font-size: 42px;">
+            </i>
+        </div>
+
+        <h5 class="fw-semibold mb-2">
+            Close Evaluation?
+        </h5>
+
+        <p class="text-muted mb-2">
+            Are you sure you want to close
+            <strong>@Model.EvaluationTitle</strong>?
+        </p>
+
+        <p class="small text-muted mb-4">
+            Members will no longer be able to submit
+            responses after this evaluation is closed.
+            This action cannot be undone.
+        </p>
+
+        <div class="d-flex justify-content-end gap-2">
+
+            <button type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal">
+                Cancel
+            </button>
+
+            <button type="submit"
+                    class="btn btn-danger close-evaluation-btn">
+
+                <span class="close-normal">
+                    <i class="bi bi-x-circle me-1"></i>
+                    Close Evaluation
+                </span>
+
+                <span class="close-loading d-none">
+                    <span class="spinner-border
+                        spinner-border-sm me-1">
+                    </span>
+                    Closing...
+                </span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>

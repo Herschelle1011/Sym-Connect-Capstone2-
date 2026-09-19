@@ -321,15 +321,108 @@ function initPsgcAddress() {
     const provinceSelect = document.getElementById('provinceSelect');
     const citySelect = document.getElementById('citySelect');
     const barangaySelect = document.getElementById('barangaySelect');
+    const provinceName = document.getElementById('provinceName');
+    const cityName = document.getElementById('cityName');
 
     if (!provinceSelect) return; // form not in DOM yet / not this modal
 
-    // Avoid re-fetching if already populated (e.g. modal reopened)
     if (provinceSelect.dataset.loaded === "true") return;
+    provinceSelect.dataset.loaded = "true";
+
+    const savedProvince = document.getElementById('savedProvince')?.value || 'Cebu';
+    const savedCity = document.getElementById('savedCity')?.value || '';
+    const savedBarangay = document.getElementById('savedBarangay')?.value || '';
+
+    // Handles PSGC's "City of X" / "X City" naming inconsistencies
+    function normalize(name) {
+        return (name || '')
+            .trim()
+            .toLowerCase()
+            .replace(/^city of\s+/i, '')
+            .replace(/\s+city$/i, '')
+            .replace(/\s+/g, ' ');
+    }
+
+    async function loadCitiesFor(provinceCode, presetCity, presetBarangay) {
+        citySelect.innerHTML = '<option value="">-- Select City/Municipality --</option>';
+        barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
+        citySelect.disabled = true;
+        barangaySelect.disabled = true;
+        if (cityName && !presetCity) cityName.value = '';
+
+        if (!provinceCode) return;
+
+        try {
+            const res = await fetch(`https://psgc.gitlab.io/api/provinces/${provinceCode}/cities-municipalities/`);
+            const cities = await res.json();
+
+            cities
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.code;
+                    opt.textContent = c.name;
+                    citySelect.appendChild(opt);
+                });
+            citySelect.disabled = false;
+
+            if (!presetCity) return;
+
+            const match = Array.from(citySelect.options).find(
+                o => normalize(o.textContent) === normalize(presetCity)
+            );
+
+            if (match) {
+                citySelect.value = match.value;
+                if (cityName) cityName.value = match.textContent.trim();
+                await loadBarangaysFor(match.value, presetBarangay);
+            } else {
+                console.warn('Saved city not found:', presetCity);
+            }
+        } catch (err) {
+            console.error('Failed to load cities:', err);
+        }
+    }
+
+    async function loadBarangaysFor(cityCode, presetBarangay) {
+        barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
+        barangaySelect.disabled = true;
+
+        if (!cityCode) return;
+
+        try {
+            const res = await fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`);
+            const barangays = await res.json();
+
+            barangays
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(b => {
+                    const opt = document.createElement('option');
+                    opt.value = b.name;       // posting NAME, matches asp-for="Barangay"
+                    opt.textContent = b.name;
+                    barangaySelect.appendChild(opt);
+                });
+            barangaySelect.disabled = false;
+
+            if (!presetBarangay) return;
+
+            const match = Array.from(barangaySelect.options).find(
+                o => normalize(o.textContent) === normalize(presetBarangay)
+            );
+
+            if (match) {
+                barangaySelect.value = match.value;
+            } else {
+                console.warn('Saved barangay not found:', presetBarangay);
+            }
+        } catch (err) {
+            console.error('Failed to load barangays:', err);
+        }
+    }
 
     fetch('https://psgc.gitlab.io/api/provinces/')
         .then(res => res.json())
-        .then(provinces => {
+        .then(async provinces => {
             provinces
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .forEach(p => {
@@ -338,54 +431,37 @@ function initPsgcAddress() {
                     opt.textContent = p.name;
                     provinceSelect.appendChild(opt);
                 });
-            provinceSelect.dataset.loaded = "true";
+
+            const match = Array.from(provinceSelect.options).find(
+                o => normalize(o.textContent) === normalize(savedProvince)
+            );
+
+            if (match) {
+                provinceSelect.value = match.value;
+                if (provinceName) provinceName.value = match.textContent.trim();
+                await loadCitiesFor(match.value, savedCity, savedBarangay);
+            } else {
+                console.warn('Saved province not found:', savedProvince);
+            }
         })
         .catch(err => console.error('Failed to load provinces:', err));
 
     provinceSelect.addEventListener('change', function () {
-        citySelect.innerHTML = '<option value="">-- Select City/Municipality --</option>';
-        barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
-        citySelect.disabled = true;
-        barangaySelect.disabled = true;
-
-        if (!this.value) return;
-
-        fetch(`https://psgc.gitlab.io/api/provinces/${this.value}/cities-municipalities/`)
-            .then(res => res.json())
-            .then(cities => {
-                cities
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .forEach(c => {
-                        const opt = document.createElement('option');
-                        opt.value = c.code;
-                        opt.textContent = c.name;
-                        citySelect.appendChild(opt);
-                    });
-                citySelect.disabled = false;
-            })
-            .catch(err => console.error('Failed to load cities:', err));
+        if (provinceName) {
+            provinceName.value = this.value
+                ? this.options[this.selectedIndex].textContent.trim()
+                : '';
+        }
+        loadCitiesFor(this.value, '', '');
     });
 
     citySelect.addEventListener('change', function () {
-        barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
-        barangaySelect.disabled = true;
-
-        if (!this.value) return;
-
-        fetch(`https://psgc.gitlab.io/api/cities-municipalities/${this.value}/barangays/`)
-            .then(res => res.json())
-            .then(barangays => {
-                barangays
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .forEach(b => {
-                        const opt = document.createElement('option');
-                        opt.value = b.name;
-                        opt.textContent = b.name;
-                        barangaySelect.appendChild(opt);
-                    });
-                barangaySelect.disabled = false;
-            })
-            .catch(err => console.error('Failed to load barangays:', err));
+        if (cityName) {
+            cityName.value = this.value
+                ? this.options[this.selectedIndex].textContent.trim()
+                : '';
+        }
+        loadBarangaysFor(this.value, '');
     });
 }
 
@@ -1255,102 +1331,82 @@ document.addEventListener('click', function (e) {
 });
 
 
-// document.addEventListener("submit", async function (e) {
+document.addEventListener("submit", async function (e) {
 
-//     if (e.target.id !== "editEventForm") {
-//         return;
-//     }
+    const form = e.target.closest(".evaluation-close-form");
 
-//     e.preventDefault();
+    if (!form) {
+        return;
+    }
 
-//     const form = e.target;
-//     const submitButton = form.querySelector('button[type="submit"]');
+    // Stop the normal form submission.
+    e.preventDefault();
 
-//     const originalButtonHtml = submitButton.innerHTML;
+    const submitButton = form.querySelector(".close-evaluation-btn");
 
-//     Show loading state
-//     submitButton.disabled = true;
-//     submitButton.innerHTML = `
-//         <span class="spinner-border spinner-border-sm me-1"></span>
-//         Saving...
-//     `;
+    if (submitButton) {
+        submitButton.disabled = true;
+    }
 
-//     try {
+    try {
 
-//         const formData = new FormData(form);
+        const formData = new FormData(form);
 
-//         const response = await fetch(form.action, {
-//             method: "POST",
-//             body: formData
-//         });
+        const response = await fetch(form.action, {
+            method: "POST",
+            body: formData
+        });
 
-//         const contentType = response.headers.get("content-type") || "";
+        const result = await response.json();
 
-//         ===============================
-//         JSON response
-//         ===============================
-//         if (contentType.includes("application/json")) {
+        if (result.success) {
 
-//             const result = await response.json();
+            // Close your existing shared modal.
+            const modalElement = document.getElementById("appModal");
 
-//             if (result.success) {
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
 
-//                 const offcanvasElement =
-//                     document.getElementById("editEventPanel");
+                if (modal) {
+                    modal.hide();
+                }
+            }
 
-//                 const offcanvas =
-//                     bootstrap.Offcanvas.getInstance(offcanvasElement);
+            showAlertDialog(
+                result.message || "Evaluation closed successfully.",
+                "success",
+                "Evaluation Closed"
+            );
 
-//                 if (offcanvas) {
-//                     offcanvas.hide();
-//                 }
+            setTimeout(function () {
+                window.location.reload();
+            }, 1200);
 
-//                 showAlertDialog(
-//                     result.message || "Event updated successfully.",
-//                     "success",
-//                     "Event Updated"
-//                 );
+        } else {
 
-//                 setTimeout(() => {
-//                     window.location.reload();
-//                 }, 1200);
+            showAlertDialog(
+                result.message || "Unable to close evaluation.",
+                "error",
+                "Close Failed"
+            );
 
-//                 return;
-//             }
+            if (submitButton) {
+                submitButton.disabled = false;
+            }
+        }
 
-//             showAlertDialog(
-//                 result.message || "Unable to update the event.",
-//                 "error",
-//                 "Update Failed"
-//             );
+    } catch (error) {
 
-//             return;
-//         }
+        console.error(error);
 
-//         ===============================
-//         Validation error HTML
-//         ===============================
-//         const html = await response.text();
+        showAlertDialog(
+            "Something went wrong while closing the evaluation.",
+            "error",
+            "Close Error"
+        );
 
-//         const panelBody =
-//             document.querySelector("#editEventPanel .offcanvas-body");
-
-//         panelBody.innerHTML = html;
-
-//     }
-//     catch (error) {
-
-//         console.error(error);
-
-//         showAlertDialog(
-//             "Something went wrong while updating the event.",
-//             "error",
-//             "Error"
-//         );
-//     }
-//     finally {
-
-//         submitButton.disabled = false;
-//         submitButton.innerHTML = originalButtonHtml;
-//     }
-// });
+        if (submitButton) {
+            submitButton.disabled = false;
+        }
+    }
+});

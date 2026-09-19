@@ -8,9 +8,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Profile
 
         public string? CurrentPhotoUrl { get; set; }
 
-        [Required]
-        [Display(Name = "Display Name")]
-        public string DisplayName { get; set; } = string.Empty;
+
+        public string? DisplayName { get; set; } = string.Empty;
 
 
         [Required]

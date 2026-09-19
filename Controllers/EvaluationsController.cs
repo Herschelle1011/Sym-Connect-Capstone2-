@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Evaluation;
 using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Services.Interfaces;
@@ -45,7 +46,7 @@ public class EvaluationsController : Controller
             return Forbid();
         }
 
-        var Evaluations = await _evaluationservice.GetAvailableEvaluationsAsync(user.MemberId.Value, isAdmin);
+        var Evaluations = await _evaluationservice.GetAvailableEvaluationsAsync(user.MemberId.Value,user.Id ,isAdmin);
         var evaluation = Evaluations.Select(e => new ListEvaluationViewModel
         {
             EvaluationId = e.EvaluationId,
@@ -233,7 +234,7 @@ public class EvaluationsController : Controller
             return View(vm);
         }
 
-        await _evaluationservice.CreateEvaluationAsync(vm, user.MemberId.Value, isAdmin);
+        await _evaluationservice.CreateEvaluationAsync(vm, user.MemberId.Value, isAdmin, user.Id);
 
         return RedirectToAction(nameof(Index));
     }
@@ -441,29 +442,29 @@ public class EvaluationsController : Controller
     }
 
 
-    // GET: EVALUATIONS/Delete/5
-    public async Task<IActionResult> Delete(int? id)
-    {
-        if (id == null)
-        {
-            return NotFound();
-        }
+    //// GET: EVALUATIONS/Delete/5
+    //public async Task<IActionResult> Delete(int? id)
+    //{
+    //    if (id == null)
+    //    {
+    //        return NotFound();
+    //    }
 
-        var evaluation = await _evaluationservice.GetEvaluationByIdAsync(id.Value);
-        if (evaluation == null)
-        {
-            return NotFound();
-        }
-        var eval = new DeleteEvaluationViewModel
-        {
-            EvaluationId = evaluation.EvaluationId,
-            EvaluationTitle = evaluation.EvaluationTitle,
-            Description = evaluation.Description,
-            DateCreated = evaluation.DateCreated,
-        };
+    //    var evaluation = await _evaluationservice.GetEvaluationByIdAsync(id.Value);
+    //    if (evaluation == null)
+    //    {
+    //        return NotFound();
+    //    }
+    //    var eval = new DeleteEvaluationViewModel
+    //    {
+    //        EvaluationId = evaluation.EvaluationId,
+    //        EvaluationTitle = evaluation.EvaluationTitle,
+    //        Description = evaluation.Description,
+    //        DateCreated = evaluation.DateCreated,
+    //    };
 
-        return View(eval);
-    }
+    //    return View(eval);
+    //}
 
     // POST: EVALUATIONS/Delete/5
     [HttpPost, ActionName("Delete")]
@@ -474,7 +475,6 @@ public class EvaluationsController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    //TO BE CHECKED, LACKING IS UI 
     public async Task<IActionResult> SummaryReports(int? id)
     {
         if (id == null) { return NotFound(); }
@@ -491,6 +491,56 @@ public class EvaluationsController : Controller
             ModelState.AddModelError(nameof(vm.ClosedAt), "Close date must be after the open date.");
         }
 
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCloseEvaluation(int? id)
+    {
+        if (id == null)
+        {
+            return BadRequest();
+        }
+
+        var evaluation =
+            await _evaluationservice.GetCloseEvaluationAsync(
+                id.Value,
+                0,
+                true
+            );
+
+        if (evaluation == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.FormArea = "";
+        ViewBag.FormController = "Evaluations";
+
+        return PartialView(
+        "~/Views/Shared/_CloseEvaluationModal.cshtml",
+            evaluation
+        );
+    }
+
+
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CloseEvaluation(
+    int evaluationId)
+    {
+        var result =
+            await _evaluationservice.CloseEvaluationAsync(
+                evaluationId,
+                0,
+                true
+            );
+
+        return Json(new
+        {
+            success = result.Success,
+            message = result.Message
+        });
     }
 
 }

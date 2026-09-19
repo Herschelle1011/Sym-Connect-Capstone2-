@@ -1,9 +1,4 @@
-﻿// =========================
-// ADDRESS SELECTOR
-// Default:
-// Country = Philippines
-// Province = Cebu
-// =========================
+﻿
 
 
 // =========================
@@ -92,37 +87,37 @@ function handleBarangayChange(
 // MODAL OPEN
 // =========================
 
-document.addEventListener(
-    "shown.bs.modal",
-    async function (e) {
+// document.addEventListener(
+//     "shown.bs.modal",
+//     async function (e) {
 
-        if (
-            e.target.id !==
-            "membershipRegistrationModal"
-        ) {
-            return;
-        }
+//         if (
+//             e.target.id !==
+//             "membershipRegistrationModal"
+//         ) {
+//             return;
+//         }
 
-        if (addressInitialized) {
-            return;
-        }
+//         if (addressInitialized) {
+//             return;
+//         }
 
-        const provinceSelect =
-            document.getElementById(
-                "provinceSelect"
-            );
+//         const provinceSelect =
+//             document.getElementById(
+//                 "provinceSelect"
+//             );
 
-        if (!provinceSelect) {
-            return;
-        }
+//         if (!provinceSelect) {
+//             return;
+//         }
 
-        await initializeAddress(
-            provinceSelect
-        );
+//         await initializeAddress(
+//             provinceSelect
+//         );
 
-        addressInitialized = true;
-    }
-);
+//         addressInitialized = true;
+//     }
+// );
 
 
 // =========================
@@ -131,15 +126,73 @@ document.addEventListener(
 // the form inside an offcanvas.
 // =========================
 
-document.addEventListener('shown.bs.offcanvas', function () {
+// document.addEventListener('shown.bs.offcanvas', function () {
 
-    const provinceSelect =
-        document.getElementById('provinceSelect');
+//     const provinceSelect =
+//         document.getElementById('provinceSelect');
 
-    if (provinceSelect) {
-        initializeAddress(provinceSelect);
+//     if (provinceSelect) {
+//         initializeAddress(provinceSelect);
+//     }
+
+// });
+
+// =========================
+// AUTO-INITIALIZE ON APPEAR
+// Watches the DOM for #provinceSelect showing up —
+// works no matter when your AJAX modal content
+// actually gets injected relative to modal.show().
+// =========================
+
+const initializedProvinceSelects = new WeakSet();
+
+function tryInitializeAddressIn(node) {
+
+
+    if (!(node instanceof Element)) {
+        return;
     }
 
+    const provinceSelect =
+        node.id === "provinceSelect"
+            ? node
+            : node.querySelector?.("#provinceSelect");
+
+    if (!provinceSelect) {
+        return;
+    }
+
+    if (initializedProvinceSelects.has(provinceSelect)) {
+        return;
+    }
+
+    initializedProvinceSelects.add(provinceSelect);
+
+    initializeAddress(provinceSelect);
+}
+
+const addressObserver = new MutationObserver(function (mutations) {
+
+    for (const mutation of mutations) {
+
+        mutation.addedNodes.forEach(
+            tryInitializeAddressIn
+        );
+    }
+});
+
+addressObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const existing = document.getElementById("provinceSelect");
+
+    if (existing) {
+        tryInitializeAddressIn(existing);
+    }
 });
 
 
@@ -163,15 +216,17 @@ async function initializeAddress(provinceSelect) {
         document.getElementById('savedBarangay')?.value
         || '';
 
+    console.log("EDIT ADDRESS VALUES:", {
+        savedProvince,
+        savedCity,
+        savedBarangay
+    });
+
     const provinceName =
         document.getElementById('provinceName');
 
-
-    // Load all Philippine provinces first
     await loadProvinces(provinceSelect);
 
-
-    // Find Cebu or saved province
     const provinceOption =
         Array.from(provinceSelect.options)
             .find(option =>
@@ -184,7 +239,6 @@ async function initializeAddress(provinceSelect) {
                     .toLowerCase()
             );
 
-
     if (!provinceOption) {
 
         console.warn(
@@ -195,21 +249,15 @@ async function initializeAddress(provinceSelect) {
         return;
     }
 
-
-    // Select province
     provinceSelect.value =
         provinceOption.value;
 
-
-    // Store province NAME
     if (provinceName) {
 
         provinceName.value =
             provinceOption.textContent.trim();
     }
 
-
-    // Load cities for selected province
     await loadCitiesForEdit(
         provinceSelect.value,
         savedCity,
@@ -366,7 +414,8 @@ async function loadCitiesForEdit(
 
         const cities =
             await response.json();
-
+        console.log("CITIES FROM PSGC:", cities);
+        console.log("LOOKING FOR CITY:", savedCity);
 
         citySelect.innerHTML =
             '<option value="">-- Select City/Municipality --</option>';

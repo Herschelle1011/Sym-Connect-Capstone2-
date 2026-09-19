@@ -1,0 +1,731 @@
+﻿@model Sym_Connect__Capstone2_.Areas.Member.ViewModels.Points.MemberPointDetailsViewModel
+
+@{
+    string status = Model.Status?.Trim() ?? "";
+
+    string statusClass = status.ToLower() switch
+    {
+        "present" => "point-status-present",
+        "late" => "point-status-late",
+        "absent" => "point-status-absent",
+        _ => "point-status-default"
+    };
+
+    string statusIcon = status.ToLower() switch
+    {
+        "present" => "bi-check-lg",
+        "late" => "bi-clock",
+        "absent" => "bi-x-lg",
+        _ => "bi-info-lg"
+    };
+
+    string statusMessage = status.ToLower() switch
+    {
+        "present" => "You attended this event.",
+        "late" => "You attended this event late.",
+        "absent" => "You did not attend this event.",
+        _ => "Attendance information."
+    };
+}
+
+
+<div class="modal fade"
+     id="pointDetailsModal"
+     tabindex="-1"
+     aria-labelledby="pointDetailsModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered point-details-dialog">
+
+        <div class="modal-content point-details-modal">
+
+            <!-- =========================================
+                 HEADER
+            ========================================== -->
+
+            <div class="point-modal-header">
+
+                <div>
+
+                    <span class="point-details-label">
+                        EVENT DETAILS
+                    </span>
+
+                    <h4 class="point-event-title"
+                        id="pointDetailsModalLabel">
+                        @Model.EventTitle
+                    </h4>
+
+
+                    <div class="point-event-meta">
+
+                        <!-- DATE -->
+
+                        <div class="point-event-meta-item">
+                            <i class="bi bi-calendar"></i>
+
+                            <span>
+                                @Model.EventDate.ToString("MMM dd, yyyy")
+                            </span>
+                        </div>
+
+
+                        <!-- FACILITY -->
+
+                        <div class="point-event-meta-item">
+                            <i class="bi bi-geo-alt"></i>
+
+                            @if (Model.FacilityNames != null &&
+                                 Model.FacilityNames.Any())
+                            {
+                                <span>
+                                    @string.Join(", ", Model.FacilityNames)
+                                </span>
+                            }
+                            else
+                            {
+                                <span>No facility</span>
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button type="button"
+                        class="point-modal-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+
+                    <i class="bi bi-x-lg"></i>
+
+                </button>
+
+            </div>
+
+
+            <!-- =========================================
+                 BODY
+            ========================================== -->
+
+            <div class="point-modal-body">
+
+
+                <!-- =====================================
+                     ATTENDANCE STATUS
+                ====================================== -->
+
+                <div class="point-attendance-status @statusClass">
+
+                    <div class="point-status-left">
+
+                        <div class="point-status-icon">
+                            <i class="bi @statusIcon"></i>
+                        </div>
+
+
+                        <div>
+
+                            <div class="point-small-label">
+                                ATTENDANCE STATUS
+                            </div>
+
+                            <div class="point-status-name">
+                                @Model.Status
+                            </div>
+
+                            <div class="point-status-description">
+                                @statusMessage
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="point-earned-box">
+
+                        @if (Model.Points > 0)
+                        {
+                            <strong>
+                                + @Model.Points pts
+                            </strong>
+                        }
+                        else
+                        {
+                            <strong>
+                                0 pts
+                            </strong>
+                        }
+
+                        <span>
+                            Points Earned
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================
+                     TIME IN / TIME OUT
+                ====================================== -->
+
+                <div class="point-detail-row">
+
+                    <!-- TIME IN -->
+
+                    <div class="point-detail-item">
+
+                        <div class="point-detail-icon blue">
+                            <i class="bi bi-clock"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="point-detail-title">
+                                Time In
+                            </div>
+
+                            <div class="point-detail-value">
+
+                                @if (Model.TimeIn.HasValue)
+                                {
+                                    @Model.TimeIn.Value.ToString(
+                                        "MMM dd, yyyy h:mm tt")
+                                }
+                                else
+                                {
+                                    <span>Not recorded</span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TIME OUT -->
+
+                    <div class="point-detail-item">
+
+                        <div class="point-detail-icon blue">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="point-detail-title">
+                                Time Out
+                            </div>
+
+                            <div class="point-detail-value">
+
+                                @if (Model.TimeOut.HasValue)
+                                {
+                                    @Model.TimeOut.Value.ToString(
+                                        "MMM dd, yyyy h:mm tt")
+                                }
+                                else
+                                {
+                                    <span>Not recorded</span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="point-divider"></div>
+
+
+                <!-- =====================================
+                     SCANNED BY / SCANNED AT
+                ====================================== -->
+
+                <div class="point-detail-row">
+
+                    <!-- SCANNED BY -->
+
+                    <div class="point-detail-item">
+
+                        <div class="point-detail-icon purple">
+                            <i class="bi bi-person"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="point-detail-title">
+                                Scanned By
+                            </div>
+
+                            <div class="point-detail-value">
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    Model.ScannedByName))
+                                {
+                                    @Model.ScannedByName
+                                }
+                                else
+                                {
+                                    <span>Not available</span>
+                                }
+
+                            </div>
+
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                Model.ScannedByRole))
+                            {
+                                <div class="point-detail-subvalue">
+                                    @Model.ScannedByRole
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- SCANNED AT -->
+
+                    <div class="point-detail-item">
+
+                        <div class="point-detail-icon yellow">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+
+                        <div>
+
+                            <div class="point-detail-title">
+                                Scanned At
+                            </div>
+
+                            <div class="point-detail-value">
+
+                                @if (Model.FacilityNames != null &&
+                                     Model.FacilityNames.Any())
+                                {
+                                    @string.Join(", ", Model.FacilityNames)
+                                }
+                                else
+                                {
+                                    <span>No facility</span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="point-divider"></div>
+
+
+                <!-- =====================================
+                     REMARKS
+                ====================================== -->
+
+                <div class="point-remarks">
+
+                    <div class="point-detail-icon gray">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+
+
+                    <div>
+
+                        <div class="point-detail-title">
+                            Remarks
+                        </div>
+
+                        <div class="point-detail-value">
+                            @Model.Remarks
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =====================================
+                     CLOSE
+                ====================================== -->
+
+                <button type="button"
+                        class="point-close-button"
+                        data-bs-dismiss="modal">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    /* =========================================
+               MODAL
+            ========================================== */
+
+    .point-details-dialog {
+        max-width: 560px;
+    }
+
+    .point-details-modal {
+        border: none;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 20px 55px rgba(30, 45, 65, .18);
+    }
+
+
+    /* =========================================
+               HEADER
+            ========================================== */
+
+    .point-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 22px 24px 15px;
+    }
+
+    .point-details-label {
+        display: inline-block;
+        padding: 4px 10px;
+        margin-bottom: 9px;
+        background: #e3f3ff;
+        color: #168ad0;
+        border-radius: 20px;
+        font-size: .62rem;
+        font-weight: 700;
+    }
+
+    .point-event-title {
+        margin: 0;
+        color: #172b4d;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .point-event-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 12px;
+        color: #728096;
+        font-size: .75rem;
+    }
+
+    .point-event-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
+        .point-event-meta-item i {
+            color: #6d85a5;
+            font-size: .95rem;
+        }
+
+    .point-modal-close {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: #eef3f8;
+        color: #617087;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .point-modal-close:hover {
+            background: #e4eaf1;
+        }
+
+
+    /* =========================================
+               BODY
+            ========================================== */
+
+    .point-modal-body {
+        padding: 0 24px 22px;
+    }
+
+
+    /* =========================================
+               ATTENDANCE STATUS
+            ========================================== */
+
+    .point-attendance-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 17px;
+        border-radius: 13px;
+        border: 1px solid;
+    }
+
+    .point-status-present {
+        background: #f0fcf6;
+        border-color: #d0f2df;
+    }
+
+    .point-status-late {
+        background: #fff9e8;
+        border-color: #f6e8b8;
+    }
+
+    .point-status-absent {
+        background: #fff2f2;
+        border-color: #f5d7d7;
+    }
+
+    .point-status-default {
+        background: #f5f7fa;
+        border-color: #e3e8ee;
+    }
+
+    .point-status-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .point-status-icon {
+        width: 56px;
+        height: 56px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.65rem;
+    }
+
+    .point-status-present .point-status-icon {
+        background: #28b873;
+    }
+
+    .point-status-late .point-status-icon {
+        background: #f0ad27;
+    }
+
+    .point-status-absent .point-status-icon {
+        background: #e95b5b;
+    }
+
+    .point-status-default .point-status-icon {
+        background: #8995a5;
+    }
+
+    .point-small-label {
+        color: #748096;
+        font-size: .62rem;
+        font-weight: 700;
+    }
+
+    .point-status-name {
+        margin-top: 1px;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .point-status-present .point-status-name {
+        color: #17935a;
+    }
+
+    .point-status-late .point-status-name {
+        color: #d7930d;
+    }
+
+    .point-status-absent .point-status-name {
+        color: #dc4b4b;
+    }
+
+    .point-status-description {
+        margin-top: 2px;
+        color: #78859a;
+        font-size: .7rem;
+    }
+
+    .point-earned-box {
+        min-width: 115px;
+        padding: 12px;
+        text-align: center;
+        background: rgba(255, 255, 255, .55);
+        border-radius: 12px;
+    }
+
+        .point-earned-box strong {
+            display: block;
+            color: #178f57;
+            font-size: 1rem;
+        }
+
+    .point-status-absent .point-earned-box strong {
+        color: #df5151;
+    }
+
+    .point-status-late .point-earned-box strong {
+        color: #d7930d;
+    }
+
+    .point-earned-box span {
+        display: block;
+        margin-top: 2px;
+        color: #758299;
+        font-size: .6rem;
+    }
+
+
+    /* =========================================
+               DETAILS
+            ========================================== */
+
+    .point-detail-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        padding: 18px 5px;
+    }
+
+    .point-detail-item,
+    .point-remarks {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .point-detail-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 1rem;
+    }
+
+        .point-detail-icon.blue {
+            background: #e8f5ff;
+            color: #198fe1;
+        }
+
+        .point-detail-icon.purple {
+            background: #efebff;
+            color: #7658d8;
+        }
+
+        .point-detail-icon.yellow {
+            background: #fff4c9;
+            color: #c89a1c;
+        }
+
+        .point-detail-icon.gray {
+            background: #edf1f5;
+            color: #66778e;
+        }
+
+    .point-detail-title {
+        color: #33435a;
+        font-size: .72rem;
+        font-weight: 700;
+    }
+
+    .point-detail-value {
+        margin-top: 2px;
+        color: #617087;
+        font-size: .7rem;
+    }
+
+    .point-detail-subvalue {
+        margin-top: 1px;
+        color: #8b96a7;
+        font-size: .62rem;
+    }
+
+    .point-divider {
+        height: 1px;
+        background: #e7ebf0;
+    }
+
+    .point-remarks {
+        padding: 18px 5px;
+    }
+
+
+    /* =========================================
+               CLOSE BUTTON
+            ========================================== */
+
+    .point-close-button {
+        width: 100%;
+        margin-top: 8px;
+        padding: 11px;
+        border: none;
+        border-radius: 8px;
+        background: #edf2f7;
+        color: #3f4e63;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+
+        .point-close-button:hover {
+            background: #e4eaf1;
+        }
+
+
+    /* =========================================
+               MOBILE
+            ========================================== */
+
+    @@media (max-width: 576px) {
+
+        .point-details-dialog {
+            margin: 12px;
+        }
+
+        .point-detail-row {
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+
+        .point-attendance-status {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .point-earned-box {
+            width: 100%;
+        }
+
+        .point-event-meta {
+            flex-direction: column;
+            gap: 7px;
+        }
+    }
+
+</style>

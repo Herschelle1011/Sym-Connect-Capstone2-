@@ -518,6 +518,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         TargetType = a.TargetAudience,
                         PhotoUrl = a.User.ProfilePictureUrl,
                         CreatedByUserId = a.CreatedByUserId,
+                        IsPinned = a.IsPinned,
+                        PinScope = a.PinScope,
                         PostedByName = a.User.DisplayName ?? "Unknown",
                         GroupName = a.Group.GroupName != null ? a.Group.GroupName : null
                     })

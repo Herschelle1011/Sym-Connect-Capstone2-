@@ -27,6 +27,8 @@
     <link rel="stylesheet" href="~/css/ViewAttendanceGroupDetails.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/facility.css" asp-append-version="true" />
 
+    @await RenderSectionAsync("Styles", required: false)
+
 
     <link rel="stylesheet"
           href="~/css/notification-dropdown.css"
@@ -121,7 +123,7 @@
                                 data-url="@Url.Action(
                                                         "EditProfile",
                                                         "Profile",
-                                                        new { area = "Member" })"
+                                                        new { area = "Leader" })"
                                 data-title="Edit Profile">
 
                             <i class="bi bi-person me-2"></i>
@@ -132,7 +134,7 @@
 
                     <li>
                         <a class="dropdown-item"
-                           asp-area="Member"
+                           asp-area="Leader"
                            asp-controller="Profile"
                            asp-action="Index">
 
@@ -224,6 +226,14 @@
                     </div>
                 </div>
             </div>
+
+            <a asp-area="Leader"
+                asp-controller="MyPoints" asp-action="Index"
+               class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "My Points" ? "active" : "")">
+                <i class="bi bi-puzzle"></i>
+                <span class="nav-label">My Points</span>
+            </a>
+
 
             <a asp-area="Leader"
                asp-controller="Facility"
@@ -408,6 +418,10 @@
 
     <script src="~/js/admin/notification.js" asp-append-version="true"></script>
     <script src="~/js/admin/announcement.js" asp-append-version="true"></script>
+    <script src="~/js/admin/Media.js" asp-append-version="true"></script>
+    <script src="~/js/profile.js" asp-append-version="true"></script>
+    <script src="~/js/admin/AddressScript.js" asp-append-version="true"></script>
+
 
 
 

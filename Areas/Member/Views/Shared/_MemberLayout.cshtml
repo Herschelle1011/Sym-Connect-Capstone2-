@@ -306,6 +306,9 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 <script src="~/js/admin/notification.js" asp-append-version="true"></script>
+    <script src="~/js/profile.js" asp-append-version="true"></script>
+    <script src="~/js/alertDialog.js" asp-append-version="true"></script>
+
 
 @await RenderSectionAsync("Scripts", required: false)
 
@@ -337,5 +340,7 @@
         </script>
 
         <partial name="_Modal" />
+    <partial name="_AlertDialog" />
+
     </body>
 </html>

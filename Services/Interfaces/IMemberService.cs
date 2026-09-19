@@ -21,7 +21,6 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<OperationalResult> ConfirmEmailAsync(string userId, string Token);
 
-
         Task<OperationalResult> SetPasswordAsync(string userId, string token, string password);
 
         Task<(int? GroupId, bool IsLeader)> GetAnnouncementContextAsync(int memberId);

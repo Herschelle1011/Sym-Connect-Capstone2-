@@ -371,6 +371,33 @@
         <button type="button" id="addRatingQuestionBtn" class="btn btn-add-question w-100 mt-2 mb-4">+ Add Question</button>
 
     
+        <div class="d-flex justify-content-end gap-2 mt-4">
+
+            <a asp-action="Details"
+               asp-route-id="@Model.EvaluationId"
+               class="btn btn-back">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="btn btn-proceed"
+                    id="saveEvaluationBtn">
+
+                <span class="save-normal">
+                    <i class="bi bi-check-lg me-1"></i>
+                    Save Changes
+                </span>
+
+                <span class="save-loading d-none">
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Saving...
+                </span>
+
+            </button>
+
+        </div>
+
+
     </form>
 </div>
 
@@ -632,19 +659,121 @@
 
         setupCommonQuestionsBox('.common-questions-box[data-list="RatingQuestions"]', "RatingQuestions", "ratingQuestionsContainer");
 
-        document.getElementById("editEvaluationForm").addEventListener("submit", function (e) {
-            let hasError = false;
-            if (!$(this).valid()) hasError = true;
+            document.getElementById("editEvaluationForm")
+        .addEventListener("submit", async function (e) {
 
-            const ratingFilled = Array.from(document.querySelectorAll("#ratingQuestionsContainer .question-text-input")).some(i => i.value.trim());
-            document.getElementById("ratingError").style.display = ratingFilled ? "none" : "block";
-            if (!ratingFilled) hasError = true;
+            e.preventDefault();
 
-            const shortFilled = Array.from(document.querySelectorAll("#shortQuestionsContainer .question-text-input")).some(i => i.value.trim());
-            document.getElementById("shortError").style.display = shortFilled ? "none" : "block";
-            if (!shortFilled) hasError = true;
+            const form = this;
 
-            if (hasError) e.preventDefault();
+            // -----------------------------
+            // 1. Validate normal form fields
+            // -----------------------------
+            if (!$(form).valid()) {
+                return;
+            }
+
+            // -----------------------------
+            // 2. Validate rating questions
+            // -----------------------------
+            const ratingInputs = Array.from(
+                document.querySelectorAll(
+                    "#ratingQuestionsContainer .question-text-input"
+                )
+            );
+
+            const ratingFilled = ratingInputs.some(function (input) {
+                return input.value.trim() !== "";
+            });
+
+            const ratingError =
+                document.getElementById("ratingError");
+
+            ratingError.style.display =
+                ratingFilled ? "none" : "block";
+
+            if (!ratingFilled) {
+                return;
+            }
+
+            // -----------------------------
+            // 3. Loading button
+            // -----------------------------
+            const saveButton =
+                document.getElementById("saveEvaluationBtn");
+
+            const normalContent =
+                saveButton.querySelector(".save-normal");
+
+            const loadingContent =
+                saveButton.querySelector(".save-loading");
+
+            saveButton.disabled = true;
+            normalContent.classList.add("d-none");
+            loadingContent.classList.remove("d-none");
+
+            try {
+
+                // -----------------------------
+                // 4. Send the form to Edit POST
+                // -----------------------------
+                const formData = new FormData(form);
+
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                // -----------------------------
+                // 5. Successful update
+                // -----------------------------
+                if (result.success) {
+
+                    showAlertDialog(
+                        result.message ||
+                        "Evaluation updated successfully.",
+                        "success",
+                        "Evaluation Updated"
+                    );
+
+                    setTimeout(function () {
+
+                        window.location.href =
+                            '@Url.Action("Details", "Evaluations", new { id = Model.EvaluationId })';
+
+                    }, 1200);
+
+                    return;
+                }
+
+                // -----------------------------
+                // 6. Service returned an error
+                // -----------------------------
+                showAlertDialog(
+                    result.message ||
+                    "Unable to update the evaluation.",
+                    "error",
+                    "Update Failed"
+                );
+
+            } catch (error) {
+
+                console.error(error);
+
+                showAlertDialog(
+                    "Something went wrong while updating the evaluation.",
+                    "error",
+                    "Update Error"
+                );
+
+            } finally {
+
+                saveButton.disabled = false;
+                normalContent.classList.remove("d-none");
+                loadingContent.classList.add("d-none");
+            }
         });
     </script>
 }

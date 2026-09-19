@@ -352,6 +352,7 @@ document.addEventListener("input", function (e) {
 
     // Only run this code for the file search box
     if (e.target.id !== "fileSearchInput") {
+
         return;
     }
 

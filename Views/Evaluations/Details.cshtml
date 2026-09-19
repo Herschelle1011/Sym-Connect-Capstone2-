@@ -8,9 +8,14 @@
     // OpenAt / ClosesAt. Nothing new is added to the model — this only
     // reads the two date fields that already exist on DetailsEvaluationViewModel.
     var today = DateTime.Today;
-    string status = today < Model.OpenAt.Date ? "Upcoming"
-                   : today > Model.ClosesAt.Date ? "Closed"
-                   : "Open";
+    var now = DateTime.Now;
+
+    string status = now >= Model.ClosesAt
+      ? "Closed"
+      : now < Model.OpenAt
+          ? "Upcoming"
+          : "Open";
+
     string statusKey = status.ToLower();
 
     @if (TempData["ErrorMessage"] != null)
@@ -341,10 +346,28 @@
                 <span class="dot"></span> @status
             </span>
 
-            <div class="text-end">
-                <p class="meta-label mb-1">CREATED ON</p>
-                <p class="meta-value">@Model.DateCreated.ToString("MMM dd, yyyy")</p>
+
+            <div class="d-flex align-items-center gap-4">
+
+                <div class="text-end">
+                    <p class="meta-label mb-1">CREATED BY</p>
+                    <p class="meta-value">
+                        <i class="bi bi-person-circle me-1"></i>
+                        @Model.CreatedBy
+                    </p>
+                </div>
+
+
+                <div class="text-end">
+                    <p class="meta-label mb-1">CREATED ON</p>
+                    <p class="meta-value">
+                        @Model.DateCreated.ToString("MMM dd, yyyy")
+                    </p>
+                </div>
+
+
             </div>
+
         </div>
 
         <div class="stats-row">
