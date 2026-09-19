@@ -24,8 +24,8 @@
         width: 52px;
         height: 52px;
         border-radius: 14px;
-        background: #EEF0FF;
-        color: #3860D6;
+        background: #CDECFF;
+        color: #007ec8;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -50,7 +50,7 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: #3860D6;
+        background: #007ec8;
         color: #fff;
         border: none;
         padding: 11px 20px;
@@ -61,7 +61,7 @@
     }
 
         .btn-create-group:hover {
-            background: #2E4EB8;
+            background: #0068a3;
             color: #fff;
         }
 
@@ -69,8 +69,8 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: #EEF0FF;
-        color: #3860D6;
+        background: #CDECFF;
+        color: #007ec8;
         font-size: 13px;
         font-weight: 600;
         padding: 8px 16px;
@@ -87,7 +87,7 @@
     .group-card {
         background: #fff;
         border: 1px solid #eef0f5;
-        border-top: 3px solid #3860D6;
+        border-top: 3px solid #007ec8;
         border-radius: 14px;
         padding: 18px 20px;
         height: 100%;
@@ -120,8 +120,8 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: #EEF0FF;
-        color: #3860D6;
+        background: #CDECFF;
+        color: #007ec8;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -235,7 +235,7 @@
         width: 34px;
         height: 34px;
         border-radius: 8px;
-        background: #3860D6;
+        background: #007ec8;
         color: #fff;
         font-weight: 600;
         font-size: 13px;
@@ -350,17 +350,17 @@
 
    
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
 
         @await Html.PartialAsync("_LeaderPickerModal")
 
         <script>
-                document.querySelectorAll(".archive-group-btn").forEach(function (button) {
+                document.querySelectorAll(".archive-group-btn").forEach(function(button) {
 
-                    button.addEventListener("click", function (event) {
+                    button.addEventListener("click", function(event) {
 
                         event.stopPropagation();
 
@@ -371,7 +371,7 @@
                         openModal(title, url, size);
                     });
 
-                });                    
+                });
 
         </script>
 }

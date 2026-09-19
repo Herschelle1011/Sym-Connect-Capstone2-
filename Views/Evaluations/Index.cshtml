@@ -14,7 +14,7 @@
 
     .eval-page .page-title {
         margin: 0;
-        font-size: 26px;
+        font-size: 30px;
         font-weight: 700;
     }
 
@@ -28,11 +28,11 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: #1877F2;
+        background: #007ec8;
         color: #fff;
         border: none;
         padding: 10px 18px;
-        border-radius: 999px;
+        border-radius: 10px;
         font-size: 14px;
         font-weight: 600;
         text-decoration: none;
@@ -40,11 +40,11 @@
     }
 
         .btn-create:hover {
-            background: #145DC2;
+            background: #00669f;
             color: #fff;
         }
 
-    /* ===== Toolbar (search + status pills + date range + sort) ===== */
+    /* ===== Toolbar (status pills + search + date range + sort) ===== */
     .eval-toolbar {
         display: flex;
         align-items: center;
@@ -52,36 +52,6 @@
         margin-top: 22px;
         flex-wrap: wrap;
     }
-
-    .eval-search {
-        position: relative;
-        flex: 1;
-        min-width: 220px;
-        max-width: 320px;
-    }
-
-        .eval-search i {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-            font-size: 13px;
-        }
-
-        .eval-search input {
-            width: 100%;
-            padding: 9px 14px 9px 36px;
-            border: 1px solid var(--border-color, #EEE);
-            border-radius: 999px;
-            font-size: 13px;
-        }
-
-            .eval-search input:focus {
-                outline: none;
-                border-color: #1877F2;
-                box-shadow: 0 0 0 3px rgba(24,119,242,0.12);
-            }
 
     .eval-filter-pills {
         display: flex;
@@ -96,7 +66,7 @@
         font-size: 13px;
         font-weight: 600;
         padding: 7px 16px;
-        border-radius: 999px;
+        border-radius: 10px;
         cursor: pointer;
     }
 
@@ -105,8 +75,8 @@
         }
 
         .filter-pill.active[data-status="all"] {
-            background: #1877F2;
-            border-color: #1877F2;
+            background: #007ec8;
+            border-color: #007ec8;
             color: #fff;
         }
 
@@ -127,6 +97,37 @@
             border-color: #BB1414;
             color: #BB1414;
         }
+
+    /* Search now sits just to the left of the date range, pushed there via auto margin */
+    .eval-search {
+        position: relative;
+        min-width: 220px;
+        max-width: 320px;
+        margin-left: auto;
+    }
+
+        .eval-search i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .eval-search input {
+            width: 100%;
+            padding: 9px 14px 9px 36px;
+            border: 1px solid var(--border-color, #EEE);
+            border-radius: 10px;
+            font-size: 13px;
+        }
+
+            .eval-search input:focus {
+                outline: none;
+                border-color: #1877F2;
+                box-shadow: 0 0 0 3px rgba(24,119,242,0.12);
+            }
 
     .eval-date-range {
         display: flex;
@@ -162,7 +163,6 @@
         }
 
     .eval-sort {
-        margin-left: auto;
         padding: 9px 14px;
         border: 1px solid var(--border-color, #EEE);
         border-radius: 10px;
@@ -233,7 +233,6 @@
         font-weight: 600;
     }
 
-    /* ===== Status label (top-right pill) ===== */
     .status-label {
         font-size: 13px;
         font-weight: 700;
@@ -257,7 +256,6 @@
         color: #BB1414;
     }
 
-    /* ===== Date/time info row (icon + text) — same pill treatment, smaller ===== */
     .eval-date-info {
         margin: 0;
         font-size: 12px;
@@ -295,7 +293,6 @@
         color: #BB1414;
     }
 
-    /* ===== Description ===== */
     .eval-description {
         margin: 0;
         font-size: 13px;
@@ -306,7 +303,6 @@
         overflow: hidden;
     }
 
-    /* ===== Divider + action icons ===== */
     .eval-card-footer {
         margin-top: auto;
         padding-top: 8px;
@@ -348,7 +344,6 @@
 
 <div class="member-page eval-page">
 
-    @* ---- PAGE HEADER ---- *@
     <div class="page-header">
         <div class="page-title-row">
             <div>
@@ -357,19 +352,13 @@
             </div>
         </div>
 
-        @* Redirects to Create.cshtml — NOT a modal *@
         <a href="@Url.Action("Create", "Evaluations")" class="btn-create">
-            <i class="bi bi-plus-circle"></i> Create
+            <i class=""></i> Create
         </a>
     </div>
 
-    @* ---- TOOLBAR: search + status filter + date range + sort ---- *@
+    @* ---- TOOLBAR: status filter (left) + search (next to dates) + date range + sort ---- *@
     <div class="eval-toolbar">
-        <div class="eval-search">
-            <i class="bi bi-search"></i>
-            <input type="text" id="evalSearchInput" placeholder="Search evaluations..." />
-        </div>
-
         <div class="eval-filter-pills" id="evalStatusFilter">
             <button type="button" class="filter-pill active" data-status="all">All</button>
             <button type="button" class="filter-pill" data-status="open">Open</button>
@@ -385,7 +374,6 @@
         </select>
     </div>
 
-    @* ---- CARDS GRID ---- *@
     @if (!Model.Any())
     {
         <p style="color: var(--text-muted); margin-top: 24px;">
@@ -397,7 +385,6 @@
         <div class="eval-grid" id="evalGrid">
             @foreach (var item in Model)
             {
-                @* Map status to a short css-safe key: "open" | "upcoming" | "closed" *@
                 var statusKey = item.Status.ToLower();
                 <div class="eval-card"
                      data-title="@item.EvaluationTitle"
@@ -406,20 +393,15 @@
                      data-closed-at="@item.ClosesAt.ToString("yyyy-MM-dd")"
                      onclick="handleCardClick(event, '@Url.Action("Details", "Evaluations", new { id = item.EvaluationId })')">
 
-                    @* ---- TITLE + STATUS LABEL ---- *@
                     <div class="eval-card-top">
                         <h3 class="eval-card-title">@item.EvaluationTitle</h3>
-
                         <span class="status-label status-@statusKey">@item.Status</span>
                     </div>
 
-                    @* ---- DATE / TIME INFO (color matches status) ---- *@
                     <p class="eval-date-info text-@statusKey">
                         <i class="bi bi-clock"></i>
                         @item.DateInfo
                     </p>
-
-                    @* ---- EVENT (the completed event this evaluation is for) ---- *@
 
                     @if (!string.IsNullOrWhiteSpace(item.EventTitle))
                     {
@@ -438,7 +420,6 @@
                     @* ---- DESCRIPTION ---- *@
                     <p class="eval-description">@item.Description</p>
 
-                    @* ---- FOOTER: divider + action icons ---- *@
                     <div class="eval-card-footer">
 
                         @* EDIT - only while not closed *@
@@ -480,6 +461,7 @@
                             <i class="bi bi-archive"></i>
                         </button>
 
+                      
                     </div>
 
                 </div>
@@ -498,19 +480,13 @@
     }
 
     <script>
-        // Whole-card click navigates to Details — BUT only if the click
-        // didn't originate from the footer (Edit link / Archive button).
-        // Without this check, clicking Edit or Archive still bubbles up
-        // to this handler and location.href wins the race, hijacking
-        // both the Edit navigation and the Archive modal.
         function handleCardClick(event, detailsUrl) {
             if (event.target.closest('.eval-card-footer')) {
-                return; // let Edit / Archive handle themselves
+                return;
             }
             location.href = detailsUrl;
         }
 
-        // ===== Toolbar: search + status filter + date range + sort =====
         const evalGrid = document.getElementById("evalGrid");
 
         if (evalGrid) {
@@ -521,8 +497,8 @@
             const noResultsMsg = document.getElementById("evalNoResults");
             const statusPills = document.querySelectorAll(".filter-pill");
 
-            statusPills.forEach(function (pill) {
-                pill.addEventListener("click", function () {
+            statusPills.forEach(function(pill) {
+                pill.addEventListener("click", function() {
                     statusPills.forEach(p => p.classList.remove("active"));
                     pill.classList.add("active");
                     applyEvalFilters();
@@ -537,13 +513,13 @@
             function applyEvalFilters() {
                 const term = searchInput.value.trim().toLowerCase();
                 const activeStatus = document.querySelector(".filter-pill.active").dataset.status;
-                const fromVal = dateFrom.value; // "yyyy-MM-dd" or ""
+                const fromVal = dateFrom.value;
                 const toVal = dateTo.value;
 
                 const cards = Array.from(evalGrid.querySelectorAll(".eval-card"));
                 let visibleCount = 0;
 
-                cards.forEach(function (card) {
+                cards.forEach(function(card) {
                     const title = card.dataset.title.toLowerCase();
                     const status = card.dataset.status;
                     const openAt = card.dataset.openAt;
@@ -566,7 +542,7 @@
             function applyEvalSort(cards) {
                 const sortBy = sortSelect.value;
 
-                const sorted = cards.slice().sort(function (a, b) {
+                const sorted = cards.slice().sort(function(a, b) {
                     if (sortBy === "newest") {
                         return b.dataset.openAt.localeCompare(a.dataset.openAt);
                     }
@@ -582,15 +558,13 @@
                     return 0;
                 });
 
-               
                 sorted.forEach(card => evalGrid.appendChild(card));
             }
         }
 
-             (function () {
+        (function() {
             const searchInput = document.getElementById('eventSearchInput');
 
-            // ── Filter rows by title as the user types ──
             function filterEventRows() {
                 if (!searchInput) return;
                 const term = searchInput.value.trim().toLowerCase();
@@ -603,16 +577,13 @@
 
             searchInput?.addEventListener('input', filterEventRows);
 
-            // ── Select an event: fill the underlying form, then close the modal ──
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', function(e) {
                 const row = e.target.closest('.event-candidate-row');
                 if (!row) return;
 
                 const eventId = row.dataset.eventId;
                 const eventTitle = row.dataset.eventTitle;
 
-                // TODO: adjust these two lines to match the actual field IDs
-                // on your Evaluation Create/Edit form.
                 const hiddenInput = document.getElementById('selectedEventId');
                 const displayField = document.getElementById('selectedEventTitle');
 
@@ -625,8 +596,7 @@
             });
         })();
 
-
-                document.addEventListener('submit', async function (e) {
+        document.addEventListener('submit', async function(e) {
 
             const form = e.target.closest('.evaluation-archive-form');
 
@@ -636,20 +606,15 @@
 
             e.preventDefault();
 
-            const submitBtn =
-                form.querySelector('.archive-evaluation-btn');
+            const submitBtn = form.querySelector('.archive-evaluation-btn');
 
             if (!submitBtn) {
                 console.error('Archive submit button was not found.');
                 return;
             }
 
-            const normalContent =
-                submitBtn.querySelector('.archive-normal');
-
-            const loadingContent =
-                submitBtn.querySelector('.archive-loading');
-
+            const normalContent = submitBtn.querySelector('.archive-normal');
+            const loadingContent = submitBtn.querySelector('.archive-loading');
 
             submitBtn.disabled = true;
 
@@ -661,9 +626,7 @@
                 loadingContent.classList.remove('d-none');
             }
 
-
             try {
-
                 const formData = new FormData(form);
 
                 const response = await fetch(form.action, {
@@ -673,22 +636,16 @@
 
                 const result = await response.json();
 
-
                 if (result.success) {
 
-                    const modalElement =
-                        document.getElementById('appModal');
+                    const modalElement = document.getElementById('appModal');
 
                     if (modalElement) {
-
-                        const modal =
-                            bootstrap.Modal.getInstance(modalElement);
-
+                        const modal = bootstrap.Modal.getInstance(modalElement);
                         if (modal) {
                             modal.hide();
                         }
                     }
-
 
                     showAlertDialog(
                         result.message || "Evaluation archived successfully.",
@@ -696,13 +653,11 @@
                         "Evaluation Archived"
                     );
 
-
-                    setTimeout(function () {
+                    setTimeout(function() {
                         window.location.reload();
                     }, 1200);
                 }
                 else {
-
                     showAlertDialog(
                         result.message || "Unable to archive evaluation.",
                         "error",

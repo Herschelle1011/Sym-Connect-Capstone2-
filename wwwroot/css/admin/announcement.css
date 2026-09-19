@@ -19,7 +19,7 @@
 .page-header h2 {
     margin: 4px 0 4px;
     font-weight: 700;
-    color: #111827;
+    color: #1E293B;
 }
 
 .page-subtitle {
@@ -30,13 +30,16 @@
 
 .announcement-toolbar {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 16px;
     align-items: center;
+    justify-content: flex-end;
 }
 
 .search-box {
-    flex: 1;
+    order: 3;
+    flex: 0 1 320px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -56,6 +59,7 @@
     }
 
 .filter-select {
+    order: 2;
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -183,23 +187,31 @@
 
 /* Per-audience-type variants — matched to the reference screenshot */
 .pill-audience-everyone {
-    background: rgba(129,90,238,.12);
-    color: #7c3aed;
+    background: rgba(37,99,235,.10);
+    color: #007ec8;
+    font-weight: bold;
+    border-radius: 10px;
 }
 
 .pill-audience-leaders {
-    background: rgba(217,119,6,.12);
-    color: #b45309;
+    background: rgba(37,99,235,.10);
+    color: #007ec8;
+    font-weight: bold;
+    border-radius: 10px;
 }
 
 .pill-audience-members {
-    background: rgba(37,99,235,.12);
-    color: #2563eb;
+    background: rgba(37,99,235,.10);
+    color: #007ec8;
+    font-weight: bold;
+    border-radius: 10px;
 }
 
 .pill-audience-group {
-    background: rgba(147,51,234,.12);
-    color: #9333ea;
+    background: rgba(37,99,235,.10);
+    color: #007ec8;
+    font-weight: bold;
+    border-radius: 10px;
 }
 
 .pill-live {
@@ -219,15 +231,17 @@
 
 .pill-posted-by {
     background: rgba(37,99,235,.10);
-    color: #2563eb;
+    color: #007ec8;
+    font-weight:bold;
+    border-radius: 10px;
 }
 
 .badge-pinned {
-    background: #2563eb;
+    background: #007ec8;
     color: #ffffff;
     margin-left: 0;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: 10px;
     font-size: .74rem;
     font-weight: 700;
     letter-spacing: .03em;
@@ -434,11 +448,21 @@
 
 .modal-footer {
     display: flex;
-    justify-content: flex-end;
     gap: 10px;
-    padding: 16px 24px;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 16px 26px;
     border-top: 1px solid #e5e7eb;
 }
+    .modal-footer .btn {
+        flex: 0 0 auto;
+        padding: 8px 18px; /* smaller padding, more horizontal for readability */
+        font-size: 13px;
+        font-weight: 500;
+        text-align: center;
+        white-space: nowrap;
+        min-width: 90px;
+    }
 
 /* ============================
    FORM FIELDS (create/edit form — unchanged)
@@ -659,17 +683,19 @@
 
 .ann-tabs {
     display: inline-flex;
-    background: #eef1f6;
-    border-radius: 999px;
+    background: #ffffff;
+    border-radius: 10px;
     padding: 4px;
     gap: 2px;
+    order: 1;
+    margin-right: auto;
 }
 
 .ann-tab {
     border: none;
     background: transparent;
     padding: 8px 20px;
-    border-radius: 999px;
+    border-radius: 10px;
     font-size: .85rem;
     font-weight: 600;
     color: #4b5563;
@@ -678,8 +704,9 @@
 }
 
     .ann-tab.active {
-        background: #2563eb;
+        background: #007ec8;
         color: #ffffff;
+        
     }
 
 .ann-card-list {
@@ -885,4 +912,17 @@
     font-weight: 700;
 }
 
+.btncreateann{
+    background-color:#007ec8;
+    color: white;
+    font-weight:400;
+}
+.btnannsave {
+    background-color: #007ec8;
+    color: white;
+}
+.btnanncreate {
+    background-color: #007ec8;
+    color: white;
+}
 

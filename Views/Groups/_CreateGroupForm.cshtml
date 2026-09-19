@@ -70,14 +70,14 @@
     }
 
     #createGroupForm .btn-primary {
-        background-color: #4a6cf7;
+        background-color: #007ec8;
         border: none;
         border-radius: 10px;
         font-weight: 600;
     }
 
         #createGroupForm .btn-primary:hover {
-            background-color: #3a58d9;
+            background-color: #0068a8;
         }
 
     #createGroupForm .btn-light {
@@ -100,7 +100,7 @@
         <div class="form-floating">
             <input asp-for="GroupName"
                    class="form-control"
-                   placeholder="Group Name" />
+                   placeholder=" " />
             <label asp-for="GroupName">Group name</label>
         </div>
         <span asp-validation-for="GroupName" class="text-danger small"></span>
@@ -110,7 +110,7 @@
         <div class="form-floating">
             <textarea asp-for="Description"
                       class="form-control"
-                      placeholder="Description"
+                      placeholder=" "
                       style="height: 100px;"></textarea>
             <label asp-for="Description">Description (optional)</label>
         </div>
