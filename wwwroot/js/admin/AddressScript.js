@@ -45,6 +45,69 @@ document.addEventListener(
     }
 );
 
+document.addEventListener("submit", function (e) {
+
+    const form = e.target;
+
+    if (form.id !== "editPersonalInfoForm") {
+        return;
+    }
+
+    const province =
+        form.querySelector("#provinceSelect");
+
+    const city =
+        form.querySelector("#citySelect");
+
+    const barangay =
+        form.querySelector("#barangaySelect");
+
+
+    if (!province || !province.value) {
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        showAlertDialog(
+            "Please select a province.",
+            "warning",
+            "Address Required"
+        );
+
+        return;
+    }
+
+
+    if (!city || !city.value) {
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        showAlertDialog(
+            "Please select a city or municipality.",
+            "warning",
+            "Address Required"
+        );
+
+        return;
+    }
+
+
+    if (!barangay || !barangay.value) {
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        showAlertDialog(
+            "Please select a barangay.",
+            "warning",
+            "Address Required"
+        );
+
+        return;
+    }
+}, true);
+
 
 
 function handleBarangayChange(
@@ -518,97 +581,108 @@ async function loadCitiesForEdit(
 // Also restores saved barangay
 // =========================
 
+
+function normalizeAddressName(name) {
+    return (name || "")
+        .trim()
+        .toLowerCase()
+        .replace(/^city of\s+/i, "")
+        .replace(/\s+city$/i, "")
+        .replace(/\s+/g, " ");
+}
+
+
+
+
 async function loadBarangaysForEdit(
     cityCode,
     savedBarangay
 ) {
 
     const barangaySelect =
-        document.getElementById(
-            'barangaySelect'
-        );
+        document.getElementById("barangaySelect");
 
+    const barangayName =
+        document.getElementById("barangayName");
 
     if (!barangaySelect) {
         return;
     }
-
 
     barangaySelect.innerHTML =
         '<option value="">Loading barangays...</option>';
 
     barangaySelect.disabled = true;
 
-
     if (!cityCode) {
-
         barangaySelect.innerHTML =
             '<option value="">-- Select Barangay --</option>';
 
         return;
     }
 
-
     try {
 
-        const response =
-            await fetch(
-                `https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`
-            );
-
+        const response = await fetch(
+            `https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`
+        );
 
         if (!response.ok) {
-
             throw new Error(
-                'Unable to load barangays.'
+                "Unable to load barangays."
             );
         }
-
 
         const barangays =
             await response.json();
 
+        console.log(
+            "BARANGAYS FROM PSGC:",
+            barangays
+        );
+
+        console.log(
+            "LOOKING FOR BARANGAY:",
+            savedBarangay
+        );
 
         barangaySelect.innerHTML =
             '<option value="">-- Select Barangay --</option>';
 
-
         barangays
-            .sort(
-                (a, b) =>
-                    a.name.localeCompare(b.name)
+            .sort((a, b) =>
+                a.name.localeCompare(b.name)
             )
             .forEach(barangay => {
 
                 const option =
-                    document.createElement('option');
+                    document.createElement("option");
 
-                // We want the NAME posted,
-                // not the PSGC code.
-                option.value =
-                    barangay.name;
+                // PSGC code is used by the select
+                option.value = barangay.code;
 
-                option.textContent =
-                    barangay.name;
+                // User sees the barangay name
+                option.textContent = barangay.name;
 
-                barangaySelect.appendChild(
-                    option
-                );
+                barangaySelect.appendChild(option);
             });
-
 
         barangaySelect.disabled = false;
 
+        console.log("presetBarangay (normalized):", normalizeAddressName(presetBarangay)(presetBarangay));
+        console.log("all options (normalized):", Array.from(barangaySelect.options).map(o => normalizeAddressName(o.textContent)));
 
+
+
+        // Nothing to restore
         if (!savedBarangay) {
             return;
         }
 
 
+        // Find the saved barangay by NAME
         const barangayOption =
-            Array.from(
-                barangaySelect.options
-            )
+            Array.from(barangaySelect.options)
                 .find(option =>
                     option.textContent
                         .trim()
@@ -620,42 +694,35 @@ async function loadBarangaysForEdit(
                 );
 
 
-        if (barangayOption) {
-
-            barangaySelect.value =
-                barangayOption.value;
-
-
-            const barangayName =
-                document.getElementById(
-                    "barangayName"
-                );
-
-
-            if (barangayName) {
-
-                barangayName.value =
-                    barangayOption
-                        .textContent
-                        .trim();
-            }
-        }
-        else {
+        if (!barangayOption) {
 
             console.warn(
-                'Saved barangay not found:',
+                "Saved barangay not found:",
                 savedBarangay
             );
+
+            return;
+        }
+
+
+        // Select the matching option
+        barangaySelect.value =
+            barangayOption.value;
+
+
+        // Store NAME for ASP.NET
+        if (barangayName) {
+            barangayName.value =
+                barangayOption.textContent.trim();
         }
 
     }
     catch (error) {
 
         console.error(
-            'Barangay error:',
+            "Barangay error:",
             error
         );
-
 
         barangaySelect.innerHTML =
             '<option value="">Unable to load barangays</option>';
@@ -954,3 +1021,6 @@ async function handleCityChange(
         barangaySelect.disabled = true;
     }
 }
+
+
+

@@ -17,5 +17,8 @@
         public List<string> PhotoUrls { get; set; } = new();
 
         public DateTime? ArchiveDate { get; set; }
+
+        public List<string> FacilityPhotos { get; set; } = new();
+
     }
 }

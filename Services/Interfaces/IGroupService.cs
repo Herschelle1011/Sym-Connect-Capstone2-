@@ -53,6 +53,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
 
         Task<GroupDetailsViewModel?> GetGroupDetailsForMemberAsync(int memberId);
+        Task<OperationalResult> HardDeleteGroupAsync(int id);
+
 
 
     }

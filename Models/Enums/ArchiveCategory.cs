@@ -8,6 +8,7 @@
           Media,
           PartyList,
           Facility,
-          Election
+          Election,
+          Announcement
     }
 }

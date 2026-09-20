@@ -110,6 +110,11 @@ builder.Services.AddScoped<
     IDashboardService,
     DashboardService>();
 
+
+builder.Services.AddScoped<
+    IEmailVerificationService,
+    EmailVerificationService>();
+
 builder.Services.AddScoped<
     IActivityHistoryService,
     ActivityHistoryService>();

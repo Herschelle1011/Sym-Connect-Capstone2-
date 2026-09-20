@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Sym_Connect__Capstone2_.Areas.Member.ViewModels.Configuration;
+using Sym_Connect__Capstone2_.Data;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using System.Net;
@@ -131,5 +135,10 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             await SendEmailAsync(email, subject, body); // reuses your working helper
         }
+
+
+       
     }
+
 }
+

@@ -692,6 +692,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<OperationalResult> ArchiveMemberAsync(int memberId)
         {
             var member = await _context.Members
+                .Include(m => m.GroupDetails)
                 .FirstOrDefaultAsync(m => m.MemberId == memberId);
 
             if (member == null)
@@ -711,26 +712,67 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Message = "Only approved members can be archived."
                 };
             }
-            var groupDetail = member.GroupDetails.FirstOrDefault();
 
-
-            if (groupDetail != null)
+            if (member.IsArchive ==  true)
             {
-                 _context.GroupDetails.Remove(groupDetail);
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "This member is already archived."
+                };
             }
 
+            // Remove member from their group
+            var groupDetails = member.GroupDetails.ToList();
+
+            if (groupDetails.Any())
+            {
+                _context.GroupDetails.RemoveRange(groupDetails);
+            }
+
+            // If this member is a group leader,
+            // remove them as the group's leader.
+            var leaderGroups = await _context.Groups
+                .Where(g => g.LeaderId == memberId)
+                .ToListAsync();
+
+            foreach (var group in leaderGroups)
+            {
+                group.LeaderId = null;
+            }
+
+            // Archive member
             member.IsArchive = true;
             member.ArchiveDate = DateTime.UtcNow;
             member.Status = "Inactive";
-            member.EarnedPoints = 0;
             member.PreferredGroupId = null;
+
+            // Disable their Identity account
+            if (!string.IsNullOrEmpty(member.UserId))
+            {
+                var user = await _userManager.FindByIdAsync(member.UserId);
+
+                if (user != null)
+                {
+                    await _userManager.SetLockoutEnabledAsync(user, true);
+
+                    await _userManager.SetLockoutEndDateAsync(
+                        user,
+                        DateTimeOffset.MaxValue
+                    );
+
+                    // Updates the security stamp.
+                    // Useful for invalidating existing authentication.
+                    await _userManager.UpdateSecurityStampAsync(user);
+                }
+            }
 
             await _context.SaveChangesAsync();
 
             return new OperationalResult
             {
                 Success = true,
-                Message = "Member archived successfully."
+                Message = "Member archived successfully. Their account has been disabled."
             };
         }
 
@@ -754,7 +796,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     MemberSince = m.DateRegistered,
                     
                     Status = m.Status,
-
+                    PreviousPoints = m.EarnedPoints,
                     ArchiveDate = m.ArchiveDate,
 
                     GroupName = m.GroupDetails

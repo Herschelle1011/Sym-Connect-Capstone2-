@@ -570,10 +570,6 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         }
 
 
-
-
-
-
         [HttpGet]
         public async Task<IActionResult> ViewAllFacilitiesModal(int id)
         {

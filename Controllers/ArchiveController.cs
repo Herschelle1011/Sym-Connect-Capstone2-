@@ -14,11 +14,13 @@ public class ArchiveController : Controller
     private readonly IPartyListService _partyListService;
     private readonly IElectionService _electionService;
     private readonly IMediaService _mediaService;
+    private readonly IAnnouncementService _announcementService;
+
 
 
 
     public ArchiveController(IArchiveService archiveService, IFacilityService facilityService, 
-                                        IGroupService groupService, IMemberService memberService, IPartyListService partyListService, IElectionService electionService, IMediaService mediaService)
+                                        IGroupService groupService, IMemberService memberService, IPartyListService partyListService, IElectionService electionService, IMediaService mediaService, IAnnouncementService  announcementService)
     {
         _archiveService = archiveService;
         _facilityService = facilityService;
@@ -27,6 +29,7 @@ public class ArchiveController : Controller
         _partyListService = partyListService;
         _electionService = electionService;
         _mediaService = mediaService;
+        _announcementService = announcementService;
 
     }
 
@@ -126,6 +129,20 @@ public class ArchiveController : Controller
 
                     return PartialView(
                         "_ArchivedMediaDetails",
+                        media);
+                }
+
+            case ArchiveCategory.Announcement:
+                {
+                    var media =
+                        await _announcementService
+                            .GetArchivedAnnouncementDetailsAsync(id);
+
+                    if (media == null)
+                        return NotFound();
+
+                    return PartialView(
+                        "_ArchivedAnnouncementDetails",
                         media);
                 }
 

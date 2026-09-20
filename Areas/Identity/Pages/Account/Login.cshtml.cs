@@ -169,6 +169,19 @@ namespace Sym_Connect__Capstone2_.Areas.Identity.Pages.Account
                     return Page();
                 }
 
+
+                // ARCHIVED MEMBER
+                // Stop here BEFORE PasswordSignInAsync().
+                if (member.IsArchive == true)
+                {
+                    ModelState.AddModelError(
+                        string.Empty,
+                        "Your account has been archived and is currently disabled. Please contact the administrator for account restoration."
+                    );
+
+                    return Page();
+                }
+
                 // STEP 3:
                 // Do not allow Pending members to login.
                 if (member.ApplicationStatus ==

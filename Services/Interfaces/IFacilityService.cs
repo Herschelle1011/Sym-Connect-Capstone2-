@@ -22,5 +22,9 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<ArchivedFacilityDetailsViewModel?> GetArchivedDetailsAsync(int id);
 
+        Task<OperationalResult> HardDeleteFacilityAsync(int id);
+
+
+
     }
 }

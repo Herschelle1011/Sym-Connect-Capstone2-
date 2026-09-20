@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Sym_Connect__Capstone2_.Data;
-using Sym_Connect__Capstone2_.Services.Interfaces;
-using Sym_Connect__Capstone2_.ViewModels.Archive;
-using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
+using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels;
+using Sym_Connect__Capstone2_.ViewModels.Archive;
 namespace Sym_Connect__Capstone2_.Services.Implementation
 {
     public class ArchiveService : IArchiveService
@@ -11,17 +13,27 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         private readonly AppDbContext _context;
         private readonly IPartyListService _partyListService;
         private readonly IElectionService _electionService;
+        private readonly UserManager<User> _userManager;
+        private readonly IAnnouncementService _announcementService;
+        private readonly IFacilityService _facilityService;
+        private readonly IGroupService _groupService;
 
-        public ArchiveService(AppDbContext context, IPartyListService partyListService, IElectionService electionService)
+
+        public ArchiveService(AppDbContext context, IPartyListService partyListService, IElectionService electionService, UserManager<User> userManager, IAnnouncementService announcementService, IFacilityService facilityService)
         {
             _context = context;
             _partyListService = partyListService;
             _electionService = electionService;
+            _userManager = userManager;
+            _announcementService = announcementService;
+            _facilityService = facilityService;
+
         }
 
         public async Task<List<ArchiveItemViewModel>> GetAllArchivedAsync()
         {
             var items = new List<ArchiveItemViewModel>();
+            var now = DateTime.Now;
 
             var archivedGroups = await _context.Groups
                 .AsNoTracking()
@@ -31,7 +43,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Id = g.GroupId,
                     ItemName = g.GroupName,
                     Category = ArchiveCategory.Group,
-                    ArchiveDate = g.ArchivedDate // corrected from my earlier guess
+                    ArchiveDate = g.ArchivedDate,
+                    CanRestore = true 
                 }).ToListAsync();
             items.AddRange(archivedGroups);
 
@@ -43,7 +56,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Id = m.MemberId,
                     ItemName = m.FirstName + " " + m.LastName, 
                     Category = ArchiveCategory.Member,
-                    ArchiveDate = m.ArchiveDate
+
+                    ArchiveDate = m.ArchiveDate,
+                    CanRestore = true
                 }).ToListAsync();
             items.AddRange(archivedMembers);
 
@@ -55,7 +70,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Id = e.EvaluationId,
                     ItemName = e.EvaluationTitle,
                     Category = ArchiveCategory.Evaluation,
-                    ArchiveDate = e.ArchivedDate
+                    ArchiveDate = e.ArchivedDate,
+                    CanRestore = e.OpenAt > now
                 }).ToListAsync();
             items.AddRange(archivedEvaluations);
 
@@ -67,7 +83,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 Id = f.FacilityId,
                 ItemName = f.FacilityName,
                 Category = ArchiveCategory.Facility,
-                ArchiveDate = f.ArchiveDate 
+                ArchiveDate = f.ArchiveDate,
+                CanRestore = true
             }).ToListAsync();
             items.AddRange(archivedFacilities);
 
@@ -80,7 +97,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Id = m.MediaFolderId,
                     ItemName = m.FolderName,
                     Category = ArchiveCategory.Media,
-                    ArchiveDate = m.ArchiveDate
+                    ArchiveDate = m.ArchiveDate,
+                    CanRestore = true
                 })
                 .ToListAsync();
 
@@ -95,7 +113,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 Id = p.PartyListId,
                 ItemName = p.PartyName,
                 Category = ArchiveCategory.PartyList,
-                ArchiveDate = p.ArchivedDate
+                ArchiveDate = p.ArchivedDate,
+                CanRestore = true
             })
             .ToListAsync();
             items.AddRange(archivedPartyLists);
@@ -108,9 +127,27 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 Id = e.ElectionId,
                 ItemName = e.ElectionName,
                 Category = ArchiveCategory.Election,
-                ArchiveDate = e.ArchivedDate
+                ArchiveDate = e.ArchivedDate,
+                CanRestore = e.StartDate > now
             }).ToListAsync();
             items.AddRange(archivedElections);
+
+            var archivedAnnouncements = await _context.Announcements
+            .AsNoTracking()
+            .Where(a => a.IsArchived == true)
+            .Select(a => new ArchiveItemViewModel
+            {
+                Id = a.AnnouncementId,
+                ItemName = a.Title,
+                Category = ArchiveCategory.Announcement,
+                ArchiveDate = a.ArchiveDate,
+                CanRestore = a.ExpirationDate == null ||
+                     a.ExpirationDate > now
+            })
+            .ToListAsync();
+
+            items.AddRange(archivedAnnouncements);
+
 
             return items.OrderByDescending(i => i.ArchiveDate).ToList();
 
@@ -129,12 +166,49 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     break;
 
                 case ArchiveCategory.Member:
-                    var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == id);
-                    if (member == null) return new OperationalResult { Success = false, Message = "Member not found." };
-                    member.IsArchive = false;
-                    member.ArchiveDate = null;
-                    member.EarnedPoints = 0;
-                    break;
+                    {
+                        var member = await _context.Members
+                            .FirstOrDefaultAsync(m => m.MemberId == id);
+
+                        if (member == null)
+                        {
+                            return new OperationalResult
+                            {
+                                Success = false,
+                                Message = "Member not found."
+                            };
+                        }
+
+                        if (member.IsArchive != true)
+                        {
+                            return new OperationalResult
+                            {
+                                Success = false,
+                                Message = "This member is not archived."
+                            };
+                        }
+
+                        // Restore member
+                        member.IsArchive = false;
+                        member.ArchiveDate = null;
+                        member.Status = "Active";
+                        member.EarnedPoints = 0;
+
+                        // Restore login access
+                        if (!string.IsNullOrEmpty(member.UserId))
+                        {
+                            var user = await _userManager.FindByIdAsync(member.UserId);
+
+                            if (user != null)
+                            {
+                                await _userManager.SetLockoutEndDateAsync(user, null);
+
+                                await _userManager.UpdateSecurityStampAsync(user);
+                            }
+                        }
+
+                        break;
+                    }
 
                 case ArchiveCategory.Evaluation:
                     var evaluation = await _context.Evaluations.FirstOrDefaultAsync(e => e.EvaluationId == id);
@@ -142,6 +216,29 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     evaluation.IsArchived = false;
                     evaluation.ArchivedDate = null;
                     break;
+
+                case ArchiveCategory.Announcement:
+                    {
+                        var announcement = await _context.Announcements
+                            .FirstOrDefaultAsync(a => a.AnnouncementId == id);
+
+                        if (announcement == null)
+                            return new OperationalResult { Success = false, Message = "Evaluation not found." };
+
+                        var now = DateTime.Now;
+
+                        if (announcement.ExpirationDate.HasValue &&
+                            announcement.ExpirationDate.Value <= now)
+                        {
+                            return new OperationalResult { Success = false, Message = "Evaluation not found." };
+                        }
+
+                        announcement.IsArchived = false;
+                        announcement.ArchiveDate = null;
+
+                        break;
+                    }
+
 
                 case ArchiveCategory.Media:
 
@@ -195,52 +292,16 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 switch (category)
                 {
+
                     case ArchiveCategory.Group:
-                        var group = await _context.Groups.FirstOrDefaultAsync(g => g.GroupId == id);
-                        if (group == null) return new OperationalResult { Success = false, Message = "Group not found." };
-                        _context.Groups.Remove(group);
-                        break;
+                        return await _groupService.HardDeleteGroupAsync(id);
 
                     case ArchiveCategory.Member:
-                        var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == id);
-                        if (member == null) return new OperationalResult { Success = false, Message = "Member not found." };
-
-
-                        bool isGroupLeader = await _context.Groups
-                            .AnyAsync(g => g.LeaderId == id);
-                        if (isGroupLeader)
+                        return new OperationalResult
                         {
-                            return new OperationalResult
-                            {
-                                Success = false,
-                                Message = "This member is currently leading a group. Reassign leadership before deleting."
-                            };
-                        }
-
-                        bool hasLinkedUserAccount = await _context.Users
-                            .AnyAsync(u => u.MemberId == id);
-                        if (hasLinkedUserAccount)
-                        {
-                            return new OperationalResult
-                            {
-                                Success = false,
-                                Message = "This member has a linked login account. Unlink or remove the account before deleting."
-                            };
-                        }
-
-                        bool stillOnAGroupRoster = await _context.GroupDetails
-                            .AnyAsync(gd => gd.MemberId == id);
-                        if (stillOnAGroupRoster)
-                        {
-                            return new OperationalResult
-                            {
-                                Success = false,
-                                Message = "This member is still listed on a group's roster. Remove them from the group first."
-                            };
-                        }
-
-                        _context.Members.Remove(member);
-                        break;
+                            Success = false,
+                            Message = "Members cannot be permanently deleted. You can restore archived members instead."
+                        };
 
                     case ArchiveCategory.Evaluation:
                         var evaluation = await _context.Evaluations.FirstOrDefaultAsync(e => e.EvaluationId == id);
@@ -254,6 +315,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                     case ArchiveCategory.Election:
                         return await _electionService.HardDeleteElectionAsync(id);
+
+
+                    case ArchiveCategory.Announcement:
+                        return await _announcementService.HardDeleteAnnouncement(id);
+
+                    case ArchiveCategory.Facility:
+                        return await _facilityService.HardDeleteFacilityAsync(id);
+
 
                     case ArchiveCategory.Media:
                         return new OperationalResult

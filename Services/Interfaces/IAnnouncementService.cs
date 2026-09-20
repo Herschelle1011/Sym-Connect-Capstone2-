@@ -34,5 +34,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
         //get
         Task<ArchiveAnnouncementViewModel?> GetArchivePreviewAsync(int announcementId);
 
+        Task<ArchivedAnnouncementDetailsViewModel?> GetArchivedAnnouncementDetailsAsync(int id);
+
+        Task<OperationalResult> HardDeleteAnnouncement(int id);
     }
 }

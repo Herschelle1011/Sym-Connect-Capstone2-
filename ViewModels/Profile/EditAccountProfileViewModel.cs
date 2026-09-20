@@ -33,5 +33,10 @@ namespace Sym_Connect__Capstone2_.ViewModels.Profile
         )]
         [Display(Name = "Confirm Password")]
         public string? ConfirmPassword { get; set; }
+
+        public string? EmailVerificationCode { get; set; }
+
+        public string? OriginalEmail { get; set; }
+
     }
 }

@@ -483,14 +483,21 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         "Time-In scanner must close before the Time-Out scanner opens.");
                 }
 
-                // TIME-IN CLOSE must be after TIME-IN OPEN
+                bool crossesMidnight =
+                     vm.TimeInScannerOpenTime.HasValue &&
+                     vm.TimeInScannerClosesTime.HasValue &&
+                     vm.TimeInScannerOpenTime.Value > vm.StartTime!.Value; 
+
                 if (vm.TimeInScannerOpenTime.HasValue &&
                     vm.TimeInScannerClosesTime.HasValue &&
+                    !crossesMidnight &&
                     vm.TimeInScannerOpenTime.Value >= vm.TimeInScannerClosesTime.Value)
                 {
                     return EventResult.Fail(
                         "Time-In scanner closing time must be after its opening time.");
                 }
+
+
                 // TIME-OUT OPEN must be exactly equal to EVENT END TIME
                 if (vm.TimeOutScannerOpenTime.HasValue &&
                     vm.EndTime.HasValue &&
@@ -743,9 +750,14 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         "Time-In scanner must close before the Time-Out scanner opens.");
                 }
 
-                // TIME-IN CLOSE must be after TIME-IN OPEN
+                bool crossesMidnight =
+          vm.TimeInScannerOpenTime.HasValue &&
+          vm.TimeInScannerClosesTime.HasValue &&
+          vm.TimeInScannerOpenTime.Value > vm.StartTime!.Value; // open landed on the previous day
+
                 if (vm.TimeInScannerOpenTime.HasValue &&
                     vm.TimeInScannerClosesTime.HasValue &&
+                    !crossesMidnight &&
                     vm.TimeInScannerOpenTime.Value >= vm.TimeInScannerClosesTime.Value)
                 {
                     return EventResult.Fail(

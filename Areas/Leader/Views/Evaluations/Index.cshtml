@@ -356,17 +356,6 @@
             <button type="button" class="filter-pill" data-status="closed">Closed</button>
         </div>
 
-        <div class="eval-date-range">
-            <div class="date-field">
-                <i class="bi bi-calendar3"></i>
-                <input type="date" id="evalDateFrom" />
-            </div>
-            <span class="date-sep">–</span>
-            <div class="date-field">
-                <i class="bi bi-calendar3"></i>
-                <input type="date" id="evalDateTo" />
-            </div>
-        </div>
 
         <select id="evalSortSelect" class="eval-sort">
             <option value="newest">Newest first</option>
@@ -424,11 +413,37 @@
 
                     @* ---- FOOTER: divider + action icons ---- *@
                     <div class="eval-card-footer">
-                        <a asp-action="Edit"
-                           asp-route-id="@item.EvaluationId"
-                           class="btn-icon btn-link text-primary">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
+
+                        @* EDIT - only while not closed *@
+                        @if (item.Status != "Closed")
+                        {
+                            <a asp-action="Edit"
+                               asp-route-id="@item.EvaluationId"
+                               class="btn-icon btn-link text-primary"
+                               title="Edit Evaluation">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        }
+
+                        @if (item.Status != "Closed")
+                        {
+                            <button type="button"
+                                    class="btn-icon btn-link text-danger open-modal"
+                                    data-url="@Url.Action(
+                                                    "GetCloseEvaluation",
+                                                    "Evaluations",
+                                                    new
+                                                    {
+                                                        area = "Leader",
+                                                        id = item.EvaluationId
+                                                    })"
+                                    data-title="Close Evaluation"
+                                    title="Close Evaluation">
+
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        }
+
 
                         <button type="button"
                                 class="btn-icon btn-link text-warning open-modal"
