@@ -14,7 +14,11 @@ body {
     background-position: center center;
     background-repeat: no-repeat;
     background-color: #0785c5;
-    font-family: 'Segoe UI', sans-serif;
+
+    
+    font-family: "Poppins", Arial, sans-serif !important;
+ 
+
     display: flex;
     align-items: center;
     justify-content: center;

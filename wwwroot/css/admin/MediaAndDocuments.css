@@ -1,4 +1,8 @@
-﻿.file-icon-pdf {
+﻿body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
+
+.file-icon-pdf {
     color: #e5484d;
 }
 

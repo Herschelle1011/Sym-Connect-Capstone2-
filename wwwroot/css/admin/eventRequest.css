@@ -2,7 +2,9 @@
    Event Request page — matches the provided design mockup
    Place at: wwwroot/css/eventRequest.css
    ============================================================ */
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 .event-request-page {
     background-color: #f4f6fb;
     border-radius: 12px;

@@ -302,6 +302,62 @@
     .eval-details-page .answer-preview .form-check {
         margin-bottom: 4px;
     }
+    /* ===== Evaluation tabs ===== */
+    .nav-tabs.eval-tabs {
+        border-bottom: 1px solid #e5e7eb;
+        gap: 24px;
+    }
+
+    .eval-tab-item {
+        list-style: none;
+    }
+
+    .nav-tabs.eval-tabs .nav-link {
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 500;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        padding: 10px 4px;
+        margin-bottom: -1px;
+        transition: color 0.15s ease, border-color 0.15s ease;
+    }
+
+        /* Hover: only the text color changes, no box */
+        .nav-tabs.eval-tabs .nav-link:hover {
+            color: #007ec8;
+            background: transparent;
+            border-bottom-color: transparent;
+        }
+
+        /* Active tab: blue text with a blue underline */
+        .nav-tabs.eval-tabs .nav-link.active,
+        .nav-tabs.eval-tabs .nav-link.active:hover {
+            color: #007ec8;
+            background: transparent;
+            border-bottom: 2px solid #007ec8;
+        }
+
+        /* Remove the browser focus box, keep a soft keyboard focus ring */
+        .nav-tabs.eval-tabs .nav-link:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .nav-tabs.eval-tabs .nav-link:focus-visible {
+            outline: 2px solid rgba(0, 126, 200, 0.35);
+            outline-offset: 2px;
+            border-radius: 6px;
+        }
+
+        /* Summary tab icon follows the tab's text color */
+        .nav-tabs.eval-tabs .nav-link i {
+            margin-right: 4px;
+            color: inherit;
+        }
+
 </style>
 
 <div class="container mt-4 eval-details-page">
@@ -420,18 +476,18 @@
 
     @* ---- QUESTIONS (read-only list + Edit link only — no Delete/Add: not in backend) ---- *@
     @* ---- TABS: Questions / Responses ---- *@
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
+    <ul class="nav nav-tabs eval-tabs mb-3">
+        <li class="eval-tab-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#questionsTab">
                 Questions (@(Model.Questions?.Count ?? 0))
             </button>
         </li>
-        <li class="nav-item">
+        <li class="eval-tab-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#responsesTab">
                 Responses (@(Model.Submissions?.Count ?? 0))
             </button>
         </li>
-        <li class="nav-item">
+        <li class="eval-tab-item">
             <button class="nav-link" id="summaryTabBtn" data-bs-toggle="tab" data-bs-target="#summaryTab">
                 <i class="bi bi-bar-chart-fill"></i> Summary
             </button>

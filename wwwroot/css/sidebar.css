@@ -24,7 +24,9 @@
     --transition: 0.28s cubic-bezier(.4, 0, .2, 1);
     --topbar-accent: #007ECA;
 }
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 * {
     box-sizing: border-box;
 }
@@ -33,7 +35,7 @@ body {
     margin: 0;
     padding: 0;
     background: #f5f7fb;
-    font-family: 'Segoe UI', sans-serif;
+    
     min-height: 100vh;
     min-height: 100dvh;
 }

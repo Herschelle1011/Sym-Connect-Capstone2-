@@ -10,7 +10,9 @@
     --btn-radius: 10px;
 }
 
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 .my-events-page {
     padding: 24px;
     background: #f5f7fb;

@@ -1,4 +1,8 @@
 ﻿/* Sidebar info cards */
+
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 .attendance-sidebar .info-card {
     background: #f8f9fa;
     border: 1px solid #eef0f2;

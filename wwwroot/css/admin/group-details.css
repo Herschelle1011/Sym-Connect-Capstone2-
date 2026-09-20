@@ -12,7 +12,9 @@
     --text-muted: #6b7280;
     --radius: 10px;
 }
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 * {
     box-sizing: border-box;
 }

@@ -1338,7 +1338,9 @@
 /* ============================
    ATTENDANCE TABLE — pagination
    ============================ */
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 .attendance-pagination {
     display: flex;
     align-items: center;

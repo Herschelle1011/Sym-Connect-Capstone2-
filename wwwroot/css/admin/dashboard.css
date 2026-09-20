@@ -4,6 +4,9 @@
    (Add a matching @section Styles / <link> in the layout,
    the same way eventRequest.css is included on the Events page.)
    ============================================================ */
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 
 /* ---- Shared small icon badge used in card headers ---- */
 .card-icon-title {

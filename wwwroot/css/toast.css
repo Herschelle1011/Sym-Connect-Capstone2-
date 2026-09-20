@@ -6,7 +6,9 @@
     overflow: hidden;
     animation: toastSlideIn 0.3s ease-out;
 }
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 @keyframes toastSlideIn {
     from {
         transform: translateX(40px);

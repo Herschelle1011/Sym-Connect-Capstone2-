@@ -15,7 +15,9 @@
     --bg-page: #f5f7fb;
     --radius: 10px;
 }
-
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
 * {
     box-sizing: border-box;
 }

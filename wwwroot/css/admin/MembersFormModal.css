@@ -1,4 +1,8 @@
-﻿.member-form-section {
+﻿body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
+
+.member-form-section {
     margin-bottom: 24px;
 }
 

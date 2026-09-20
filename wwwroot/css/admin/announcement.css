@@ -1,4 +1,9 @@
-﻿.announcement-page {
+﻿
+body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
+
+.announcement-page {
     color: #1f2937;
 }
 

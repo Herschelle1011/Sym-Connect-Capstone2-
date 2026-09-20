@@ -1,8 +1,14 @@
-﻿.facility-page {
+﻿body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
+
+
+
+.facility-page {
     padding: 2rem 2.5rem;
     background-color: #f4f6fb;
     min-height: 100vh;
-    font-family: 'Segoe UI', sans-serif;
+    
 }
 
 .facility-header {

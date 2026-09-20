@@ -1,4 +1,7 @@
-﻿.announcement-panel {
+﻿body {
+    font-family: "Poppins", Arial, sans-serif !important;
+}
+.announcement-panel {
     background: #fff;
     border-radius: 14px;
     padding: 1.25rem;
