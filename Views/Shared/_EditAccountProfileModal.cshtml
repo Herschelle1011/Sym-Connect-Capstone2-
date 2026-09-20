@@ -12,11 +12,15 @@
       asp-area="@formArea"
       method="post"
       enctype="multipart/form-data"
+      id="editAccountProfileForm"
       class="modal-ajax-form">
 
     @Html.AntiForgeryToken()
 
     <input asp-for="UserId" type="hidden" />
+    <input asp-for="OriginalEmail" type="hidden" id="originalEmailInput" />
+    <input asp-for="EmailVerificationCode" type="hidden" id="emailVerificationCodeInput" />
+
     <div class="modal-header">
         <div>
             <small class="text-muted">
@@ -131,13 +135,27 @@
                 Email Address
             </label>
 
-            <input asp-for="Email"
-                   class="form-control"
-                   placeholder="Enter your email" />
+            <div class="input-group">
+                <input asp-for="Email"
+                       id="emailInput"
+                       class="form-control"
+                       placeholder="Enter your email" />
+
+                <button type="button"
+                        id="verifyEmailBtn"
+                        class="btn btn-outline-primary d-none">
+                    Verify Code
+                </button>
+            </div>
 
             <span asp-validation-for="Email"
                   class="text-danger small">
             </span>
+
+            <!-- Shows once the code has been confirmed -->
+            <div id="emailVerifiedBadge" class="text-success small mt-1 d-none">
+                <i class="bi bi-check-circle-fill"></i> Email verified — ready to save.
+            </div>
         </div>
 
 
@@ -223,9 +241,14 @@
         </button>
 
         <button type="submit"
+                id="saveProfileBtn"
                 class="btn btn-primary px-4">
             Save Changes
         </button>
     </div>
+
+
+
+
 
 </form>

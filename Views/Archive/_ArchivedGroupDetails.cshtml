@@ -18,23 +18,9 @@
     <div class="row g-3">
 
         <div class="col-md-6">
-            <strong>Leader</strong>
-            <div class="text-muted">
-                @Model.LeaderName
-            </div>
-        </div>
-
-        <div class="col-md-6">
             <strong>Members</strong>
             <div class="text-muted">
                 @Model.MemberCount
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <strong>Date Created</strong>
-            <div class="text-muted">
-                @(Model.DateCreated?.ToString("MMM dd, yyyy") ?? "N/A")
             </div>
         </div>
 

@@ -817,7 +817,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
        .Select(s => new SubmissionListItemViewModel
        {
            SubmissionId = s.SubmissionId,
-           Email = s.User.Email ?? "N/A",
+           FullName = s.User.DisplayName ?? "N/A",
            SubmittedAt = s.SubmittedAt,
            Status = s.Status
        })

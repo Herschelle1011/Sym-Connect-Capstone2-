@@ -9,5 +9,8 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task SendMembershipStatusEmailAsync(string email, string fullName,MembershipApplicationStatus status, string? reason = null);
         Task SendVerificationCodeAsync(string email, string code);
+
+
+
     }
 }

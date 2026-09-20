@@ -966,5 +966,71 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }
             }
         }
+
+
+
+        public async Task<ArchivedAnnouncementDetailsViewModel?>GetArchivedAnnouncementDetailsAsync(int id)
+        {
+            return await _context.Announcements
+                .AsNoTracking()
+                .Where(a =>
+                    a.AnnouncementId == id &&
+                    a.IsArchived)
+                .Select(a => new ArchivedAnnouncementDetailsViewModel
+                {
+                    AnnouncementId = a.AnnouncementId,
+
+                    Title = a.Title,
+
+                    Content = a.Content,
+
+                    CreatedBy = a.User != null &&
+                                !string.IsNullOrEmpty(a.User.DisplayName)
+                        ? a.User.DisplayName
+                        : "Unknown",
+
+                    TargetAudience = a.TargetAudience.ToString(),
+
+                    GroupName = a.Group != null
+                        ? a.Group.GroupName
+                        : null,
+
+                    IsPinned = a.IsPinned,
+
+                    PublishDate = a.PublishDate,
+
+                    ExpirationDate = a.ExpirationDate,
+
+                    ArchiveDate = a.ArchiveDate
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<OperationalResult> HardDeleteAnnouncement(int id)
+        {
+            var announcement = await _context.Announcements
+                .FirstOrDefaultAsync(a =>
+                    a.AnnouncementId == id &&
+                    a.IsArchived);
+
+            if (announcement == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Archived announcement was not found."
+                };
+            }
+
+            _context.Announcements.Remove(announcement);
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Announcement permanently deleted."
+            };
+        }
     }
 }

@@ -57,6 +57,13 @@
         </div>
 
         <div class="col-md-6">
+            <strong>Previous Points</strong>
+            <div class="text-muted">
+                @Model.PreviousPoints points
+            </div>
+        </div>
+
+        <div class="col-md-6">
             <strong>Member Since</strong>
             <div class="text-muted">
                 @(Model.MemberSince?.ToString("MMM dd, yyyy") ?? "N/A")

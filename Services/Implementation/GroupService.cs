@@ -737,14 +737,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Select(g => new ArchivedGroupDetailsViewModel
                 {
                     GroupId = g.GroupId,
-                    GroupName = g.GroupName,
-
-                    LeaderName = g.Leader != null
-                        ? g.Leader.FullName
-                        : "No leader",
-
+                    GroupName = g.GroupName,      
                     ArchiveDate = g.ArchivedDate,
-
                     MemberCount = g.GroupDetails.Count()
                 })
                 .FirstOrDefaultAsync();
@@ -820,5 +814,75 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             return group;
         }
+
+
+
+        public async Task<OperationalResult> HardDeleteGroupAsync(int id)
+        {
+            var group = await _context.Groups
+                .FirstOrDefaultAsync(g =>
+                    g.GroupId == id &&
+                    g.IsArchived);
+
+            if (group == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Archived group was not found."
+                };
+            }
+
+            // Remove any remaining members from the group.
+            var groupMembers = await _context.GroupDetails
+                .Where(gd => gd.GroupId == id)
+                .ToListAsync();
+
+            if (groupMembers.Any())
+            {
+                _context.GroupDetails.RemoveRange(groupMembers);
+            }
+
+
+            // Members who selected this as their preferred group
+            // should no longer point to it.
+            var preferredMembers = await _context.Members
+                .Where(m => m.PreferredGroupId == id)
+                .ToListAsync();
+
+            foreach (var member in preferredMembers)
+            {
+                member.PreferredGroupId = null;
+            }
+
+
+            // Announcements should remain as historical records,
+            // but they can no longer point to a deleted group.
+            var announcements = await _context.Announcements
+                .Where(a => a.GroupId == id)
+                .ToListAsync();
+
+            foreach (var announcement in announcements)
+            {
+                announcement.GroupId = null;
+            }
+
+
+            // Remove leader relationship if somehow still present.
+            group.LeaderId = null;
+
+
+            // Permanently delete the group.
+            _context.Groups.Remove(group);
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Group permanently deleted."
+            };
+        }
+
     }
 }

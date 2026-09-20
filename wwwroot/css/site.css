@@ -656,3 +656,11 @@ body {
     color: #b45309;
 }
 
+
+#emailVerificationModal {
+    z-index: 1060; /* higher than Bootstrap's default modal z-index (1055) */
+}
+
+.modal-backdrop:nth-of-type(2) {
+    z-index: 1059; /* sits between the two modals, above appModal's own backdrop */
+}

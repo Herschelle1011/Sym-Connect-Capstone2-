@@ -1,0 +1,35 @@
+﻿<div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Verify Your New Email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">
+                    We sent a 6-digit code to <strong id="verifyEmailTarget"></strong>.
+                    Enter it below to confirm this email change.
+                </p>
+
+                <input type="text"
+                       id="verificationCodeInput"
+                       class="form-control"
+                       maxlength="6"
+                       inputmode="numeric"
+                       placeholder="Enter 6-digit code" />
+
+                <div id="verificationCodeError" class="text-danger small mt-2 d-none"></div>
+
+                <button type="button" id="resendCodeBtn" class="btn btn-link btn-sm px-0 mt-2">
+                    Resend code
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmVerificationBtn" class="btn btn-primary px-4">
+                    Verify &amp; Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

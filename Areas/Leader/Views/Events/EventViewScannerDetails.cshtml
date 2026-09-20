@@ -101,16 +101,54 @@
         <span><i class="ti ti-clock-hour-4"></i>Created on @Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
     </div>
 
-    <ul class="nav details-tabs mb-4">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button">Overview</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button">Attendance</button>
-        </li>
-    </ul>
-    @* Evaluations tab dropped — that's an admin/reporting concern, not something a leader scanning attendance needs here.
-       Add it back with @if (Model.CreatedByMemberId == currentLeaderId) if leaders should see it for events they personally submitted. *@
+    <div class="details-tabs-wrapper mb-4">
+
+        <ul class="nav details-tabs mb-4">
+
+            <li class="nav-item">
+                <button class="nav-link active"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tab-overview"
+                        type="button">
+                    Overview
+                </button>
+            </li>
+
+            <li class="nav-item">
+                <button class="nav-link"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tab-evaluations"
+                        type="button">
+                    Evaluations
+                </button>
+            </li>
+
+            <li class="nav-item">
+                <button class="nav-link"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tab-attendance"
+                        type="button">
+                    Attendance
+                </button>
+            </li>
+
+        </ul>
+
+        @* @if (Model.EvaluationRating.HasValue)
+        {
+            <div class="event-rating-tab">
+                <span class="rating-label">Event Rating</span>
+
+                <span class="rating-score">
+                    <i class="bi bi-star-fill"></i>
+                    @Model.EvaluationRating.Value.ToString("0.0")
+                    <small>/ 5</small>
+                </span>
+            </div>
+        } *@
+
+    </div>
+  
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="tab-overview">
@@ -377,6 +415,111 @@
             </div>
         </div>
 
+
+        <div class="tab-pane fade" id="tab-evaluations">
+
+            @if (Model.EvaluationRating.HasValue)
+            {
+                var rating = Model.EvaluationRating.Value;
+
+                string ratingLabel =
+                    rating >= 4.5 ? "Excellent" :
+                    rating >= 3.5 ? "Very Good" :
+                    rating >= 2.5 ? "Good" :
+                    rating >= 1.5 ? "Fair" :
+                    "Poor";
+
+                <div class="evaluation-summary-card">
+
+                    <div class="evaluation-summary-header">
+
+                        <div>
+                            <h5 class="mb-1">
+                                Evaluation Summary
+                            </h5>
+
+                            <p class="mb-0">
+                                Overall feedback submitted by event attendees.
+                            </p>
+                        </div>
+
+                        <span class="evaluation-complete-badge">
+                            <i class="ti ti-circle-check"></i>
+                            Feedback Available
+                        </span>
+
+                    </div>
+
+                    <div class="evaluation-rating-section">
+
+                        <div class="rating-icon">
+                            <i class="ti ti-star-filled"></i>
+                        </div>
+
+                        <div class="rating-details">
+
+                            <div class="rating-label">
+                                Overall Event Rating
+                            </div>
+
+                            <div class="rating-number">
+                                @rating.ToString("0.0")
+                                <span>/ 5</span>
+                            </div>
+
+                            <div class="rating-stars">
+
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= Math.Round(rating))
+                                    {
+                                        <i class="ti ti-star-filled"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="ti ti-star"></i>
+                                    }
+                                }
+
+                            </div>
+
+                            <div class="rating-description">
+                                @ratingLabel
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="evaluation-info">
+                        <i class="ti ti-info-circle"></i>
+
+                        This rating is calculated from submitted
+                        rating-scale evaluation responses for this event.
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <div class="evaluation-empty-card">
+
+                    <div class="evaluation-empty-icon">
+                        <i class="ti ti-clipboard-off"></i>
+                    </div>
+
+                    <h5>No Evaluation Responses Yet</h5>
+
+                    <p>
+                        No attendees have submitted an evaluation
+                        for this event yet.
+                    </p>
+
+                </div>
+            }
+
+        </div>
+
         <div class="tab-pane fade" id="tab-attendance">
             @if (ViewBag.GroupAttendanceDetails != null)
             {
@@ -389,5 +532,8 @@
                 </div>
             }
         </div>
+
+
+
     </div>
 </div>

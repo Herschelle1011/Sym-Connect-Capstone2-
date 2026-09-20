@@ -335,6 +335,9 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 false
             );
 
+            vm.Submissions =
+         await _evaluationService.GetSubmissionsForEvaluationAsync(id.Value);
+
             if (vm == null)
             {
                 return NotFound();
@@ -730,7 +733,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseEvaluation(
-    int evaluationId)
+              int evaluationId)
         {
             var user = await _userManager.GetUserAsync(User);
 

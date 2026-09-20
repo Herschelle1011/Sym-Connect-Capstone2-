@@ -7,10 +7,14 @@
     // Same logic used on the Index cards: compare today's date against
     // OpenAt / ClosesAt. Nothing new is added to the model — this only
     // reads the two date fields that already exist on DetailsEvaluationViewModel.
-    var today = DateTime.Today;
-    string status = today < Model.OpenAt.Date ? "Upcoming"
-                   : today > Model.ClosesAt.Date ? "Closed"
-                   : "Open";
+    var today = DateTime.Now;
+
+    string status = today >= Model.ClosesAt
+      ? "Closed"
+      : today < Model.OpenAt
+          ? "Upcoming"
+          : "Open";
+
     string statusKey = status.ToLower();
 
     @if (TempData["ErrorMessage"] != null)
@@ -496,7 +500,7 @@
                             </div>
 
                             <div class="response-main">
-                                <p class="response-email">@s.Email</p>
+                                <p class="response-email">@s.FullName</p>
                                 <p class="response-date">
                                     <i class="bi bi-calendar3"></i>
                                     @(s.SubmittedAt?.ToString("MMM dd, yyyy 'at' h:mm tt") ?? "Not submitted")
@@ -505,11 +509,7 @@
 
                             <span class="response-status status-@respStatusKey">@s.Status</span>
 
-                            <button class="btn-view-response open-modal"
-                                    data-url="@Url.Action("SubmissionDetails",  new { area = "Leader", id = s.SubmissionId })"
-                                    data-title="Response from @s.Email">
-                                <i class="bi bi-eye"></i> View
-                            </button>
+                          
                         </div>
                     }
                 </div>

@@ -379,11 +379,42 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         ? "Archived"
                         : "Active",
 
-                    ArchiveDate = f.ArchiveDate
+                    ArchiveDate = f.ArchiveDate,
+                    FacilityPhotos = f.FacilityPhotos
+                    .Select(p => p.PhotoUrl)
+                    .ToList(),
                 })
                 .FirstOrDefaultAsync();
 
             return facility;
         }
+
+        public async Task<OperationalResult> HardDeleteFacilityAsync(int id)
+        {
+            var facility = await _context.Facilities
+                .FirstOrDefaultAsync(f =>
+                    f.FacilityId == id &&
+                    f.IsArchived == true);
+
+            if (facility == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Archived facility was not found."
+                };
+            }
+
+            _context.Facilities.Remove(facility);
+
+            await _context.SaveChangesAsync();
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = "Facility permanently deleted."
+            };
+        }
+
     }
 }

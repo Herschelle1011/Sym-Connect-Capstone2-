@@ -25,6 +25,8 @@
         public DateTime? MemberSince { get; set; }
 
         public DateTime? ArchiveDate { get; set; }
+
+        public int PreviousPoints { get; set; }
     }
     
 }

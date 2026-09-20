@@ -126,6 +126,7 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
                 UserId = user.Id,
                 DisplayName = user.DisplayName ?? "",
                 Email = user.Email ?? "",
+                OriginalEmail = user.Email ?? "",
                 CurrentPhotoUrl = user.ProfilePictureUrl
             };
 

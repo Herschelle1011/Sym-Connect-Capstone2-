@@ -1,22 +1,74 @@
-﻿// ── Modal opener (global function for inline onclick calls) ──
-// function openModal(title, url) {
-//     document.getElementById("appModalLabel").innerText = title;
+﻿// ═══════════════ ENSURE EMAIL VERIFICATION MODAL EXISTS ═══════════════
+// Instead of depending on every layout file remembering to include this
+// modal's markup, we build it once in JS and inject it into <body> the
+// first time it's needed. This guarantees it always exists, regardless
+// of which layout the current page happens to use.
 
-//     fetch(url)
-//         .then(response => response.text())
-//         .then(html => {
-//             document.getElementById("appModalBody").innerHTML = html;
+function ensureEmailVerificationModal() {
 
-//             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("appModal"));
-//             modal.show();
+    let modalEl = document.getElementById("emailVerificationModal");
 
-//             if (window.jQuery && $.validator) {
-//                 $.validator.unobtrusive.parse("#appModalBody");
-//             }
-//         });
-// }
+    if (modalEl) {
+        return modalEl; // already exists — nothing to do
+    }
 
-// ── Modal opener (data-attribute buttons, e.g. "Create Partylist") ──
+    const wrapper = document.createElement("div");
+
+    wrapper.innerHTML = `
+        <div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Verify Your New Email</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small">
+                            We sent a 6-digit code to <strong id="verifyEmailTarget"></strong>.
+                            Enter it below to confirm this email change.
+                        </p>
+
+                        <input type="text"
+                               id="verificationCodeInput"
+                               class="form-control"
+                               maxlength="6"
+                               inputmode="numeric"
+                               placeholder="Enter 6-digit code" />
+
+                        <div id="verificationCodeError" class="text-danger small mt-2 d-none"></div>
+
+                        <button type="button" id="resendCodeBtn" class="btn btn-link btn-sm px-0 mt-2">
+                            Resend code
+                        </button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" id="confirmVerificationBtn" class="btn btn-primary px-4">
+                            Verify &amp; Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    modalEl = wrapper.firstElementChild;
+    document.body.appendChild(modalEl);
+
+    // z-index fix so it stacks correctly above #appModal, which is
+    // already open underneath it when this gets triggered.
+    modalEl.style.zIndex = "1060";
+
+    modalEl.addEventListener("hidden.bs.modal", function () {
+        const appModal = document.getElementById("appModal");
+        if (appModal && appModal.classList.contains("show")) {
+            document.body.classList.add("modal-open");
+        }
+    });
+
+    return modalEl;
+}
+
 
 document.addEventListener("submit", async function (e) {
 
@@ -241,17 +293,43 @@ function openModal(title, url, size, options = {}) {
         });
 }
 
-// ── Modal opener (data-attribute buttons, e.g. "Create Partylist") ──
-document.querySelectorAll(".open-modal").forEach(button => {
-    button.addEventListener("click", function () {
-        const url = this.getAttribute("data-url");
-        const title = this.getAttribute("data-title");
-        const size = this.getAttribute("data-modal-size");
-        const icon = this.getAttribute("data-icon");
-        const subtitle = this.getAttribute("data-subtitle");
-        openModal(title, url, size, {icon, subtitle});
-    });
+// =====================================================
+// GENERIC MODAL OPENER
+// Works for Admin, Leader, Member, and AJAX content
+// =====================================================
+document.addEventListener("click", function (e) {
+
+    const button = e.target.closest(".open-modal");
+
+    if (!button) {
+        return;
+    }
+
+    e.preventDefault();
+
+    const url = button.getAttribute("data-url");
+    const title = button.getAttribute("data-title");
+    const size = button.getAttribute("data-modal-size");
+    const icon = button.getAttribute("data-icon");
+    const subtitle = button.getAttribute("data-subtitle");
+
+    if (!url) {
+        console.error("open-modal button has no data-url.");
+        return;
+    }
+
+    openModal(
+        title,
+        url,
+        size,
+        {
+            icon: icon,
+            subtitle: subtitle
+        }
+    );
 });
+
+
 
 // ── Facility schedule: month navigation inside the modal ──
 document.addEventListener("click", function (e) {
@@ -318,153 +396,520 @@ document.addEventListener("submit", async function (e) {
 
 
 function initPsgcAddress() {
-    const provinceSelect = document.getElementById('provinceSelect');
-    const citySelect = document.getElementById('citySelect');
-    const barangaySelect = document.getElementById('barangaySelect');
-    const provinceName = document.getElementById('provinceName');
-    const cityName = document.getElementById('cityName');
 
-    if (!provinceSelect) return; // form not in DOM yet / not this modal
+    const provinceSelect = document.getElementById("provinceSelect");
+    const citySelect = document.getElementById("citySelect");
+    const barangaySelect = document.getElementById("barangaySelect");
 
-    if (provinceSelect.dataset.loaded === "true") return;
+    const provinceName = document.getElementById("provinceName");
+    const cityName = document.getElementById("cityName");
+    const barangayName = document.getElementById("barangayName");
+
+    // This modal does not contain address fields.
+    if (!provinceSelect || !citySelect || !barangaySelect) {
+        return;
+    }
+
+    // Prevent initializing the same form more than once.
+    if (provinceSelect.dataset.loaded === "true") {
+        return;
+    }
+
     provinceSelect.dataset.loaded = "true";
 
-    const savedProvince = document.getElementById('savedProvince')?.value || 'Cebu';
-    const savedCity = document.getElementById('savedCity')?.value || '';
-    const savedBarangay = document.getElementById('savedBarangay')?.value || '';
 
-    // Handles PSGC's "City of X" / "X City" naming inconsistencies
+    // ==========================================
+    // EXISTING VALUES FROM DATABASE
+    // ==========================================
+
+    const savedProvince =
+        document.getElementById("savedProvince")?.value || "";
+
+    const savedCity =
+        document.getElementById("savedCity")?.value || "";
+
+    const savedBarangay =
+        document.getElementById("savedBarangay")?.value || "";
+
+
+    console.log("EDIT ADDRESS VALUES:", {
+        savedProvince,
+        savedCity,
+        savedBarangay
+    });
+
+
+    // ==========================================
+    // NORMALIZE NAMES FOR COMPARISON
+    // ==========================================
+
     function normalize(name) {
-        return (name || '')
+
+        return (name || "")
             .trim()
             .toLowerCase()
-            .replace(/^city of\s+/i, '')
-            .replace(/\s+city$/i, '')
-            .replace(/\s+/g, ' ');
+            .replace(/^city of\s+/i, "")
+            .replace(/\s+city$/i, "")
+            .replace(/\s+/g, " ");
     }
 
-    async function loadCitiesFor(provinceCode, presetCity, presetBarangay) {
-        citySelect.innerHTML = '<option value="">-- Select City/Municipality --</option>';
-        barangaySelect.innerHTML = '<option value="">-- Select City First --</option>';
-        citySelect.disabled = true;
-        barangaySelect.disabled = true;
-        if (cityName && !presetCity) cityName.value = '';
 
-        if (!provinceCode) return;
+    // ==========================================
+    // LOAD BARANGAYS
+    // ==========================================
+
+    async function loadBarangaysFor(
+        cityCode,
+        presetBarangay = ""
+    ) {
+        barangaySelect.innerHTML =
+            '<option value="">Loading barangays...</option>';
+
+        barangaySelect.disabled = true;
+
+        if (!cityCode) {
+            barangaySelect.innerHTML =
+                '<option value="">-- Select Barangay --</option>';
+            return;
+        }
 
         try {
-            const res = await fetch(`https://psgc.gitlab.io/api/provinces/${provinceCode}/cities-municipalities/`);
-            const cities = await res.json();
 
-            cities
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.code;
-                    opt.textContent = c.name;
-                    citySelect.appendChild(opt);
-                });
-            citySelect.disabled = false;
+            console.log("Loading barangays for city code:", cityCode);
 
-            if (!presetCity) return;
-
-            const match = Array.from(citySelect.options).find(
-                o => normalize(o.textContent) === normalize(presetCity)
+            // Get all barangays
+            const response = await fetch(
+                "https://psgc.gitlab.io/api/barangays/"
             );
 
-            if (match) {
-                citySelect.value = match.value;
-                if (cityName) cityName.value = match.textContent.trim();
-                await loadBarangaysFor(match.value, presetBarangay);
-            } else {
-                console.warn('Saved city not found:', presetCity);
+            if (!response.ok) {
+                throw new Error(
+                    `Barangay request failed: ${response.status}`
+                );
             }
-        } catch (err) {
-            console.error('Failed to load cities:', err);
-        }
-    }
 
-    async function loadBarangaysFor(cityCode, presetBarangay) {
-        barangaySelect.innerHTML = '<option value="">-- Select Barangay --</option>';
-        barangaySelect.disabled = true;
+            const allBarangays = await response.json();
 
-        if (!cityCode) return;
+            // Find barangays belonging to the selected
+            // city / municipality.
+            const barangays = allBarangays.filter(function (barangay) {
 
-        try {
-            const res = await fetch(`https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`);
-            const barangays = await res.json();
+                return barangay.cityCode === cityCode ||
+                    barangay.municipalityCode === cityCode;
+            });
+
+            console.log(
+                "Barangays found:",
+                barangays.length,
+                barangays
+            );
+
+            barangaySelect.innerHTML =
+                '<option value="">-- Select Barangay --</option>';
+
 
             barangays
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .forEach(b => {
-                    const opt = document.createElement('option');
-                    opt.value = b.name;       // posting NAME, matches asp-for="Barangay"
-                    opt.textContent = b.name;
-                    barangaySelect.appendChild(opt);
+                .sort(function (a, b) {
+                    return a.name.localeCompare(b.name);
+                })
+                .forEach(function (barangay) {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value = barangay.code;
+                    option.textContent = barangay.name;
+
+                    barangaySelect.appendChild(option);
                 });
+
+
             barangaySelect.disabled = false;
 
-            if (!presetBarangay) return;
 
-            const match = Array.from(barangaySelect.options).find(
-                o => normalize(o.textContent) === normalize(presetBarangay)
+            // Restore saved barangay when editing.
+            if (presetBarangay) {
+
+                console.log(
+                    "Looking for saved barangay:",
+                    presetBarangay
+                );
+
+                const match =
+                    Array.from(barangaySelect.options)
+                        .find(function (option) {
+
+                            return normalize(option.textContent) ===
+                                normalize(presetBarangay);
+                        });
+
+
+                if (match) {
+
+                    barangaySelect.value = match.value;
+
+                    if (barangayName) {
+                        barangayName.value =
+                            match.textContent.trim();
+                    }
+
+                } else {
+
+                    console.warn(
+                        "Saved barangay was not found:",
+                        presetBarangay
+                    );
+                }
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load barangays:",
+                error
             );
 
-            if (match) {
-                barangaySelect.value = match.value;
-            } else {
-                console.warn('Saved barangay not found:', presetBarangay);
-            }
-        } catch (err) {
-            console.error('Failed to load barangays:', err);
+            barangaySelect.innerHTML =
+                '<option value="">Unable to load barangays</option>';
+
+            barangaySelect.disabled = true;
         }
     }
 
-    fetch('https://psgc.gitlab.io/api/provinces/')
-        .then(res => res.json())
-        .then(async provinces => {
-            provinces
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.code;
-                    opt.textContent = p.name;
-                    provinceSelect.appendChild(opt);
-                });
 
-            const match = Array.from(provinceSelect.options).find(
-                o => normalize(o.textContent) === normalize(savedProvince)
+    // ==========================================
+    // LOAD CITIES
+    // ==========================================
+
+    async function loadCitiesFor(
+        provinceCode,
+        presetCity = "",
+        presetBarangay = ""
+    ) {
+        citySelect.innerHTML =
+            '<option value="">-- Select City/Municipality --</option>';
+
+        barangaySelect.innerHTML =
+            '<option value="">-- Select City First --</option>';
+
+        citySelect.disabled = true;
+        barangaySelect.disabled = true;
+
+        if (!provinceCode) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `https://psgc.gitlab.io/api/provinces/${provinceCode}/cities-municipalities/`
             );
 
-            if (match) {
-                provinceSelect.value = match.value;
-                if (provinceName) provinceName.value = match.textContent.trim();
-                await loadCitiesFor(match.value, savedCity, savedBarangay);
-            } else {
-                console.warn('Saved province not found:', savedProvince);
+            if (!response.ok) {
+                throw new Error(
+                    `Unable to load cities: ${response.status}`
+                );
             }
-        })
-        .catch(err => console.error('Failed to load provinces:', err));
 
-    provinceSelect.addEventListener('change', function () {
-        if (provinceName) {
-            provinceName.value = this.value
-                ? this.options[this.selectedIndex].textContent.trim()
-                : '';
-        }
-        loadCitiesFor(this.value, '', '');
-    });
+            const cities = await response.json();
 
-    citySelect.addEventListener('change', function () {
-        if (cityName) {
-            cityName.value = this.value
-                ? this.options[this.selectedIndex].textContent.trim()
-                : '';
+            cities
+                .sort((a, b) =>
+                    a.name.localeCompare(b.name)
+                )
+                .forEach(city => {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value = city.code;
+                    option.textContent = city.name;
+
+                    citySelect.appendChild(option);
+                });
+
+            citySelect.disabled = false;
+
+
+            // =====================================
+            // RESTORE EXISTING CITY
+            // =====================================
+
+            if (presetCity) {
+
+                const match =
+                    Array.from(citySelect.options)
+                        .find(option =>
+                            normalize(option.textContent) ===
+                            normalize(presetCity)
+                        );
+
+                if (match) {
+
+                    // Select existing city
+                    citySelect.value = match.value;
+
+                    // Store city NAME for ASP.NET
+                    if (cityName) {
+                        cityName.value =
+                            match.textContent.trim();
+                    }
+
+                    console.log(
+                        "Selected city:",
+                        match.textContent,
+                        "Code:",
+                        match.value
+                    );
+
+
+                    // =====================================
+                    // IMPORTANT:
+                    // Automatically load barangays
+                    // =====================================
+
+                    await loadBarangaysFor(
+                        match.value,
+                        presetBarangay
+                    );
+
+                    return;
+                }
+
+                console.warn(
+                    "Saved city not found:",
+                    presetCity
+                );
+            }
+
+
+            // No existing city
+            barangaySelect.innerHTML =
+                '<option value="">-- Select City First --</option>';
+
+            barangaySelect.disabled = true;
+
         }
-        loadBarangaysFor(this.value, '');
-    });
+        catch (error) {
+
+            console.error(
+                "Failed to load cities:",
+                error
+            );
+
+            citySelect.innerHTML =
+                '<option value="">Unable to load cities</option>';
+
+            citySelect.disabled = true;
+        }
+    }
+
+
+    // ==========================================
+    // LOAD PROVINCES
+    // ==========================================
+
+    async function loadProvinces() {
+
+        provinceSelect.innerHTML =
+            '<option value="">-- Select Province --</option>';
+
+        provinceSelect.disabled = true;
+
+
+        try {
+
+            const response = await fetch(
+                "https://psgc.gitlab.io/api/provinces/"
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to load provinces."
+                );
+            }
+
+            const provinces =
+                await response.json();
+
+
+            provinces
+                .sort((a, b) =>
+                    a.name.localeCompare(b.name)
+                )
+                .forEach(province => {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value = province.code;
+                    option.textContent = province.name;
+
+                    provinceSelect.appendChild(option);
+                });
+
+
+            provinceSelect.disabled = false;
+
+
+            // No saved province.
+            if (!savedProvince) {
+                return;
+            }
+
+
+            const match =
+                Array.from(provinceSelect.options)
+                    .find(option =>
+                        normalize(option.textContent) ===
+                        normalize(savedProvince)
+                    );
+
+
+            if (match) {
+
+                provinceSelect.value =
+                    match.value;
+
+                if (provinceName) {
+                    provinceName.value =
+                        match.textContent.trim();
+                }
+
+
+                // Province found.
+                // Load saved city + barangay.
+                await loadCitiesFor(
+                    match.value,
+                    savedCity,
+                    savedBarangay
+                );
+
+            } else {
+
+                console.warn(
+                    "Saved province not found:",
+                    savedProvince
+                );
+            }
+
+        }
+        catch (error) {
+
+            console.error(
+                "Failed to load provinces:",
+                error
+            );
+
+            provinceSelect.innerHTML =
+                '<option value="">Unable to load provinces</option>';
+
+            provinceSelect.disabled = true;
+        }
+    }
+
+
+    // ==========================================
+    // PROVINCE CHANGED
+    // ==========================================
+
+    provinceSelect.addEventListener(
+        "change",
+        function () {
+
+            if (provinceName) {
+
+                provinceName.value =
+                    this.value
+                        ? this.options[
+                            this.selectedIndex
+                        ].textContent.trim()
+                        : "";
+            }
+
+
+            if (cityName) {
+                cityName.value = "";
+            }
+
+            if (barangayName) {
+                barangayName.value = "";
+            }
+
+
+            loadCitiesFor(
+                this.value,
+                "",
+                ""
+            );
+        }
+    );
+
+
+    // ==========================================
+    // CITY CHANGED
+    // ==========================================
+
+    citySelect.addEventListener(
+        "change",
+        function () {
+
+            if (cityName) {
+
+                cityName.value =
+                    this.value
+                        ? this.options[
+                            this.selectedIndex
+                        ].textContent.trim()
+                        : "";
+            }
+
+
+            if (barangayName) {
+                barangayName.value = "";
+            }
+
+
+            loadBarangaysFor(
+                this.value,
+                ""
+            );
+        }
+    );
+
+
+    // ==========================================
+    // BARANGAY CHANGED
+    // ==========================================
+
+    barangaySelect.addEventListener(
+        "change",
+        function () {
+
+            if (!barangayName) {
+                return;
+            }
+
+
+            if (!this.value) {
+
+                barangayName.value = "";
+
+                return;
+            }
+
+
+            barangayName.value =
+                this.options[
+                    this.selectedIndex
+                ].textContent.trim();
+        }
+    );
+
+
+    // Start loading.
+    loadProvinces();
 }
-
 
 // document.addEventListener('submit', function (e) {
 //     if (e.target && e.target.id === 'editEventForm') {
@@ -1331,6 +1776,8 @@ document.addEventListener('click', function (e) {
 });
 
 
+
+
 document.addEventListener("submit", async function (e) {
 
     const form = e.target.closest(".evaluation-close-form");
@@ -1408,5 +1855,206 @@ document.addEventListener("submit", async function (e) {
         if (submitButton) {
             submitButton.disabled = false;
         }
+    }
+});
+
+
+
+
+document.addEventListener("input", function (e) {
+
+    if (e.target.id !== "emailInput") {
+        return;
+    }
+
+    updateEmailVerifyState(e.target);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const emailInput = document.getElementById("emailInput");
+    if (emailInput) updateEmailVerifyState(emailInput);
+});
+
+function updateEmailVerifyState(emailInput) {
+    const form = emailInput.closest("form");
+    if (!form) return;
+
+    const originalEmail = form.querySelector("#originalEmailInput")?.value.trim().toLowerCase() || "";
+    const currentEmail = emailInput.value.trim().toLowerCase();
+
+    const verifyBtn = form.querySelector("#verifyEmailBtn");
+    const verifiedBadge = form.querySelector("#emailVerifiedBadge");
+    const codeField = form.querySelector("#emailVerificationCodeInput");
+    const saveBtn = form.querySelector("#saveProfileBtn");
+
+    const emailChanged = currentEmail !== originalEmail && currentEmail.length > 0;
+
+    if (emailChanged) {
+        verifyBtn.classList.remove("d-none");
+
+        // Any further edit to the email after a code was verified
+        // invalidates that verification — clear it and require re-verify.
+        if (codeField.dataset.verifiedFor !== currentEmail) {
+            verifiedBadge.classList.add("d-none");
+            codeField.value = "";
+            saveBtn.disabled = true;
+        }
+    } else {
+        // Email reverted back to original — no verification needed
+        verifyBtn.classList.add("d-none");
+        verifiedBadge.classList.add("d-none");
+        codeField.value = "";
+        saveBtn.disabled = false;
+    }
+}
+
+
+let pendingVerifyForm = null;
+
+document.addEventListener("click", async function (e) {
+
+    if (e.target.id !== "verifyEmailBtn") {
+        return;
+    }
+
+    const form = e.target.closest("form");
+    const emailInput = form.querySelector("#emailInput");
+    const newEmail = emailInput.value.trim();
+
+    if (!newEmail) {
+        return;
+    }
+
+    const btn = e.target;
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+    const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    try {
+        const response = await fetch("/EmailVerification/SendCode", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ email: newEmail, __RequestVerificationToken: token })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showAlertDialog(result.message || "Unable to send verification code.", "error", "Failed");
+            return;
+        }
+
+        showAlertDialog(result.message || "Verification code sent.", "success", "Code Sent");
+
+        pendingVerifyForm = form;
+
+        document.getElementById("verifyEmailTarget").textContent = newEmail;
+        document.getElementById("verificationCodeInput").value = "";
+        document.getElementById("verificationCodeError").classList.add("d-none");
+
+        bootstrap.Modal.getOrCreateInstance(document.getElementById("emailVerificationModal")).show();
+
+    } catch (error) {
+        console.error("Send code error:", error);
+        showAlertDialog("Something went wrong sending the verification code.", "error", "Error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+    }
+});
+
+
+document.addEventListener("click", async function (e) {
+
+    if (e.target.id !== "confirmVerificationBtn") {
+        return;
+    }
+
+    if (!pendingVerifyForm) {
+        return;
+    }
+
+    const code = document.getElementById("verificationCodeInput").value.trim();
+    const errorEl = document.getElementById("verificationCodeError");
+    const emailInput = pendingVerifyForm.querySelector("#emailInput");
+    const currentEmail = emailInput.value.trim();
+
+    if (!code) {
+        errorEl.textContent = "Please enter the code.";
+        errorEl.classList.remove("d-none");
+        return;
+    }
+
+
+    const codeField = pendingVerifyForm.querySelector("#emailVerificationCodeInput");
+    codeField.value = code;
+    codeField.dataset.verifiedFor = currentEmail.toLowerCase();
+
+    pendingVerifyForm.querySelector("#emailVerifiedBadge").classList.remove("d-none");
+    pendingVerifyForm.querySelector("#saveProfileBtn").disabled = false;
+
+    bootstrap.Modal.getInstance(document.getElementById("emailVerificationModal"))?.hide();
+
+    pendingVerifyForm = null;
+});
+
+
+
+
+document.addEventListener("click", async function (e) {
+
+    if (e.target.id !== "verifyEmailBtn") {
+        return;
+    }
+
+    const form = e.target.closest("form");
+    const emailInput = form.querySelector("#emailInput");
+    const newEmail = emailInput.value.trim();
+
+    if (!newEmail) {
+        return;
+    }
+
+    const btn = e.target;
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+    const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+    try {
+        const response = await fetch("/EmailVerification/SendCode", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ email: newEmail, __RequestVerificationToken: token })
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+            showAlertDialog(result.message || "Unable to send verification code.", "error", "Failed");
+            return;
+        }
+
+        showAlertDialog(result.message || "Verification code sent.", "success", "Code Sent");
+
+        pendingVerifyForm = form;
+
+        const modalEl = ensureEmailVerificationModal();
+
+        modalEl.querySelector("#verifyEmailTarget").textContent = newEmail;
+        modalEl.querySelector("#verificationCodeInput").value = "";
+        modalEl.querySelector("#verificationCodeError").classList.add("d-none");
+
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+    } catch (error) {
+        console.error("Send code error:", error);
+        showAlertDialog("Something went wrong sending the verification code.", "error", "Error");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
     }
 });

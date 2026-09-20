@@ -24,11 +24,11 @@ namespace Sym_Connect__Capstone2_.Controllers
         private readonly IMediaService _mediaService;
         private readonly IDashboardService _dashboardService;
         private readonly SignInManager<User> _signInManager;
-
+        private readonly IEmailVerificationService _emailVerificationService;
 
 
         public AdminController(UserManager<User> userManager,
-        CloudinaryService cloudinaryService, IAnnouncementService announcementService, IMemberService memberService, IGroupService groupService, IEventService eventService, IMediaService mediaService, IDashboardService dashboardService, SignInManager<User> signInManager)
+        CloudinaryService cloudinaryService, IAnnouncementService announcementService, IMemberService memberService, IGroupService groupService, IEventService eventService, IMediaService mediaService, IDashboardService dashboardService, SignInManager<User> signInManager, IEmailVerificationService emailVerificationService)
         {
             _userManager = userManager;
             _cloudinaryService = cloudinaryService;
@@ -39,6 +39,7 @@ namespace Sym_Connect__Capstone2_.Controllers
             _mediaService = mediaService;
             _dashboardService = dashboardService;
             _signInManager = signInManager;
+            _emailVerificationService = emailVerificationService;
         }
 
         // ── GET: /Admin/Profile ─────────────────────────────────────────────
@@ -279,6 +280,11 @@ namespace Sym_Connect__Capstone2_.Controllers
                 });
             }
 
+            bool emailChanged = !string.Equals(
+                vm.Email?.Trim(),
+                user.Email,
+                StringComparison.OrdinalIgnoreCase);
+
 
             // ==========================================
             // RESTORE DISPLAY-ONLY DATA
@@ -305,31 +311,6 @@ namespace Sym_Connect__Capstone2_.Controllers
             }
 
 
-            // ==========================================
-            // CHECK EMAIL
-            // ==========================================
-
-            var emailOwner =
-                await _userManager.FindByEmailAsync(
-                    vm.Email.Trim()
-                );
-
-            if (emailOwner != null &&
-                emailOwner.Id != user.Id)
-            {
-                ModelState.AddModelError(
-                    "Email",
-                    "This email address is already being used."
-                );
-
-                ViewBag.FormArea = "";
-                ViewBag.FormController = "Admin";
-
-                return PartialView(
-                    "~/Views/Shared/_EditAccountProfileModal.cshtml",
-                    vm
-                );
-            }
 
 
             // ==========================================
@@ -394,14 +375,40 @@ namespace Sym_Connect__Capstone2_.Controllers
             // UPDATE NAME + EMAIL
             // ==========================================
 
+            if (emailChanged)
+            {
+                var emailOwner = await _userManager.FindByEmailAsync(vm.Email.Trim());
+
+                if (emailOwner != null && emailOwner.Id != user.Id)
+                {
+                    ModelState.AddModelError("Email", "This email address is already being used.");
+                    ViewBag.FormArea = "";
+                    ViewBag.FormController = "Admin";
+                    return PartialView("~/Views/Shared/_EditAccountProfileModal.cshtml", vm);
+                }
+
+                if (string.IsNullOrWhiteSpace(vm.EmailVerificationCode))
+                {
+                    return Json(new { success = false, message = "Please verify your new email before saving." });
+                }
+
+                var (verified, verifyMessage) = await _emailVerificationService
+                    .VerifyCodeAsync(vm.Email!, vm.EmailVerificationCode);
+
+                if (!verified)
+                {
+                    return Json(new { success = false, message = verifyMessage });
+                }
+
+                user.Email = vm.Email;
+                user.UserName = vm.Email;
+            }
+
+
             user.DisplayName =
                 vm.DisplayName!.Trim();
 
-            user.Email =
-                vm.Email.Trim();
 
-            user.UserName =
-                vm.Email.Trim();
 
 
             var updateResult =
@@ -481,6 +488,9 @@ namespace Sym_Connect__Capstone2_.Controllers
                 photoUrl = user.ProfilePictureUrl,
                 displayName = user.DisplayName
             });
+
+
+
         }
     }
 }

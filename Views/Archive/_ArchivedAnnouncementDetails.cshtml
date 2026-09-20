@@ -1,0 +1,122 @@
+﻿@model Sym_Connect__Capstone2_.ViewModels.Announcement.ArchivedAnnouncementDetailsViewModel
+
+<div style="padding:10px 8px 18px;">
+
+    <!-- HEADER -->
+    <div class="mb-4">
+
+        <h4 style="margin:0; font-weight:700;">
+            @Model.Title
+        </h4>
+
+        <span class="badge bg-info-subtle text-info mt-2">
+            Announcement
+        </span>
+
+    </div>
+
+
+    <!-- DETAILS -->
+    <div class="row g-3">
+
+        <!-- POSTED BY -->
+        <div class="col-md-6">
+            <strong>Posted By</strong>
+
+            <div class="text-muted">
+                @Model.CreatedBy
+            </div>
+        </div>
+
+
+        <!-- AUDIENCE -->
+        <div class="col-md-6">
+            <strong>Audience</strong>
+
+            <div class="text-muted">
+                @Model.TargetAudience
+            </div>
+        </div>
+
+
+        <!-- GROUP -->
+        <div class="col-md-6">
+            <strong>Group</strong>
+
+            <div class="text-muted">
+                @(string.IsNullOrWhiteSpace(Model.GroupName)
+                    ? "Not applicable"
+                    : Model.GroupName)
+            </div>
+        </div>
+
+
+        <!-- PUBLISHED -->
+        <div class="col-md-6">
+            <strong>Published On</strong>
+
+            <div class="text-muted">
+                @(Model.PublishDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                    ?? "Publish date unavailable")
+            </div>
+        </div>
+
+
+        <!-- EXPIRATION -->
+        <div class="col-md-6">
+            <strong>Expiration</strong>
+
+            <div class="text-muted">
+                @(Model.ExpirationDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                    ?? "No Expiration")
+            </div>
+        </div>
+
+
+        <!-- PINNED -->
+        <div class="col-md-6">
+            <strong>Pinned</strong>
+
+            <div class="text-muted">
+                @(Model.IsPinned ? "Yes" : "No")
+            </div>
+        </div>
+
+
+        <!-- CONTENT -->
+        <div class="col-12">
+            <strong>Content</strong>
+
+            <div class="text-muted mt-1"
+                 style="white-space:pre-line;">
+                @(string.IsNullOrWhiteSpace(Model.Content)
+                    ? "No content"
+                    : Model.Content)
+            </div>
+        </div>
+
+    </div>
+
+
+    <hr class="my-4" />
+
+
+    <!-- ARCHIVED -->
+    <div class="p-3"
+         style="background:#fff7ed;
+        border:1px solid #fed7aa;
+        border-radius:10px;">
+
+        <div class="fw-semibold text-warning">
+            <i class="bi bi-archive me-1"></i>
+            Archived
+        </div>
+
+        <div class="small text-muted mt-1">
+            @(Model.ArchiveDate?.ToString("MMM dd, yyyy • hh:mm tt")
+                ?? "Archive date unavailable")
+        </div>
+
+    </div>
+
+</div>
