@@ -17,6 +17,7 @@ using Sym_Connect__Capstone2_.Services;
 using Sym_Connect__Capstone2_.Services.Implementation;
 using Sym_Connect__Capstone2_.Services.Interfaces;
 using System.IO;
+using Microsoft.AspNetCore.HttpOverrides;
 
 
 
@@ -123,6 +124,7 @@ builder.Services.AddScoped<
     IMemberService,
     MemberService>();
 
+builder.Services.AddScoped<IRazorViewToStringRenderer, RazorViewToStringRenderer>();
 
 
 builder.Services.AddScoped<Sym_Connect__Capstone2_.Areas.Leader.Services.Interfaces.ILeaderEvaluationService,
@@ -185,6 +187,14 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
 var app = builder.Build();
+
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost,
+    KnownNetworks = { },
+    KnownProxies = { }
+});
 
 //api for swagger
 
