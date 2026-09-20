@@ -66,7 +66,11 @@
                     <input class="form-check-input" asp-for="Input.RememberMe" type="checkbox" />
                     @Html.DisplayNameFor(m => m.Input.RememberMe)
                 </label>
-                <a id="forgot-password" asp-page="./ForgotPassword">Forgot password?</a>
+                <a id="forgot-password"
+                   asp-controller="Account"
+                   asp-action="ForgotPassword">
+                    Forgot password?
+                </a>
             </div>
 
             <!-- Sign In -->

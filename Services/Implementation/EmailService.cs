@@ -6,6 +6,7 @@ using Sym_Connect__Capstone2_.Data;
 using Sym_Connect__Capstone2_.Models;
 using Sym_Connect__Capstone2_.Models.Enums;
 using Sym_Connect__Capstone2_.Services.Interfaces;
+using Sym_Connect__Capstone2_.ViewModels.Emails;
 using System.Net;
 using System.Net.Mail;
 namespace Sym_Connect__Capstone2_.Services.Implementation
@@ -14,11 +15,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     {
         private readonly EmailSettings _emailSettings;
         private readonly IConfiguration _configuration;
+        private readonly IRazorViewToStringRenderer _viewRenderer;
 
-        public EmailService(IOptions<EmailSettings> emailSettings, IConfiguration configuration)
+        public EmailService(IOptions<EmailSettings> emailSettings, IConfiguration configuration, IRazorViewToStringRenderer viewRenderer)
         {
             _emailSettings = emailSettings.Value;
             _configuration = configuration;
+            _viewRenderer = viewRenderer;
         }
 
 
@@ -137,7 +140,20 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         }
 
 
-       
+        public async Task SendPasswordResetEmailAsync(string email, string fullName, string resetLink)
+        {
+            string subject = "Reset your SYM-Connect password";
+
+            var model = new PasswordResetEmailViewModel
+            {
+                FirstName = fullName,
+                ResetLink = resetLink
+            };
+
+            string body = await _viewRenderer.RenderViewToStringAsync("/Views/EmailTemplates/PasswordResetEmail.cshtml", model);
+
+            await SendEmailAsync(email, subject, body);
+        }
     }
 
 }
