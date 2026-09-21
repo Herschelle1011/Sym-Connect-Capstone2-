@@ -1,4 +1,7 @@
-﻿function filterMembers(status, btn) {
+﻿
+
+
+function filterMembers(status, btn) {
     document.querySelectorAll('.tab-btn')
         .forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -266,3 +269,4 @@ document.addEventListener('submit', function (e) {
             bootstrap.Modal.getInstance(document.getElementById('appModal'))?.hide();
         });
 });
+

@@ -153,19 +153,35 @@
         </div>
 
         <!-- Group Attendance Chart -->
-        <div class="dash-card">
-            <div class="dash-card-header"><span>Group Attendance</span></div>
+        <!-- Group Attendance Chart -->
+        <div class="dash-card attendance-card">
 
-            @if (!Model.GroupAttendanceChart.Any())
+            <div class="dash-card-header">
+                <span>Group Attendance</span>
+            </div>
+
+            @if (Model.GroupAttendanceChart == null ||
+                 !Model.GroupAttendanceChart.Any())
             {
-                <p class="empty-state">No completed events yet to chart.</p>
+                <div class="attendance-empty">
+                    <i class="bi bi-bar-chart"></i>
+                    <p>No completed events yet to chart.</p>
+                </div>
             }
             else
             {
-                <canvas id="attendanceChart" height="180"></canvas>
+                <div class="attendance-chart-container">
+                    <canvas id="groupAttendanceChart"></canvas>
+                </div>
             }
 
-            <a asp-controller="Attendance" asp-action="Index" class="dash-card-link">View all attendance</a>
+            <a asp-area="Leader"
+               asp-controller="Attendance"
+               asp-action="Index"
+               class="dash-card-link">
+                View all attendance
+            </a>
+
         </div>
 
         <!-- Submission Status -->
@@ -198,21 +214,42 @@
     @if (Model.GroupAttendanceChart.Any())
     {
         <script>
-            const ctx = document.getElementById('attendanceChart');
-            new Chart(ctx, {
+            const attendanceData = @Html.Raw(Json.Serialize(Model.GroupAttendanceChart));
+
+            const totalMembers = attendanceData.length ? attendanceData[0].totalMembers : 0;
+
+            new Chart(document.getElementById('groupAttendanceChart'), {
             type: 'bar',
             data: {
-            labels: @Html.Raw(Json.Serialize(Model.GroupAttendanceChart.Select(g => g.EventTitle))),
+            labels: attendanceData.map(x => x.eventTitle),
             datasets: [{
-            data: @Html.Raw(Json.Serialize(Model.GroupAttendanceChart.Select(g => g.PresentCount))),
-            backgroundColor: '#1877F2',
-            borderRadius: 6,
-            maxBarThickness: 40
+            label: 'Present',
+            data: attendanceData.map(x => x.presentCount),
+            backgroundColor: '#0d6efd',
+            borderRadius: 6
             }]
             },
             options: {
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 10 } } }
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+            y: {
+            beginAtZero: true,
+            max: totalMembers,              // full bar = whole group present
+            ticks: { precision: 0, stepSize: 1 }
+            }
+            },
+            plugins: {
+            legend: { display: false },
+            tooltip: {
+            callbacks: {
+            label: ctx => {
+            const item = attendanceData[ctx.dataIndex];
+            return `${item.presentCount} / ${item.totalMembers} present`;
+            }
+            }
+            }
+            }
             }
             });
         </script>

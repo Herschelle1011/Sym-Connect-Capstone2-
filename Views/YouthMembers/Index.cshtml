@@ -228,7 +228,7 @@
                                 data-url="@Url.Action(
                                                 "Profile",
                                                 "YouthMembers",
-                                                new { area = "Admin", id = item.MemberId })"
+                                                new { area = "", id = item.MemberId })"
                                 data-title="Member Profile" data-modal-size="lg">
 
                                 <td>@item.MemberId.ToString("D4")</td>
@@ -261,7 +261,7 @@
                                                                     "YouthMembers",
                                                                     new
                                                                     {
-                                                                        area = "Admin",
+                                                                        area = "",
                                                                         id = item.MemberId
                                                                     })"
                                                 data-title="Archive Member"
@@ -462,7 +462,7 @@
                                 data-url="@Url.Action( "GetApplicationInformation","YouthMembers",
                                                                     new
                                                                     {
-                                                                        area = "Admin",
+                                                                        area = "",
                                                                         id = item.MemberId
                                                                     })"
                                 data-title="Applicant Information" 
@@ -674,42 +674,30 @@
             (e.g. after redirect from an email link)
             ========================================== */
 
-            (async function () {
-                const openApplicantId = '@ViewBag.OpenApplicantId';
+        (function () {
 
-                if (!openApplicantId) { return; }
+        const params = new URLSearchParams(window.location.search);
 
-                const applicantUrl =
-                    '@Url.Action("GetApplicationInformation", "YouthMembers")' + '?id=' + openApplicantId;
+        if (params.has("openApplicantId")) {
+        params.delete("openApplicantId");
 
-                try {
-                    const response = await fetch(applicantUrl);
+        const cleanUrl = window.location.pathname +
+        (params.toString() ? "?" + params.toString() : "");
 
-                    if (!response.ok) {
-                        throw new Error("Unable to load applicant.");
-                    }
+        window.history.replaceState({}, "", cleanUrl);
+        }
 
-                    const html = await response.text();
+        // The server only sets this when the applicant is still pending
+        const openApplicantId = '@(ViewBag.OpenApplicantId ?? "")';
 
-                    const modalElement = document.getElementById("appModal");
-                    const modalTitle = modalElement.querySelector(".modal-title");
-                    const modalBody = modalElement.querySelector(".modal-body");
+        if (!openApplicantId) { return; }
 
-                    if (!modalElement || !modalTitle || !modalBody) {
-                        console.error("Reusable modal was not found.");
-                        return;
-                    }
+        const applicantUrl =
+        '@Url.Action("GetApplicationInformation", "YouthMembers", new { area = "" })' +
+        '?id=' + encodeURIComponent(openApplicantId);
 
-                    modalTitle.textContent = "Applicant Information";
-                    modalBody.innerHTML = html;
-
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-                    modal.show();
-                }
-                catch (error) {
-                    console.error("Unable to open applicant:", error);
-                }
-            })();
+        openModal("Applicant Information", applicantUrl, "lg");
+        })();
 
 
 
@@ -755,5 +743,4 @@
         });
 
     </script>
-}
 }

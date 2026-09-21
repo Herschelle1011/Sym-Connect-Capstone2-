@@ -664,3 +664,8 @@ body {
 .modal-backdrop:nth-of-type(2) {
     z-index: 1059; /* sits between the two modals, above appModal's own backdrop */
 }
+
+.page-back-btn {
+    cursor: pointer;
+    padding: 0;
+}

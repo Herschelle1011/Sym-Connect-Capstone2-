@@ -345,44 +345,35 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }
             }
 
-            var startDate = existingEvent.StartDate.Date + (existingEvent.StartTime ?? TimeSpan.Zero);
-            var endDate = existingEvent.EndDate?.Date + (existingEvent.EndTime ?? TimeSpan.Zero);
-
-            var now = DateTime.Now;
-            EventStatus status;
-
-            if (now < startDate)
-            {
-                status = EventStatus.Upcoming;
-            }
-            else if (now <= endDate)
-            {
-                status = EventStatus.Ongoing;
-            }
-            else
-            {
-                status = EventStatus.Completed;
-            }
-
-            existingEvent.Status = status;
+            existingEvent.Status = ComputeEventStatus(
+                existingEvent.IsAllDay,
+                existingEvent.StartDate,
+                existingEvent.EndDate,
+                existingEvent.StartTime,
+                existingEvent.EndTime,
+                DateTime.Now);
 
             var rating = 
             existingEvent.EvaluationRating =
                 await _evaluationService.GetEventFinalRatingAsync(id);
 
-            Console.WriteLine($"EVENT ID: {id}");
-            Console.WriteLine($"RATING: {rating}");
 
 
             return existingEvent;
         }
 
+        private static EventStatus ComputeEventStatus(
+            bool isAllDay, DateTime startDate, DateTime? endDate,
+            TimeSpan? startTime, TimeSpan? endTime, DateTime now)
+        {
+            var lastDay = (endDate ?? startDate).Date;
 
-        // TODO: [AUTH MIGRATION] createdByUserId currently comes from =========== ALERT ! ====
-        // Session.GetInt32("CurrentMemberId") — an int, Members.MemberId.
+            var start = isAllDay ? startDate.Date : startDate.Date + (startTime ?? TimeSpan.Zero);
+            var end = isAllDay ? lastDay.AddDays(1).AddTicks(-1) : lastDay + (endTime ?? TimeSpan.Zero);
 
-        // Once Identity is implemented, this parameter should likely become a Guid
-        // (AspNetUsers.Id) and the CreatedByUserId model type needs to change too.
+            if (now < start) return EventStatus.Upcoming;
+            return now <= end ? EventStatus.Ongoing : EventStatus.Completed;
+        }
 
 
         public async Task<EventResult> CreateEventAsync(CreateEventViewModel vm, bool isAdminCreated, int? createByUserId)
@@ -1060,31 +1051,26 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     !g.IsArchived);
         }
 
-        public async Task<OperationalResult> RecordTimeInAsync( string qrToken,int eventId,string scannedByUserId,
-           int? scannedByMemberId,
-           bool isAdmin)
+        public async Task<OperationalResult> RecordTimeInAsync(
+    string qrToken, int eventId, string scannedByUserId,
+    int? scannedByMemberId, bool isAdmin)
         {
             // Find QR owner
             var member = await _context.Members
                 .FirstOrDefaultAsync(m => m.QRToken == qrToken);
 
             if (member == null)
-            {
                 return new OperationalResult { Success = false, Message = "QR code not recognized." };
-            }
 
-            // Event must exist and be approved
             var eventEntity = await _context.Events
-                 .FirstOrDefaultAsync(e =>
-                     e.EventId == eventId &&
-                     !e.IsArchived &&
-                     !e.IsCancelled &&
-                     e.ApprovalStatus == ApprovalStatus.Approved);
+                .FirstOrDefaultAsync(e =>
+                    e.EventId == eventId &&
+                    !e.IsArchived &&
+                    !e.IsCancelled &&
+                    e.ApprovalStatus == ApprovalStatus.Approved);
 
             if (eventEntity == null)
-            {
                 return new OperationalResult { Success = false, Message = "Event is unavailable or has not been approved." };
-            }
 
             // Prevent duplicate attendance
             bool alreadyCheckedIn = await _context.Attendances
@@ -1098,6 +1084,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     Message = $"{member.FirstName} {member.LastName} already checked in."
                 };
             }
+
+            var scanTime = DateTime.Now;
 
             // ADMIN
             if (isAdmin)
@@ -1116,15 +1104,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     };
                 }
 
-                _context.Attendances.Add(new Attendance
-                {
-                    MemberId = member.MemberId,
-                    EventId = eventId,
-                    TimeIn = DateTime.Now,
-                    TimeOut = null,
-                    Status = "Pending",
-                    ScannedByUserId = scannedByUserId
-                });
+                _context.Attendances.Add(
+                    BuildTimeInAttendance(member, eventEntity, scannedByUserId, scanTime));
 
                 await _context.SaveChangesAsync();
 
@@ -1132,27 +1113,20 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             }
 
             // LEADER
-            
             if (scannedByMemberId == null)
-            {
                 return new OperationalResult { Success = false, Message = "Leader identity could not be resolved." };
-            }
 
             var leaderGroup = await GetGroupLedByMemberAsync(scannedByMemberId);
 
             if (leaderGroup == null)
-            {
                 return new OperationalResult { Success = false, Message = "You are not currently leading a group." };
-            }
 
-            //  must be assigned to this event
+            // Group must be assigned to this event
             bool groupIsExpected = await _context.EventGroups
                 .AnyAsync(eg => eg.EventId == eventId && eg.GroupId == leaderGroup.GroupId);
 
             if (!groupIsExpected)
-            {
                 return new OperationalResult { Success = false, Message = "Your group is not assigned to this event." };
-            }
 
             // Leader can only scan their own members
             bool memberInLeaderGroup = await _context.GroupDetails
@@ -1167,53 +1141,24 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 };
             }
 
-            _context.Attendances.Add(new Attendance
-            {
-                MemberId = member.MemberId,
-                EventId = eventId,
-                TimeIn = DateTime.Now,
-                TimeOut = null,
-                Status = "Pending",
-                ScannedByUserId = scannedByUserId
-            });
+            // Scanned member
+            _context.Attendances.Add(
+                BuildTimeInAttendance(member, eventEntity, scannedByUserId, scanTime));
 
- 
-            bool leaderAlreadyRecorded = await _context.Attendances
-                .AnyAsync(a => a.MemberId == scannedByMemberId && a.EventId == eventId);
-
-            if (!leaderAlreadyRecorded)
+            // Leader's own record (auto time-in), unless the leader scanned their own QR
+            if (member.MemberId != scannedByMemberId.Value)
             {
-                var leaderMember = await _context.Members.FindAsync(scannedByMemberId.Value);
-                if (leaderMember != null)
+                bool leaderAlreadyRecorded = await _context.Attendances
+                    .AnyAsync(a => a.MemberId == scannedByMemberId && a.EventId == eventId);
+
+                if (!leaderAlreadyRecorded)
                 {
-                    var scanTime = DateTime.Now;
-
-                    string leaderStatus = "Present";
-                    int leaderPoints = eventEntity.Points;
-
-                    if (eventEntity.StartTime.HasValue)
+                    var leaderMember = await _context.Members.FindAsync(scannedByMemberId.Value);
+                    if (leaderMember != null)
                     {
-                        var eventStartDateTime = eventEntity.StartDate.Date + eventEntity.StartTime.Value;
-                        var lateCutoff = eventStartDateTime + TimeSpan.FromMinutes(15);
-
-                        if (scanTime > lateCutoff)
-                        {
-                            leaderStatus = "Late";
-                            leaderPoints = eventEntity.Points - 2;
-                        }
+                        _context.Attendances.Add(
+                            BuildTimeInAttendance(leaderMember, eventEntity, scannedByUserId, scanTime));
                     }
-
-                    _context.Attendances.Add(new Attendance
-                    {
-                        MemberId = scannedByMemberId.Value,
-                        EventId = eventId,
-                        TimeIn = scanTime,
-                        TimeOut = null,
-                        Status = "Pending",
-                        Points = 0,
-                        ScannedByUserId = scannedByUserId
-                    });
-
                 }
             }
 
@@ -1222,6 +1167,27 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             return new OperationalResult { Success = true, Message = $"{member.FirstName} time in successfully." };
         }
 
+        private Attendance BuildTimeInAttendance(Member member, Event eventEntity, string scannedByUserId, DateTime scanTime)
+        {
+            var attendance = new Attendance
+            {
+                MemberId = member.MemberId,
+                EventId = eventEntity.EventId,
+                TimeIn = scanTime,
+                TimeOut = null,
+                Status = "Pending",
+                Points = 0,
+                ScannedByUserId = scannedByUserId
+            };
+
+            if (eventEntity.IsAllDay)
+            {
+                SetFinalAttendanceStatus(attendance, eventEntity); // Present + full points
+                member.EarnedPoints += attendance.Points;
+            }
+
+            return attendance;
+        }
 
         public async Task MarkAsAbsentAsync(int eventId, int groupId)
         {
@@ -1559,17 +1525,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 }
             }
 
-
-            // ==========================================
-            // 9. SAVE MEMBER + LEADER TOGETHER
-            // ==========================================
-
             await _context.SaveChangesAsync();
 
 
-            // ==========================================
-            // 10. NOTIFY SCANNED MEMBER
-            // ==========================================
 
             var memberUserId = await _context.Users
                 .AsNoTracking()
@@ -2388,7 +2346,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     StartDate = e.StartDate,
                     StartTime = e.StartTime,
                     EndTime = e.EndTime,
-
+                    EndDate = e.EndDate,       
+                    IsAllDay = e.IsAllDay,
                     ApprovalStatus = e.ApprovalStatus,
                     DateCreated = e.DateCreated,
                     ApprovedDate = e.ApprovedDate,
@@ -2508,16 +2467,28 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<EventResult> RestoreCancelledEventAsync(int eventId)
         {
-            var existingEvent = await _context.Events.FirstOrDefaultAsync(e => e.EventId == eventId);
-            if (existingEvent == null) return EventResult.Fail("Event doesn't exist");
+            var existingEvent = await _context.Events
+                
+                .Include(e => e.ExpectedGroups)
+
+                .ThenInclude(eg => eg.Group)
+
+                .FirstOrDefaultAsync(e =>
+                    e.EventId == eventId);
+
+            if (existingEvent == null)
+                return EventResult.Fail("Event doesn't exist");
 
             if (!existingEvent.IsCancelled)
-                return EventResult.Fail("This event isn't cancelled.");
+                return EventResult.Fail(
+                    "This event isn't cancelled.");
 
-            var eventStart = existingEvent.StartDate.Date + (existingEvent.StartTime ?? TimeSpan.Zero);
+            var eventStart =
+                existingEvent.StartDate.Date +
+                (existingEvent.StartTime ?? TimeSpan.Zero);
+
             if (eventStart <= DateTime.Now)
             {
-               
                 return EventResult.Fail(
                     "This event's original date has already passed. Please edit it with new dates before restoring.");
             }
@@ -2528,27 +2499,31 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             await _context.SaveChangesAsync();
 
+
             // ==========================================
-            // NOTIFY GROUP MEMBERS AND LEADERS
+            // NOTIFY MEMBERS AND LEADERS
             // ==========================================
 
             foreach (var eventGroup in existingEvent.ExpectedGroups)
             {
                 var groupId = eventGroup.GroupId;
 
-                // Notify members of the group
+                // MEMBERS
                 await _notificationService.NotifyGroupMembersAsync(
                     groupId,
                     "Event Restored",
                     $"The event \"{existingEvent.EventTitle}\" has been restored and is active again.",
-                    $"/Member/Calendar/Index"
+                    $"/Member/Events/Index?openEventId={existingEvent.EventId}"
                 );
 
-                // Notify the group's leader
+
+                // LEADER
                 if (eventGroup.Group?.LeaderId != null)
                 {
                     var leaderUserId = await _context.Users
-                        .Where(u => u.MemberId == eventGroup.Group.LeaderId)
+                        .Where(u =>
+                            u.MemberId ==
+                            eventGroup.Group.LeaderId)
                         .Select(u => u.Id)
                         .FirstOrDefaultAsync();
 
@@ -2563,6 +2538,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     }
                 }
             }
+
             return EventResult.Ok();
         }
 
@@ -2577,10 +2553,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 .Where(e => !e.IsArchived
                          && !e.IsCancelled
                          && e.ApprovalStatus == ApprovalStatus.Approved
-                         && e.StartDate.Date >= now.Date
-                         && (e.StartDate.Date > now.Date
-                             || e.StartTime == null
-                             || e.StartTime.Value >= now.TimeOfDay));
+                         && ((!e.IsAllDay && e.StartDate.Date >= now.Date &&
+                        (e.StartDate.Date > now.Date || e.StartTime!.Value >= now.TimeOfDay))
+                            ||
+                      (e.IsAllDay && e.StartDate.Date > now.Date)
+                ));
 
             if (!isAdmin)
             {
@@ -2859,43 +2836,48 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<List<GroupAttendanceChartItemViewModel>> GetGroupAttendanceChartAsync(int groupId)
         {
-            var now = DateTime.Now;
+            var today = DateTime.Today;
 
-            // Last 5 events this group was expected at, that have already ended —
-            // date-only comparison, so an event ending later today still counts as
-            // "not yet completed" and is excluded for now.
             var recentEvents = await _context.EventGroups
+                .AsNoTracking()
                 .Where(eg => eg.GroupId == groupId
-                          && eg.Event.EndDate.Date < now.Date
+                          && eg.Event.EndDate.Date < today
                           && !eg.Event.IsArchived
-                          && !eg.Event.IsCancelled)
+                          && !eg.Event.IsCancelled
+                          && eg.Event.ApprovalStatus == ApprovalStatus.Approved)
                 .OrderByDescending(eg => eg.Event.EndDate)
+                .ThenByDescending(eg => eg.EventId)
                 .Select(eg => new { eg.EventId, eg.Event.EventTitle, eg.Event.EndDate })
                 .Take(5)
                 .ToListAsync();
+
+            if (!recentEvents.Any()) return new List<GroupAttendanceChartItemViewModel>();
 
             var groupMemberIds = await _context.GroupDetails
                 .Where(gd => gd.GroupId == groupId)
                 .Select(gd => gd.MemberId)
                 .ToListAsync();
 
-            var chartData = new List<GroupAttendanceChartItemViewModel>();
+            var eventIds = recentEvents.Select(e => e.EventId).ToList();
 
-            foreach (var evt in recentEvents.OrderBy(e => e.EndDate))
-            {
-                var presentCount = await _context.Attendances
-                    .CountAsync(a => a.EventId == evt.EventId
-                                   && groupMemberIds.Contains(a.MemberId)
-                                   && (a.Status == "Present" || a.Status == "Late"));
+            var presentByEvent = await _context.Attendances
+                .AsNoTracking()
+                .Where(a => eventIds.Contains(a.EventId)
+                         && groupMemberIds.Contains(a.MemberId)
+                         && (a.Status == "Present" || a.Status == "Late"))
+                .GroupBy(a => a.EventId)
+                .Select(g => new { EventId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.EventId, x => x.Count);
 
-                chartData.Add(new GroupAttendanceChartItemViewModel
+            return recentEvents
+                .OrderBy(e => e.EndDate)
+                .Select(e => new GroupAttendanceChartItemViewModel
                 {
-                    EventTitle = evt.EventTitle,
-                    PresentCount = presentCount
-                });
-            }
-
-            return chartData;
+                    EventTitle = e.EventTitle,
+                    PresentCount = presentByEvent.GetValueOrDefault(e.EventId),
+                    TotalMembers = groupMemberIds.Count  
+                })
+                .ToList();
         }
 
 
@@ -2903,10 +2885,6 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         {
             var now = DateTime.Now;
 
-
-            // ==========================================
-            // 1. FIND THE MEMBER'S GROUP
-            // ==========================================
 
             var memberGroup = await _context.GroupDetails
                 .AsNoTracking()
@@ -3006,45 +2984,13 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
             foreach (var eventItem in events)
             {
-                DateTime eventStart;
-                DateTime eventEnd;
-
-
-                // ALL-DAY EVENT
-                if (eventItem.IsAllDay)
-                {
-                    eventStart = eventItem.StartDate.Date;
-
-                    eventEnd = eventItem.EndDate.Date
-                        .AddDays(1)
-                        .AddTicks(-1);
-                }
-
-                // NORMAL EVENT
-                else
-                {
-                    eventStart =
-                        eventItem.StartDate.Date +
-                        (eventItem.StartTime ?? TimeSpan.Zero);
-
-                    eventEnd =
-                        eventItem.EndDate.Date +
-                        (eventItem.EndTime ?? TimeSpan.Zero);
-                }
-
-
-                if (now < eventStart)
-                {
-                    eventItem.Status = "Upcoming";
-                }
-                else if (now <= eventEnd)
-                {
-                    eventItem.Status = "Ongoing";
-                }
-                else
-                {
-                    eventItem.Status = "Completed";
-                }
+                eventItem.Status = ComputeEventStatus(
+                    eventItem.IsAllDay,
+                    eventItem.StartDate,
+                    eventItem.EndDate,
+                    eventItem.StartTime,
+                    eventItem.EndTime,
+                    now).ToString();
             }
 
             events = events

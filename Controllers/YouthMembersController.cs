@@ -44,6 +44,13 @@ namespace Sym_Connect__Capstone2_.Controllers
                 Applicants = await _memberService.AllMemberApplicants()
             };
 
+            if (openApplicantId.HasValue)
+            {
+                var stillPending = await _memberService.GetMemberForApprovalAsync(openApplicantId.Value);
+
+                ViewBag.OpenApplicantId = stillPending != null ? openApplicantId : null;
+            }
+
             ViewBag.OpenApplicantId = openApplicantId;
 
             return View(vm);
@@ -277,10 +284,7 @@ namespace Sym_Connect__Capstone2_.Controllers
         public async Task<IActionResult> GetApplicationInformation(int id)
         {
             var applicant = await _memberService.GetApplicantInformationByIdAsync(id);
-            if (applicant == null)
-            {
-                return NotFound();
-            }
+     
             return PartialView("_ApplicationInformation", applicant);
         }
         //HTTPGET
@@ -441,8 +445,6 @@ namespace Sym_Connect__Capstone2_.Controllers
                       .Where(g => g.Group != null)       // skip any orphaned records
                       .Select(g => g.Group!.GroupName))  // ! tells C# "I've already checked"
             };
-
-
             return PartialView("_DeleteMemberForm", viewModel);
         }
 

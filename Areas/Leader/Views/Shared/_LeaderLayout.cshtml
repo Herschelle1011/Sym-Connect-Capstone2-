@@ -174,8 +174,11 @@
 
             
 
-            <a asp-controller="Dashboard" asp-action="Index"
+            <a asp-area="Leader"
+               asp-controller="Dashboard"
+               asp-action="Index"
                class="nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+
                 <i class="bi bi-grid"></i>
                 <span class="nav-label">Dashboard</span>
             </a>

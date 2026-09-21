@@ -26,6 +26,8 @@ namespace Sym_Connect__Capstone2_.ViewModels.Event
         public string? RejectionReason { get; set; }
         public string? ApproveByName { get; set; }
 
+        public bool IsAllDay { get; set; }
+
         public List<string> FacilityNames { get; set; } = new();
         public List<string> GroupNames { get; set; } = new();
 

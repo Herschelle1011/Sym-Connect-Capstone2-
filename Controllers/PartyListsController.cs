@@ -4,6 +4,7 @@ using Sym_Connect__Capstone2_.Services.Interfaces;
 using Sym_Connect__Capstone2_.ViewModels.Election;
 using Sym_Connect__Capstone2_.ViewModels.PartyList;
 using System.Threading.Tasks;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 
 [Authorize(Roles = "Admin")]
@@ -93,7 +94,12 @@ public class PartyListsController : Controller
 
 
         await _partyListService.EditPartyListAsync(model);
-        return RedirectToAction(nameof(Index));
+
+        return Json(new
+        {
+            success = true,
+            message = "Party list updated successfully."
+        });
     }
 
     // GET: PARTYLISTS/Delete/5

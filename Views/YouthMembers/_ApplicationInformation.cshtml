@@ -1,5 +1,14 @@
 ﻿@model Sym_Connect__Capstone2_.ViewModels.Member.MembershipApplicantDetailsViewModel
 
+@if (Model == null)
+{
+    <div class="alert alert-danger">
+        Unable to load applicant information.
+    </div>
+
+    return;
+}
+
 @{
     int? age = null;
 
@@ -16,7 +25,8 @@
         }
     }
 
-    var fullName = $"{Model.FirstName} {Model.MiddleName} {Model.LastName}".Trim();
+    var fullName =
+        $"{Model.FirstName} {Model.MiddleName} {Model.LastName}".Trim();
 }
 
 <div class="applicant-details-wrapper">
@@ -287,7 +297,6 @@
         </div>
 
     </div>
-
 
     <!-- =====================================================
          BUTTONS

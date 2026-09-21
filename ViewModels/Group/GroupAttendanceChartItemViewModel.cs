@@ -4,5 +4,7 @@
     {
         public string EventTitle { get; set; } = string.Empty;
         public int PresentCount { get; set; }
+
+        public int TotalMembers { get; set; }
     }
 }

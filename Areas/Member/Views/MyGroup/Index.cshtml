@@ -351,34 +351,26 @@
              GROUP HEADER
         ========================== -->
 
-        <div>
-            <p class="group-eyebrow">My Group</p>
+        <div class="d-flex align-items-center gap-3">
+            <button type="button"
+                    class="page-back-btn"
+                    onclick="goBack('@Url.Action("Index", "Member")')"
+                    title="Go back" aria-label="Go back">
+                <i class="ti ti-arrow-left"></i>
+            </button>
 
             <div class="group-title-row">
-
-                <h1 class="group-title">
-                    @Model.GroupName
-                </h1>
+                <h1 class="group-title">@Model.GroupName</h1>
 
                 <div class="member-count-badge">
                     <i class="ti ti-users"></i>
-
-                    <span>
-                        @Model.TotalMembers members
-                    </span>
+                    <span>@Model.TotalMembers members</span>
                 </div>
 
-                <div class="member-count-badge"
-                     style="background:#fff7ed; color:#c2410c;">
-
+                <div class="member-count-badge" style="background:#fff7ed; color:#c2410c;">
                     <i class="ti ti-star"></i>
-
-                    <span>
-                        @Model.TotalPoints group points
-                    </span>
-
+                    <span>@Model.TotalPoints group points</span>
                 </div>
-
             </div>
         </div>
 

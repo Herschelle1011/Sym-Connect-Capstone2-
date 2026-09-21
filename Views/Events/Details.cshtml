@@ -58,27 +58,27 @@
 
 <div class="details-wrapper mx-auto">
 
-    <div class="details-breadcrumb d-flex align-items-center gap-2 mb-3">
-        <a asp-controller="Events" asp-action="Index">Events</a>
-        <span>&gt;</span>
-        <a asp-controller="Events" asp-action="Index">Calendar</a>
-        <span>&gt;</span>
-        <span class="current">@Model.EventTitle</span>
-    </div>
 
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-            <i class="ti ti-calendar-event" style="color:var(--brand-blue); font-size:22px;"></i>
-            <h1 class="event-title-heading mb-0">@Model.EventTitle</h1>
-            <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
+
+        <div class="d-flex align-items-center gap-3">
+            <a asp-controller="Events" asp-action="Index"
+               class="page-back-btn" title="Back to Events" aria-label="Back to Events">
+                <i class="ti ti-arrow-left"></i>
+            </a>
+
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h1 class="event-title-heading mb-0">@Model.EventTitle</h1>
+                <span class="status-badge" style="background:@badgeBg; color:@badgeColor;">@statusText</span>
+            </div>
         </div>
+
         <div class="d-flex align-items-center gap-2">
             @{
                 bool isPastEvent = Model.EndDate < DateTime.Today;
             }
 
             @if (Model.Status != EventStatus.Completed &&
-            Model.Status != EventStatus.Ongoing &&
             Model.Status != EventStatus.Cancelled)
             {
                 <button type="button"
@@ -96,68 +96,25 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li>
-                        @{
-                            var nowForCancel = DateTime.Now;
-
-                            DateTime eventStartForCancel;
-
-                            if (Model.IsAllDay)
-                            {
-                                eventStartForCancel = Model.StartDate.Date;
-                            }
-                            else
-                            {
-                                eventStartForCancel =
-                                    Model.StartDate.Date +
-                                    (Model.StartTime ?? TimeSpan.Zero);
-                            }
-
-                            bool canCancelEvent =
-                              Model.Status != EventStatus.Cancelled &&
-                              Model.Status != EventStatus.Ongoing &&
-                              Model.Status != EventStatus.Completed &&
-                              eventStartForCancel > nowForCancel;
+                        @if (Model.Status == EventStatus.Upcoming)
+                        {
+                            <a class="dropdown-item text-danger"
+                               href="javascript:void(0)"
+                               onclick="openModal('Cancel Event', '/Events/GetCancelForm?eventId=@Model.EventId')">
+                                <i class="ti ti-calendar-cancel me-1"></i>
+                                Cancel Event
+                            </a>
                         }
-
-
-                        <div class="dropdown">
-
-                            <button class="btn btn-outline-secondary btn-sm"
-                                    type="button"
-                                    data-bs-toggle="dropdown">
-
-                                <i class="ti ti-dots"></i>
+                        else
+                        {
+                            <button type="button"
+                                    class="dropdown-item text-muted"
+                                    disabled
+                                    title="Only upcoming events can be cancelled.">
+                                <i class="ti ti-calendar-cancel me-1"></i>
+                                Cancel Event
                             </button>
-
-                            <ul class="dropdown-menu dropdown-menu-end">
-
-                                <li>
-                                    @if (canCancelEvent)
-                                    {
-                                        <a class="dropdown-item text-danger"
-                                           asp-action="ConfirmationCancel"
-                                           asp-controller="Events"
-                                           asp-route-eventid="@Model.EventId">
-
-                                            <i class="ti ti-calendar-cancel me-1"></i>
-                                            Cancel Event
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <button type="button"
-                                                class="dropdown-item text-muted"
-                                                disabled
-                                                title="Only upcoming events can be cancelled.">
-
-                                            <i class="ti ti-calendar-cancel me-1"></i>
-                                            Cancel Event
-                                        </button>
-                                    }
-                                </li>
-
-                            </ul>
-                        </div>
+                        }
                     </li>
                 </ul>
             </div>
@@ -208,19 +165,34 @@
         <span><i class="ti ti-clock-hour-4"></i>Created on @Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
     </div>
 
-    <ul class="nav details-tabs mb-4">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button">Overview</button>
-        </li>
+    <ul class="nav event-details-tabs mb-4">
+    <li class="nav-item">
+        <button class="nav-link active"
+                data-bs-toggle="tab"
+                data-bs-target="#tab-overview"
+                type="button">
+            Overview
+        </button>
+    </li>
 
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-evaluations" type="button">Evaluations</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-attendance" type="button">Attendance</button>
-        </li>
+    <li class="nav-item">
+        <button class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#tab-evaluations"
+                type="button">
+            Evaluations
+        </button>
+    </li>
 
-    </ul>
+    <li class="nav-item">
+        <button class="nav-link"
+                data-bs-toggle="tab"
+                data-bs-target="#tab-attendance"
+                type="button">
+            Attendance
+        </button>
+    </li>
+</ul>
 
     <div class="tab-content">
         <div class="tab-pane fade show active" id="tab-overview">

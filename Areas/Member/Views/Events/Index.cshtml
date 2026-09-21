@@ -611,17 +611,12 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
 
-            const filterButtons =
-                document.querySelectorAll(".event-filter-btn");
+            const filterButtons = document.querySelectorAll(".event-filter-btn");
+            const eventCards = document.querySelectorAll(".member-event-card");
+            const modalElement = document.getElementById("memberEventDetailsModal");
+            const modalContent = document.getElementById("memberEventDetailsContent");
 
-            const eventCards =
-                document.querySelectorAll(".member-event-card");
-
-            const modalElement =
-                document.getElementById("memberEventDetailsModal");
-
-            const modalContent =
-                document.getElementById("memberEventDetailsContent");
+            const eventDetailsUrl = '@Url.Action("EventDetails", "Events", new { area = "Member" })';
 
 
             // =====================================
@@ -629,55 +624,29 @@
             // =====================================
 
             filterButtons.forEach(function (button) {
-
                 button.addEventListener("click", function () {
 
-                    const selectedFilter =
-                        button.dataset.filter;
+                    const selectedFilter = button.dataset.filter;
 
-
-                    // Remove active from all buttons
-                    filterButtons.forEach(function (btn) {
-
-                        btn.classList.remove("active");
-
-                    });
-
-
-                    // Add active to clicked button
+                    filterButtons.forEach(btn => btn.classList.remove("active"));
                     button.classList.add("active");
 
-
-                    // Filter cards
                     eventCards.forEach(function (card) {
-
-                        const eventStatus =
-                            card.dataset.status;
-
-
-                        if (
+                        const show =
                             selectedFilter === "all" ||
-                            eventStatus === selectedFilter
-                        ) {
+                            card.dataset.status === selectedFilter;
 
-                            card.style.display = "";
-
-                        }
-                        else {
-
-                            card.style.display = "none";
-
-                        }
-
+                        card.style.display = show ? "" : "none";
                     });
-
                 });
-
             });
 
 
+            // =====================================
+            // OPEN EVENT DETAILS MODAL (single loader)
+            // =====================================
 
-               async function openEventDetailsModal(eventId) {
+            async function openEventDetailsModal(eventId) {
 
                 if (!eventId) {
                     return;
@@ -685,125 +654,76 @@
 
                 modalContent.innerHTML = `
                     <div class="text-center py-5">
-
-                        <div class="spinner-border text-primary"
-                             role="status">
-
-                            <span class="visually-hidden">
-                                Loading...
-                            </span>
-
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
                         </div>
-
-                        <div class="mt-3 text-muted small">
-                            Loading event details...
-                        </div>
-
+                        <div class="mt-3 text-muted small">Loading event details...</div>
                     </div>
                 `;
 
-                const eventModal =
-                    bootstrap.Modal.getOrCreateInstance(
-                        modalElement
-                    );
-
-                eventModal.show();
+                bootstrap.Modal.getOrCreateInstance(modalElement).show();
 
                 try {
 
-                    const url =
-                        '@Url.Action(
-                                                            "EventDetails",
-                                                            "Events",
-                                                    new { area = "Member" }
-                                            )'
-                        + '?id='
-                        + encodeURIComponent(eventId);
-
-
-                    const response =
-                        await fetch(url, {
+                    const response = await fetch(
+                        eventDetailsUrl + "?id=" + encodeURIComponent(eventId),
+                        {
                             method: "GET",
-                            headers: {
-                                "X-Requested-With":
-                                    "XMLHttpRequest"
-                            }
-                        });
-
+                            headers: { "X-Requested-With": "XMLHttpRequest" }
+                        }
+                    );
 
                     if (!response.ok) {
-
-                        throw new Error(
-                            "Unable to load event details."
-                        );
-
+                        throw new Error("Unable to load event details.");
                     }
 
+                    modalContent.innerHTML = await response.text();
 
-                    const html =
-                        await response.text();
-
-
-                    modalContent.innerHTML = html;
-
-
-                    // =================================
-                    // WIRE UP PHOTO STRIP ARROWS
-                    // =================================
-
-                    const strip = modalContent.querySelector("#eventPhotoStrip");
-
-                    if (strip) {
-
-                        const prevBtn = modalContent.querySelector(".event-strip-btn.prev");
-                        const nextBtn = modalContent.querySelector(".event-strip-btn.next");
-
-                        if (prevBtn) {
-                            prevBtn.addEventListener("click", function () {
-                                strip.scrollBy({ left: -strip.clientWidth, behavior: "smooth" });
-                            });
-                        }
-
-                        if (nextBtn) {
-                            nextBtn.addEventListener("click", function () {
-                                strip.scrollBy({ left: strip.clientWidth, behavior: "smooth" });
-                            });
-                        }
-
-                    }
+                    wirePhotoStrip();
 
                 }
                 catch (error) {
 
-                    console.error(
-                        "Event details error:",
-                        error
-                    );
-
+                    console.error("Event details error:", error);
 
                     modalContent.innerHTML = `
                         <div class="text-center py-5 px-4">
-
-                            <i class="bi bi-exclamation-circle
-                                      text-danger fs-2">
-                            </i>
-
-                            <h6 class="mt-3 mb-1">
-                                Unable to load event
-                            </h6>
-
-                            <p class="text-muted small mb-0">
-                                Please try again.
-                            </p>
-
+                            <i class="bi bi-exclamation-circle text-danger fs-2"></i>
+                            <h6 class="mt-3 mb-1">Unable to load event</h6>
+                            <p class="text-muted small mb-0">Please try again.</p>
                         </div>
                     `;
-
                 }
-
             }
 
 
+            // =====================================
+            // PHOTO STRIP ARROWS
+            // =====================================
+
+            function wirePhotoStrip() {
+
+                const strip = modalContent.querySelector("#eventPhotoStrip");
+
+                if (!strip) {
+                    return;
+                }
+
+                const prevBtn = modalContent.querySelector(".event-strip-btn.prev");
+                const nextBtn = modalContent.querySelector(".event-strip-btn.next");
+
+                if (prevBtn) {
+                    prevBtn.addEventListener("click", function () {
+                        strip.scrollBy({ left: -strip.clientWidth, behavior: "smooth" });
+                    });
+                }
+
+                if (nextBtn) {
+                    nextBtn.addEventListener("click", function () {
+                        strip.scrollBy({ left: strip.clientWidth, behavior: "smooth" });
+                    });
+                }
+            }
 
 
             // =====================================
@@ -811,192 +731,32 @@
             // =====================================
 
             eventCards.forEach(function (card) {
-
-                card.addEventListener("click", async function () {
-
-                    const eventId =
-                        card.dataset.eventId;
-
-
-                    if (!eventId) {
-                        return;
-                    }
-
-
-                    // =================================
-                    // SHOW LOADING STATE
-                    // =================================
-
-                    modalContent.innerHTML = `
-                        <div class="text-center py-5">
-
-                            <div class="spinner-border text-primary"
-                                 role="status">
-
-                                <span class="visually-hidden">
-                                    Loading...
-                                </span>
-
-                            </div>
-
-                            <div class="mt-3 text-muted small">
-                                Loading event details...
-                            </div>
-
-                        </div>
-                    `;
-
-
-                    // =================================
-                    // OPEN MODAL
-                    // =================================
-
-                    const eventModal =
-                        bootstrap.Modal.getOrCreateInstance(
-                            modalElement
-                        );
-
-                    eventModal.show();
-
-
-                    try {
-
-                        // =================================
-                        // REQUEST EVENT DETAILS
-                        // =================================
-
-                        const url =
-                            '@Url.Action(
-                                                                    "EventDetails",
-                                                                    "Events",
-                                                            new { area = "Member" }
-                                                    )'
-                            + '?id='
-                            + encodeURIComponent(eventId);
-
-
-                        const response =
-                            await fetch(url, {
-                                method: "GET",
-                                headers: {
-                                    "X-Requested-With":
-                                        "XMLHttpRequest"
-                                }
-                            });
-
-
-                        // =================================
-                        // CHECK RESPONSE
-                        // =================================
-
-                        if (!response.ok) {
-
-                            throw new Error(
-                                "Unable to load event details."
-                            );
-
-                        }
-
-
-                        // Controller returns:
-                        // PartialView("_EventDetails", model)
-
-                        const html =
-                            await response.text();
-
-
-                        // =================================
-                        // PUT PARTIAL VIEW IN MODAL
-                        // =================================
-
-                        modalContent.innerHTML = html;
-
-
-
-                        
-                            const strip = modalContent.querySelector("#eventPhotoStrip");
-
-                            if (strip) {
-
-                                const prevBtn = modalContent.querySelector(".event-strip-btn.prev");
-                                const nextBtn = modalContent.querySelector(".event-strip-btn.next");
-
-                                if (prevBtn) {
-                                    prevBtn.addEventListener("click", function () {
-                                        strip.scrollBy({ left: -strip.clientWidth, behavior: "smooth" });
-                                    });
-                                }
-
-                                if (nextBtn) {
-                                    nextBtn.addEventListener("click", function () {
-                                        strip.scrollBy({ left: strip.clientWidth, behavior: "smooth" });
-                                    });
-                                }
-
-                            }
-
-                    }
-                    catch (error) {
-
-                        console.error(
-                            "Event details error:",
-                            error
-                        );
-
-
-                        modalContent.innerHTML = `
-                            <div class="text-center py-5 px-4">
-
-                                <i class="bi bi-exclamation-circle
-                                          text-danger fs-2">
-                                </i>
-
-                                <h6 class="mt-3 mb-1">
-                                    Unable to load event
-                                </h6>
-
-                                <p class="text-muted small mb-0">
-                                    Please try again.
-                                </p>
-
-                            </div>
-                        `;
-
-                    }
-
+                card.addEventListener("click", function () {
+                    openEventDetailsModal(card.dataset.eventId);
                 });
-
             });
 
-            const params =
-                new URLSearchParams(window.location.search);
 
-            const openEventId =
-                params.get("openEventId");
+            // =====================================
+            // OPEN FROM ?openEventId=  (notifications, redirects)
+            // =====================================
+
+            const params = new URLSearchParams(window.location.search);
+            const openEventId = params.get("openEventId");
 
             if (openEventId) {
 
                 openEventDetailsModal(openEventId);
 
-
-                // Clean the query string from the URL so refreshing
-                // the page doesn't reopen the modal every time.
-
+                // Remove the parameter so a refresh doesn't reopen the modal
                 params.delete("openEventId");
 
                 const newUrl =
                     window.location.pathname +
                     (params.toString() ? "?" + params.toString() : "");
 
-                window.history.replaceState(
-                    {},
-                    "",
-                    newUrl
-                );
-
+                window.history.replaceState({}, "", newUrl);
             }
-
-
 
         });
     </script>

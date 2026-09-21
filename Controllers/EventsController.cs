@@ -50,16 +50,67 @@ public class EventsController : Controller
         var eventEntity = await _eventService.GetEventByIdAsync(eventId);
         if (eventEntity == null) return NotFound();
 
-        var eventStart = eventEntity.StartDate.Date + (eventEntity.StartTime ?? TimeSpan.Zero);
-        var eventEnd = eventEntity.EndDate.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
+        var now = DateTime.Now;
 
-        bool isLive = DateTime.Now >= eventStart.AddMinutes(-30) && DateTime.Now <= eventEnd;
+        bool isLive;
+
+
+        if (eventEntity.IsAllDay)
+        {
+
+            var eventStart =
+                eventEntity.StartDate.Date;
+
+            var eventEnd =
+                eventEntity.EndDate.Date
+                    .AddDays(1)
+                    .AddTicks(-1);
+
+            isLive =
+                now >= eventStart &&
+                now <= eventEnd;
+        }
+        else
+        {
+            // Normal scheduled event.
+
+            var eventStart =
+                eventEntity.StartDate.Date +
+                eventEntity.StartTime!.Value;
+
+            var eventEnd =
+                eventEntity.EndDate.Date +
+                eventEntity.EndTime!.Value;
+
+            // Time-In scanner opens
+            // 30 minutes before the event.
+            isLive =
+                now >= eventStart.AddMinutes(-30) &&
+                now <= eventEnd;
+        }
+
+
+        // 4. Scanner is not available.
         if (!isLive)
-            return RedirectToAction("Details", new { id = eventId });  
+        {
+            return RedirectToAction(
+                "Details",
+                new { id = eventId }
+            );
+        }
 
-        var state = await _eventService.GetScannerStateAsync(eventId);
-        if (state == null) return NotFound();
 
+        // 5. Load scanner information.
+        var state =
+            await _eventService.GetScannerStateAsync(eventId);
+
+        if (state == null)
+        {
+            return NotFound();
+        }
+
+
+        // 6. Open scanner page.
         return View(state);
     }
 
@@ -457,7 +508,12 @@ public class EventsController : Controller
     public async Task<IActionResult> CancelEvent(int eventId, string? reason)
     {
         var result = await _eventService.CancelEventAsync(eventId, reason);
-        return Json(new { success = result.Success, message = result.ErrorMessage });
+        return Json(new
+        {
+            success = result.Success,
+            message = result.Success ? "Event cancelled successfully." : result.ErrorMessage,
+            redirectUrl = result.Success ? Url.Action(nameof(Index), "Events") : null
+        });
     }
 
 

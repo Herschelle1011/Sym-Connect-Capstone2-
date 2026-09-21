@@ -5,17 +5,19 @@
 
     string FormatTime(TimeSpan? t) => t.HasValue ? DateTime.Today.Add(t.Value).ToString("h:mm tt") : "";
 
-    (string Text, string BadgeClass) GetStatus(DateTime startDate, TimeSpan? startTime, DateTime? endDate, TimeSpan? endTime)
+    (string Text, string BadgeClass) GetStatus(
+    bool isAllDay, DateTime startDate, TimeSpan? startTime, DateTime? endDate, TimeSpan? endTime)
     {
-        var start = startDate.Date + (startTime ?? TimeSpan.Zero);
-        var end = (endDate ?? startDate).Date + (endTime ?? TimeSpan.Zero);
+        var lastDay = (endDate ?? startDate).Date;
+
+        var start = isAllDay ? startDate.Date : startDate.Date + (startTime ?? TimeSpan.Zero);
+        var end = isAllDay ? lastDay.AddDays(1).AddTicks(-1) : lastDay + (endTime ?? TimeSpan.Zero);
         var now = DateTime.Now;
 
         if (now < start) return ("Upcoming", "bg-success-subtle text-success");
         if (now <= end) return ("Ongoing", "bg-warning-subtle text-warning");
         return ("Completed", "bg-secondary-subtle text-secondary");
     }
-
     // Distinct facility list for the Facility filter dropdown
     var allFacilities = Model
         .SelectMany(e => e.FacilityNames)
@@ -349,7 +351,7 @@
     <div id="assignedEventsList">
         @foreach (var ev in Model)
         {
-            var status = GetStatus(ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime);
+            var status = GetStatus(ev.IsAllDay, ev.StartDate, ev.StartTime, ev.EndDate, ev.EndTime);
             var facilityText = ev.FacilityNames.Any() ? string.Join(", ", ev.FacilityNames) : "-";
             var searchBlob = $"{ev.EventTitle} {facilityText}".ToLowerInvariant();
             var facilityAttr = string.Join("|", ev.FacilityNames);

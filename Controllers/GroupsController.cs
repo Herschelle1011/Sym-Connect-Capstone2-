@@ -23,12 +23,10 @@ namespace Sym_Connect__Capstone2_.Controllers
         // GET: Groups
         public async Task<IActionResult> Index()
         {
-            // GetAllGroupsAsync already returns fully-mapped GroupListViewModel — no remapping needed
             var groups = await _groupService.GetAllGroupsAsync();
             return View(groups);
         }
 
-        // GET: Groups/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -36,11 +34,15 @@ namespace Sym_Connect__Capstone2_.Controllers
             var group = await _groupService.GetGroupByIdAsync(id.Value);
             if (group == null) return NotFound();
 
-            // GetGroupByIdAsync already returns a fully-mapped GroupDetailsViewModel
+            group.Members = group.Members
+                .OrderByDescending(m => m.EarnedPoints)
+                .ThenBy(m => m.FullName)
+                .ToList();
+
             return View(group);
         }
 
-        // GET: Groups/Create
+
         public async Task<IActionResult> GetCreateForm()
         {
             var vm = new GroupCreateViewModel(); 
@@ -338,10 +340,6 @@ namespace Sym_Connect__Capstone2_.Controllers
                 message = result.Message
             });
         }
-
-
-
-
 
 
         [HttpGet]

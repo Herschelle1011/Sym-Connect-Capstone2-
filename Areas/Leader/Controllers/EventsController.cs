@@ -138,23 +138,87 @@ namespace Sym_Connect__Capstone2_.Areas.Leader.Controllers
         [HttpGet]
         public async Task<IActionResult> ScannerForTimeIn(int eventId)
         {
+
             var guard = await AuthorizeEvent(eventId);
-            if (guard != null) return guard;
 
-            var eventEntity = await _eventService.GetEventByIdAsync(eventId); // REUSED
-            if (eventEntity == null) return NotFound();
+            if (guard != null)
+            {
+                return guard;
+            }
 
-            var eventStart = eventEntity.StartDate.Date + (eventEntity.StartTime ?? TimeSpan.Zero);
-            var eventEnd = eventEntity.EndDate.Date + (eventEntity.EndTime ?? TimeSpan.Zero);
 
-            bool isLive = DateTime.Now >= eventStart.AddMinutes(-30) && DateTime.Now <= eventEnd;
+            // 2. Get the event.
+            var eventEntity =
+                await _eventService.GetEventByIdAsync(eventId);
+
+            if (eventEntity == null)
+            {
+                return NotFound();
+            }
+
+
+            var now = DateTime.Now;
+
+            bool isLive;
+
+
+            if (eventEntity.IsAllDay)
+            {
+   
+                var eventStart =
+                    eventEntity.StartDate.Date;
+
+                var eventEnd =
+                    eventEntity.EndDate.Date
+                        .AddDays(1)
+                        .AddTicks(-1);
+
+                isLive =
+                    now >= eventStart &&
+                    now <= eventEnd;
+            }
+            else
+            {
+                // Normal scheduled event.
+
+                var eventStart =
+                    eventEntity.StartDate.Date +
+                    eventEntity.StartTime!.Value;
+
+                var eventEnd =
+                    eventEntity.EndDate.Date +
+                    eventEntity.EndTime!.Value;
+
+                // Time-In scanner opens
+                // 30 minutes before the event.
+                isLive =
+                    now >= eventStart.AddMinutes(-30) &&
+                    now <= eventEnd;
+            }
+
+
+            // 4. Scanner is not available.
             if (!isLive)
-                return RedirectToAction("Details", new { id = eventId });
+            {
+                return RedirectToAction(
+                    "EventViewScannerDetails",
+                    new { id = eventId }
+                );
+            }
 
-            var state = await _eventService.GetScannerStateAsync(eventId); // REUSED
-            if (state == null) return NotFound();
 
-            return View(state); // new view: copy Scanner.cshtml, swap layout + fetch URLs
+            // 5. Load scanner information.
+            var state =
+                await _eventService.GetScannerStateAsync(eventId);
+
+            if (state == null)
+            {
+                return NotFound();
+            }
+
+
+            // 6. Open scanner page.
+            return View(state);
         }
 
 

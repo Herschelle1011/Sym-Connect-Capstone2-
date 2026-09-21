@@ -101,53 +101,34 @@
         <span><i class="ti ti-clock-hour-4"></i>Created on @Model.DateCreated.ToString("MMMM d, yyyy h:mm tt")</span>
     </div>
 
-    <div class="details-tabs-wrapper mb-4">
+    <ul class="nav event-details-tabs mb-4">
+        <li class="nav-item">
+            <button class="nav-link active"
+                    data-bs-toggle="tab"
+                    data-bs-target="#tab-overview"
+                    type="button">
+                Overview
+            </button>
+        </li>
 
-        <ul class="nav details-tabs mb-4">
+        <li class="nav-item">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#tab-evaluations"
+                    type="button">
+                Evaluations
+            </button>
+        </li>
 
-            <li class="nav-item">
-                <button class="nav-link active"
-                        data-bs-toggle="tab"
-                        data-bs-target="#tab-overview"
-                        type="button">
-                    Overview
-                </button>
-            </li>
-
-            <li class="nav-item">
-                <button class="nav-link"
-                        data-bs-toggle="tab"
-                        data-bs-target="#tab-evaluations"
-                        type="button">
-                    Evaluations
-                </button>
-            </li>
-
-            <li class="nav-item">
-                <button class="nav-link"
-                        data-bs-toggle="tab"
-                        data-bs-target="#tab-attendance"
-                        type="button">
-                    Attendance
-                </button>
-            </li>
-
-        </ul>
-
-        @* @if (Model.EvaluationRating.HasValue)
-        {
-            <div class="event-rating-tab">
-                <span class="rating-label">Event Rating</span>
-
-                <span class="rating-score">
-                    <i class="bi bi-star-fill"></i>
-                    @Model.EvaluationRating.Value.ToString("0.0")
-                    <small>/ 5</small>
-                </span>
-            </div>
-        } *@
-
-    </div>
+        <li class="nav-item">
+            <button class="nav-link"
+                    data-bs-toggle="tab"
+                    data-bs-target="#tab-attendance"
+                    type="button">
+                Attendance
+            </button>
+        </li>
+    </ul>
   
 
     <div class="tab-content">

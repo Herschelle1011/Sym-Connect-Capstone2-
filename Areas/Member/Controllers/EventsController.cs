@@ -43,12 +43,28 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             return View(model);
         }
 
+        [HttpGet]
         public async Task<IActionResult> CancelledDetails(int id)
         {
             var vm = await _eventService.GetCancelledEventDetailsAsync(id);
-            if (vm == null) return NotFound();
 
-            return View(vm);
+            // Still cancelled: show the full cancelled page
+            if (vm != null)
+                return View(vm);
+
+            var existingEvent = await _eventService.GetEventByIdAsync(id);
+
+            if (existingEvent == null || existingEvent.IsArchived)
+                return NotFound();
+
+            // Restored: send them to the Events page and open its modal
+            TempData["EventRestoredNotice"] = $"\"{existingEvent.EventTitle}\" was cancelled earlier but has been restored.";
+
+            return RedirectToAction("Index", "Events", new
+            {
+                area = "Member",
+                openEventId = existingEvent.EventId
+            });
         }
 
         [HttpGet]

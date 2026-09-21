@@ -2058,3 +2058,11 @@ document.addEventListener("click", async function (e) {
         btn.innerHTML = originalHtml;
     }
 });
+
+function goBack(fallbackUrl) {
+    if (document.referrer && new URL(document.referrer).origin === location.origin) {
+        history.back();
+    } else {
+        window.location.href = fallbackUrl;
+    }
+}

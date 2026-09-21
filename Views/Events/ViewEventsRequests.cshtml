@@ -11,8 +11,13 @@
         @Html.AntiForgeryToken()
     </div>
 
-    <h2 class="page-title mb-4">Event Requests</h2>
-
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a asp-controller="Events" asp-action="Index"
+           class="page-back-btn" title="Back to Events" aria-label="Back to Events">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="page-title mb-0">Event Requests</h2>
+    </div>
     <!-- ═══════════════ STAT CARDS ═══════════════ -->
     <div class="row g-3 mb-4">
 
