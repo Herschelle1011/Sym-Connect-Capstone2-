@@ -24,7 +24,7 @@ namespace Sym_Connect__Capstone2_.ViewModels.Participation
         public int EventsAttendedCount { get; set; } // how many events did this group attended? count
 
         public int TotalPossiblePoints { get; set; }   // sum of Points across all assigned events
-        public int EarnedPoints { get; set; }          // sum of Points for events actually attended
+        public double EarnedPoints { get; set; }          // sum of Points for events actually attended
 
 
 

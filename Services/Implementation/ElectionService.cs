@@ -217,18 +217,42 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<EditElectionViewModel?> GetEditElectionByIdAsync(int id)
         {
-            return await _context.Elections
-                            .AsNoTracking()
-                            .Where(e => e.ElectionId == id)
-                            .Select(e => new EditElectionViewModel
-                            {
-                                ElectionId = id,
-                                ElectionName = e.ElectionName,
-                                StartDate = e.StartDate,
-                                EndDate = e.EndDate,
-                                StartTime = e.StartTime,
-                                EndTime = e.EndTime,
-                            }).FirstOrDefaultAsync();
+            var vm = await _context.Elections
+                .AsNoTracking()
+                .Where(e => e.ElectionId == id)
+                .Select(e => new EditElectionViewModel
+                {
+                    ElectionId = e.ElectionId,
+                    ElectionName = e.ElectionName,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                    StartTime = e.StartTime,
+                    EndTime = e.EndTime,
+
+                    SelectedPartyListIds = e.partyLists
+                        .Select(ep => ep.PartyListId)
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (vm == null)
+                return null;
+
+            vm.AvailablePartyLists = await _context.PartyLists
+                .AsNoTracking()
+                .Where(p =>
+                    p.isArchived != true &&
+                    (p.ElectionId == null || p.ElectionId == id))
+                .OrderBy(p => p.PartyName)
+                .Select(p => new PartyListsViewModel
+                {
+                    Id = p.PartyListId,
+                    PartyListName = p.PartyName,
+                    PartyListDescription = p.PartyListDescription
+                })
+                .ToListAsync();
+
+            return vm;
         }
 
         public async Task<OperationalResult> EditElectionAsync(
@@ -308,33 +332,26 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             // 4. CHECK NEW START / END
             // ==========================================
 
-            var newStart =
-                vm.StartDate.Date +
-                vm.StartTime;
+            var newStart = vm.StartDate.Date + vm.StartTime;
+            var newEnd = vm.EndDate.Date + vm.EndTime;
 
-            var newEnd =
-                vm.EndDate.Date +
-                vm.EndTime;
+            bool startChanged = Math.Abs((newStart - currentStart).TotalMinutes) >= 1;
 
-
-            if (newStart <= DateTime.Now)
+            if (startChanged && newStart <= DateTime.Now)
             {
                 return new OperationalResult
                 {
                     Success = false,
-                    Message =
-                        "Election start date and time must be in the future."
+                    Message = "Election start date and time must be in the future."
                 };
             }
-
 
             if (newEnd <= newStart)
             {
                 return new OperationalResult
                 {
                     Success = false,
-                    Message =
-                        "Election end date and time must be after the start date and time."
+                    Message = "Election end date and time must be after the start date and time."
                 };
             }
 
@@ -719,11 +736,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         public async Task<ArchivedElectionDetailsViewModel?> GetArchivedDetailsAsync(int id)
         {
-            return await _context.Elections
+            var vm = await _context.Elections
                 .AsNoTracking()
-                .Where(e =>
-                    e.ElectionId == id &&
-                    e.IsArchived == true)
+                .Where(e => e.ElectionId == id && e.IsArchived == true)
                 .Select(e => new ArchivedElectionDetailsViewModel
                 {
                     ElectionId = e.ElectionId,
@@ -731,16 +746,65 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                     StartDate = e.StartDate,
                     EndDate = e.EndDate,
-
                     StartTime = e.StartTime,
                     EndTime = e.EndTime,
 
                     ArchiveDate = e.ArchivedDate,
 
-                    VoteCount = _context.Votes
-                        .Count(v => v.ElectionId == e.ElectionId)
+                    TotalVotes = _context.Votes
+                        .Count(v => v.ElectionId == e.ElectionId),
+
+                    PartyListNames = e.partyLists
+                        .Select(p => p.PartyName)
+                        .ToList(),
+
+                    TotalPartyLists = e.partyLists.Count(),
+
+                    TotalCandidates = e.partyLists
+                        .SelectMany(p => p.candidates)
+                        .Count(),
+
+                    Status = ""
                 })
                 .FirstOrDefaultAsync();
+
+            if (vm == null)
+                return null;
+
+            vm.VoteCount = vm.TotalVotes;
+
+            if (vm.TotalPartyLists == 0)
+            {
+                var voted = await _context.Votes
+                    .AsNoTracking()
+                    .Where(v => v.ElectionId == id)
+                    .Select(v => new
+                    {
+                        v.CandidateId,
+                        PartyName = v.Candidate.PartyList.PartyName
+                    })
+                    .Distinct()
+                    .ToListAsync();
+
+                vm.TotalCandidates = voted.Select(x => x.CandidateId).Distinct().Count();
+
+                vm.PartyListNames = voted
+                    .Select(x => x.PartyName)
+                    .Distinct()
+                    .ToList();
+
+                vm.TotalPartyLists = vm.PartyListNames.Count;
+            }
+
+            var now = DateTime.Now;
+            var start = vm.StartDate.Date + vm.StartTime;
+            var end = vm.EndDate.Date + vm.EndTime;
+
+            vm.Status = now < start ? "Incoming"
+                      : now <= end ? "Open"
+                      : "Closed";
+
+            return vm;
         }
 
         public async Task<List<VotingHistoryViewModel>> GetVotingHistoryAsync(string userId)

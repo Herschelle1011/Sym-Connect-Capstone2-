@@ -153,11 +153,19 @@
             flex: 1;
         }
 
-    .star-icon {
-        color: #C7CEDA;
-        transition: color .15s ease;
-    }
+ .star-icon {
+    color: #C7CEDA;
+    transition: color .15s ease;
+}
 
+/* Filled (selected) stars are yellow */
+.star-icon.bi-star-fill {
+    color: #F5B301;
+}
+
+.star-rating label:hover .star-icon {
+    color: #F5B301;
+}
     .star-rating label:hover .star-icon {
         color: #F5B301;
     }
@@ -240,13 +248,17 @@
                 <div class="eval-date-item">
                     <span class="eval-date-label">Open date:</span>
                     <i class="bi bi-calendar3"></i>
-                    <span>@Model.openAt.ToString("MMMM d, yyyy")</span>
+                    <span>
+    @Model.openAt.Value.ToString("MMM. d, yyyy • h:mm tt")
+</span>
                 </div>
 
                 <div class="eval-date-item">
                     <span class="eval-date-label">Close date:</span>
                     <i class="bi bi-calendar3"></i>
-                    <span>@Model.closesAt.ToString("MMMM d, yyyy")</span>
+                    <span>
+    @Model.closesAt.Value.ToString("MMM. d, yyyy • h:mm tt")
+</span>
                 </div>
 
             </div>
@@ -273,10 +285,6 @@
             </div>
 
 
-            <h6 class="fw-semibold mb-3 text-muted"
-                style="font-size:13px; letter-spacing:0.5px;">
-                YOUR DETAILS
-            </h6>
 
             <h6 class="fw-semibold mb-3 text-muted" style="font-size:13px; letter-spacing:0.5px;">YOUR DETAILS</h6>
             <div class="row g-3">

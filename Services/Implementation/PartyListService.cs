@@ -134,8 +134,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                               : c.Member.User.ProfilePictureUrl
                         }
                     }).ToList();
-    
-                    while(slots.Count < p.MaxCandidates)
+
+                    while (slots.Count < p.MaxCandidates)
                     {
                         slots.Add(new CandidateSlotDisplayViewModel { Candidate = null });
                     }
@@ -145,12 +145,91 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         positionName = p.PositionName,
                         DisplayOrder = p.DisplayOrder,
                         maxCandidates = p.MaxCandidates,
-                        Slots = slots                   
+                        Slots = slots
                     };
                 }).ToList()
             };
 
             return viewModel;
+        }
+
+
+        public async Task<OperationalResult> SetPositionActiveAsync(int positionId, bool isActive)
+        {
+            var position = await _context.positions
+                .FirstOrDefaultAsync(p => p.PositionId == positionId);
+
+            if (position == null)
+            {
+                return new OperationalResult
+                {
+                    Success = false,
+                    Message = "Position not found."
+                };
+            }
+
+            // Turning it back ON just flips the flag. Removed candidates are not restored.
+            if (isActive)
+            {
+                position.IsActive = true;
+                await _context.SaveChangesAsync();
+
+                return new OperationalResult
+                {
+                    Success = true,
+                    Message = "Position activated."
+                };
+            }
+
+            var now = DateTime.Now;
+
+            var candidates = await _context.Candidates
+                .Include(c => c.PartyList)
+                    .ThenInclude(p => p.Election)
+                .Where(c => c.positionId == positionId)
+                .ToListAsync();
+
+            // Only candidates whose election has NOT started yet (or that are
+            // not in any election) are safe to remove.
+            var removable = candidates
+                .Where(c =>
+                    c.PartyList == null ||
+                    c.PartyList.Election == null ||
+                    now < c.PartyList.Election.StartDate.Date + c.PartyList.Election.StartTime)
+                .ToList();
+
+            // Never remove a candidate who already has votes.
+            var removableIds = removable.Select(c => c.CandidateId).ToList();
+
+            var votedIds = await _context.Votes
+                .Where(v => removableIds.Contains(v.CandidateId))
+                .Select(v => v.CandidateId)
+                .Distinct()
+                .ToListAsync();
+
+            var toRemove = removable
+                .Where(c => !votedIds.Contains(c.CandidateId))
+                .ToList();
+
+            int keptCount = candidates.Count - toRemove.Count;
+
+            _context.Candidates.RemoveRange(toRemove);
+            position.IsActive = false;
+
+            await _context.SaveChangesAsync();
+
+            string message = $"Position set to inactive. {toRemove.Count} candidate(s) removed.";
+
+            if (keptCount > 0)
+            {
+                message += $" {keptCount} candidate(s) were kept because they belong to an ongoing or finished election, or already have votes.";
+            }
+
+            return new OperationalResult
+            {
+                Success = true,
+                Message = message
+            };
         }
 
 
@@ -200,7 +279,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             var Result = new BulkAddCandidatesResult { Success = true };
 
             var partyListExists = await _context.PartyLists.AnyAsync(p => p.PartyListId == model.partyListId);
-            if (!partyListExists) {
+            if (!partyListExists)
+            {
                 Result.Success = false;
                 Result.Message = "Party list not found.";
                 return Result;
@@ -220,7 +300,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                     if (currentCandidate != null && currentCandidate.MemberId == assignment.MemberId)
                     {
-                        continue; 
+                        continue;
                     }
                 }
 
@@ -238,8 +318,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 if (alreadyInThisPosition)
                 {
                     Result.Success = false;
-                    if(!Result.Errors.Contains("This member is already assigned to this position."))
-                    Result.Errors.Add("This member is already assigned to this position.");
+                    if (!Result.Errors.Contains("This member is already assigned to this position."))
+                        Result.Errors.Add("This member is already assigned to this position.");
                     continue;
                 }
 
@@ -249,8 +329,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 {
                     Result.Success = false;
                     if (!Result.Errors.Contains("This member is already assigned to this position."))
-                    Result.Errors.Add($"This member is already assigned to another position in this party list.");
-                    continue; 
+                        Result.Errors.Add($"This member is already assigned to another position in this party list.");
+                    continue;
                 }
 
                 if (assignment.ExistingCandidateId.HasValue)
@@ -263,6 +343,15 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 else
                 {
                     var position = await _context.positions.FindAsync(assignment.PositionId);
+
+                    // NEW: don't allow candidates on a missing or inactive position
+                    if (position == null || !position.IsActive)
+                    {
+                        Result.Success = false;
+                        if (!Result.Errors.Contains("This position is inactive or does not exist."))
+                            Result.Errors.Add("This position is inactive or does not exist.");
+                        continue;
+                    }
 
                     var existingCount = await _context.Candidates.Where(c => c.PartyId == model.partyListId && c.positionId == assignment.PositionId).CountAsync();
 
@@ -280,7 +369,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                         MemberId = assignment.MemberId
 
                     });
-                }            
+                }
             }
             if (Result.Success)
             {
@@ -296,6 +385,11 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (!existingPartyList) return;
             var existingMember = await _context.Members.AnyAsync(m => m.MemberId == vm.memberId);
             if (!existingMember) return;
+
+            // NEW: don't add candidates to an inactive position
+            var positionIsActive = await _context.positions
+                .AnyAsync(p => p.PositionId == vm.positionId && p.IsActive);
+            if (!positionIsActive) return;
 
             var newCandidate = new Candidates
             {
@@ -372,7 +466,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             if (existingPartyList == null)
                 return new OperationalResult { Success = false, Message = "Party list not found." };
 
-   
+
             if (existingPartyList.ElectionId != null)
             {
                 return new OperationalResult

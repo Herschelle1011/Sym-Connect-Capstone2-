@@ -18,6 +18,8 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
         public async Task<ParticipationTrackingViewModel> GetParticipationTrackingAsync(DateTime? fromDate = null, DateTime? toDate = null)
         {
             var groupParticipation = await GetGroupAsync(fromDate, toDate);
+            var groupsWithEvents = groupParticipation.Where(g => g.EventsAssigned > 0).ToList();
+
 
             var vm = new ParticipationTrackingViewModel
             {
@@ -28,20 +30,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
             {
                 TotalGroups = groupParticipation.Count,
 
-                FullyPresentGroups =
-                    groupParticipation.Count(g =>
-                        g.Status ==
-                        GroupAttendanceStatus.FullyPresent),
-
-                PartiallyPresentGroups =
-                    groupParticipation.Count(g =>
-                        g.Status ==
-                        GroupAttendanceStatus.PartiallyPresent),
-
-                AbsentGroups =
-                    groupParticipation.Count(g =>
-                        g.Status ==
-                        GroupAttendanceStatus.Absent),
+                FullyPresentGroups = groupsWithEvents.Count(g => g.Status == GroupAttendanceStatus.FullyPresent),    
+                PartiallyPresentGroups = groupsWithEvents.Count(g => g.Status == GroupAttendanceStatus.PartiallyPresent),  
+                AbsentGroups = groupsWithEvents.Count(g => g.Status == GroupAttendanceStatus.Absent),              
 
                 TotalMembers = await _context.Members.CountAsync(m => m.Status == "Active")
             };
@@ -86,7 +77,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
                 // NEW — points tracking
                 int totalPossiblePoints = 0;
-                int earnedPoints = 0;
+                double earnedPoints = 0;
 
 
                 foreach (var eventItem in assignedEvents)
@@ -122,8 +113,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                     else
                     {
                         partiallyPresent++;
-            
-                        earnedPoints += eventItem.Points;
+                        earnedPoints += eventItem.Points * (double)presentMemberIds.Count / memberIds.Count;
                     }
                 }
 
@@ -131,11 +121,9 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 int attendedEvents =
                     fullyPresent + partiallyPresent;
 
-                double rate =
-                    assignedEvents.Count == 0
-                        ? 0
-                        : (double)attendedEvents /
-                            assignedEvents.Count * 100;
+                double rate = totalPossiblePoints == 0
+                      ? 0
+                      : (earnedPoints / totalPossiblePoints) * 100;
 
 
                 GroupAttendanceStatus status;

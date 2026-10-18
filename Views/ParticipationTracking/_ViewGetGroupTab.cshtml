@@ -103,10 +103,12 @@
                             </td>
 
 
+
+
                             <!-- PRESENT -->
-                            <td class="text-center table-number">
-                                @group.AttendedEvents
-                            </td>
+                           <td class="text-center table-number">
+        @group.FullyPresentEvents
+    </td>
 
 
                             <!-- PARTIAL -->
@@ -123,7 +125,7 @@
 
                             <!-- POINTS -->
                             <td class="text-center table-number">
-                                @group.EarnedPoints/@group.TotalPossiblePoints points
+                                @group.EarnedPoints.ToString("0.##")/@group.TotalPossiblePoints points
                             </td>
 
 

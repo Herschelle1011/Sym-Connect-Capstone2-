@@ -8,7 +8,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
     public class PositionService : IPositionService
     {
         private readonly AppDbContext _context;
-        
+
         public PositionService(AppDbContext context)
         {
             _context = context;
@@ -36,7 +36,7 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
                 MaxCandidates = vm.MaxCandidate,
                 IsActive = true,
             };
-             await _context.positions.AddAsync(position);
+            await _context.positions.AddAsync(position);
             await _context.SaveChangesAsync();
             return true;
 
@@ -71,11 +71,51 @@ namespace Sym_Connect__Capstone2_.Services.Implementation
 
         }
 
+  
         public async Task<bool> SetActiveStatusAsync(int positionId, bool isActive)
         {
             var position = await _context.positions.FindAsync(positionId);
             if (position == null) return false;
+
+            if (!isActive)
+            {
+                var now = DateTime.Now;
+
+                var candidates = await _context.Candidates
+                    .Include(c => c.PartyList)
+                        .ThenInclude(p => p.Election)
+                    .Where(c => c.positionId == positionId)
+                    .ToListAsync();
+
+                // Only candidates whose election has NOT started yet
+                // (or that are not in any election) are safe to remove.
+                var removable = candidates
+                    .Where(c =>
+                        c.PartyList == null ||
+                        c.PartyList.Election == null ||
+                        now < c.PartyList.Election.StartDate.Date + c.PartyList.Election.StartTime)
+                    .ToList();
+
+                // Never remove a candidate who already has votes.
+                var removableIds = removable.Select(c => c.CandidateId).ToList();
+
+                var votedIds = await _context.Votes
+                    .Where(v => removableIds.Contains(v.CandidateId))
+                    .Select(v => v.CandidateId)
+                    .Distinct()
+                    .ToListAsync();
+
+                var toRemove = removable
+                    .Where(c => !votedIds.Contains(c.CandidateId))
+                    .ToList();
+
+                _context.Candidates.RemoveRange(toRemove);
+            }
+
             position.IsActive = isActive;
+
+            // One SaveChanges, so the candidate removal and the status change
+            // succeed or fail together.
             await _context.SaveChangesAsync();
             return true;
         }

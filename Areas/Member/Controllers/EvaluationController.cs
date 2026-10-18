@@ -90,7 +90,8 @@ namespace Sym_Connect__Capstone2_.Areas.Member.Controllers
             {
                 EvaluationId = evaluation.EvaluationId,
                 EvaluationTitle = evaluation.EvaluationTitle,
-
+                openAt = evaluation.OpenAt,
+                closesAt = evaluation.ClosedAt,
                 MemberFullName = user.DisplayName ?? "",
                 MemberEmail = user.Email ?? "",
 

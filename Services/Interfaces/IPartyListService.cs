@@ -27,5 +27,6 @@ namespace Sym_Connect__Capstone2_.Services.Interfaces
 
         Task<ArchivedPartyListDetailsViewModel?> GetArchivedDetailsAsync(int id);
 
+
     }
 }

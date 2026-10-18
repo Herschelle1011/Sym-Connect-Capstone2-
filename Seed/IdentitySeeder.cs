@@ -32,48 +32,17 @@ namespace Sym_Connect__Capstone2_.Seed
             );
 
             await SeedUserAsync(
-                userManager,
-                context,
-                email: "SYMleader@gmail.com",
-                password: "Leader@123",
-                firstName: "Leader",
-                lastName: "User",
-                photoUrl: "https://res.cloudinary.com/dxzmz62w4/image/upload/v1787378932/ChatGPT_Image_Aug_22_2026_02_05_02_PM_j5vans.png",
-                role: "Leader"
-            );
+               userManager,
+               context,
+               email: "hers@gmail.com",
+               password: "hers@123",
+               firstName: "Leader",
+               lastName: "Leader",
+               photoUrl: "https://res.cloudinary.com/dxzmz62w4/image/upload/v1787378932/ChatGPT_Image_Aug_22_2026_02_05_02_PM_j5vans.png",
+               role: "Leader"
+           );
 
-            await SeedUserAsync(
-                userManager,
-                context,
-                email: "herschelle@gmail.com",
-                password: "hers123456",
-                firstName: "Hers",
-                lastName: "User",
-                photoUrl: "https://res.cloudinary.com/dxzmz62w4/image/upload/v1787378932/ChatGPT_Image_Aug_22_2026_02_05_02_PM_j5vans.png",
-                role: "Member"
-            );
 
-            await SeedUserAsync(
-                userManager,
-                context,
-                email: "Jason@gmail.com",
-                password: "jason123456",
-                firstName: "Jason",
-                lastName: "User",
-                photoUrl: "https://res.cloudinary.com/dxzmz62w4/image/upload/v1787378932/ChatGPT_Image_Aug_22_2026_02_05_02_PM_j5vans.png",
-                role: "Member"
-            );
-
-            await SeedUserAsync(
-                userManager,
-                context,
-                email: "windsay@gmail.com",
-                password: "jason123456",
-                firstName: "Windsay",
-                lastName: "User",
-                photoUrl: "https://res.cloudinary.com/dxzmz62w4/image/upload/v1787378932/ChatGPT_Image_Aug_22_2026_02_05_02_PM_j5vans.png",
-                role: "Member"
-            );
         }
 
         private static async Task SeedRolesAsync(

@@ -207,8 +207,9 @@
                     <i class="bi bi-calendar3"></i>
 
                     <span>
-                        @Model.openAt.ToString("MMM. d, yyyy • h:mm tt")
+                        @(Model.openAt.HasValue ? Model.openAt.Value.ToString("MMM. d, yyyy • h:mm tt") : "N/A")
                     </span>
+
 
                 </div>
 
@@ -222,8 +223,9 @@
                     <i class="bi bi-calendar3"></i>
 
                     <span>
-                        @Model.closesAt.ToString("MMM. d, yyyy • h:mm tt")
+                        @(Model.closesAt.HasValue ? Model.closesAt.Value.ToString("MMM. d, yyyy • h:mm tt") : "N/A")
                     </span>
+
 
                 </div>
 
